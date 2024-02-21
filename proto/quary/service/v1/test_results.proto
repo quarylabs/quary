@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+import "quary/service/v1/test_result.proto";
+
+option java_multiple_files = true;
+
+// WasmRunTestResponse is a temporary message type to work on inferring in Rust rather than in Typescript.
+// The goal is to make better interfaces over time.
+message TestResults {
+  repeated TestResult results = 1;
+}

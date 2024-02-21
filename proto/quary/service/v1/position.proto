@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+option java_multiple_files = true;
+
+// Position is a simple representation of a line and character position in a file.
+message Position {
+  uint32 line = 1;
+  uint32 character = 2;
+}

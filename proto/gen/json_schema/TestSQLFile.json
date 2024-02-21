@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/TestSQLFile",
+    "definitions": {
+        "TestSQLFile": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "references": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test SQL File"
+        }
+    }
+}

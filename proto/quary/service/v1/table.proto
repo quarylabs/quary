@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+import "google/protobuf/empty.proto";
+import "quary/service/v1/project_file.proto";
+
+option java_multiple_files = true;
+
+// Table is a table in the project that is used to visualise columns, descriptions, and column tests.
+message Table {
+  // PresentInSchema is a table that is present in a SQL document and in the YAML definitions.
+  // Values are inferred and read from YAML.
+  message PresentInSchema {
+    message PresentRow {
+      oneof row {
+        Row present_in_sql_and_definitions = 1;
+        Row missing_in_definitions = 2;
+        Row present_in_definitions_but_not_recognisable_in_sql = 3;
+      }
+    }
+
+    repeated PresentRow rows = 1;
+  }
+
+  // NotPresentInSchema is a table that is present as SQL but not in the YAML definitions. And so all the values
+  // are inferred.
+  message NotPresentInSchema {
+    repeated Row rows = 1;
+  }
+
+  oneof table_type {
+    PresentInSchema present = 1;
+    NotPresentInSchema not_present = 2;
+  }
+}
+
+// Row is a row in the table.
+message Row {
+  string title = 1;
+  repeated RowTest tests = 2;
+  RowDescription description = 3;
+}
+
+// TableTest is a test that is run against a row in a table. It is a oneof because the test can be inferred from the
+// YAML definitions, or it can be present in the SQL document.
+message RowTest {
+  oneof test {
+    RowTestDetails present_and_not_inferred = 1;
+    RowTestDetails present_and_inferred = 2;
+    RowTestDetails not_present_but_inferred = 3;
+  }
+}
+
+// RowTestDetails encapsulates the details of tests associated with row and column data.
+// The 'column_test' field within this structure is specifically used to manage test operations
+// such as deletion and addition. These operations are typically invoked through callbacks.
+message RowTestDetails {
+  string text = 1;
+  ColumnTest column_test = 2;
+}
+
+// RowDescription is a description of a row in a table. It is a oneof because the description can be inferred from the
+// YAML definitions and/or it can be present in the SQL document.
+message RowDescription {
+  message PresentWithInference {
+    string present = 1;
+    string inferred = 2;
+  }
+
+  oneof description {
+    string present = 1;
+    string present_and_inferred_identical = 2;
+    PresentWithInference present_with_different_inference = 3;
+    string inferred = 4;
+    google.protobuf.Empty not_present = 5;
+  }
+}

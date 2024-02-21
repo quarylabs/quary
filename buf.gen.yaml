@@ -1,0 +1,26 @@
+version: v1
+plugins:
+  - plugin: buf.build/community/stephenh-ts-proto
+    out: proto/gen/ts
+    opt:
+      - oneof=unions
+      - globalThisPolyfill=true
+  - out: proto/gen/rust/src
+    plugin: buf.build/community/neoeinstein-prost
+    opt:
+      - bytes=.
+      - compile_well_known_types
+      - extern_path=.google.protobuf=::pbjson_types
+      - file_descriptor_set
+  - plugin: buf.build/community/neoeinstein-prost-serde
+    out: proto/gen/rust/src
+  - out: proto/gen/json_schema
+    plugin: buf.build/community/chrusty-jsonschema
+  - plugin: buf.build/bufbuild/connect-es
+    out: proto/gen/es
+    opt:
+      - target=ts
+  - plugin: buf.build/bufbuild/es
+    out: proto/gen/es
+    opt:
+      - target=ts

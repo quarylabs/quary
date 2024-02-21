@@ -1,0 +1,103 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ProjectFile",
+    "definitions": {
+        "ProjectFile": {
+            "properties": {
+                "sources": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Source"
+                    },
+                    "type": "array"
+                },
+                "models": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Model"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Project File"
+        },
+        "quary.service.v1.ColumnTest": {
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "info": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "type": "object"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Column Test"
+        },
+        "quary.service.v1.ProjectFile.Column": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "tests": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ColumnTest"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Column",
+            "description": "Standard types are: - not_null - unique - 'relationship' which takes into data (model and field)"
+        },
+        "quary.service.v1.ProjectFile.Model": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "columns": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Column"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Model"
+        },
+        "quary.service.v1.ProjectFile.Source": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string",
+                    "description": "The full path of the source table in the database. This is used to reference the table itself. For example: - 'public.users' for where the schema is 'public' and the table is 'users' - 'project_id_123.dataset_id_123.table_id_123' for a BigQuery table"
+                },
+                "columns": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Column"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Source"
+        }
+    }
+}

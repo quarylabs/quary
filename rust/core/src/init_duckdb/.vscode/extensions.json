@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "inferrinizzard.prettier-sql-vscode",
+    "quary.quary-extension",
+    "redhat.vscode-yaml",
+    "esbenp.prettier-vscode"
+  ]
+}

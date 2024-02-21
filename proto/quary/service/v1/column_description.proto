@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+option java_multiple_files = true;
+
+message ColumnDescription {
+  string name = 1;
+  optional string description = 2;
+  repeated string tests = 3;
+}

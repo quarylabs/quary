@@ -1,0 +1,30 @@
+models:
+  - name: stg_customers
+    columns:
+      - name: customer_id
+        tests:
+          - type: unique
+          - type: not_null
+  - name: stg_orders
+    columns:
+      - name: order_id
+        description: This is a unique identifier for an order
+        tests:
+          - type: unique
+          - type: not_null
+      - name: status
+        tests:
+          - type: accepted_values
+            info:
+              values: placed,shipped,completed,return_pending,returned
+  - name: stg_payments
+    columns:
+      - name: payment_id
+        tests:
+          - type: unique
+          - type: not_null
+      - name: payment_method
+        tests:
+          - type: accepted_values
+            info:
+              values: credit_card,coupon,bank_transfer,gift_card
