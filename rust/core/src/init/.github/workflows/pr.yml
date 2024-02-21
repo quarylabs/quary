@@ -1,0 +1,27 @@
+name: pr-checks
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches:
+      - main
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+jobs:
+  sqlfluff-lint:
+    name: Lint template with SQLFluff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # ratchet:actions/checkout@v3
+      - name: Install SQLFluff
+        run: pip install sqlfluff
+      - name: Lint template
+        run: sqlfluff lint --dialect sqlite .
+  prettier-yaml:
+    name: Lint/Format YAML with Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npx prettier --check '**/*.yaml'

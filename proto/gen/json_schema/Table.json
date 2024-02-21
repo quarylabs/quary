@@ -1,0 +1,179 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/Table",
+    "definitions": {
+        "Table": {
+            "properties": {
+                "present": {
+                    "$ref": "#/definitions/quary.service.v1.Table.PresentInSchema",
+                    "additionalProperties": true
+                },
+                "not_present": {
+                    "$ref": "#/definitions/quary.service.v1.Table.NotPresentInSchema",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Table",
+            "description": "Table is a table in the project that is used to visualise columns, descriptions, and column tests."
+        },
+        "quary.service.v1.ColumnTest": {
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "info": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "type": "object"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Column Test"
+        },
+        "quary.service.v1.Row": {
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "tests": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.RowTest"
+                    },
+                    "type": "array"
+                },
+                "description": {
+                    "$ref": "#/definitions/quary.service.v1.RowDescription",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Row",
+            "description": "Row is a row in the table."
+        },
+        "quary.service.v1.RowDescription": {
+            "properties": {
+                "present": {
+                    "type": "string"
+                },
+                "present_and_inferred_identical": {
+                    "type": "string"
+                },
+                "present_with_different_inference": {
+                    "$ref": "#/definitions/quary.service.v1.RowDescription.PresentWithInference",
+                    "additionalProperties": true
+                },
+                "inferred": {
+                    "type": "string"
+                },
+                "not_present": {
+                    "additionalProperties": true,
+                    "type": "object"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Row Description",
+            "description": "RowDescription is a description of a row in a table. It is a oneof because the description can be inferred from the YAML definitions and/or it can be present in the SQL document."
+        },
+        "quary.service.v1.RowDescription.PresentWithInference": {
+            "properties": {
+                "present": {
+                    "type": "string"
+                },
+                "inferred": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Present With Inference"
+        },
+        "quary.service.v1.RowTest": {
+            "properties": {
+                "present_and_not_inferred": {
+                    "$ref": "#/definitions/quary.service.v1.RowTestDetails",
+                    "additionalProperties": true
+                },
+                "present_and_inferred": {
+                    "$ref": "#/definitions/quary.service.v1.RowTestDetails",
+                    "additionalProperties": true
+                },
+                "not_present_but_inferred": {
+                    "$ref": "#/definitions/quary.service.v1.RowTestDetails",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Row Test",
+            "description": "TableTest is a test that is run against a row in a table. It is a oneof because the test can be inferred from the YAML definitions, or it can be present in the SQL document."
+        },
+        "quary.service.v1.RowTestDetails": {
+            "properties": {
+                "text": {
+                    "type": "string"
+                },
+                "column_test": {
+                    "$ref": "#/definitions/quary.service.v1.ColumnTest",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Row Test Details",
+            "description": "RowTestDetails encapsulates the details of tests associated with row and column data. The 'column_test' field within this structure is specifically used to manage test operations such as deletion and addition. These operations are typically invoked through callbacks."
+        },
+        "quary.service.v1.Table.NotPresentInSchema": {
+            "properties": {
+                "rows": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.Row"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Not Present In Schema",
+            "description": "NotPresentInSchema is a table that is present as SQL but not in the YAML definitions. And so all the values are inferred."
+        },
+        "quary.service.v1.Table.PresentInSchema": {
+            "properties": {
+                "rows": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.Table.PresentInSchema.PresentRow"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Present In Schema",
+            "description": "PresentInSchema is a table that is present in a SQL document and in the YAML definitions. Values are inferred and read from YAML."
+        },
+        "quary.service.v1.Table.PresentInSchema.PresentRow": {
+            "properties": {
+                "present_in_sql_and_definitions": {
+                    "$ref": "#/definitions/quary.service.v1.Row",
+                    "additionalProperties": true
+                },
+                "missing_in_definitions": {
+                    "$ref": "#/definitions/quary.service.v1.Row",
+                    "additionalProperties": true
+                },
+                "present_in_definitions_but_not_recognisable_in_sql": {
+                    "$ref": "#/definitions/quary.service.v1.Row",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Present Row"
+        }
+    }
+}

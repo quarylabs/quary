@@ -1,0 +1,15 @@
+[package]
+name = "dbt-converter"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75.0"
+
+[dependencies]
+serde_yaml = "0.9"
+serde = { version = "1", features = ["derive"] }
+regex = { version = "1" }
+walkdir = "2"
+quary_proto = { path = "../../proto/gen/rust" }
+tempfile = "3"
+
+[lib]

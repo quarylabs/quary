@@ -1,0 +1,114 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/TestResults",
+    "definitions": {
+        "TestResults": {
+            "properties": {
+                "results": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.TestResult"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Results",
+            "description": "WasmRunTestResponse is a temporary message type to work on inferring in Rust rather than in Typescript. The goal is to make better interfaces over time."
+        },
+        "quary.service.v1.Failed": {
+            "properties": {
+                "ran": {
+                    "additionalProperties": true,
+                    "type": "object"
+                },
+                "inferred_from_tests": {
+                    "$ref": "#/definitions/quary.service.v1.InferredChain",
+                    "additionalProperties": true
+                },
+                "inferred_through_tests_operation": {
+                    "$ref": "#/definitions/quary.service.v1.InferredChainWithOperation",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Failed"
+        },
+        "quary.service.v1.InferredChain": {
+            "properties": {
+                "inferred_chain": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Inferred Chain"
+        },
+        "quary.service.v1.InferredChainWithOperation": {
+            "properties": {
+                "inferred_chain": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "operation": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Inferred Chain With Operation"
+        },
+        "quary.service.v1.Passed": {
+            "properties": {
+                "ran": {
+                    "additionalProperties": true,
+                    "type": "object"
+                },
+                "inferred_from_tests": {
+                    "$ref": "#/definitions/quary.service.v1.InferredChain",
+                    "additionalProperties": true
+                },
+                "inferred_from_logic": {
+                    "type": "string",
+                    "description": "inferred_from_logic adds a logic string which explains how it is derived"
+                },
+                "inferred_through_tests_operation": {
+                    "$ref": "#/definitions/quary.service.v1.InferredChainWithOperation",
+                    "additionalProperties": true,
+                    "description": "inferred_through_tests_operation infers that the test was inferred and implied through the operation"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Passed"
+        },
+        "quary.service.v1.TestResult": {
+            "properties": {
+                "test_name": {
+                    "type": "string"
+                },
+                "query": {
+                    "type": "string"
+                },
+                "passed": {
+                    "$ref": "#/definitions/quary.service.v1.Passed",
+                    "additionalProperties": true
+                },
+                "failed": {
+                    "$ref": "#/definitions/quary.service.v1.Failed",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Result",
+            "description": "TestResult is the result of a test serializable so it can be shared"
+        }
+    }
+}

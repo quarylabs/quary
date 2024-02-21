@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+option java_multiple_files = true;
+
+// Configuration describes the configuration of the project.
+message ConnectionConfig {
+  oneof config {
+    ConnectionConfigDuckDB duckdb = 1;
+    ConnectionConfigDuckDBInMemory duckdb_in_memory = 2;
+    ConnectionConfigSqLite sqlite = 3;
+    ConnectionConfigSqLiteInMemory sqlite_in_memory = 4;
+    ConnectionConfigBigQuery big_query = 5;
+    ConnectionConfigSnowflake snowflake = 6;
+  }
+
+  message ConnectionConfigSqLite {
+    string path = 1;
+  }
+
+  message ConnectionConfigSqLiteInMemory {}
+
+  message ConnectionConfigDuckDB {
+    string path = 1;
+    optional string schema = 2;
+  }
+
+  message ConnectionConfigDuckDBInMemory {
+    optional string schema = 1;
+  }
+
+  //  message ConnectionConfigPostgres {
+  //    string host = 1;
+  //    string port = 2;
+  //    string user = 3;
+  //    string password = 4;
+  //    string database = 5;
+  //    map<string, string> params = 6;
+  //  }
+  //
+  //  message ConnectionConfigMySql {
+  //    string username = 1;
+  //    string password = 2;
+  //    string protocol = 3;
+  //    string host = 4;
+  //    string port = 5;
+  //    string database = 6;
+  //    map<string, string> params = 7;
+  //  }
+
+  message ConnectionConfigBigQuery {
+    string project_id = 1;
+    string dataset_id = 2;
+  }
+
+  message ConnectionConfigSnowflake {
+    string account_url = 1;
+    string client_id = 2;
+    string client_secret = 3;
+    string role = 4; // TODO: think about making optional
+    string database = 5;
+    string schema = 6;
+    string warehouse = 7;
+  }
+}

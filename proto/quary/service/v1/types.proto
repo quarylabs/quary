@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+option java_multiple_files = true;
+
+// TODO Will eventually in the tests want to store more than the file_path but also the line location
+
+message Test {
+  oneof test_type {
+    TestSQLFile sql = 1;
+    TestUnique unique = 2;
+    TestNotNull not_null = 3;
+    TestRelationship relationship = 4;
+    TestAcceptedValues accepted_values = 5;
+    TestGreaterThanOrEqual greater_than_or_equal = 6;
+    TestLessThanOrEqual less_than_or_equal = 7;
+    TestGreaterThan greater_than = 8;
+    TestLessThan less_than = 9;
+  }
+}
+
+message TestSQLFile {
+  string file_path = 1;
+  repeated string references = 2;
+}
+
+message TestUnique {
+  string file_path = 1;
+  string model = 2;
+  string path = 3;
+  string column = 4;
+}
+
+message TestNotNull {
+  string file_path = 1;
+  string model = 2;
+  string path = 3;
+  string column = 4;
+}
+
+message TestGreaterThanOrEqual {
+  string file_path = 1;
+  string model = 2;
+  string path = 3;
+  string column = 4;
+  string value = 5;
+}
+
+message TestLessThanOrEqual {
+  string file_path = 1;
+  string model = 2;
+  string path = 3;
+  string column = 4;
+  string value = 5;
+}
+
+message TestGreaterThan {
+  string file_path = 1;
+  string model = 2;
+  string path = 3;
+  string column = 4;
+  string value = 5;
+}
+
+message TestLessThan {
+  string file_path = 1;
+  string model = 2;
+  string path = 3;
+  string column = 4;
+  string value = 5;
+}
+
+message TestRelationship {
+  string file_path = 1;
+  string source_model = 2;
+  string source_path = 3;
+  string source_column = 4;
+  string target_model = 5;
+  string target_path = 7;
+  string target_column = 8;
+}
+
+message TestAcceptedValues {
+  string file_path = 1;
+  string model = 2;
+  string path = 3;
+  string column = 4;
+  repeated string accepted_values = 5;
+}
+
+message Seed {
+  string name = 1;
+  string file_path = 2;
+  string file_sha256_hash = 3;
+}
+
+message Model {
+  string name = 1;
+  optional string description = 2;
+
+  string file_path = 3;
+  string file_sha256_hash = 7;
+
+  message ModelColum {
+    string title = 1;
+    optional string description = 2;
+  }
+
+  repeated ModelColum columns = 5;
+
+  repeated string references = 6;
+}
+
+// Generic source structure, used as input to generate the quary-specific source structure
+message DatabaseSource {
+  string name = 1;
+  string path = 2;
+  repeated string columns = 3;
+}
+
+// Quary-specific source structure
+message Source {
+  string name = 1;
+  optional string description = 2;
+  string path = 3;
+
+  // TODO Replace File path references with whole file references
+  string file_path = 4;
+
+  message SourceColumn {
+    string title = 1;
+    optional string description = 2;
+  }
+
+  repeated SourceColumn columns = 5;
+}

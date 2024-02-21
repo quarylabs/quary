@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/InferredChainWithOperation",
+    "definitions": {
+        "InferredChainWithOperation": {
+            "properties": {
+                "inferred_chain": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "operation": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Inferred Chain With Operation"
+        }
+    }
+}

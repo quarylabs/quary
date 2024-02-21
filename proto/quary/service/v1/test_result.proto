@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+import "google/protobuf/empty.proto";
+
+option java_multiple_files = true;
+
+// TestResult is the result of a test serializable so it can be shared
+message TestResult {
+  string test_name = 1;
+  string query = 2;
+
+  oneof test_result {
+    Passed passed = 3;
+    Failed failed = 4;
+  }
+}
+
+message InferredChain {
+  repeated string inferred_chain = 1;
+}
+
+message InferredChainWithOperation {
+  repeated string inferred_chain = 1;
+  string operation = 2;
+}
+
+message Passed {
+  oneof reason {
+    google.protobuf.Empty ran = 1;
+    InferredChain inferred_from_tests = 2;
+    // inferred_from_logic adds a logic string which explains how it is derived
+    string inferred_from_logic = 3;
+    // inferred_through_tests_operation infers that the test was inferred and implied through the operation
+    InferredChainWithOperation inferred_through_tests_operation = 4;
+  }
+}
+
+message Failed {
+  oneof reason {
+    google.protobuf.Empty ran = 1;
+    InferredChain inferred_from_tests = 2;
+    InferredChainWithOperation inferred_through_tests_operation = 3;
+  }
+}

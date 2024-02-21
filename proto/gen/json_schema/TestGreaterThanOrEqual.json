@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/TestGreaterThanOrEqual",
+    "definitions": {
+        "TestGreaterThanOrEqual": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "column": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Greater Than Or Equal"
+        }
+    }
+}

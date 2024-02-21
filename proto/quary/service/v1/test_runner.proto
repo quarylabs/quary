@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+option java_multiple_files = true;
+
+enum TestRunner {
+  TEST_RUNNER_UNSPECIFIED = 0;
+  // TEST_RUNNER_ALL is a runner that will run all the tests in the test suite.
+  TEST_RUNNER_ALL = 1;
+  // TEST_RUNNER_NONE is a runner that will run skip tests in the test suite that can be inferred from other tests in the test suite.
+  TEST_RUNNER_SKIP = 2;
+}

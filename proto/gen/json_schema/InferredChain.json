@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/InferredChain",
+    "definitions": {
+        "InferredChain": {
+            "properties": {
+                "inferred_chain": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Inferred Chain"
+        }
+    }
+}

@@ -1,0 +1,484 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/Project",
+    "definitions": {
+        "Project": {
+            "properties": {
+                "seeds": {
+                    "additionalProperties": {
+                        "$ref": "#/definitions/quary.service.v1.Seed",
+                        "additionalProperties": true
+                    },
+                    "type": "object"
+                },
+                "models": {
+                    "additionalProperties": {
+                        "$ref": "#/definitions/quary.service.v1.Model",
+                        "additionalProperties": true
+                    },
+                    "type": "object"
+                },
+                "tests": {
+                    "additionalProperties": {
+                        "$ref": "#/definitions/quary.service.v1.Test",
+                        "additionalProperties": true
+                    },
+                    "type": "object"
+                },
+                "sources": {
+                    "additionalProperties": {
+                        "$ref": "#/definitions/quary.service.v1.Source",
+                        "additionalProperties": true
+                    },
+                    "type": "object"
+                },
+                "project_files": {
+                    "additionalProperties": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFile",
+                        "additionalProperties": true
+                    },
+                    "type": "object"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Project"
+        },
+        "quary.service.v1.ColumnTest": {
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "info": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "type": "object"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Column Test"
+        },
+        "quary.service.v1.Model": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "file_path": {
+                    "type": "string"
+                },
+                "file_sha256_hash": {
+                    "type": "string"
+                },
+                "columns": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.Model.ModelColum"
+                    },
+                    "type": "array"
+                },
+                "references": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Model"
+        },
+        "quary.service.v1.Model.ModelColum": {
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Model Colum"
+        },
+        "quary.service.v1.ProjectFile": {
+            "properties": {
+                "sources": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Source"
+                    },
+                    "type": "array"
+                },
+                "models": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Model"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Project File"
+        },
+        "quary.service.v1.ProjectFile.Column": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "tests": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ColumnTest"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Column",
+            "description": "Standard types are: - not_null - unique - 'relationship' which takes into data (model and field)"
+        },
+        "quary.service.v1.ProjectFile.Model": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "columns": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Column"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Model"
+        },
+        "quary.service.v1.ProjectFile.Source": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string",
+                    "description": "The full path of the source table in the database. This is used to reference the table itself. For example: - 'public.users' for where the schema is 'public' and the table is 'users' - 'project_id_123.dataset_id_123.table_id_123' for a BigQuery table"
+                },
+                "columns": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Column"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Source"
+        },
+        "quary.service.v1.Seed": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "file_path": {
+                    "type": "string"
+                },
+                "file_sha256_hash": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Seed"
+        },
+        "quary.service.v1.Source": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "file_path": {
+                    "type": "string",
+                    "description": "TODO Replace File path references with whole file references"
+                },
+                "columns": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.Source.SourceColumn"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Source",
+            "description": "Quary-specific source structure"
+        },
+        "quary.service.v1.Source.SourceColumn": {
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Source Column"
+        },
+        "quary.service.v1.Test": {
+            "properties": {
+                "sql": {
+                    "$ref": "#/definitions/quary.service.v1.TestSQLFile",
+                    "additionalProperties": true
+                },
+                "unique": {
+                    "$ref": "#/definitions/quary.service.v1.TestUnique",
+                    "additionalProperties": true
+                },
+                "not_null": {
+                    "$ref": "#/definitions/quary.service.v1.TestNotNull",
+                    "additionalProperties": true
+                },
+                "relationship": {
+                    "$ref": "#/definitions/quary.service.v1.TestRelationship",
+                    "additionalProperties": true
+                },
+                "accepted_values": {
+                    "$ref": "#/definitions/quary.service.v1.TestAcceptedValues",
+                    "additionalProperties": true
+                },
+                "greater_than_or_equal": {
+                    "$ref": "#/definitions/quary.service.v1.TestGreaterThanOrEqual",
+                    "additionalProperties": true
+                },
+                "less_than_or_equal": {
+                    "$ref": "#/definitions/quary.service.v1.TestLessThanOrEqual",
+                    "additionalProperties": true
+                },
+                "greater_than": {
+                    "$ref": "#/definitions/quary.service.v1.TestGreaterThan",
+                    "additionalProperties": true
+                },
+                "less_than": {
+                    "$ref": "#/definitions/quary.service.v1.TestLessThan",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "TODO Will eventually in the tests want to store more than the file_path but also the line location",
+            "description": "TODO Will eventually in the tests want to store more than the file_path but also the line location"
+        },
+        "quary.service.v1.TestAcceptedValues": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "column": {
+                    "type": "string"
+                },
+                "accepted_values": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Accepted Values"
+        },
+        "quary.service.v1.TestGreaterThan": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "column": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Greater Than"
+        },
+        "quary.service.v1.TestGreaterThanOrEqual": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "column": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Greater Than Or Equal"
+        },
+        "quary.service.v1.TestLessThan": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "column": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Less Than"
+        },
+        "quary.service.v1.TestLessThanOrEqual": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "column": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Less Than Or Equal"
+        },
+        "quary.service.v1.TestNotNull": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "column": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Not Null"
+        },
+        "quary.service.v1.TestRelationship": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "source_model": {
+                    "type": "string"
+                },
+                "source_path": {
+                    "type": "string"
+                },
+                "source_column": {
+                    "type": "string"
+                },
+                "target_model": {
+                    "type": "string"
+                },
+                "target_path": {
+                    "type": "string"
+                },
+                "target_column": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Relationship"
+        },
+        "quary.service.v1.TestSQLFile": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "references": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test SQL File"
+        },
+        "quary.service.v1.TestUnique": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "column": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Unique"
+        }
+    }
+}

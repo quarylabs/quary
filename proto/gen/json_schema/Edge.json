@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/Edge",
+    "definitions": {
+        "Edge": {
+            "properties": {
+                "to": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Edge"
+        }
+    }
+}

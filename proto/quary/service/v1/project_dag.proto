@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+option java_multiple_files = true;
+
+// DirectedAcyclicGraph represents a directed acyclic graph that is used to visualize the project dependencies in a
+// project.
+message ProjectDag {
+  repeated Node nodes = 1;
+  repeated Edge edges = 2;
+}
+
+message Node {
+  string id = 1;
+  bool is_cached = 2;
+}
+
+message Edge {
+  string to = 1;
+  string from = 2;
+}

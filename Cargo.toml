@@ -1,0 +1,6 @@
+[workspace]
+members = ["rust/core", "rust/cli", "proto/gen/rust", "rust/sqlinference", "rust/dbt-converter"]
+resolver = "2"
+
+[workspace.dependencies]
+cargo-nextest = "0.9"

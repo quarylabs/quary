@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+option java_multiple_files = true;
+
+message ProjectFile {
+  message Column {
+    // Standard types are:
+    // - not_null
+    // - unique
+    // - 'relationship' which takes into data (model and field)
+
+    string name = 1;
+    optional string description = 2;
+    repeated ColumnTest tests = 3;
+  }
+  repeated Source sources = 1;
+  repeated Model models = 2;
+
+  message Model {
+    string name = 1;
+    optional string description = 2;
+
+    repeated Column columns = 3;
+  }
+
+  message Source {
+    string name = 1;
+    optional string description = 2;
+    // The full path of the source table in the database. This is used to reference the table itself. For example:
+    // - 'public.users' for where the schema is 'public' and the table is 'users'
+    // - 'project_id_123.dataset_id_123.table_id_123' for a BigQuery table
+    string path = 3;
+
+    repeated Column columns = 4;
+  }
+}
+
+message ColumnTest {
+  string type = 1;
+  map<string, string> info = 2;
+}

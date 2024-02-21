@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+import "quary/service/v1/project_file.proto";
+import "quary/service/v1/types.proto";
+
+option java_multiple_files = true;
+
+message Project {
+  map<string, Seed> seeds = 3;
+  map<string, Model> models = 4;
+  map<string, Test> tests = 5;
+  map<string, Source> sources = 6;
+  map<string, ProjectFile> project_files = 7;
+}
