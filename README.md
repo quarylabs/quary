@@ -17,7 +17,7 @@
 
 ## What is Quary?
 
-Quary enables teams to model, test and deploy data transformations. This core is a fast (30x faster than dbt to be precise!) and lightweight SQL transformation engine written in Rust.
+Quary enables teams to model, test and deploy data transformations. This core is a fast and lightweight SQL transformation engine written in Rust.
 
 - Visit [our website](https://www.quary.dev) to learn more
 - Visit [our documentation](https://www.quary.dev/docs) to learn how to use Quary
