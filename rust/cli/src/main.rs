@@ -1,3 +1,11 @@
+#![deny(clippy::expect_used)]
+#![deny(clippy::needless_lifetimes)]
+#![deny(clippy::needless_borrow)]
+#![deny(clippy::useless_conversion)]
+#![deny(clippy::unwrap_used)]
+#![deny(unused_imports)]
+#![deny(unused_import_braces)]
+
 use crate::commands::{mode_to_test_runner, Cli, Commands, InitType};
 use crate::databases_connection::{database_from_config, database_query_generator_from_config};
 use clap::Parser;
@@ -48,7 +56,9 @@ async fn main() -> Result<(), String> {
                     for file in Asset::iter() {
                         let filename = file.as_ref();
                         let path = Path::new(filename);
-                        let prefix = path.parent().expect("no parent");
+                        let prefix = path
+                            .parent()
+                            .ok_or("Could not get parent directory for file in Asset::iter()")?;
                         if !prefix.exists() {
                             fs::create_dir_all(prefix).map_err(|e| e.to_string())?;
                         }
@@ -65,7 +75,9 @@ async fn main() -> Result<(), String> {
                     for file in DuckDBAsset::iter() {
                         let filename = file.as_ref();
                         let path = Path::new(filename);
-                        let prefix = path.parent().expect("no parent");
+                        let prefix = path.parent().ok_or(
+                            "Could not get parent directory for file in DuckDBAsset::iter()",
+                        )?;
                         if !prefix.exists() {
                             fs::create_dir_all(prefix).map_err(|e| e.to_string())?;
                         }

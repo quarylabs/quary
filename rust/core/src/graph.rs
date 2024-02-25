@@ -1,4 +1,5 @@
 #![allow(clippy::unwrap_used)]
+
 use crate::map_helpers::safe_adder_set;
 use crate::test_helpers::ToTest;
 use petgraph::algo::{is_cyclic_directed, toposort};
@@ -62,11 +63,11 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
                 for reference in test.references.clone() {
                     if !taken.contains(&reference) {
                         return Err(format!(
-                                "reference to {} in model {} does not exist in reference-able objects {}",
-                                reference,
-                                name,
-                                Vec::from_iter(taken).join(","),
-                            ));
+                            "reference to {} in model {} does not exist in reference-able objects {}",
+                            reference,
+                            name,
+                            Vec::from_iter(taken).join(","),
+                        ));
                     };
                     edges.push((reference, name.clone()))
                 }
@@ -108,7 +109,7 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
         }
     }
 
-    let graph = QGraph::new_from_edges(edges.clone())?;
+    let graph = QGraph::new_from_nodes_and_edges(taken.clone(), edges.clone())?;
 
     Ok(ProjectGraph { edges, graph })
 }
@@ -136,26 +137,6 @@ impl QGraph {
             if !nodes.contains(&to) {
                 return Err(format!("node {} not found in nodes", to));
             }
-            let from_node: NodeIndex = *dictionary
-                .entry(from.clone())
-                .or_insert_with(|| graph.add_node(from.clone()));
-            let to_node: NodeIndex = *dictionary
-                .entry(to.clone())
-                .or_insert_with(|| graph.add_node(to.clone()));
-
-            graph.add_edge(from_node, to_node, ());
-        }
-        if is_cyclic_directed(&graph) {
-            return Err("graph is cyclic".to_string());
-        }
-        Ok(QGraph { graph, dictionary })
-    }
-
-    // new_from_edges returns an error if the graph is cyclic.
-    fn new_from_edges(edges: Vec<Edge>) -> Result<Self, String> {
-        let mut graph = Graph::<String, ()>::new();
-        let mut dictionary = HashMap::<String, NodeIndex>::new();
-        for (from, to) in edges {
             let from_node: NodeIndex = *dictionary
                 .entry(from.clone())
                 .or_insert_with(|| graph.add_node(from.clone()));
@@ -508,58 +489,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_quary_graph_new_from_edges() {
-        let tests = vec![
-            ("empty", vec![], 0, false),
-            ("simple", vec![("a".to_string(), "b".to_string())], 2, false),
-            (
-                "diamond",
-                vec![
-                    ("A".to_string(), "B".to_string()),
-                    ("A".to_string(), "C".to_string()),
-                    ("B".to_string(), "D".to_string()),
-                    ("C".to_string(), "D".to_string()),
-                ],
-                4,
-                false,
-            ),
-            (
-                "cycle",
-                vec![
-                    ("A".to_string(), "B".to_string()),
-                    ("B".to_string(), "A".to_string()),
-                ],
-                0,
-                true,
-            ),
-        ];
-
-        for (name, edges, want_dictionary_length, want_err) in tests {
-            println!("test: {}", name);
-
-            let got = QGraph::new_from_edges(edges);
-
-            match (got, want_err) {
-                (Ok(got), false) => {
-                    assert_eq!(
-                        got.dictionary.len(),
-                        want_dictionary_length,
-                        "QGraph::new_from_edges() dictionary length mismatch"
-                    );
-                    assert_eq!(
-                        got.graph.node_count(),
-                        got.dictionary.len(),
-                        "Mismatch between dictionary length and node count"
-                    );
-                }
-                (Err(_), true) => {} // Expected an error and got one
-                (Ok(_), true) => panic!("QGraph::new_from_edges() error expected, but got Ok"),
-                (Err(err), false) => panic!("QGraph::new_from_edges() unexpected error: {}", err),
-            }
-        }
-    }
-
-    #[test]
     fn test_get_node_sorted() {
         let tests = vec![
             ("empty", vec![], vec![], false),
@@ -634,7 +563,11 @@ mod tests {
         for (name, edges, want, want_err) in tests {
             println!("Running test: {}", name);
 
-            let g = QGraph::new_from_edges(edges).unwrap();
+            let nodes = edges
+                .iter()
+                .flat_map(|(a, b)| vec![a.clone(), b.clone()])
+                .collect::<HashSet<String>>();
+            let g = QGraph::new_from_nodes_and_edges(nodes, edges).unwrap();
             let got = match g.get_node_sorted() {
                 Ok(got) => got,
                 Err(e) => {
@@ -668,7 +601,11 @@ mod tests {
         for (name, edges, node_name, want_value) in tests {
             println!("Running test: {}", name);
 
-            let g = QGraph::new_from_edges(edges).unwrap();
+            let nodes = edges
+                .iter()
+                .flat_map(|(a, b)| vec![a.clone(), b.clone()])
+                .collect::<HashSet<String>>();
+            let g = QGraph::new_from_nodes_and_edges(nodes, edges).unwrap();
             let got = g.get_node(node_name);
 
             if !want_value {
@@ -683,7 +620,7 @@ mod tests {
 
     #[test]
     fn test_to_dot_vis() {
-        let tests = vec![
+        let tests: Vec<(&str, Vec<Edge>, &str)> = vec![
             ("empty", vec![], "digraph {\n}\n"),
             // TODO Implement the tests below
             // (
@@ -706,7 +643,12 @@ mod tests {
         for (name, edges, want) in tests {
             println!("Running test: {}", name);
 
-            let g = QGraph::new_from_edges(edges).unwrap();
+            let nodes = edges
+                .iter()
+                .flat_map(|(a, b)| vec![a.clone(), b.clone()])
+                .collect::<HashSet<String>>();
+
+            let g = QGraph::new_from_nodes_and_edges(nodes, edges).unwrap();
             let got = g.to_dot_vis();
 
             assert_eq!(got, want);
@@ -767,7 +709,12 @@ mod tests {
         for (name, edges, search, want, edges_want_length, edges_want) in tests {
             println!("Running test: {}", name);
 
-            let g = QGraph::new_from_edges(edges).unwrap();
+            let nodes = edges
+                .iter()
+                .flat_map(|(a, b)| vec![a.clone(), b.clone()])
+                .collect::<HashSet<String>>();
+
+            let g = QGraph::new_from_nodes_and_edges(nodes, edges).unwrap();
             let got = g.return_sub_graph(search).unwrap();
 
             let mut values = got
@@ -825,12 +772,16 @@ mod tests {
         for (name, search, edges, want, expected_edges_length) in tests {
             println!("Running test: {}", name);
 
-            let edges = edges
+            let edges: Vec<Edge> = edges
                 .into_iter()
                 .map(|(a, b)| (a.to_string(), b.to_string()))
                 .collect();
+            let nodes = edges
+                .iter()
+                .flat_map(|(a, b)| vec![a.clone(), b.clone()])
+                .collect::<HashSet<String>>();
 
-            let g = QGraph::new_from_edges(edges).unwrap();
+            let g = QGraph::new_from_nodes_and_edges(nodes, edges).unwrap();
 
             let got = g.return_upstream_graph(search).unwrap();
 
@@ -860,7 +811,11 @@ mod tests {
                 .into_iter()
                 .map(|[a, b]| (a.to_string(), b.to_string()))
                 .collect();
-            let g = QGraph::new_from_edges(edges).unwrap();
+            let nodes = edges
+                .iter()
+                .flat_map(|(a, b)| vec![a.clone(), b.clone()])
+                .collect::<HashSet<String>>();
+            let g = QGraph::new_from_nodes_and_edges(nodes, edges).unwrap();
 
             let (_, got) = g.return_parent_nods_to_apply_in_order(search).unwrap();
 

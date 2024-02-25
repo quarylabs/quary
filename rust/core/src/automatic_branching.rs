@@ -955,4 +955,36 @@ sources:
         let result = cache_view_name_to_table_name_and_hash(cache_view_name);
         assert!(result.is_err());
     }
+
+    #[test]
+    fn test_derive_hash_views_on_seed() {
+        let fs = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "seeds/seed_checkout_disputes.csv".to_string(),
+                    File {
+                        name: "seeds/seed_checkout_disputes.csv".to_string(),
+                        contents: prost::bytes::Bytes::from("id,order_id,payment_method,amount"),
+                    },
+                ),
+                (
+                    "quary.yaml".to_string(),
+                    File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            r#"
+                            sqliteInMemory: {}
+                "#
+                            .as_bytes(),
+                        ),
+                    },
+                ),
+            ]),
+        };
+        let database = DatabaseQueryGeneratorSqlite {};
+        let project = parse_project(&fs, &database, "").unwrap();
+        let graph = project_to_graph(project.clone()).unwrap();
+
+        assert!(derive_hash_views(&database, &project, &graph).is_ok());
+    }
 }
