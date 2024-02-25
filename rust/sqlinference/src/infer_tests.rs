@@ -463,7 +463,7 @@ fn extract_select(query: &Query) -> Result<ExtractedSelect, String> {
                                 Ok(ExtractedSelect::Star(value.clone()))
                             }
                             Extracted::ZeroMap(_) => {
-                                return Err("Do not support zero maps for wildcard".to_string())
+                                return Err("Do not support zero maps for wildcard".to_string());
                             }
                         }
                     } else {
@@ -637,6 +637,16 @@ fn extract_select(query: &Query) -> Result<ExtractedSelect, String> {
                                             unnamed.push(alias.value.clone());
                                         }
                                     }
+                                    Expr::Cast { .. } => {
+                                        unnamed.push(alias.value.clone());
+                                    }
+                                    Expr::Case { .. } => {
+                                        unnamed.push(alias.value.clone());
+                                    }
+                                    Expr::Substring { .. } => {
+                                        unnamed.push(alias.value.clone());
+                                    }
+                                    Expr::Wildcard => {}
                                     _ => {
                                         return Err(format!(
                                             "Expected Identifier/CompoundIdentifier or Function, not {:?}",
@@ -2528,7 +2538,6 @@ LEFT JOIN q.shift_last sl
                  ("b", ("q.model_b", "b")),
              ], vec![],
              vec![],
-
             ),
             ("SELECT alias_a.a AS c, alias_b.b FROM q.model_a alias_a JOIN q.model_b alias_b ON alias_a.a=alias_b.a;",
              vec![
@@ -2536,33 +2545,30 @@ LEFT JOIN q.shift_last sl
                  ("b", ("q.model_b", "b")),
              ], vec![],
              vec![],
-
             ),
             ("WITH a AS (SELECT b, c AS d FROM q.table_c) SELECT b, d AS e FROM a",
              vec![
-             ("b", ("q.table_c", "b")),
-             ("e", ("q.table_c", "c")),
+                 ("b", ("q.table_c", "b")),
+                 ("e", ("q.table_c", "c")),
              ], vec![],
              vec![],
-
-             ),
+            ),
             ("WITH a AS (SELECT b FROM q.table_c), q AS (SELECT b AS v FROM a) SELECT v AS e FROM q",
              vec![
-             ("e", ("q.table_c", "b")),
+                 ("e", ("q.table_c", "b")),
              ], vec![],
              vec![],
-
-             ),
-            ("SELECT a FROM (SELECT a FROM q.table_a)", vec![("a", ("q.table_a", "a"))],vec![],vec![]),
+            ),
+            ("SELECT a FROM (SELECT a FROM q.table_a)", vec![("a", ("q.table_a", "a"))], vec![], vec![]),
             (
                 "SELECT c FROM (SELECT a AS c FROM q.table_a)",
                 vec![("c", ("q.table_a", "a"))],
                 vec![],
                 vec![],
             ),
-            ("SELECT a AS b FROM (SELECT c AS a FROM q.table_a)",vec![("b", ("q.table_a", "c"))],vec![],vec![]),
+            ("SELECT a AS b FROM (SELECT c AS a FROM q.table_a)", vec![("b", ("q.table_a", "c"))], vec![], vec![]),
             ("SELECT e.a AS b, g.b FROM (SELECT d.c AS a FROM q.table_a d) e INNER JOIN (SELECT b FROM q.table_b) g ON g.b=e.a"
-             , vec![("b", ("q.table_a", "c")),("b", ("q.table_b", "b"))], vec![], vec![]),
+             , vec![("b", ("q.table_a", "c")), ("b", ("q.table_b", "b"))], vec![], vec![]),
             ("SELECT COUNT(*) AS b FROM q.table_a"
              , vec![], vec![], vec!["b"]),
             ("SELECT count(*) AS b FROM (SELECT a.b AS c FROM q.table_a a)"
@@ -2573,6 +2579,12 @@ LEFT JOIN q.shift_last sl
              , vec![], vec![], vec!["c"]),
             ("WITH bc AS (SELECT b AS c FROM q.table_a a) SELECT * FROM bc"
              , vec![("c", ("q.table_a", "b"))], vec![], vec![]),
+            // TODO Be smarter about type casting
+            ("SELECT date::date as cost_date FROM q.table_a"
+             , vec![], vec!["cost_date"], vec![]),
+            // TODO Be smarter about casting, here could do one of
+            ("SELECT CASE when market != 'THING' or receive_market != 'THING' then 1 when channel = 'THING' then 0 else 0 end as caq from q.caq",
+             vec![], vec!["caq"], vec![]),
         ];
 
         for (sql, expected_map_entries, expected_not_parseable, expected_count) in tests {

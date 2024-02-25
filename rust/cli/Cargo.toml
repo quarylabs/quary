@@ -1,12 +1,13 @@
 [package]
 name = "quary"
-version = "0.0.87"
+version = "0.0.91"
 edition = "2021"
-rust-version = "1.75.0"
+rust-version = "1.76.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+yup-oauth2 = { version = "8", default-features = false }
 clap = { version = "4", features = ["derive"] }
 quary-core = { path = "../core" }
 dbt-converter = { path = "../dbt-converter" }
@@ -17,7 +18,7 @@ async-trait = "0.1"
 indicatif = "0.17"
 gcp-bigquery-client = "0.18"
 prost = "0.12"
-google-cloud-auth = { version = "0.13", default-features = false, features = [ "external-account", "rustls-tls"] }
+google-cloud-auth = { version = "0.13", default-features = false, features = ["external-account", "rustls-tls"] }
 snowflake-api = "0.6"
 arrow-array = "50"
 duckdb = { version = "0.10", features = ["bundled"] }

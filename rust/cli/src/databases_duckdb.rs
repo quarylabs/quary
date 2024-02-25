@@ -57,7 +57,7 @@ impl DatabaseConnection for DuckDB {
                 "SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND type='table' ORDER BY name",
                 schema
             ))
-            .await?
+                .await?
         } else {
             self.query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
                 .await?
@@ -111,14 +111,20 @@ impl DatabaseConnection for DuckDB {
     }
 
     async fn exec(&self, query: &str) -> Result<(), String> {
-        let conn = self.connection.lock().unwrap();
+        let conn = self
+            .connection
+            .lock()
+            .map_err(|e| format!("Failed to get connection lock: {}", e))?;
         conn.execute(query, params![])
             .map_err(|e| format!("Failed to execute query {}: {}", query, e))?;
         return Ok(());
     }
 
     async fn query(&self, query: &str) -> Result<QueryResult, String> {
-        let conn = self.connection.lock().unwrap();
+        let conn = self
+            .connection
+            .lock()
+            .map_err(|e| format!("Failed to get connection lock: {}", e))?;
 
         let mut stmt = conn
             .prepare(query)

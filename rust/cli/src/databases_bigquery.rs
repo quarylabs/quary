@@ -11,6 +11,7 @@ use quary_core::databases::{
 };
 use std::fmt::Debug;
 use std::sync::Arc;
+use yup_oauth2::error::AuthErrorCode;
 
 pub struct BigQuery {
     project_id: String,
@@ -61,7 +62,13 @@ impl Authenticator for AccessTokenProviderHolder {
 impl Authenticator for AccessTokenProvider {
     async fn access_token(&self) -> Result<String, BQError> {
         let token_source = &self.token_source;
-        let token = token_source.token().await.unwrap();
+        let token = token_source.token().await.map_err(|_| {
+            BQError::AuthError(yup_oauth2::error::AuthError {
+                error: AuthErrorCode::ExpiredToken,
+                error_description: None,
+                error_uri: None,
+            })
+        })?;
         Ok(token.access_token)
     }
 }
@@ -131,7 +138,7 @@ impl BigQuery {
                 .list(&self.project_id, &self.dataset_id, options)
                 .await
                 .map_err(|e| format!("Failed to list tables: {}", e))?;
-            collected_tables.extend(tables.tables.unwrap());
+            collected_tables.extend(tables.tables.unwrap_or_default());
             if tables.next_page_token.is_none() {
                 break;
             }
@@ -145,8 +152,8 @@ impl BigQuery {
 impl DatabaseConnection for BigQuery {
     // TODO Return an iterator
     async fn list_tables(&self) -> Result<Vec<TableAddress>, String> {
-        let collected_tables = self.get_all_table_like_things().await?;
-        let tables = collected_tables
+        self.get_all_table_like_things()
+            .await?
             .iter()
             .filter(|table| {
                 if let Some(kind) = &table.kind {
@@ -155,23 +162,21 @@ impl DatabaseConnection for BigQuery {
                     false
                 }
             })
-            .map(|t| TableAddress {
-                full_path: format!(
-                    "{}.{}.{}",
-                    self.project_id,
-                    self.dataset_id,
-                    t.friendly_name.clone().unwrap()
-                ),
-                name: t.friendly_name.clone().unwrap(),
+            .map(|t| {
+                let name = t
+                    .friendly_name
+                    .clone()
+                    .ok_or("Failed to get friendly name of table".to_string())?;
+                Ok(TableAddress {
+                    full_path: format!("{}.{}.{}", self.project_id, self.dataset_id, name),
+                    name,
+                })
             })
-            .collect();
-
-        Ok(tables)
+            .collect()
     }
 
     async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
-        let collected_tables = self.get_all_table_like_things().await?;
-        let tables = collected_tables
+        self.get_all_table_like_things().await?
             .iter()
             .filter(|table| {
                 if let Some(kind) = &table.kind {
@@ -180,18 +185,20 @@ impl DatabaseConnection for BigQuery {
                     false
                 }
             })
-            .map(|t| TableAddress {
-                full_path: format!(
-                    "{}.{}.{}",
-                    self.project_id,
-                    self.dataset_id,
-                    t.friendly_name.clone().unwrap()
-                ),
-                name: t.friendly_name.clone().unwrap(),
+            .map(|t| {
+                let friendly_name = t
+                    .friendly_name
+                    .clone()
+                    .ok_or("Failed to get friendly name of table".to_string())?;
+                Ok(TableAddress {
+                    full_path: format!(
+                        "{}.{}.{}",
+                        self.project_id, self.dataset_id, friendly_name,
+                    ),
+                    name: friendly_name,
+                })
             })
-            .collect();
-
-        Ok(tables)
+            .collect()
     }
 
     async fn list_columns(&self, table: &str) -> Result<Vec<String>, String> {
@@ -206,7 +213,7 @@ impl DatabaseConnection for BigQuery {
             )
             .await
             .map_err(|e| format!("Failed to get table {}: {}", table, e))?;
-        let fields = tables.schema.fields.unwrap();
+        let fields = tables.schema.fields.unwrap_or_default();
         let columns = fields.iter().map(|f| f.name.clone()).collect();
         Ok(columns)
     }
