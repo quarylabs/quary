@@ -10,7 +10,10 @@
   <a aria-label="Quary logo" href="https://www.quary.dev/">
     <img src="https://img.shields.io/badge/MADE%20BY%20Quary-000000.svg?style=for-the-badge&logo=Quary&labelColor=000">
   </a>
-    <a aria-label="License" href="https://github.com/quarylabs/quary/blob/main/LICENSE">
+  <a aria-label="Slack community" target="_blank" href="https://join.slack.com/t/quarylabs/shared_invite/zt-2dlbfnztw-dMLXJVL38NcbhqRuM5gUcw">
+    <img src="https://img.shields.io/badge/slack-@quarycommunity-000000.svg?style=for-the-badge&logo=slack&labelColor=000" alt="Quary Community">
+  </a>
+  <a aria-label="License" href="https://github.com/quarylabs/quary/blob/main/LICENSE">
     <img alt="" src="https://img.shields.io/npm/l/next.svg?style=for-the-badge&labelColor=000000">
   </a>
 </p>
