@@ -3196,9 +3196,9 @@ dependencies = [
 
 [[package]]
 name = "snowflake-api"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66ca01bf134469135170a7271c0a31bbfb7da903104857e3dfa671093300683a"
+checksum = "f6e20db2ea77690628e34db7a6f63f539557195afbbc3cd349a8cbe293e1fffc"
 dependencies = [
  "arrow 50.0.0",
  "async-trait",
@@ -3213,9 +3213,25 @@ dependencies = [
  "reqwest-retry",
  "serde",
  "serde_json",
+ "snowflake-jwt",
  "thiserror",
  "url",
  "uuid",
+]
+
+[[package]]
+name = "snowflake-jwt"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13a6dfdd7c433e0f4bb96d777c88d900c5abe3dc4d2f26d2340fd6c7caadcc6c"
+dependencies = [
+ "base64 0.21.7",
+ "jsonwebtoken",
+ "rsa",
+ "serde",
+ "sha2",
+ "thiserror",
+ "time",
 ]
 
 [[package]]
