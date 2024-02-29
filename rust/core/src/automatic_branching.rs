@@ -913,6 +913,7 @@ sources:
                 ),
             ]),
             project_files: Default::default(),
+            connection_config: Default::default(),
         };
 
         let map = HashMap::from([

@@ -3,6 +3,11 @@ import * as _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "quary.service.v1";
 
+export interface Var {
+  name: string;
+  value: string;
+}
+
 /** Configuration describes the configuration of the project. */
 export interface ConnectionConfig {
   config?:
@@ -12,7 +17,9 @@ export interface ConnectionConfig {
     | { $case: "sqliteInMemory"; sqliteInMemory: ConnectionConfig_ConnectionConfigSqLiteInMemory }
     | { $case: "bigQuery"; bigQuery: ConnectionConfig_ConnectionConfigBigQuery }
     | { $case: "snowflake"; snowflake: ConnectionConfig_ConnectionConfigSnowflake }
+    | { $case: "postgres"; postgres: ConnectionConfig_ConnectionConfigPostgres }
     | undefined;
+  vars: Var[];
 }
 
 export interface ConnectionConfig_ConnectionConfigSqLite {
@@ -31,6 +38,10 @@ export interface ConnectionConfig_ConnectionConfigDuckDBInMemory {
   schema?: string | undefined;
 }
 
+export interface ConnectionConfig_ConnectionConfigPostgres {
+  schema: string;
+}
+
 export interface ConnectionConfig_ConnectionConfigBigQuery {
   projectId: string;
   datasetId: string;
@@ -47,8 +58,82 @@ export interface ConnectionConfig_ConnectionConfigSnowflake {
   warehouse: string;
 }
 
+function createBaseVar(): Var {
+  return { name: "", value: "" };
+}
+
+export const Var = {
+  encode(message: Var, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Var {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVar();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Var {
+    return {
+      name: isSet(object.name) ? gt.String(object.name) : "",
+      value: isSet(object.value) ? gt.String(object.value) : "",
+    };
+  },
+
+  toJSON(message: Var): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.value !== "") {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Var>, I>>(base?: I): Var {
+    return Var.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Var>, I>>(object: I): Var {
+    const message = createBaseVar();
+    message.name = object.name ?? "";
+    message.value = object.value ?? "";
+    return message;
+  },
+};
+
 function createBaseConnectionConfig(): ConnectionConfig {
-  return { config: undefined };
+  return { config: undefined, vars: [] };
 }
 
 export const ConnectionConfig = {
@@ -74,6 +159,12 @@ export const ConnectionConfig = {
       case "snowflake":
         ConnectionConfig_ConnectionConfigSnowflake.encode(message.config.snowflake, writer.uint32(50).fork()).ldelim();
         break;
+      case "postgres":
+        ConnectionConfig_ConnectionConfigPostgres.encode(message.config.postgres, writer.uint32(58).fork()).ldelim();
+        break;
+    }
+    for (const v of message.vars) {
+      Var.encode(v!, writer.uint32(66).fork()).ldelim();
     }
     return writer;
   },
@@ -145,6 +236,23 @@ export const ConnectionConfig = {
             snowflake: ConnectionConfig_ConnectionConfigSnowflake.decode(reader, reader.uint32()),
           };
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.config = {
+            $case: "postgres",
+            postgres: ConnectionConfig_ConnectionConfigPostgres.decode(reader, reader.uint32()),
+          };
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.vars.push(Var.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -174,7 +282,10 @@ export const ConnectionConfig = {
         ? { $case: "bigQuery", bigQuery: ConnectionConfig_ConnectionConfigBigQuery.fromJSON(object.bigQuery) }
         : isSet(object.snowflake)
         ? { $case: "snowflake", snowflake: ConnectionConfig_ConnectionConfigSnowflake.fromJSON(object.snowflake) }
+        : isSet(object.postgres)
+        ? { $case: "postgres", postgres: ConnectionConfig_ConnectionConfigPostgres.fromJSON(object.postgres) }
         : undefined,
+      vars: gt.Array.isArray(object?.vars) ? object.vars.map((e: any) => Var.fromJSON(e)) : [],
     };
   },
 
@@ -197,6 +308,12 @@ export const ConnectionConfig = {
     }
     if (message.config?.$case === "snowflake") {
       obj.snowflake = ConnectionConfig_ConnectionConfigSnowflake.toJSON(message.config.snowflake);
+    }
+    if (message.config?.$case === "postgres") {
+      obj.postgres = ConnectionConfig_ConnectionConfigPostgres.toJSON(message.config.postgres);
+    }
+    if (message.vars?.length) {
+      obj.vars = message.vars.map((e) => Var.toJSON(e));
     }
     return obj;
   },
@@ -256,6 +373,15 @@ export const ConnectionConfig = {
         snowflake: ConnectionConfig_ConnectionConfigSnowflake.fromPartial(object.config.snowflake),
       };
     }
+    if (
+      object.config?.$case === "postgres" && object.config?.postgres !== undefined && object.config?.postgres !== null
+    ) {
+      message.config = {
+        $case: "postgres",
+        postgres: ConnectionConfig_ConnectionConfigPostgres.fromPartial(object.config.postgres),
+      };
+    }
+    message.vars = object.vars?.map((e) => Var.fromPartial(e)) || [];
     return message;
   },
 };
@@ -506,6 +632,67 @@ export const ConnectionConfig_ConnectionConfigDuckDBInMemory = {
   ): ConnectionConfig_ConnectionConfigDuckDBInMemory {
     const message = createBaseConnectionConfig_ConnectionConfigDuckDBInMemory();
     message.schema = object.schema ?? undefined;
+    return message;
+  },
+};
+
+function createBaseConnectionConfig_ConnectionConfigPostgres(): ConnectionConfig_ConnectionConfigPostgres {
+  return { schema: "" };
+}
+
+export const ConnectionConfig_ConnectionConfigPostgres = {
+  encode(message: ConnectionConfig_ConnectionConfigPostgres, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.schema !== "") {
+      writer.uint32(10).string(message.schema);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ConnectionConfig_ConnectionConfigPostgres {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseConnectionConfig_ConnectionConfigPostgres();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.schema = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ConnectionConfig_ConnectionConfigPostgres {
+    return { schema: isSet(object.schema) ? gt.String(object.schema) : "" };
+  },
+
+  toJSON(message: ConnectionConfig_ConnectionConfigPostgres): unknown {
+    const obj: any = {};
+    if (message.schema !== "") {
+      obj.schema = message.schema;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ConnectionConfig_ConnectionConfigPostgres>, I>>(
+    base?: I,
+  ): ConnectionConfig_ConnectionConfigPostgres {
+    return ConnectionConfig_ConnectionConfigPostgres.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ConnectionConfig_ConnectionConfigPostgres>, I>>(
+    object: I,
+  ): ConnectionConfig_ConnectionConfigPostgres {
+    const message = createBaseConnectionConfig_ConnectionConfigPostgres();
+    message.schema = object.schema ?? "";
     return message;
   },
 };

@@ -180,6 +180,7 @@ mod tests {
             config: Some(connection_config::Config::SqliteInMemory(
                 ConnectionConfigSqLiteInMemory {},
             )),
+            vars: Vec::new(),
         };
 
         let files = generate_onboarding_files(sqlite_config.clone())

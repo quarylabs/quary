@@ -27,6 +27,16 @@
                 "snowflake": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigSnowflake",
                     "additionalProperties": true
+                },
+                "postgres": {
+                    "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigPostgres",
+                    "additionalProperties": true
+                },
+                "vars": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.Var"
+                    },
+                    "type": "array"
                 }
             },
             "additionalProperties": true,
@@ -45,8 +55,7 @@
             },
             "additionalProperties": true,
             "type": "object",
-            "title": "message ConnectionConfigPostgres {\n    string host = 1;\n    string port = 2;\n    string user = 3;\n    string password = 4;\n    string database = 5;\n    map\u003cstring, string\u003e params = 6;\n  }\n\n  message ConnectionConfigMySql {\n    string username = 1;\n    string password = 2;\n    string protocol = 3;\n    string host = 4;\n    string port = 5;\n    string database = 6;\n    map\u003cstring, string\u003e params = 7;\n  }",
-            "description": "message ConnectionConfigPostgres {    string host = 1;    string port = 2;    string user = 3;    string password = 4;    string database = 5;    map\u003cstring, string\u003e params = 6;  }  message ConnectionConfigMySql {    string username = 1;    string password = 2;    string protocol = 3;    string host = 4;    string port = 5;    string database = 6;    map\u003cstring, string\u003e params = 7;  }"
+            "title": "Connection Config Big Query"
         },
         "quary.service.v1.ConnectionConfig.ConnectionConfigDuckDB": {
             "properties": {
@@ -70,6 +79,16 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Connection Config Duck DB In Memory"
+        },
+        "quary.service.v1.ConnectionConfig.ConnectionConfigPostgres": {
+            "properties": {
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Connection Config Postgres"
         },
         "quary.service.v1.ConnectionConfig.ConnectionConfigSnowflake": {
             "properties": {
@@ -114,6 +133,19 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Connection Config Sq Lite In Memory"
+        },
+        "quary.service.v1.Var": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Var"
         }
     }
 }

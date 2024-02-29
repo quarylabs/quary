@@ -1,6 +1,6 @@
 [package]
 name = "quary"
-version = "0.0.91"
+version = "0.0.93"
 edition = "2021"
 rust-version = "1.76.0"
 
@@ -13,13 +13,13 @@ quary-core = { path = "../core" }
 dbt-converter = { path = "../dbt-converter" }
 quary_proto = { path = "../../proto/gen/rust" }
 tokio = { version = "1", features = ["full"] }
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "postgres"] }
 async-trait = "0.1"
 indicatif = "0.17"
 gcp-bigquery-client = "0.18"
 prost = "0.12"
 google-cloud-auth = { version = "0.13", default-features = false, features = ["external-account", "rustls-tls"] }
-snowflake-api = "0.6"
+snowflake-api = "0.7"
 arrow-array = "50"
 duckdb = { version = "0.10", features = ["bundled"] }
 regex = "1.10.3"
@@ -27,3 +27,5 @@ regex = "1.10.3"
 [dev-dependencies]
 assert_cmd = "2"
 tempfile = "3"
+testcontainers = "0.15.0"
+testcontainers-modules = { version = "0.3.4", features=["postgres", "minio"]}

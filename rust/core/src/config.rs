@@ -34,7 +34,7 @@ pub const DEFAULT_CONFIG_PATH: &str = "quary.yaml";
 mod tests {
     use super::*;
     use prost::bytes::Bytes;
-    use quary_proto::connection_config;
+    use quary_proto::{connection_config, Var};
     use std::{collections::HashMap, io::Cursor};
 
     #[test]
@@ -46,10 +46,13 @@ mod tests {
                     name: "quary.yaml".to_string(),
                     contents: Bytes::from(
                         r#"
-                bigQuery:
-                    projectId: "test-project"
-                    datasetId: "test_dataset"
-            "#
+        bigQuery:
+          projectId: "test-project"
+          datasetId: "test_dataset"
+        vars:
+          - name: test
+            value: test
+        "#
                         .as_bytes(),
                     ),
                 },
@@ -65,6 +68,10 @@ mod tests {
                     dataset_id: "test_dataset".to_string(),
                 },
             )),
+            vars: vec![Var {
+                name: "test".to_string(),
+                value: "test".to_string(),
+            }],
         };
 
         assert_eq!(config, expected_config);
@@ -98,6 +105,7 @@ mod tests {
                     dataset_id: "test_dataset".to_string(),
                 },
             )),
+            vars: Vec::new(),
         };
 
         assert_eq!(config, expected_config);
@@ -161,6 +169,7 @@ mod tests {
             config: Some(connection_config::Config::BigQuery(
                 expected_big_query_config,
             )),
+            vars: Vec::new(),
         };
 
         assert_eq!(deserialized_config, expected_config);
@@ -174,6 +183,7 @@ mod tests {
         };
         let config = ConnectionConfig {
             config: Some(connection_config::Config::BigQuery(big_query_config)),
+            vars: Vec::new(),
         };
         // Serialize the ConnectionConfig instance to a YAML string
         let yaml_str = serialize_config_to_yaml(&config).unwrap();

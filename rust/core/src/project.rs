@@ -1,4 +1,5 @@
 use crate::automatic_branching::derive_sha256_file_contents;
+use crate::config::get_config_from_filesystem;
 use crate::databases::DatabaseQueryGenerator;
 use crate::file_system::FileSystem;
 use crate::graph::{project_to_graph, Edge};
@@ -222,12 +223,15 @@ pub fn parse_project(
         }
     }
 
+    let connection_config = get_config_from_filesystem(filesystem, project_root)?;
+
     Ok(Project {
         seeds,
         models: models.into_iter().collect(),
         sources,
         tests: tests.into_iter().collect(),
         project_files,
+        connection_config: Some(connection_config),
     })
 }
 
@@ -403,6 +407,7 @@ fn parse_model(
     file.read_to_string(&mut contents)
         .map_err(|e| format!("failed to read string: {:?}", e))?;
     let contents = remove_sql_comments(&contents);
+    // TODO: Louis to del check here
     let mut references: Vec<String> = reference_search
         .captures_iter(&contents)
         .map(|cap| {
@@ -550,6 +555,7 @@ fn parse_column_tests(
                     file_path,
                     &source.name,
                     &source.path,
+                    database,
                 )?;
                 for (name, test) in tests {
                     safe_adder_map(&mut outs, name, test)?;
@@ -565,6 +571,7 @@ fn parse_column_tests(
                     file_path,
                     &model.name,
                     model_path.as_str(),
+                    database,
                 )?;
                 for (name, test) in tests {
                     safe_adder_map(&mut outs, name, test)?;
@@ -583,6 +590,7 @@ fn parse_column_tests_for_model_or_source(
     file_path: &str,
     model_name: &str,
     model_path: &str,
+    database: &impl DatabaseQueryGenerator,
 ) -> Result<HashMap<String, Test>, String> {
     column
         .tests
@@ -643,13 +651,15 @@ fn parse_column_tests_for_model_or_source(
                     source_path: model_path.to_string(),
                     source_column: column.name.to_string(),
                     target_model: target_model.to_string(),
-                    target_path: path_map
-                        .get(target_model)
-                        .ok_or(format!(
-                            "test {:?} has unknown target model in {:?}",
-                            test, path_map
-                        ))?
-                        .to_string(),
+                    target_path: database.return_full_path_requirement(
+                        &path_map
+                            .get(target_model)
+                            .ok_or(format!(
+                                "test {:?} has unknown target model in {:?}",
+                                test, path_map
+                            ))?
+                            .to_string(),
+                    ),
                     target_column: target_column.to_string(),
                 }
                 .to_test();
@@ -768,7 +778,7 @@ pub fn project_and_fs_to_query_sql(
     for model in overrides.keys() {
         if overriden_graph.graph.node_weights().any(|n| n == model) {
             let (override_graph, _) =
-                overriden_graph.return_shrunk_downstream_graph(model.as_str())?;
+                overriden_graph.return_shrunk_downstream_graph(model.as_str(), model_name)?;
             overriden_graph = override_graph;
         }
     }
@@ -808,7 +818,7 @@ pub fn project_and_fs_to_query_sql(
         })
         .collect::<Result<Vec<_>, String>>()?;
 
-    let sql = convert_to_select_statement(database, file_system, &to_process)?;
+    let sql = convert_to_select_statement(database, file_system, &to_process, project)?;
 
     let edges = upstream.return_graph_edges()?;
 
@@ -867,6 +877,7 @@ pub fn project_and_fs_to_sql_for_views(
                     let replaced = replaced.trim();
                     format!(" {}", replaced)
                 },
+                project,
             )?;
             Ok((model.name.clone(), sql_view))
         })
@@ -924,6 +935,7 @@ fn convert_to_select_statement(
     database: &impl DatabaseQueryGenerator,
     file_system: &impl FileSystem,
     values: &[NodeWithName],
+    project: &Project,
 ) -> Result<String, String> {
     /// Info contains the name of the model and the sql for that model
     type Info = (String, String);
@@ -944,7 +956,7 @@ fn convert_to_select_statement(
                 Ok((node.name.clone(), sql))
             }
             ModelOrSeed::Model(model) => {
-                let sql = render_model_select_statement(database, file_system, model)?;
+                let sql = render_model_select_statement(database, file_system, model, project)?;
                 Ok((node.name.clone(), sql))
             }
         })
@@ -1047,6 +1059,7 @@ fn render_model_select_statement(
     database: &impl DatabaseQueryGenerator,
     fs: &impl FileSystem,
     model: &Model,
+    project: &Project,
 ) -> Result<String, String> {
     let reader = fs.read_file(model.file_path.as_str()).map_err(|e| {
         format!(
@@ -1066,7 +1079,55 @@ fn render_model_select_statement(
         sql.as_str(),
         replace_reference_string_found(&HashMap::new(), &database),
     );
-    Ok(replaced.into_owned())
+    let connection_config = project
+        .connection_config
+        .as_ref()
+        .ok_or_else(|| "Connection config is required".to_string())?;
+
+    let replaced = replace_variable_templates_with_variable_defined_in_config(
+        &replaced.into_owned(),
+        connection_config,
+    )?;
+    Ok(replaced)
+}
+
+pub fn replace_variable_templates_with_variable_defined_in_config(
+    sql: &str,
+    connection_config: &quary_proto::ConnectionConfig,
+) -> Result<String, String> {
+    let re = regex::Regex::new(r"\{\{\s*var\('([^']+)'\)\s*\}\}").map_err(|e| e.to_string())?;
+
+    let mut errors = Vec::new();
+
+    let result = re
+        .replace_all(sql, |caps: &regex::Captures| {
+            let var_name = match caps.get(1) {
+                Some(m) => m.as_str(),
+                None => {
+                    errors.push("Missing variable target".to_string());
+                    return ""; // placeholder if variable target is missing
+                }
+            };
+            match connection_config
+                .vars
+                .iter()
+                .find(|var| var.name == var_name)
+            {
+                Some(var) => &var.value,
+                None => {
+                    errors.push(format!("Variable '{}' not found", var_name));
+                    "" // placeholder if variable value is missing
+                }
+            }
+        })
+        .to_string();
+
+    // Check if there were any errors during replacement
+    if let Some(error) = errors.first() {
+        return Err(error.clone());
+    }
+
+    Ok(result)
 }
 
 fn replace_reference_string_found_with_database<'a>(
@@ -1260,6 +1321,13 @@ mod test {
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
                 (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
                     "models/shifts.sql".to_string(),
                     quary_proto::File {
                         name: "models/shifts.sql".to_string(),
@@ -1293,6 +1361,13 @@ mod test {
         let database = DatabaseQueryGeneratorSqlite::default();
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
                 (
                     "models/shifts.sql".to_string(),
                     quary_proto::File {
@@ -1335,6 +1410,13 @@ mod test {
         let database = DatabaseQueryGeneratorSqlite::default();
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
                 (
                     "models/shifts.sql".to_string(),
                     quary_proto::File {
@@ -1387,10 +1469,151 @@ mod test {
     }
 
     #[test]
+    fn project_and_fs_to_query_sql_with_overrides_in_middle() {
+        let database = DatabaseQueryGeneratorSqlite::default();
+        let fs = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "models/prs_time_to_merge.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/prs_time_to_merge.sql".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "SELECT merged.id
+FROM
+    q.stg_pull_requests AS prs
+INNER JOIN
+    q.prs_merged AS merged
+    ON
+        prs.id = merged.id
+",
+                        ),
+                    },
+                ),
+                (
+                    "models/prs_merged.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/prs_merged.sql".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "SELECT prs.id
+FROM
+    q.stg_pull_requests AS prs
+WHERE
+    prs.merged_at IS NOT NULL
+",
+                        ),
+                    },
+                ),
+                (
+                    "models/stg_pull_requests.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/stg_pull_requests.sql".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "SELECT
+    active_lock_reason AS active_lock_reason,
+    assignee AS gh_assignee,
+    assignees AS assignees,
+    author_association AS author_association,
+    auto_merge AS auto_merge,
+    base AS base,
+    body AS body,
+    comments_url AS comments_url,
+    commits_url AS commits_url,
+    diff_url AS diff_url,
+    draft AS draft,
+    head AS head,
+    html_url AS html_url,
+    id AS id,
+    issue_url AS issue_url,
+    labels AS labels,
+    locked AS locked,
+    merge_commit_sha AS merge_commit_sha,
+    milestone AS milestone,
+    node_id AS node_id,
+    number AS number,
+    patch_url AS patch_url,
+    repository AS repository,
+    requested_reviewers AS requested_reviewers,
+    requested_teams AS requested_teams,
+    review_comment_url AS review_comment_url,
+    review_comments_url AS review_comments_url,
+    state AS state,
+    statuses_url AS statuses_url,
+    title AS title,
+    url AS url,
+    user AS user_name,
+    TIMESTAMP(closed_at) AS closed_at,
+    TIMESTAMP(created_at) AS created_at,
+    TIMESTAMP(merged_at) AS merged_at,
+    TIMESTAMP(updated_at) AS updated_at
+FROM
+    q.raw_pull_requests
+",
+                        ),
+                    },
+                ),
+                (
+                    "models/schema.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "
+sources:
+  - name: raw_pull_requests
+    path: source.data.raw_pull_requests_real_table
+",
+                        ),
+                    },
+                ),
+            ]),
+        };
+
+        let project = parse_project(&fs, &database, "").unwrap();
+
+        let (sql, _) = project_and_fs_to_query_sql(
+            &database,
+            &project,
+            &fs,
+            "prs_time_to_merge",
+            Some(HashMap::from([
+                (
+                    "prs_merged".to_string(),
+                    "dataset.transform.qqq_prs_merged_88c7f00".to_string(),
+                ),
+                (
+                    "stg_pull_requests".to_string(),
+                    "dataset.transform.qqq_stg_pull_requests_d765fa9".to_string(),
+                ),
+            ])),
+        )
+        .unwrap();
+
+        // Assert is one of the two possibilities
+        // TODO Make this deterministic
+        let possibility_1 = "WITH\nprs_merged AS (SELECT * FROM dataset.transform.qqq_prs_merged_88c7f00),\nstg_pull_requests AS (SELECT * FROM dataset.transform.qqq_stg_pull_requests_d765fa9)\nSELECT * FROM (SELECT merged.id\nFROM\n    `stg_pull_requests` AS prs\nINNER JOIN\n    `prs_merged` AS merged\n    ON\n        prs.id = merged.id\n)";
+        let possibility_2 = "WITH\nstg_pull_requests AS (SELECT * FROM dataset.transform.qqq_stg_pull_requests_d765fa9),\nprs_merged AS (SELECT * FROM dataset.transform.qqq_prs_merged_88c7f00)\nSELECT * FROM (SELECT merged.id\nFROM\n    `stg_pull_requests` AS prs\nINNER JOIN\n    `prs_merged` AS merged\n    ON\n        prs.id = merged.id\n)";
+
+        assert!(sql == possibility_1 || sql == possibility_2);
+    }
+
+    #[test]
     fn test_project_and_fs_to_query_sql_sqlite_simple_model_model_source_with_overide_end() {
         let database = DatabaseQueryGeneratorSqlite::default();
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
                 (
                     "models/shifts.sql".to_string(),
                     quary_proto::File {
@@ -1445,6 +1668,13 @@ mod test {
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
                 (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
                     "models/shifts.sql".to_string(),
                     quary_proto::File {
                         name: "models/shifts.sql".to_string(),
@@ -1482,6 +1712,13 @@ mod test {
         );
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
                 (
                     "models/shifts.sql".to_string(),
                     quary_proto::File {
@@ -1527,6 +1764,13 @@ mod test {
         );
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
                 (
                     "models/shifts.sql".to_string(),
                     quary_proto::File {
@@ -1585,6 +1829,13 @@ mod test {
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
                 (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
                     "models/stg_commits.sql".to_string(),
                     quary_proto::File {
                         name: "models/stg_commits.sql".to_string(),
@@ -1639,6 +1890,13 @@ mod test {
         let database = DatabaseQueryGeneratorSqlite::default();
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
                 (
                     "models/stg_shifts.sql".to_string(),
                     quary_proto::File {
@@ -1700,6 +1958,13 @@ mod test {
         let file_system = quary_proto::FileSystem {
             files: vec![
                 (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
                 "models/shifts.sql".to_string(),
                 quary_proto::File {
                     name: "models/shifts.sql".to_string(),
@@ -1750,6 +2015,13 @@ mod test {
         let file_system = quary_proto::FileSystem {
             files: vec![
                 (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
                     "models/shifts.sql".to_string(),
                     quary_proto::File {
                         name: "models/shifts.sql".to_string(),
@@ -1793,6 +2065,43 @@ mod test {
         };
 
         parse_project(&file_system, &database, "").unwrap();
+    }
+
+    #[test]
+    fn test_replace_variable_with_config_variables() {
+        let connection_config = quary_proto::ConnectionConfig {
+            config: Default::default(),
+            vars: vec![
+                quary_proto::Var {
+                    name: "test".to_string(),
+                    value: "value1".to_string(),
+                },
+                quary_proto::Var {
+                    name: "var2".to_string(),
+                    value: "value2".to_string(),
+                },
+            ],
+        };
+
+        let sql = "SELECT
+        {{ var('test') }} as test_var,
+        'morning' AS shift,
+        '08:00:00' AS start_time,
+        '12:00:00' AS end_time
+    UNION ALL
+    SELECT
+        'afternoon' AS shift,
+        '12:00:00' AS start_time,
+        '16:00:00' AS end_time
+    ";
+        let result =
+            replace_variable_templates_with_variable_defined_in_config(sql, &connection_config)
+                .unwrap();
+
+        assert_eq!(
+            result,
+            "SELECT\n        value1 as test_var,\n        'morning' AS shift,\n        '08:00:00' AS start_time,\n        '12:00:00' AS end_time\n    UNION ALL\n    SELECT\n        'afternoon' AS shift,\n        '12:00:00' AS start_time,\n        '16:00:00' AS end_time\n    "
+        );
     }
 
     // TODO Reinstate after making get_node_sorted completely deterministic

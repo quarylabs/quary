@@ -7,6 +7,49 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message quary.service.v1.Var
+ */
+export class Var extends Message<Var> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string value = 2;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<Var>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.Var";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Var {
+    return new Var().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Var {
+    return new Var().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Var {
+    return new Var().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Var | PlainMessage<Var> | undefined, b: Var | PlainMessage<Var> | undefined): boolean {
+    return proto3.util.equals(Var, a, b);
+  }
+}
+
+/**
  * Configuration describes the configuration of the project.
  *
  * @generated from message quary.service.v1.ConnectionConfig
@@ -51,7 +94,18 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
      */
     value: ConnectionConfig_ConnectionConfigSnowflake;
     case: "snowflake";
+  } | {
+    /**
+     * @generated from field: quary.service.v1.ConnectionConfig.ConnectionConfigPostgres postgres = 7;
+     */
+    value: ConnectionConfig_ConnectionConfigPostgres;
+    case: "postgres";
   } | { case: undefined; value?: undefined } = { case: undefined };
+
+  /**
+   * @generated from field: repeated quary.service.v1.Var vars = 8;
+   */
+  vars: Var[] = [];
 
   constructor(data?: PartialMessage<ConnectionConfig>) {
     super();
@@ -67,6 +121,8 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
     { no: 4, name: "sqlite_in_memory", kind: "message", T: ConnectionConfig_ConnectionConfigSqLiteInMemory, oneof: "config" },
     { no: 5, name: "big_query", kind: "message", T: ConnectionConfig_ConnectionConfigBigQuery, oneof: "config" },
     { no: 6, name: "snowflake", kind: "message", T: ConnectionConfig_ConnectionConfigSnowflake, oneof: "config" },
+    { no: 7, name: "postgres", kind: "message", T: ConnectionConfig_ConnectionConfigPostgres, oneof: "config" },
+    { no: 8, name: "vars", kind: "message", T: Var, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionConfig {
@@ -231,6 +287,43 @@ export class ConnectionConfig_ConnectionConfigDuckDBInMemory extends Message<Con
 
   static equals(a: ConnectionConfig_ConnectionConfigDuckDBInMemory | PlainMessage<ConnectionConfig_ConnectionConfigDuckDBInMemory> | undefined, b: ConnectionConfig_ConnectionConfigDuckDBInMemory | PlainMessage<ConnectionConfig_ConnectionConfigDuckDBInMemory> | undefined): boolean {
     return proto3.util.equals(ConnectionConfig_ConnectionConfigDuckDBInMemory, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.ConnectionConfig.ConnectionConfigPostgres
+ */
+export class ConnectionConfig_ConnectionConfigPostgres extends Message<ConnectionConfig_ConnectionConfigPostgres> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  constructor(data?: PartialMessage<ConnectionConfig_ConnectionConfigPostgres>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.ConnectionConfig.ConnectionConfigPostgres";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionConfig_ConnectionConfigPostgres {
+    return new ConnectionConfig_ConnectionConfigPostgres().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectionConfig_ConnectionConfigPostgres {
+    return new ConnectionConfig_ConnectionConfigPostgres().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectionConfig_ConnectionConfigPostgres {
+    return new ConnectionConfig_ConnectionConfigPostgres().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ConnectionConfig_ConnectionConfigPostgres | PlainMessage<ConnectionConfig_ConnectionConfigPostgres> | undefined, b: ConnectionConfig_ConnectionConfigPostgres | PlainMessage<ConnectionConfig_ConnectionConfigPostgres> | undefined): boolean {
+    return proto3.util.equals(ConnectionConfig_ConnectionConfigPostgres, a, b);
   }
 }
 
