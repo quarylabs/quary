@@ -1,4 +1,5 @@
 use crate::databases::DatabaseQueryGenerator;
+use crate::project::replace_variable_templates_with_variable_defined_in_config;
 use crate::sql::return_reference_search;
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -29,17 +30,29 @@ pub fn parse_model_schemas_to_views<F>(
     view_name: &str,
     config_schema_name: &str,
     name_replacing_strategy: F,
+    project: &quary_proto::Project,
 ) -> Result<[String; 2], String>
 where
     F: Fn(&regex::Captures) -> String,
 {
     let original_select_statement = read_normalise_model(file_reader)?;
 
+    let connection_config = match project.connection_config.as_ref() {
+        Some(config) => config,
+        None => return Err("Connection config is required".to_string()),
+    };
+
+    let vars_replaced_select_statement =
+        replace_variable_templates_with_variable_defined_in_config(
+            &original_select_statement,
+            connection_config,
+        )?;
+
     let reference_search =
         return_reference_search(config_schema_name).map_err(|e| e.to_string())?;
 
     let out_select =
-        reference_search.replace_all(&original_select_statement, name_replacing_strategy);
+        reference_search.replace_all(&vars_replaced_select_statement, name_replacing_strategy);
 
     Ok(return_sql_model_template(database, view_name, &out_select))
 }

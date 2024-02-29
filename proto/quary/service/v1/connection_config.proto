@@ -4,6 +4,11 @@ package quary.service.v1;
 
 option java_multiple_files = true;
 
+message Var {
+  string name = 1;
+  string value = 2;
+}
+
 // Configuration describes the configuration of the project.
 message ConnectionConfig {
   oneof config {
@@ -13,7 +18,9 @@ message ConnectionConfig {
     ConnectionConfigSqLiteInMemory sqlite_in_memory = 4;
     ConnectionConfigBigQuery big_query = 5;
     ConnectionConfigSnowflake snowflake = 6;
+    ConnectionConfigPostgres postgres = 7;
   }
+  repeated Var vars = 8;
 
   message ConnectionConfigSqLite {
     string path = 1;
@@ -30,14 +37,9 @@ message ConnectionConfig {
     optional string schema = 1;
   }
 
-  //  message ConnectionConfigPostgres {
-  //    string host = 1;
-  //    string port = 2;
-  //    string user = 3;
-  //    string password = 4;
-  //    string database = 5;
-  //    map<string, string> params = 6;
-  //  }
+  message ConnectionConfigPostgres {
+    string schema = 1;
+  }
   //
   //  message ConnectionConfigMySql {
   //    string username = 1;

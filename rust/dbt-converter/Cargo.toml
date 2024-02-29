@@ -1,6 +1,6 @@
 [package]
 name = "dbt-converter"
-version = "0.0.91"
+version = "0.0.93"
 edition = "2021"
 rust-version = "1.76.0"
 

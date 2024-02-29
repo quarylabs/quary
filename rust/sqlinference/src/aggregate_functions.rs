@@ -14,22 +14,24 @@ pub fn aggregate_function_behaviour(
     dialect: &Dialect,
 ) -> HashMap<Operation, TreatmentOfNullExpressionsInAggregates> {
     match dialect {
-        Dialect::SQLite | Dialect::BigQuery | Dialect::Snowflake | Dialect::DuckDB => {
-            HashMap::from([
-                (
-                    Operation::Min,
-                    TreatmentOfNullExpressionsInAggregates::IgnoreNullExpressions,
-                ),
-                (
-                    Operation::Max,
-                    TreatmentOfNullExpressionsInAggregates::IgnoreNullExpressions,
-                ),
-                (
-                    Operation::Avg,
-                    TreatmentOfNullExpressionsInAggregates::IgnoreNullExpressions,
-                ),
-            ])
-        }
+        Dialect::SQLite
+        | Dialect::BigQuery
+        | Dialect::Snowflake
+        | Dialect::DuckDB
+        | Dialect::Postgres => HashMap::from([
+            (
+                Operation::Min,
+                TreatmentOfNullExpressionsInAggregates::IgnoreNullExpressions,
+            ),
+            (
+                Operation::Max,
+                TreatmentOfNullExpressionsInAggregates::IgnoreNullExpressions,
+            ),
+            (
+                Operation::Avg,
+                TreatmentOfNullExpressionsInAggregates::IgnoreNullExpressions,
+            ),
+        ]),
     }
 }
 

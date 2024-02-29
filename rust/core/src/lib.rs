@@ -13,6 +13,7 @@ pub mod automatic_branching;
 pub mod config;
 pub mod database_bigquery;
 pub mod database_duckdb;
+pub mod database_postgres;
 pub mod database_snowflake;
 pub mod database_sqlite;
 pub mod databases;

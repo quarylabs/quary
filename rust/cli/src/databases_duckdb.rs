@@ -297,6 +297,12 @@ mod tests {
             files: vec![
                 ("models/test_model.sql", "SELECT id FROM q.test_source"),
                 (
+                    "quary.yaml",
+                    r#"
+                    duckdbInMemory: {}
+                "#,
+                ),
+                (
                     "models/test_model_same_schema.sql",
                     "SELECT id FROM q.test_source_same_schema",
                 ),
@@ -391,6 +397,12 @@ models:
 
         let file_system = FileSystem {
             files: vec![
+                (
+                    "quary.yaml",
+                    r#"
+                    duckdbInMemory: {}
+                "#,
+                ),
                 ("models/test_model.sql", "SELECT id FROM q.test_source"),
                 (
                     "models/test_model_same_schema.sql",

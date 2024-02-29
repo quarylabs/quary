@@ -10,6 +10,7 @@ pub(crate) fn translate_sql_file(mut reader: impl io::Read) -> Result<String, St
     // translate Jinja comments to SQL comments
     content = translate_jinja_comment_to_sql_comment(&content);
     content = translate_dbt_config_to_sql_comment(&content);
+    content = translate_dbt_group_by(&content);
 
     // regex for refs (model references)
     let re_ref = Regex::new(r#"\{\{\s*ref\s*\(['"]([a-zA-Z0-9_]+)['"]\)\s*\}\}"#)
@@ -42,6 +43,21 @@ fn translate_dbt_config_to_sql_comment(content: &str) -> String {
         .replace_all(content, |caps: &Captures| {
             // This time, ensure the conversion does not add * on new lines within the comment
             format!("/* config({}) */", &caps[1])
+        })
+        .to_string()
+}
+
+/// Translates DBT's group_by syntax to a normal SQL GROUP BY clause.
+fn translate_dbt_group_by(content: &str) -> String {
+    let re_group_by = Regex::new(r"\{\{\s*dbt_utils\.group_by\((\d+)\)\s*\}\}").unwrap();
+    re_group_by
+        .replace_all(content, |caps: &Captures| {
+            let num = caps[1].parse::<usize>().unwrap();
+            let group_by = (1..=num)
+                .map(|n| n.to_string())
+                .collect::<Vec<_>>()
+                .join(", ");
+            format!("GROUP BY {}", group_by)
         })
         .to_string()
 }
@@ -183,6 +199,29 @@ mod tests {
         assert_eq!(
             expected_output.to_string(),
             translate_dbt_config_to_sql_comment(sql_file_with_config)
+        );
+    }
+
+    #[test]
+    fn test_translate_dbt_group_by_to_sql() {
+        let sql_file_with_config = r#"        
+        select
+            q.date
+            , q.number
+            , q.hours
+        from q.dates as t
+        left join q.users as ua
+            on ua.id = t.id
+        where
+            True
+            and t.id = 5
+        {{ dbt_utils.group_by(4) }} -- noqa: TMP    
+        "#;
+        let expected_output = "        \n        select\n            q.date\n            , q.number\n            , q.hours\n        from q.dates as t\n        left join q.users as ua\n            on ua.id = t.id\n        where\n            True\n            and t.id = 5\n        GROUP BY 1, 2, 3, 4 -- noqa: TMP    \n        ";
+
+        assert_eq!(
+            expected_output.to_string(),
+            translate_dbt_group_by(sql_file_with_config)
         );
     }
 }

@@ -7,6 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Model, Seed, Source, Test } from "./types_pb.js";
 import { ProjectFile } from "./project_file_pb.js";
+import { ConnectionConfig } from "./connection_config_pb.js";
 
 /**
  * @generated from message quary.service.v1.Project
@@ -37,6 +38,11 @@ export class Project extends Message<Project> {
    */
   projectFiles: { [key: string]: ProjectFile } = {};
 
+  /**
+   * @generated from field: quary.service.v1.ConnectionConfig connection_config = 8;
+   */
+  connectionConfig?: ConnectionConfig;
+
   constructor(data?: PartialMessage<Project>) {
     super();
     proto3.util.initPartial(data, this);
@@ -50,6 +56,7 @@ export class Project extends Message<Project> {
     { no: 5, name: "tests", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: Test} },
     { no: 6, name: "sources", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: Source} },
     { no: 7, name: "project_files", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ProjectFile} },
+    { no: 8, name: "connection_config", kind: "message", T: ConnectionConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Project {

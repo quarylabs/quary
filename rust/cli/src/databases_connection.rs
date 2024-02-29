@@ -1,12 +1,15 @@
 use crate::databases_bigquery::BigQuery;
+use crate::databases_postgres::Postgres;
 use crate::databases_snowflake;
 use quary_core::database_bigquery::DatabaseQueryGeneratorBigQuery;
 use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
+use quary_core::database_postgres::DatabaseQueryGeneratorPostgres;
 use quary_core::database_snowflake::DatabaseQueryGeneratorSnowflake;
 use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
 use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator};
 use quary_proto::connection_config::Config::{
-    BigQuery as OtherBigQueryConfig, Duckdb, DuckdbInMemory, Snowflake, Sqlite, SqliteInMemory,
+    BigQuery as OtherBigQueryConfig, Duckdb, DuckdbInMemory, Postgres as PostgresConfig, Snowflake,
+    Sqlite, SqliteInMemory,
 };
 use std::{env, fs};
 
@@ -87,6 +90,27 @@ pub async fn database_from_config(
                 )?;
                 Ok(Box::new(database))
             }
+            PostgresConfig(_) => {
+                let host = env::var("PGHOST")
+                    .map_err(|_| "PGHOST must be set to connect to Postgres".to_string())?;
+                let port = env::var("PGPORT")
+                    .map_err(|_| "PGPORT must be set to connect to Postgres".to_string())?;
+                let user = env::var("PGUSER")
+                    .map_err(|_| "PGUSER must be set to connect to Postgres".to_string())?;
+                let password = env::var("PGPASSWORD")
+                    .map_err(|_| "PGPASSWORD must be set to connect to Postgres".to_string())?;
+                let database = env::var("PGDATABASE")
+                    .map_err(|_| "PGDATABASE must be set to connect to Postgres".to_string())?;
+                let schema = env::var("PGSCHEMA")
+                    .map_err(|_| "PGSCHEMA must be set to connect to Postgres".to_string())?;
+
+                let database =
+                    Postgres::new(&host, &port, &user, &password, &database, &schema, None)
+                        .await
+                        .map_err(|e| e.to_string())?;
+
+                Ok(Box::new(database))
+            }
         }
     } else {
         Err("No config provided".to_string())
@@ -117,6 +141,9 @@ pub fn database_query_generator_from_config(
         Some(Duckdb(config)) => Ok(Box::new(DatabaseQueryGeneratorDuckDB::new(config.schema))),
         Some(DuckdbInMemory(config)) => {
             Ok(Box::new(DatabaseQueryGeneratorDuckDB::new(config.schema)))
+        }
+        Some(PostgresConfig(config)) => {
+            Ok(Box::new(DatabaseQueryGeneratorPostgres::new(config.schema)))
         }
         _ => Err("not implemented".to_string()),
     }

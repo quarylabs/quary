@@ -527,6 +527,7 @@ mod tests {
             tests: HashMap::from([(test_to_name(&test).unwrap(), test.clone())]),
             sources: Default::default(),
             project_files: Default::default(),
+            connection_config: Default::default(),
         };
         let detabase = DatabaseQueryGeneratorSqlite::default();
 
@@ -545,6 +546,13 @@ mod tests {
     fn return_test_sql_with_including_model_path_root_seed() {
         let fs = FileSystem {
             files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
                 (
                     "models/schema.yaml".to_string(),
                     File {
@@ -596,6 +604,13 @@ models:
         let fs = FileSystem {
             files: HashMap::from([
                 (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
                     "models/schema.yaml".to_string(),
                     File {
                         name: "models/schema.yaml".to_string(),
@@ -642,6 +657,13 @@ models:
     fn return_model_test_sql_with_including_model_path_root_seed() {
         let fs = FileSystem {
             files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
                 (
                     "models/schema.yaml".to_string(),
                     File {
@@ -693,6 +715,13 @@ models:
     fn return_model_test_sql_with_including_model_path_root_source() {
         let fs = FileSystem {
             files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
                 (
                     "models/schema.yaml".to_string(),
                     File {
@@ -824,6 +853,13 @@ models:
         let fs = FileSystem {
             files: HashMap::from([
                 (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
                     "models/schema.yaml".to_string(),
                     File {
                         name: "models/schema.yaml".to_string(),
@@ -881,6 +917,13 @@ sources:
     fn return_test_sql_with_including_model_path_root_source_sql_test_relationship_test() {
         let fs = FileSystem {
             files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
                 (
                     "models/schema.yaml".to_string(),
                     File {

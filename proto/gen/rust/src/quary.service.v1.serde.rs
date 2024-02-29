@@ -242,10 +242,16 @@ impl serde::Serialize for ConnectionConfig {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
+        if !self.vars.is_empty() {
+            len += 1;
+        }
         if self.config.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.ConnectionConfig", len)?;
+        if !self.vars.is_empty() {
+            struct_ser.serialize_field("vars", &self.vars)?;
+        }
         if let Some(v) = self.config.as_ref() {
             match v {
                 connection_config::Config::Duckdb(v) => {
@@ -266,6 +272,9 @@ impl serde::Serialize for ConnectionConfig {
                 connection_config::Config::Snowflake(v) => {
                     struct_ser.serialize_field("snowflake", v)?;
                 }
+                connection_config::Config::Postgres(v) => {
+                    struct_ser.serialize_field("postgres", v)?;
+                }
             }
         }
         struct_ser.end()
@@ -278,6 +287,7 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
+            "vars",
             "duckdb",
             "duckdb_in_memory",
             "duckdbInMemory",
@@ -287,16 +297,19 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
             "big_query",
             "bigQuery",
             "snowflake",
+            "postgres",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
+            Vars,
             Duckdb,
             DuckdbInMemory,
             Sqlite,
             SqliteInMemory,
             BigQuery,
             Snowflake,
+            Postgres,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -318,12 +331,14 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
                         E: serde::de::Error,
                     {
                         match value {
+                            "vars" => Ok(GeneratedField::Vars),
                             "duckdb" => Ok(GeneratedField::Duckdb),
                             "duckdbInMemory" | "duckdb_in_memory" => Ok(GeneratedField::DuckdbInMemory),
                             "sqlite" => Ok(GeneratedField::Sqlite),
                             "sqliteInMemory" | "sqlite_in_memory" => Ok(GeneratedField::SqliteInMemory),
                             "bigQuery" | "big_query" => Ok(GeneratedField::BigQuery),
                             "snowflake" => Ok(GeneratedField::Snowflake),
+                            "postgres" => Ok(GeneratedField::Postgres),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -343,9 +358,16 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
                 where
                     V: serde::de::MapAccess<'de>,
             {
+                let mut vars__ = None;
                 let mut config__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
+                        GeneratedField::Vars => {
+                            if vars__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("vars"));
+                            }
+                            vars__ = Some(map_.next_value()?);
+                        }
                         GeneratedField::Duckdb => {
                             if config__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("duckdb"));
@@ -388,9 +410,17 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
                             config__ = map_.next_value::<::std::option::Option<_>>()?.map(connection_config::Config::Snowflake)
 ;
                         }
+                        GeneratedField::Postgres => {
+                            if config__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("postgres"));
+                            }
+                            config__ = map_.next_value::<::std::option::Option<_>>()?.map(connection_config::Config::Postgres)
+;
+                        }
                     }
                 }
                 Ok(ConnectionConfig {
+                    vars: vars__.unwrap_or_default(),
                     config: config__,
                 })
             }
@@ -705,6 +735,97 @@ impl<'de> serde::Deserialize<'de> for connection_config::ConnectionConfigDuckDbI
             }
         }
         deserializer.deserialize_struct("quary.service.v1.ConnectionConfig.ConnectionConfigDuckDBInMemory", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for connection_config::ConnectionConfigPostgres {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.schema.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ConnectionConfig.ConnectionConfigPostgres", len)?;
+        if !self.schema.is_empty() {
+            struct_ser.serialize_field("schema", &self.schema)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for connection_config::ConnectionConfigPostgres {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "schema",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Schema,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "schema" => Ok(GeneratedField::Schema),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = connection_config::ConnectionConfigPostgres;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.ConnectionConfig.ConnectionConfigPostgres")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<connection_config::ConnectionConfigPostgres, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut schema__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Schema => {
+                            if schema__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("schema"));
+                            }
+                            schema__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(connection_config::ConnectionConfigPostgres {
+                    schema: schema__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.ConnectionConfig.ConnectionConfigPostgres", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for connection_config::ConnectionConfigSnowflake {
@@ -2494,6 +2615,9 @@ impl serde::Serialize for Project {
         if !self.project_files.is_empty() {
             len += 1;
         }
+        if self.connection_config.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.Project", len)?;
         if !self.seeds.is_empty() {
             struct_ser.serialize_field("seeds", &self.seeds)?;
@@ -2509,6 +2633,9 @@ impl serde::Serialize for Project {
         }
         if !self.project_files.is_empty() {
             struct_ser.serialize_field("projectFiles", &self.project_files)?;
+        }
+        if let Some(v) = self.connection_config.as_ref() {
+            struct_ser.serialize_field("connectionConfig", v)?;
         }
         struct_ser.end()
     }
@@ -2526,6 +2653,8 @@ impl<'de> serde::Deserialize<'de> for Project {
             "sources",
             "project_files",
             "projectFiles",
+            "connection_config",
+            "connectionConfig",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -2535,6 +2664,7 @@ impl<'de> serde::Deserialize<'de> for Project {
             Tests,
             Sources,
             ProjectFiles,
+            ConnectionConfig,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -2561,6 +2691,7 @@ impl<'de> serde::Deserialize<'de> for Project {
                             "tests" => Ok(GeneratedField::Tests),
                             "sources" => Ok(GeneratedField::Sources),
                             "projectFiles" | "project_files" => Ok(GeneratedField::ProjectFiles),
+                            "connectionConfig" | "connection_config" => Ok(GeneratedField::ConnectionConfig),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -2585,6 +2716,7 @@ impl<'de> serde::Deserialize<'de> for Project {
                 let mut tests__ = None;
                 let mut sources__ = None;
                 let mut project_files__ = None;
+                let mut connection_config__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Seeds => {
@@ -2627,6 +2759,12 @@ impl<'de> serde::Deserialize<'de> for Project {
                                 map_.next_value::<std::collections::HashMap<_, _>>()?
                             );
                         }
+                        GeneratedField::ConnectionConfig => {
+                            if connection_config__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("connectionConfig"));
+                            }
+                            connection_config__ = map_.next_value()?;
+                        }
                     }
                 }
                 Ok(Project {
@@ -2635,6 +2773,7 @@ impl<'de> serde::Deserialize<'de> for Project {
                     tests: tests__.unwrap_or_default(),
                     sources: sources__.unwrap_or_default(),
                     project_files: project_files__.unwrap_or_default(),
+                    connection_config: connection_config__,
                 })
             }
         }
@@ -6693,5 +6832,113 @@ impl<'de> serde::Deserialize<'de> for TestUnique {
             }
         }
         deserializer.deserialize_struct("quary.service.v1.TestUnique", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for Var {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if !self.value.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.Var", len)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if !self.value.is_empty() {
+            struct_ser.serialize_field("value", &self.value)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for Var {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "name",
+            "value",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Name,
+            Value,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "name" => Ok(GeneratedField::Name),
+                            "value" => Ok(GeneratedField::Value),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = Var;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.Var")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<Var, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut name__ = None;
+                let mut value__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
+                            }
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Value => {
+                            if value__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("value"));
+                            }
+                            value__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(Var {
+                    name: name__.unwrap_or_default(),
+                    value: value__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.Var", FIELDS, GeneratedVisitor)
     }
 }

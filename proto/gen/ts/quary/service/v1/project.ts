@@ -1,5 +1,6 @@
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
+import { ConnectionConfig } from "./connection_config";
 import { ProjectFile } from "./project_file";
 import { Model, Seed, Source, Test } from "./types";
 
@@ -11,6 +12,7 @@ export interface Project {
   tests: { [key: string]: Test };
   sources: { [key: string]: Source };
   projectFiles: { [key: string]: ProjectFile };
+  connectionConfig: ConnectionConfig | undefined;
 }
 
 export interface Project_SeedsEntry {
@@ -39,7 +41,7 @@ export interface Project_ProjectFilesEntry {
 }
 
 function createBaseProject(): Project {
-  return { seeds: {}, models: {}, tests: {}, sources: {}, projectFiles: {} };
+  return { seeds: {}, models: {}, tests: {}, sources: {}, projectFiles: {}, connectionConfig: undefined };
 }
 
 export const Project = {
@@ -59,6 +61,9 @@ export const Project = {
     Object.entries(message.projectFiles).forEach(([key, value]) => {
       Project_ProjectFilesEntry.encode({ key: key as any, value }, writer.uint32(58).fork()).ldelim();
     });
+    if (message.connectionConfig !== undefined) {
+      ConnectionConfig.encode(message.connectionConfig, writer.uint32(66).fork()).ldelim();
+    }
     return writer;
   },
 
@@ -119,6 +124,13 @@ export const Project = {
             message.projectFiles[entry7.key] = entry7.value;
           }
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.connectionConfig = ConnectionConfig.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -160,6 +172,7 @@ export const Project = {
           return acc;
         }, {})
         : {},
+      connectionConfig: isSet(object.connectionConfig) ? ConnectionConfig.fromJSON(object.connectionConfig) : undefined,
     };
   },
 
@@ -210,6 +223,9 @@ export const Project = {
         });
       }
     }
+    if (message.connectionConfig !== undefined) {
+      obj.connectionConfig = ConnectionConfig.toJSON(message.connectionConfig);
+    }
     return obj;
   },
 
@@ -251,6 +267,9 @@ export const Project = {
       },
       {},
     );
+    message.connectionConfig = (object.connectionConfig !== undefined && object.connectionConfig !== null)
+      ? ConnectionConfig.fromPartial(object.connectionConfig)
+      : undefined;
     return message;
   },
 };

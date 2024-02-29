@@ -1,17 +1,18 @@
 #![allow(clippy::unwrap_used)]
+#![allow(clippy::indexing_slicing)]
 
 use crate::map_helpers::safe_adder_set;
 use crate::test_helpers::ToTest;
 use petgraph::algo::{is_cyclic_directed, toposort};
 use petgraph::dot::{Config, Dot};
 use petgraph::graph::NodeIndex;
-use petgraph::visit::Dfs;
+use petgraph::prelude::EdgeRef;
+use petgraph::visit::{Dfs, Reversed};
 use petgraph::Graph;
 use quary_proto::test::TestType;
 use quary_proto::{Model, Project, Test};
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
-use std::ops::Index;
 
 /// Edge represents an edge with (from, to) node names.
 pub type Edge = (String, String);
@@ -178,75 +179,86 @@ impl QGraph {
     }
 
     /// return_shrunk_downstream_graph returns the subgraph where the node override_name is the only
-    /// node that is not removed upstream from the override_name.
+    /// node that is not removed upstream from the override_name. It ignores any nodes that are still
+    /// connected through other nodes to the upstream graph.
+    ///
+    /// For example:
+    ///   B -> C -> D and B -> D, then the graph will be shrunk to B -> D and C -> D
     ///
     /// In addition to the graph, the function returns a set of the nodes that were removed and or
     /// is the override name.
     pub fn return_shrunk_downstream_graph(
         &self,
         override_name: &str,
+        target: &str,
     ) -> Result<(QGraph, HashSet<String>), String> {
-        // Get the upstream graph
-        let upstream = self.return_upstream_graph(override_name)?;
-        match upstream.graph.node_count() {
-            0 => Ok((upstream, HashSet::new())),
-            1 => {
-                let new_graph = self.graph.clone();
-
-                let new_dictionary = new_graph
-                    .node_indices()
-                    .map(|node| {
-                        let node_name = new_graph.index(node);
-                        (node_name.clone(), node)
-                    })
-                    .collect();
-
-                Ok((
-                    QGraph {
-                        graph: new_graph,
-                        dictionary: new_dictionary,
-                    },
-                    HashSet::from([override_name.to_string()]),
-                ))
-            }
-            _ => {
-                let mut removed = HashSet::<String>::from([override_name.to_string()]);
-                let mut new_graph = self.graph.clone();
-
-                // Remove all the upstream nodes that are not the override target
-                let upstream_nodes = upstream.graph.node_indices().collect::<Vec<_>>();
-                for node in upstream_nodes {
-                    let node_name = upstream.get_node_name(&node).unwrap();
-                    if node_name != override_name {
-                        let node = new_graph
-                            .node_indices()
-                            .find(|index| {
-                                let node = new_graph.node_weight(*index).unwrap();
-                                *node == node_name
-                            })
-                            .unwrap();
-                        new_graph.remove_node(node).unwrap();
-                        removed.insert(node_name);
-                    }
-                }
-
-                let new_dictionary = new_graph
-                    .node_indices()
-                    .map(|node| {
-                        let node_name = new_graph.index(node);
-                        (node_name.clone(), node)
-                    })
-                    .collect();
-
-                Ok((
-                    QGraph {
-                        graph: new_graph,
-                        dictionary: new_dictionary,
-                    },
-                    removed,
-                ))
-            }
+        // Check if override_name exists in the graph
+        if !self.dictionary.contains_key(override_name) {
+            return Err("override_name not found in graph".to_string());
         }
+        let mut new_graph = self.graph.clone();
+
+        // Remove the upstream edges from the override_name
+        let node_index = self
+            .get_node(override_name)
+            .ok_or(format!("could not find node for {}", override_name))?;
+        let edges_collected = new_graph
+            .edges_directed(node_index, petgraph::Direction::Incoming)
+            .collect::<Vec<_>>()
+            .iter()
+            .map(|edge| edge.id().clone())
+            .collect::<Vec<_>>();
+        for edge in edges_collected {
+            new_graph.remove_edge(edge);
+        }
+
+        // Start from the target and go upstream to find all the nodes that are still connected to the
+        // target. These nodes are the ones that are not removed.
+        let target_index = self
+            .get_node(target)
+            .ok_or(format!("could not find node for {}", override_name))?;
+        let mut nodes_to_keep = HashSet::from([target.to_string()]);
+
+        let reversed_graph = Reversed(&new_graph);
+        let mut upstream_dfs = Dfs::new(&reversed_graph, target_index);
+        while let Some(nx) = upstream_dfs.next(&reversed_graph) {
+            nodes_to_keep.insert(new_graph[nx].clone());
+        }
+
+        // Collect all nodes that are not in the nodes_to_keep set
+        let nodes_to_remove: Vec<String> = new_graph
+            .node_indices()
+            .filter(|&n| !nodes_to_keep.contains(&new_graph[n].clone()))
+            .map(|node| {
+                let name = new_graph.node_weight(node).unwrap();
+                name.clone()
+            })
+            .collect::<Vec<_>>();
+
+        // Remove the nodes that are not part of the upstream graph from the target
+        let mut removed_node_names = HashSet::new();
+        for node in nodes_to_remove.into_iter() {
+            let node_index = new_graph
+                .node_indices()
+                .find(|index| *new_graph.node_weight(*index).unwrap() == node)
+                .unwrap();
+            let name = new_graph.node_weight(node_index).unwrap();
+            removed_node_names.insert(name.to_string());
+            new_graph.remove_node(node_index);
+        }
+
+        let dictionary = new_graph
+            .node_indices()
+            .map(|index| (new_graph.node_weight(index).unwrap().clone(), index))
+            .collect::<HashMap<String, NodeIndex>>();
+
+        Ok((
+            QGraph {
+                graph: new_graph,
+                dictionary,
+            },
+            removed_node_names,
+        ))
     }
 
     /// return_graph_edges returns the graph edges in the right names
@@ -827,6 +839,7 @@ mod tests {
     fn return_overriden_downstream_graph() {
         struct Test<'a> {
             name: &'a str,
+            target: &'a str,
             nodes: HashSet<&'a str>,
             edges: Vec<(&'a str, &'a str)>,
             override_name: &'a str,
@@ -839,6 +852,7 @@ mod tests {
         let tests = [
             Test {
                 name: "empty",
+                target: "a",
                 edges: vec![],
                 nodes: HashSet::new(),
                 override_name: "a",
@@ -849,53 +863,58 @@ mod tests {
             },
             Test {
                 name: "single_node",
+                target: "a",
                 edges: vec![],
                 nodes: HashSet::from(["a"]),
                 override_name: "a",
                 expect_err: false,
                 expect_nodes: HashSet::from(["a"]),
                 expect_edges: vec![],
-                expect_removed: HashSet::from(["a"]),
+                expect_removed: HashSet::from([]),
             },
             Test {
                 name: "single edge",
                 nodes: HashSet::from(["a", "b"]),
                 edges: vec![("a", "b")],
+                target: "b",
                 override_name: "a",
                 expect_err: false,
                 expect_nodes: HashSet::from(["a", "b"]),
                 expect_edges: vec![("a", "b")],
-                expect_removed: HashSet::from(["a"]),
+                expect_removed: HashSet::from([]),
             },
             Test {
-                name: "two node removal",
+                name: "one node removal",
+                target: "b",
                 nodes: HashSet::from(["a", "b", "z"]),
                 edges: vec![("z", "a"), ("a", "b")],
                 override_name: "a",
                 expect_err: false,
                 expect_nodes: HashSet::from(["a", "b"]),
                 expect_edges: vec![("a", "b")],
-                expect_removed: HashSet::from(["z", "a"]),
+                expect_removed: HashSet::from(["z"]),
             },
             Test {
                 name: "tree removal",
                 nodes: HashSet::from(["a", "b", "z", "x"]),
                 edges: vec![("a", "b"), ("z", "a"), ("x", "a")],
+                target: "b",
                 override_name: "a",
                 expect_err: false,
                 expect_nodes: HashSet::from(["a", "b"]),
                 expect_edges: vec![("a", "b")],
-                expect_removed: HashSet::from(["z", "x", "a"]),
+                expect_removed: HashSet::from(["z", "x"]),
             },
             Test {
-                name: "complex removal",
-                nodes: HashSet::from(["a", "b", "z", "x"]),
-                edges: vec![("a", "b"), ("z", "a"), ("x", "a")],
+                name: "loop",
+                target: "b",
+                nodes: HashSet::from(["a", "b", "z", "x", "k"]),
+                edges: vec![("a", "b"), ("z", "a"), ("z", "x"), ("x", "b"), ("k", "x")],
                 override_name: "a",
                 expect_err: false,
-                expect_nodes: HashSet::from(["a", "b"]),
-                expect_edges: vec![("a", "b")],
-                expect_removed: HashSet::from(["a", "z", "x"]),
+                expect_nodes: HashSet::from(["a", "b", "z", "x", "k"]),
+                expect_edges: vec![("a", "b"), ("z", "x"), ("x", "b"), ("k", "x")],
+                expect_removed: HashSet::from([]),
             },
         ];
 
@@ -913,7 +932,7 @@ mod tests {
             )
             .unwrap();
 
-            let got = g.return_shrunk_downstream_graph(test.override_name);
+            let got = g.return_shrunk_downstream_graph(test.override_name, test.target);
 
             assert_eq!(got.is_err(), test.expect_err);
             if let Ok((got, removed)) = got {
@@ -930,11 +949,15 @@ mod tests {
                         .collect::<HashSet<_>>()
                 );
                 assert_eq!(
-                    got.return_graph_edges().unwrap(),
+                    got.return_graph_edges()
+                        .unwrap()
+                        .iter()
+                        .map(|(a, b)| (a.to_string(), b.to_string()))
+                        .collect::<HashSet<_>>(),
                     test.expect_edges
                         .iter()
                         .map(|(a, b)| (a.to_string(), b.to_string()))
-                        .collect::<Vec<_>>()
+                        .collect::<HashSet<_>>()
                 );
             }
         }
