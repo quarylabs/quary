@@ -1,0 +1,57 @@
+name: Post-Release SHA-256 Hash Calculation
+on:
+  release:
+    types: [published]
+jobs:
+  calculate-hash:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # ratchet:actions/checkout@v4
+      - name: Fetch Release Assets
+        id: fetch-assets
+        uses: actions/github-script@211cb3fefb35a799baa5156f9321bb774fe56294 # ratchet:actions/github-script@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const fs = require('fs');
+
+            const response = await github.rest.repos.listReleaseAssets({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: context.payload.release.id
+            });
+
+            const assets = response.data.map(asset => ({ url: asset.url, name: asset.name }));
+            fs.writeFileSync('assets.json', JSON.stringify(assets));
+
+      - name: Download and Calculate SHA-256 Hashes
+        run: |
+          mkdir -p downloads
+          echo "File Name | SHA-256 Hash" >> SHA256SUMS.txt
+          echo "--------- | ------------" >> SHA256SUMS.txt
+          jq -c '.[]' assets.json | while read -r asset; do
+            url=$(echo $asset | jq -r '.url')
+            name=$(echo $asset | jq -r '.name')
+            curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" -o "downloads/$name" "$url"
+            echo "Calculating SHA-256 for $name"
+            hash=$(sha256sum "downloads/$name" | awk '{print $1}')
+            echo "$name | $hash" >> SHA256SUMS.txt
+          done
+      - name: Update Release Description with SHA-256 Hashes
+        uses: actions/github-script@211cb3fefb35a799baa5156f9321bb774fe56294 # ratchet:actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const sha256sums = fs.readFileSync('SHA256SUMS.txt', 'utf8');
+            const { owner, repo } = context.repo;
+            const release = context.payload.release;
+            const newBody = release.body + '\n\n### SHA-256 Hashes\n' + sha256sums;
+            await github.rest.repos.updateRelease({
+              owner,
+              repo,
+              release_id: release.id,
+              body: newBody
+            });
