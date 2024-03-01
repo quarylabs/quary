@@ -18,6 +18,8 @@
   </a>
 </p>
 
+![quary_core_image](https://github.com/quarylabs/quary/assets/132601011/20024c62-6ad6-42e8-937e-37a708af9c0c)
+
 ## What is Quary?
 
 Quary enables teams to model, test and deploy data transformations. This core is a fast and lightweight SQL transformation engine written in Rust.
