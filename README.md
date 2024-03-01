@@ -43,15 +43,16 @@ brew install quarylabs/quary/quary
 
 ### Usage
 
-Check out our template [here](https://github.com/quarylabs/template) of an example Quary project. The following commands clone the repo, and run some basic commands.
+Check out our template [here](https://github.com/quarylabs/template) of an example Quary project. The following commands will show you how to get started, and run some basic commands.
 
 ```
-git clone https://github.com/quarylabs/template.git
-cd template
 
-quary compile
-quary test -s
-quary run
+mkdir example # create an empty project folder
+cd example
+quary init # initialise the folder with a sample project
+quary compile # checks that everything compiles correctly. I.e. all the SQL references are correct.
+quary test -s # runs the tests defined in the .yaml files
+quary run # compiles the SQL and executes it against the current target database.
 ```
 
 Note that you will most likely want to use our [Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=Quary.quary-extension)
