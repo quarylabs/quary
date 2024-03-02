@@ -594,7 +594,7 @@ models:
             results,
             BTreeMap::from([(
                 "test_intermediary_model_a_not_null".to_string(),
-                "SELECT * FROM (WITH test_seed AS (SELECT column1 AS column_b,column2 AS a FROM (VALUES ('1','1'))) SELECT * FROM (SELECT a FROM `test_seed`)) WHERE a IS NULL".to_string()
+                "SELECT * FROM (WITH test_seed AS (SELECT column1 AS column_b,column2 AS a FROM (VALUES ('1','1'))) SELECT * FROM (SELECT a FROM `test_seed`) AS alias) WHERE a IS NULL".to_string()
             )])
         );
     }
@@ -648,7 +648,7 @@ models:
             results,
             BTreeMap::from([(
                 "test_intermediary_model_a_not_null".to_string(),
-                "SELECT * FROM (WITH source_1 AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT a FROM `source_1`)) WHERE a IS NULL".to_string()
+                "SELECT * FROM (WITH source_1 AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT a FROM `source_1`) AS alias) WHERE a IS NULL".to_string(),
             )])
         );
     }
@@ -706,7 +706,7 @@ models:
             results,
             BTreeMap::from([(
                 "test_model_a_a_not_null".to_string(),
-                "SELECT * FROM (WITH test_seed AS (SELECT column1 AS column_b,column2 AS a FROM (VALUES ('1','1'))) SELECT * FROM (SELECT a FROM `test_seed`)) WHERE a IS NULL".to_string()
+                "SELECT * FROM (WITH test_seed AS (SELECT column1 AS column_b,column2 AS a FROM (VALUES ('1','1'))) SELECT * FROM (SELECT a FROM `test_seed`) AS alias) WHERE a IS NULL".to_string()
             )])
         );
     }
@@ -761,7 +761,7 @@ models:
             results,
             BTreeMap::from([(
                 "test_model_a_a_not_null".to_string(),
-                "SELECT * FROM (WITH source_1 AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT a FROM `source_1`)) WHERE a IS NULL".to_string()
+                "SELECT * FROM (WITH source_1 AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT a FROM `source_1`) AS alias) WHERE a IS NULL".to_string()
             )])
         );
     }
@@ -854,7 +854,7 @@ models:
             files: HashMap::from([
                 (
                     "quary.yaml".to_string(),
-                    quary_proto::File {
+                    File {
                         name: "quary.yaml".to_string(),
                         contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
                     },
@@ -908,7 +908,7 @@ sources:
             results,
             BTreeMap::from([(
                 "test_sql_model_a_and_model_b".to_string(),
-                "SELECT * FROM (WITH source_a AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT * FROM `source_a`)) a JOIN (WITH source_b AS (SELECT * FROM project_3.dataset_3.table_3) SELECT * FROM (SELECT * FROM `source_b`)) b ON a.column_a = b.column_b WHERE column_a IS NULL OR column_b IS NULL".to_string()
+                "SELECT * FROM (WITH source_a AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT * FROM `source_a`) AS alias) a JOIN (WITH source_b AS (SELECT * FROM project_3.dataset_3.table_3) SELECT * FROM (SELECT * FROM `source_b`) AS alias) b ON a.column_a = b.column_b WHERE column_a IS NULL OR column_b IS NULL".to_string(),
             )])
         );
     }
@@ -919,7 +919,7 @@ sources:
             files: HashMap::from([
                 (
                     "quary.yaml".to_string(),
-                    quary_proto::File {
+                    File {
                         name: "quary.yaml".to_string(),
                         contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
                     },
@@ -974,7 +974,7 @@ sources:
             results,
             BTreeMap::from([(
                 "test_model_b_column_a_relationship_model_a_column_a".to_string(),
-                "SELECT * FROM (WITH source_b AS (SELECT * FROM project_3.dataset_3.table_3) SELECT * FROM (SELECT * FROM `source_b`)) WHERE column_a IS NOT NULL AND column_a NOT IN (SELECT column_a FROM (WITH source_a AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT * FROM `source_a`)))".to_string()
+                "SELECT * FROM (WITH source_b AS (SELECT * FROM project_3.dataset_3.table_3) SELECT * FROM (SELECT * FROM `source_b`) AS alias) AS alias WHERE column_a IS NOT NULL AND column_a NOT IN (SELECT column_a FROM (WITH source_a AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT * FROM `source_a`) AS alias) AS alias)".to_string()
             )])
         );
     }

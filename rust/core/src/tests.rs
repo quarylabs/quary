@@ -82,13 +82,29 @@ impl ToSql for TestRelationship {
         let limit = limit
             .map(|limit| format!(" LIMIT {}", limit))
             .unwrap_or_default();
+        let trimmed_source_path = self.source_path.trim();
+        let trimmed_target_path = self.target_path.trim();
+
+        let with_alias_source_path =
+            if trimmed_source_path.starts_with("(") && trimmed_source_path.ends_with(")") {
+                format!("{} AS alias", trimmed_source_path)
+            } else {
+                trimmed_source_path.to_string()
+            };
+        let with_alias_target_path =
+            if trimmed_target_path.starts_with("(") && trimmed_target_path.ends_with(")") {
+                format!("{} AS alias", trimmed_target_path)
+            } else {
+                trimmed_target_path.to_string()
+            };
+
         format!(
             "SELECT * FROM {} WHERE {} IS NOT NULL AND {} NOT IN (SELECT {} FROM {}){}",
-            self.source_path,
+            with_alias_source_path,
             self.source_column,
             self.source_column,
             self.target_column,
-            self.target_path,
+            with_alias_target_path,
             limit
         )
     }

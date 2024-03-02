@@ -1,6 +1,6 @@
 [package]
 name = "quary"
-version = "0.0.93"
+version = "0.0.96"
 edition = "2021"
 rust-version = "1.76.0"
 
@@ -28,4 +28,4 @@ regex = "1.10.3"
 assert_cmd = "2"
 tempfile = "3"
 testcontainers = "0.15.0"
-testcontainers-modules = { version = "0.3.4", features=["postgres", "minio"]}
+testcontainers-modules = { version = "0.3.4", features = ["postgres", "minio"] }

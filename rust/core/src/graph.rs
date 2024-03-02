@@ -499,6 +499,10 @@ impl QGraph {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::database_sqlite::DatabaseQueryGeneratorSqlite;
+    use crate::project::parse_project;
+    use prost::bytes::Bytes;
+    use quary_proto::FileSystem;
 
     #[test]
     fn test_get_node_sorted() {
@@ -755,6 +759,34 @@ mod tests {
             assert_eq!(got.return_graph_edges().unwrap().len(), edges_want_length);
             assert_eq!(values, want);
         }
+    }
+
+    #[test]
+    fn test_return_sub_graph_single_node() {
+        let fs = FileSystem {
+            files: vec![
+                ("quary.yaml", "sqliteInMemory: {}"),
+                ("models/test_model.sql", "SELECT \"1\""),
+            ]
+            .iter()
+            .map(|(name, content)| {
+                (
+                    name.to_string(),
+                    quary_proto::File {
+                        name: name.to_string(),
+                        contents: Bytes::from(content.to_string()),
+                    },
+                )
+            })
+            .collect(),
+        };
+        let db = DatabaseQueryGeneratorSqlite::default();
+
+        let project = parse_project(&fs, &db, "").unwrap();
+
+        let graph = project_to_graph(project).unwrap();
+
+        graph.graph.return_sub_graph("test_model").unwrap();
     }
 
     #[test]

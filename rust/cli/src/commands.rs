@@ -3,7 +3,7 @@ use quary_proto::TestRunner;
 
 #[derive(Debug, Parser)]
 #[command(name = "quary")]
-#[command(about = "Quary is a very fast and useful database tool", long_about = None, version=env!("CARGO_PKG_VERSION"))]
+#[command(about = "A tool for managing SQL transformations and tests. For more documentation on these commands, visit: quary.dev/docs", long_about = None, version=env!("CARGO_PKG_VERSION"))]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -16,14 +16,20 @@ pub struct Cli {
 pub enum Commands {
     #[command(
         name = "init",
-        about = "Initialize a new project in the current directory"
+        about = "Initialize demo project with sample seeds & models inside current directory"
     )]
     Init(InitArgs),
-    #[command(name = "compile", about = "Compile the project")]
+    #[command(
+        name = "compile",
+        about = "Validate the project structure and model references without database"
+    )]
     Compile,
-    #[command(name = "build", about = "Build the seed and model views")]
+    #[command(
+        name = "build",
+        about = "Build and execute the model views/seeds against target database"
+    )]
     Build(BuildArgs),
-    #[command(name = "test", about = "Run the tests")]
+    #[command(name = "test", about = "Run defined tests against target database")]
     Test(TestArgs),
     #[command(
         name = "convert-dbt-project",
@@ -79,10 +85,10 @@ pub struct TestArgs {
     /// Print rendered sql tests to the terminal without running them against the database
     pub dry_run: bool,
     #[arg(value_enum, long = "mode", short = 'm', default_value_t = TestMode::All)]
-    /// Select which test runner mode to use
+    /// Choose test runner mode
     pub mode: TestMode,
     #[arg(long = "reference-source", short = 's', default_value = "false")]
-    /// Rather than running the tests against the views,s run them against the source tables by building the model in CTEs
+    /// Run tests against source tables rather than against built views
     pub full_source: bool,
 }
 

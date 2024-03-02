@@ -161,6 +161,10 @@ impl DatabaseConnection for Postgres {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use prost::bytes::Bytes;
+    use quary_core::project::parse_project;
+    use quary_core::project_tests::return_tests_sql;
+    use quary_proto::{File, FileSystem};
     use testcontainers::{clients, RunnableImage};
     use testcontainers_modules::postgres::Postgres as TestcontainersPostgres;
 
@@ -252,116 +256,120 @@ mod tests {
 
     //    TODO understand why relationship test is failing:  SELECT * FROM (SELECT id FROM test_model)) WHERE id IS NOT NULL AND id NOT IN (SELECT id FROM (WITH test_source AS
     // (SELECT * FROM other_schema.test_table) SELECT * FROM (SELECT id FROM test_source))): "error returned from database: subquery in FROM must have an alias"
-    //     #[tokio::test]
-    //     async fn test_postgres_foreign_relationship_test_with_schema() {
-    //         // Start a PostgreSQL container
-    //         let docker = clients::Cli::default();
-    //         let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
-    //         let pg_container = docker.run(postgres_image);
-    //         let pg_port = pg_container.get_host_port_ipv4(5432);
+    #[tokio::test]
+    async fn test_postgres_foreign_relationship_test_with_schema() {
+        // Start a PostgreSQL container
+        let docker = clients::Cli::default();
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
+        let pg_container = docker.run(postgres_image);
+        let pg_port = pg_container.get_host_port_ipv4(5432);
 
-    //         let database = Postgres::new(
-    //             "localhost",
-    //             &pg_port.to_string(),
-    //             "postgres",
-    //             "postgres",
-    //             "postgres",
-    //             "transform",
-    //             None,
-    //         )
-    //         .await
-    //         .expect("Failed to instantiate Quary Postgres");
+        let database = Postgres::new(
+            "localhost",
+            &pg_port.to_string(),
+            "postgres",
+            "postgres",
+            "postgres",
+            "transform",
+            None,
+        )
+        .await
+        .expect("Failed to instantiate Quary Postgres");
 
-    //         database.exec("CREATE SCHEMA other_schema").await.unwrap();
-    //         database.exec("CREATE SCHEMA transform").await.unwrap();
-    //         database
-    //             .exec("CREATE TABLE other_schema.test_table (id INTEGER, name VARCHAR(255))")
-    //             .await
-    //             .unwrap();
-    //         database
-    //             .exec("INSERT INTO other_schema.test_table VALUES (1, 'test'), (2, 'rubbish')")
-    //             .await
-    //             .unwrap();
-    //         database
-    //             .exec("CREATE TABLE transform.test_table (id INTEGER, name VARCHAR(255))")
-    //             .await
-    //             .unwrap();
-    //         database
-    //             .exec("INSERT INTO transform.test_table VALUES (3, 'test_3'), (4, 'rubbish_rubiish')")
-    //             .await
-    //             .unwrap();
+        database.exec("CREATE SCHEMA other_schema").await.unwrap();
+        database.exec("CREATE SCHEMA transform").await.unwrap();
+        database
+            .exec("CREATE TABLE other_schema.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        database
+            .exec("INSERT INTO other_schema.test_table VALUES (1, 'test'), (2, 'rubbish')")
+            .await
+            .unwrap();
+        database
+            .exec("CREATE TABLE transform.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        database
+            .exec("INSERT INTO transform.test_table VALUES (3, 'test_3'), (4, 'rubbish_rubiish')")
+            .await
+            .unwrap();
 
-    //         let file_system = FileSystem {
-    //             files: vec![
-    //                 ("models/test_model.sql", "SELECT id FROM q.test_source"),
-    //                 (
-    //                     "models/test_model_same_schema.sql",
-    //                     "SELECT id FROM q.test_source_same_schema",
-    //                 ),
-    //                 ("models/test_model_out.sql", "SELECT id FROM q.test_model"),
-    //                 (
-    //                     "models/schema.yaml",
-    //                     "
-    // sources:
-    //     - name: test_source
-    //       path: other_schema.test_table
-    //     - name: test_source_same_schema
-    //       path: test_schema.test_table
-    // models:
-    //   - name: test_model_out
-    //     columns:
-    //       - name: id
-    //         tests:
-    //           - type: relationship
-    //             info:
-    //               column: id
-    //               model: test_model
-    //           - type: relationship
-    //             info:
-    //               column: id
-    //               model: test_source
-    //   - name: test_model_same_schema
-    //     columns:
-    //       - name: id
-    //         tests:
-    //           - type: relationship
-    //             info:
-    //               column: id
-    //               model: test_source_same_schema
-    //                 ",
-    //                 ),
-    //             ]
-    //             .into_iter()
-    //             .map(|(k, v)| {
-    //                 (
-    //                     k.to_string(),
-    //                     File {
-    //                         name: k.to_string(),
-    //                         contents: Bytes::from(v),
-    //                     },
-    //                 )
-    //             })
-    //             .collect(),
-    //         };
+        let file_system = FileSystem {
+            files: vec![
+                ("quary.yaml", "postgres: {schema: transform}"),
+                ("models/test_model.sql", "SELECT id FROM q.test_source"),
+                (
+                    "models/test_model_same_schema.sql",
+                    "SELECT id FROM q.test_source_same_schema",
+                ),
+                ("models/test_model_out.sql", "SELECT id FROM q.test_model"),
+                (
+                    "models/schema.yaml",
+                    "
+sources:
+    - name: test_source
+      path: other_schema.test_table
+    - name: test_source_same_schema
+      path: transform.test_table
+models:
+  - name: test_model_out
+    columns:
+      - name: id
+        tests:
+          - type: relationship
+            info:
+              column: id
+              model: test_model
+          - type: relationship
+            info:
+              column: id
+              model: test_source
+  - name: test_model_same_schema
+    columns:
+      - name: id
+        tests:
+          - type: relationship
+            info:
+              column: id
+              model: test_source_same_schema
+                    ",
+                ),
+            ]
+            .into_iter()
+            .map(|(k, v)| {
+                (
+                    k.to_string(),
+                    File {
+                        name: k.to_string(),
+                        contents: Bytes::from(v),
+                    },
+                )
+            })
+            .collect(),
+        };
 
-    //         let project = parse_project(&file_system, &database.query_generator(), "").unwrap();
+        let project = parse_project(&file_system, &database.query_generator(), "").unwrap();
 
-    //         let tests = return_tests_sql(
-    //             &database.query_generator(),
-    //             &project,
-    //             &file_system,
-    //             true,
-    //             None,
-    //         )
-    //         .unwrap();
-    //         let tests = tests.iter().collect::<Vec<_>>();
+        let tests = return_tests_sql(
+            &database.query_generator(),
+            &project,
+            &file_system,
+            true,
+            None,
+        )
+        .unwrap();
+        let tests = tests.iter().collect::<Vec<_>>();
 
-    //         assert!(!tests.is_empty());
+        assert!(!tests.is_empty());
 
-    //         for (name, test) in tests.iter() {
-    //             let results = database.query(test).await.expect(&format!("Error running query {}", test));
+        for (name, test) in tests.iter() {
+            let results = database
+                .query(test)
+                .await
+                .expect(&format!("Error running query {}", test));
 
-    //             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
-    //         }
-    //     }
+            assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
+        }
+    }
 }

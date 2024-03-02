@@ -111,7 +111,7 @@ async fn main() -> Result<(), String> {
             let test_count = project.tests.len();
             println!("Tests processed: {}", test_count);
 
-            println!("Compilation process completed successfully.");
+            println!("Project compiled successfully.");
             Ok(())
         }
         Commands::Build(build_args) => {
@@ -205,6 +205,7 @@ async fn main() -> Result<(), String> {
                     + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
                     + cache_to_create.len();
                 let pb = ProgressBar::new(total_number_of_sql_statements as u64);
+
                 for (name, sql) in cache_delete_views_sqls {
                     pb.inc(1);
                     pb.set_message(name.to_string());
@@ -212,7 +213,7 @@ async fn main() -> Result<(), String> {
                         format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
                     })?
                 }
-                for (name, sql) in sqls {
+                for (name, sql) in &sqls {
                     for sql in sql {
                         pb.inc(1);
                         pb.set_message(name.to_string());
@@ -231,6 +232,7 @@ async fn main() -> Result<(), String> {
                     }
                 }
                 pb.finish_with_message("done");
+                println!("Created {} views in the database", sqls.len());
                 Ok(())
             }
         }
