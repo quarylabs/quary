@@ -50,10 +50,10 @@ Check out our template [here](https://github.com/quarylabs/template) of an examp
 ```shell
 mkdir example # create an empty project folder
 cd example
-quary init    # initialise the folder with a sample project
-quary compile # checks that everything compiles correctly. I.e. all the SQL references are correct.
-quary test -s # runs the tests defined in the .yaml files
-quary build   # compiles the SQL and executes it against the current target database.
+quary init    # initialize demo project with sample seeds & models inside current directory
+quary compile # validate the project structure and model references without database
+quary test -s # run defined tests against target database
+quary build   # build and execute the model views/seeds against target database
 ```
 
 Note that you will most likely want to use our [Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=Quary.quary-extension)
