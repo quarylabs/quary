@@ -37,10 +37,12 @@ A Quary project is formed by a collection of these select statements, also known
 
 ### Installation
 
+#### Homebrew installation
 ```
 brew install quarylabs/quary/quary
 ```
-
+#### Linux/Mac installation
+Header over to [releases](https://github.com/quarylabs/quary/releases/latest) to get the latest version of Quary for your system.
 ### Usage
 
 Check out our template [here](https://github.com/quarylabs/template) of an example Quary project. The following commands will show you how to get started, and run some basic commands.
