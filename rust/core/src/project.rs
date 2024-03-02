@@ -24,7 +24,7 @@ use quary_proto::{
 };
 use sqlinference::infer_tests::{get_column_with_source, ExtractedSelect};
 use sqlparser::dialect::Dialect;
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::ffi::OsStr;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -745,13 +745,16 @@ fn parse_column_tests_for_model_or_source(
 ///
 /// For example, if the dependencies are A -> B -> C and overrides is {B: "D"} then the returned
 /// A -> D.
+///
+/// Returns a tuple of the sql statement and the (nodes, edges) that were used to create the sql
+/// statement.
 pub fn project_and_fs_to_query_sql(
     database: &impl DatabaseQueryGenerator,
     project: &Project,
     file_system: &impl FileSystem,
     model_name: &str,
     overrides: Option<HashMap<String, String>>,
-) -> Result<(String, Vec<Edge>), String> {
+) -> Result<(String, (BTreeSet<String>, Vec<Edge>)), String> {
     enum SourceModelSeed {
         Source,
         Seed,
@@ -821,8 +824,9 @@ pub fn project_and_fs_to_query_sql(
     let sql = convert_to_select_statement(database, file_system, &to_process, project)?;
 
     let edges = upstream.return_graph_edges()?;
+    let nodes = upstream.graph.node_weights().cloned().collect();
 
-    Ok((sql, edges))
+    Ok((sql, (nodes, edges)))
 }
 
 /// project_and_fs_to_sql_for_views returns the sql for creating tables for seeds and views for models
@@ -966,7 +970,7 @@ fn convert_to_select_statement(
         [] => Err("no nodes to process".to_string()),
         [(_, sql)] => Ok(sql.clone()),
         [node1, node2] => Ok(format!(
-            "WITH {} AS ({}) SELECT * FROM ({})",
+            "WITH {} AS ({}) SELECT * FROM ({}) AS alias",
             node1.0, node1.1, node2.1
         )),
         [withs @ .., last] => {
@@ -975,7 +979,10 @@ fn convert_to_select_statement(
                 .map(|(name, sql)| format!("{} AS ({})", name, sql))
                 .collect::<Vec<_>>()
                 .join(",\n");
-            Ok(format!("WITH\n{}\nSELECT * FROM ({})", withs, last.1))
+            Ok(format!(
+                "WITH\n{}\nSELECT * FROM ({}) AS alias",
+                withs, last.1
+            ))
         }
     }
 }
@@ -1353,7 +1360,7 @@ mod test {
         let (sql, _) =
             project_and_fs_to_query_sql(&database, &project, &fs, "shifts", None).unwrap();
 
-        assert_eq!(sql, "WITH raw_shifts AS (SELECT * FROM raw_shifts_real_table) SELECT * FROM (SELECT employee_id, shift_date, shift FROM `raw_shifts`)");
+        assert_eq!(sql, "WITH raw_shifts AS (SELECT * FROM raw_shifts_real_table) SELECT * FROM (SELECT employee_id, shift_date, shift FROM `raw_shifts`) AS alias");
     }
 
     #[test]
@@ -1402,7 +1409,7 @@ mod test {
             project_and_fs_to_query_sql(&database, &project, &fs, "shifts_transformed", None)
                 .unwrap();
 
-        assert_eq!(sql, "WITH\nraw_shifts AS (SELECT * FROM raw_shifts_real_table),\nshifts AS (SELECT employee_id, shift_date, shift FROM `raw_shifts`)\nSELECT * FROM (SELECT * FROM `shifts`)");
+        assert_eq!(sql, "WITH\nraw_shifts AS (SELECT * FROM raw_shifts_real_table),\nshifts AS (SELECT employee_id, shift_date, shift FROM `raw_shifts`)\nSELECT * FROM (SELECT * FROM `shifts`) AS alias");
     }
 
     #[test]
@@ -1464,7 +1471,7 @@ mod test {
 
         assert_eq!(
             sql,
-            "WITH shifts AS (SELECT * FROM qqq_shifts_hash) SELECT * FROM (SELECT * FROM `shifts`)"
+            "WITH shifts AS (SELECT * FROM qqq_shifts_hash) SELECT * FROM (SELECT * FROM `shifts`) AS alias"
         );
     }
 
@@ -1596,8 +1603,8 @@ sources:
 
         // Assert is one of the two possibilities
         // TODO Make this deterministic
-        let possibility_1 = "WITH\nprs_merged AS (SELECT * FROM dataset.transform.qqq_prs_merged_88c7f00),\nstg_pull_requests AS (SELECT * FROM dataset.transform.qqq_stg_pull_requests_d765fa9)\nSELECT * FROM (SELECT merged.id\nFROM\n    `stg_pull_requests` AS prs\nINNER JOIN\n    `prs_merged` AS merged\n    ON\n        prs.id = merged.id\n)";
-        let possibility_2 = "WITH\nstg_pull_requests AS (SELECT * FROM dataset.transform.qqq_stg_pull_requests_d765fa9),\nprs_merged AS (SELECT * FROM dataset.transform.qqq_prs_merged_88c7f00)\nSELECT * FROM (SELECT merged.id\nFROM\n    `stg_pull_requests` AS prs\nINNER JOIN\n    `prs_merged` AS merged\n    ON\n        prs.id = merged.id\n)";
+        let possibility_1 = "WITH\nprs_merged AS (SELECT * FROM dataset.transform.qqq_prs_merged_88c7f00),\nstg_pull_requests AS (SELECT * FROM dataset.transform.qqq_stg_pull_requests_d765fa9)\nSELECT * FROM (SELECT merged.id\nFROM\n    `stg_pull_requests` AS prs\nINNER JOIN\n    `prs_merged` AS merged\n    ON\n        prs.id = merged.id\n) AS alias";
+        let possibility_2 = "WITH\nstg_pull_requests AS (SELECT * FROM dataset.transform.qqq_stg_pull_requests_d765fa9),\nprs_merged AS (SELECT * FROM dataset.transform.qqq_prs_merged_88c7f00)\nSELECT * FROM (SELECT merged.id\nFROM\n    `stg_pull_requests` AS prs\nINNER JOIN\n    `prs_merged` AS merged\n    ON\n        prs.id = merged.id\n) AS alias";
 
         assert!(sql == possibility_1 || sql == possibility_2);
     }
@@ -1701,7 +1708,7 @@ sources:
             project_and_fs_to_query_sql(&database, &project, &fs, "shifts", None).unwrap();
 
         // TODO: figure out if we should also use backticks for the table name here
-        assert_eq!(sql, "WITH raw_shifts AS (SELECT * FROM test-project.test-dataset-2.raw_shifts_real_table) SELECT * FROM (SELECT employee_id, shift_date, shift FROM `raw_shifts`)");
+        assert_eq!(sql, "WITH raw_shifts AS (SELECT * FROM test-project.test-dataset-2.raw_shifts_real_table) SELECT * FROM (SELECT employee_id, shift_date, shift FROM `raw_shifts`) AS alias");
     }
 
     #[test]
@@ -1753,7 +1760,7 @@ sources:
             project_and_fs_to_query_sql(&database, &project, &fs, "shifts_transformed", None)
                 .unwrap();
 
-        assert_eq!(sql, "WITH\nraw_shifts AS (SELECT * FROM test-project.test-dataset-2.raw_shifts_real_table),\nshifts AS (SELECT employee_id, shift_date, shift FROM `raw_shifts`)\nSELECT * FROM (SELECT * FROM `shifts`)");
+        assert_eq!(sql, "WITH\nraw_shifts AS (SELECT * FROM test-project.test-dataset-2.raw_shifts_real_table),\nshifts AS (SELECT employee_id, shift_date, shift FROM `raw_shifts`)\nSELECT * FROM (SELECT * FROM `shifts`) AS alias");
     }
 
     #[test]
@@ -1819,7 +1826,7 @@ sources:
         )
         .unwrap();
 
-        assert_eq!(sql, "WITH shifts AS (SELECT * FROM test-project.test-dataset-2.qqq_shifts_hash) SELECT * FROM (SELECT * FROM `shifts`)");
+        assert_eq!(sql, "WITH shifts AS (SELECT * FROM test-project.test-dataset-2.qqq_shifts_hash) SELECT * FROM (SELECT * FROM `shifts`) AS alias");
     }
 
     #[test]

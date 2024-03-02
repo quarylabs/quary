@@ -11,7 +11,7 @@ use quary_proto::{ColumnTest, Edge, File, Project, Test};
 use sqlinference::dialect::Dialect;
 use sqlinference::infer_tests::{infer_tests, InferenceReason};
 use sqlinference::inference::{figure_out_skippable_tests, TestRunnerAction};
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::PathBuf;
 
 /// infer_tests_internal returns a pointer of column to tests to put in a project file
@@ -216,7 +216,7 @@ pub fn return_full_sql_for_new_model(
     database: &impl DatabaseQueryGenerator,
     model_sql: &str,
     model_name: &str,
-) -> Result<(Vec<Edge>, HashSet<String>), String> {
+) -> Result<(Vec<Edge>, BTreeSet<String>), String> {
     let mut file_system = file_system;
     // TODO This will be complicated to do properly when needing to put it in the right place
     // TODO This can be moved out of here and should be done more cleanly
@@ -236,13 +236,8 @@ pub fn return_full_sql_for_new_model(
     // Parse the project
     // TODO Don't think this would work properly with sources as they won't be qualified
     let project = crate::project::parse_project(&file_system, database, project_root)?;
-    let (_, edges) =
+    let (_, (nodes, edges)) =
         project_and_fs_to_query_sql(database, &project, &file_system, model_name, None)?;
-
-    let nodes: HashSet<String> = edges
-        .iter()
-        .flat_map(|(from, to)| vec![from, to].into_iter().cloned().collect::<Vec<String>>())
-        .collect::<HashSet<String>>();
 
     let out_edges = edges
         .into_iter()

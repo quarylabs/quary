@@ -90,7 +90,7 @@ pub async fn database_from_config(
                 )?;
                 Ok(Box::new(database))
             }
-            PostgresConfig(_) => {
+            PostgresConfig(config) => {
                 let host = env::var("PGHOST")
                     .map_err(|_| "PGHOST must be set to connect to Postgres".to_string())?;
                 let port = env::var("PGPORT")
@@ -101,13 +101,18 @@ pub async fn database_from_config(
                     .map_err(|_| "PGPASSWORD must be set to connect to Postgres".to_string())?;
                 let database = env::var("PGDATABASE")
                     .map_err(|_| "PGDATABASE must be set to connect to Postgres".to_string())?;
-                let schema = env::var("PGSCHEMA")
-                    .map_err(|_| "PGSCHEMA must be set to connect to Postgres".to_string())?;
 
-                let database =
-                    Postgres::new(&host, &port, &user, &password, &database, &schema, None)
-                        .await
-                        .map_err(|e| e.to_string())?;
+                let database = Postgres::new(
+                    &host,
+                    &port,
+                    &user,
+                    &password,
+                    &database,
+                    &config.schema,
+                    None,
+                )
+                .await
+                .map_err(|e| e.to_string())?;
 
                 Ok(Box::new(database))
             }
