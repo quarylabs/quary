@@ -1,6 +1,7 @@
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
+import { QueryResult } from "./query_result";
 
 export const protobufPackage = "quary.service.v1";
 
@@ -30,10 +31,15 @@ export interface Passed {
 }
 
 export interface Failed {
-  reason?: { $case: "ran"; ran: Empty } | { $case: "inferredFromTests"; inferredFromTests: InferredChain } | {
-    $case: "inferredThroughTestsOperation";
-    inferredThroughTestsOperation: InferredChainWithOperation;
-  } | undefined;
+  reason?:
+    | { $case: "ran"; ran: FailedRunResults }
+    | { $case: "inferredFromTests"; inferredFromTests: InferredChain }
+    | { $case: "inferredThroughTestsOperation"; inferredThroughTestsOperation: InferredChainWithOperation }
+    | undefined;
+}
+
+export interface FailedRunResults {
+  queryResult: QueryResult | undefined;
 }
 
 function createBaseTestResult(): TestResult {
@@ -449,7 +455,7 @@ export const Failed = {
   encode(message: Failed, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     switch (message.reason?.$case) {
       case "ran":
-        Empty.encode(message.reason.ran, writer.uint32(10).fork()).ldelim();
+        FailedRunResults.encode(message.reason.ran, writer.uint32(10).fork()).ldelim();
         break;
       case "inferredFromTests":
         InferredChain.encode(message.reason.inferredFromTests, writer.uint32(18).fork()).ldelim();
@@ -474,7 +480,7 @@ export const Failed = {
             break;
           }
 
-          message.reason = { $case: "ran", ran: Empty.decode(reader, reader.uint32()) };
+          message.reason = { $case: "ran", ran: FailedRunResults.decode(reader, reader.uint32()) };
           continue;
         case 2:
           if (tag !== 18) {
@@ -508,7 +514,7 @@ export const Failed = {
   fromJSON(object: any): Failed {
     return {
       reason: isSet(object.ran)
-        ? { $case: "ran", ran: Empty.fromJSON(object.ran) }
+        ? { $case: "ran", ran: FailedRunResults.fromJSON(object.ran) }
         : isSet(object.inferredFromTests)
         ? { $case: "inferredFromTests", inferredFromTests: InferredChain.fromJSON(object.inferredFromTests) }
         : isSet(object.inferredThroughTestsOperation)
@@ -523,7 +529,7 @@ export const Failed = {
   toJSON(message: Failed): unknown {
     const obj: any = {};
     if (message.reason?.$case === "ran") {
-      obj.ran = Empty.toJSON(message.reason.ran);
+      obj.ran = FailedRunResults.toJSON(message.reason.ran);
     }
     if (message.reason?.$case === "inferredFromTests") {
       obj.inferredFromTests = InferredChain.toJSON(message.reason.inferredFromTests);
@@ -542,7 +548,7 @@ export const Failed = {
   fromPartial<I extends Exact<DeepPartial<Failed>, I>>(object: I): Failed {
     const message = createBaseFailed();
     if (object.reason?.$case === "ran" && object.reason?.ran !== undefined && object.reason?.ran !== null) {
-      message.reason = { $case: "ran", ran: Empty.fromPartial(object.reason.ran) };
+      message.reason = { $case: "ran", ran: FailedRunResults.fromPartial(object.reason.ran) };
     }
     if (
       object.reason?.$case === "inferredFromTests" &&
@@ -566,6 +572,65 @@ export const Failed = {
         ),
       };
     }
+    return message;
+  },
+};
+
+function createBaseFailedRunResults(): FailedRunResults {
+  return { queryResult: undefined };
+}
+
+export const FailedRunResults = {
+  encode(message: FailedRunResults, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.queryResult !== undefined) {
+      QueryResult.encode(message.queryResult, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): FailedRunResults {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFailedRunResults();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.queryResult = QueryResult.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FailedRunResults {
+    return { queryResult: isSet(object.queryResult) ? QueryResult.fromJSON(object.queryResult) : undefined };
+  },
+
+  toJSON(message: FailedRunResults): unknown {
+    const obj: any = {};
+    if (message.queryResult !== undefined) {
+      obj.queryResult = QueryResult.toJSON(message.queryResult);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FailedRunResults>, I>>(base?: I): FailedRunResults {
+    return FailedRunResults.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FailedRunResults>, I>>(object: I): FailedRunResults {
+    const message = createBaseFailedRunResults();
+    message.queryResult = (object.queryResult !== undefined && object.queryResult !== null)
+      ? QueryResult.fromPartial(object.queryResult)
+      : undefined;
     return message;
   },
 };

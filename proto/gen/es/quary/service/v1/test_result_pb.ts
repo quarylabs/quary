@@ -5,6 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Empty, Message, proto3 } from "@bufbuild/protobuf";
+import { QueryResult } from "./query_result_pb.js";
 
 /**
  * TestResult is the result of a test serializable so it can be shared
@@ -227,9 +228,9 @@ export class Failed extends Message<Failed> {
    */
   reason: {
     /**
-     * @generated from field: google.protobuf.Empty ran = 1;
+     * @generated from field: quary.service.v1.FailedRunResults ran = 1;
      */
-    value: Empty;
+    value: FailedRunResults;
     case: "ran";
   } | {
     /**
@@ -253,7 +254,7 @@ export class Failed extends Message<Failed> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "quary.service.v1.Failed";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ran", kind: "message", T: Empty, oneof: "reason" },
+    { no: 1, name: "ran", kind: "message", T: FailedRunResults, oneof: "reason" },
     { no: 2, name: "inferred_from_tests", kind: "message", T: InferredChain, oneof: "reason" },
     { no: 3, name: "inferred_through_tests_operation", kind: "message", T: InferredChainWithOperation, oneof: "reason" },
   ]);
@@ -272,6 +273,43 @@ export class Failed extends Message<Failed> {
 
   static equals(a: Failed | PlainMessage<Failed> | undefined, b: Failed | PlainMessage<Failed> | undefined): boolean {
     return proto3.util.equals(Failed, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.FailedRunResults
+ */
+export class FailedRunResults extends Message<FailedRunResults> {
+  /**
+   * @generated from field: quary.service.v1.QueryResult query_result = 1;
+   */
+  queryResult?: QueryResult;
+
+  constructor(data?: PartialMessage<FailedRunResults>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.FailedRunResults";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "query_result", kind: "message", T: QueryResult },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FailedRunResults {
+    return new FailedRunResults().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FailedRunResults {
+    return new FailedRunResults().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FailedRunResults {
+    return new FailedRunResults().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: FailedRunResults | PlainMessage<FailedRunResults> | undefined, b: FailedRunResults | PlainMessage<FailedRunResults> | undefined): boolean {
+    return proto3.util.equals(FailedRunResults, a, b);
   }
 }
 

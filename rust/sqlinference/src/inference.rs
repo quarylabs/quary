@@ -44,7 +44,6 @@ pub fn figure_out_skippable_tests(
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
     use crate::inference::TestRunnerAction::{Run, Skip};
     use crate::test::{AcceptedValuesTest, ComparisonTest, StandardTest};

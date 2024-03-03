@@ -54,12 +54,12 @@ impl DatabaseConnection for DuckDB {
     async fn list_tables(&self) -> Result<Vec<TableAddress>, String> {
         let results = if let Some(schema) = &self.schema {
             self.query(&format!(
-                "SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND type='table' ORDER BY name",
+                "SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND table_type='BASE TABLE' ORDER BY table_name",
                 schema
             ))
                 .await?
         } else {
-            self.query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+            self.query("SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' ORDER BY table_name")
                 .await?
         };
         Ok(results
@@ -79,12 +79,12 @@ impl DatabaseConnection for DuckDB {
     async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
         let results = if let Some(schema) = &self.schema {
             self.query(&format!(
-                "SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND type='view' ORDER BY name",
+                "SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND table_type='VIEW' ORDER BY table_name",
                 schema
             ))
                 .await?
         } else {
-            self.query("SELECT name FROM sqlite_master WHERE type='view' ORDER BY name")
+            self.query("SELECT table_name FROM information_schema.tables WHERE table_type='VIEW' ORDER BY table_name")
                 .await?
         };
         Ok(results
@@ -206,12 +206,12 @@ fn convert_array_to_vec_string(
 mod tests {
     use super::*;
     use prost::bytes::Bytes;
-    use quary_core::project::parse_project;
+    use quary_core::project::{parse_project, project_and_fs_to_sql_for_views};
     use quary_core::project_tests::return_tests_sql;
     use quary_proto::{File, FileSystem};
 
     #[tokio::test]
-    async fn test_create_table() {
+    async fn test_create_table_without_schema() {
         let db = DuckDB::new_in_memory(None).unwrap();
         db.exec("CREATE TABLE wrong_table (id INTEGER, name VARCHAR(255))")
             .await
@@ -266,6 +266,70 @@ mod tests {
         assert_eq!(columns, vec!["id", "name"]);
 
         let result = db.query("SELECT * FROM test_table").await.unwrap();
+        assert_eq!(result.columns, vec!["id", "name"]);
+        assert_eq!(result.rows, vec![vec!["1", "test"], vec!["2", "rubbish"]]);
+    }
+
+    #[tokio::test]
+    async fn test_create_table_with_schema() {
+        let db = DuckDB::new_in_memory(Some("test_schema".to_string())).unwrap();
+
+        db.exec("CREATE TABLE test_schema.wrong_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        db.exec("CREATE TABLE test_schema.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        db.exec("INSERT INTO test_schema.test_table VALUES (1, 'test')")
+            .await
+            .unwrap();
+        db.exec("INSERT INTO test_schema.test_table VALUES (2, 'rubbish')")
+            .await
+            .unwrap();
+        db.exec("CREATE VIEW test_schema.test_view AS SELECT * FROM test_schema.test_table")
+            .await
+            .unwrap();
+        db.exec("CREATE VIEW test_schema.wrong_view AS SELECT * FROM test_schema.test_table")
+            .await
+            .unwrap();
+
+        let tables = db.list_tables().await.unwrap();
+        assert_eq!(
+            tables,
+            vec![
+                TableAddress {
+                    name: "test_table".to_string(),
+                    full_path: "test_schema.test_table".to_string(),
+                },
+                TableAddress {
+                    name: "wrong_table".to_string(),
+                    full_path: "test_schema.wrong_table".to_string(),
+                },
+            ]
+        );
+
+        let views = db.list_views().await.unwrap();
+        assert_eq!(
+            views,
+            vec![
+                TableAddress {
+                    name: "test_view".to_string(),
+                    full_path: "test_schema.test_view".to_string(),
+                },
+                TableAddress {
+                    name: "wrong_view".to_string(),
+                    full_path: "test_schema.wrong_view".to_string(),
+                },
+            ]
+        );
+
+        let columns = db.list_columns("test_schema.test_table").await.unwrap();
+        assert_eq!(columns, vec!["id", "name"]);
+
+        let result = db
+            .query("SELECT * FROM test_schema.test_table")
+            .await
+            .unwrap();
         assert_eq!(result.columns, vec!["id", "name"]);
         assert_eq!(result.rows, vec![vec!["1", "test"], vec!["2", "rubbish"]]);
     }
@@ -338,6 +402,13 @@ models:
               model: test_source_same_schema
                 ",
                 ),
+                (
+                    "tests/test_model_out_is_unique.sql",
+                    "SELECT id, COUNT(*)
+FROM q.test_model_out
+GROUP BY id
+HAVING COUNT(*) > 1;",
+                ),
             ]
             .into_iter()
             .map(|(k, v)| {
@@ -359,6 +430,7 @@ models:
             &project,
             &file_system,
             true,
+            None,
             None,
         )
         .unwrap();
@@ -440,6 +512,13 @@ models:
               model: test_source_same_schema
                 ",
                 ),
+                (
+                    "tests/test_model_out_is_unique.sql",
+                    "SELECT id, COUNT(*)
+FROM q.test_model_out
+GROUP BY id
+HAVING COUNT(*) > 1;",
+                ),
             ]
             .into_iter()
             .map(|(k, v)| {
@@ -462,6 +541,7 @@ models:
             &file_system,
             true,
             None,
+            None,
         )
         .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
@@ -471,6 +551,83 @@ models:
         for (name, test) in tests.iter() {
             let results = database.query(test).await.unwrap();
 
+            assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_with_schema_sql_test() {
+        let database = DuckDB::new_in_memory(Some("finances".to_string())).unwrap();
+
+        database.exec("CREATE SCHEMA other_schema").await.unwrap();
+        database
+            .exec("CREATE TABLE other_schema.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        database
+            .exec("INSERT INTO other_schema.test_table VALUES (1, 'test'), (2, 'rubbish')")
+            .await
+            .unwrap();
+
+        let file_system = FileSystem {
+            files: vec![
+                ("quary.yaml", "duckdbInMemory: {schema: finances}"),
+                ("models/test_model.sql", "SELECT id FROM q.test_source"),
+                (
+                    "tests/unique_for_column.sql",
+                    "SELECT id, COUNT(*) FROM q.test_source GROUP BY id HAVING COUNT(*) > 1",
+                ),
+                (
+                    "models/sources.yaml",
+                    "
+sources:
+  - name: test_source
+    path: other_schema.test_table
+",
+                ),
+            ]
+            .iter()
+            .map(|(k, v)| {
+                (
+                    k.to_string(),
+                    File {
+                        name: k.to_string(),
+                        contents: Bytes::from(v.to_string()),
+                    },
+                )
+            })
+            .collect(),
+        };
+
+        let project = parse_project(&file_system, &database.query_generator(), "").unwrap();
+        let sqls = project_and_fs_to_sql_for_views(
+            &project,
+            &file_system,
+            &database.query_generator(),
+            false,
+            false,
+        )
+        .unwrap();
+        for sql in sqls {
+            for sql in sql.1 {
+                database.exec(&sql).await.unwrap();
+            }
+        }
+
+        let tests = return_tests_sql(
+            &database.query_generator(),
+            &project,
+            &file_system,
+            false,
+            None,
+            None,
+        )
+        .unwrap();
+        assert_eq!(tests.len(), 1);
+
+        for (name, test) in tests.iter() {
+            println!("Running test {}: {}", name, test);
+            let results = database.query(test).await.unwrap();
             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
         }
     }

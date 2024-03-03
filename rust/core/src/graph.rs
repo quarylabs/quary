@@ -12,7 +12,6 @@ use petgraph::Graph;
 use quary_proto::test::TestType;
 use quary_proto::{Model, Project, Test};
 use std::collections::{HashMap, HashSet};
-use std::iter::FromIterator;
 
 /// Edge represents an edge with (from, to) node names.
 pub type Edge = (String, String);

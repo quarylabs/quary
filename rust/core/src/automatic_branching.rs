@@ -306,7 +306,6 @@ mod tests {
     use super::*;
     use crate::database_bigquery::DatabaseQueryGeneratorBigQuery;
     use crate::database_sqlite::DatabaseQueryGeneratorSqlite;
-    use crate::graph::project_to_graph;
     use crate::init::{init_to_file_system, Asset};
     use crate::project::parse_project;
     use crate::project_file::{deserialize_project_file_from_yaml, serialize_project_file_to_yaml};

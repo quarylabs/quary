@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+option java_multiple_files = true;
+
+// QueryResult is the result of a ran query.
+message QueryResult {
+  repeated QueryResultColumn columns = 1;
+}
+
+message QueryResultColumn {
+  string name = 1;
+  repeated string values = 2;
+}

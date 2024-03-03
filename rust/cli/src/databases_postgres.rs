@@ -254,8 +254,6 @@ mod tests {
         assert_eq!(result.rows, vec![vec!["1", "test"], vec!["2", "rubbish"]]);
     }
 
-    //    TODO understand why relationship test is failing:  SELECT * FROM (SELECT id FROM test_model)) WHERE id IS NOT NULL AND id NOT IN (SELECT id FROM (WITH test_source AS
-    // (SELECT * FROM other_schema.test_table) SELECT * FROM (SELECT id FROM test_source))): "error returned from database: subquery in FROM must have an alias"
     #[tokio::test]
     async fn test_postgres_foreign_relationship_test_with_schema() {
         // Start a PostgreSQL container
@@ -356,6 +354,7 @@ models:
             &project,
             &file_system,
             true,
+            None,
             None,
         )
         .unwrap();

@@ -3,7 +3,6 @@ use quary_proto::{
     Project, Test, TestAcceptedValues, TestGreaterThan, TestGreaterThanOrEqual, TestLessThan,
     TestLessThanOrEqual, TestNotNull, TestRelationship, TestUnique,
 };
-use std::cmp::Ordering;
 use std::path::PathBuf;
 
 pub fn test_to_name(test: &Test) -> Result<String, String> {
@@ -86,13 +85,13 @@ impl ToSql for TestRelationship {
         let trimmed_target_path = self.target_path.trim();
 
         let with_alias_source_path =
-            if trimmed_source_path.starts_with("(") && trimmed_source_path.ends_with(")") {
+            if trimmed_source_path.starts_with('(') && trimmed_source_path.ends_with(')') {
                 format!("{} AS alias", trimmed_source_path)
             } else {
                 trimmed_source_path.to_string()
             };
         let with_alias_target_path =
-            if trimmed_target_path.starts_with("(") && trimmed_target_path.ends_with(")") {
+            if trimmed_target_path.starts_with('(') && trimmed_target_path.ends_with(')') {
                 format!("{} AS alias", trimmed_target_path)
             } else {
                 trimmed_target_path.to_string()
@@ -268,30 +267,10 @@ impl ShortTestString for Test {
     }
 }
 
-// test_by_type is the order to show the tests in a report. It is the standard ordering of tests.
-fn test_by_type(a: &Test, b: &Test) -> Ordering {
-    fn test_order(test: &Test) -> usize {
-        match test.test_type {
-            Some(TestType::NotNull(_)) => 1,
-            Some(TestType::Unique(_)) => 2,
-            Some(TestType::AcceptedValues(_)) => 3,
-            Some(TestType::Relationship(_)) => 4,
-            Some(TestType::GreaterThanOrEqual(_)) => 5,
-            Some(TestType::GreaterThan(_)) => 6,
-            Some(TestType::LessThanOrEqual(_)) => 7,
-            Some(TestType::LessThan(_)) => 8,
-            Some(TestType::Sql(_)) => 9,
-            None => 10,
-        }
-    }
-
-    test_order(a).cmp(&test_order(b))
-}
-
 #[cfg(test)]
 mod test {
     use crate::test_helpers::ToTest;
-    use crate::tests::{test_by_type, ShortTestString, ToSql};
+    use crate::tests::{ShortTestString, ToSql};
     use quary_proto::test::TestType;
     use quary_proto::{
         TestAcceptedValues, TestGreaterThanOrEqual, TestLessThanOrEqual, TestNotNull,
@@ -587,114 +566,4 @@ mod test {
             assert_eq!(Ok(expected.to_string()), got);
         }
     }
-
-    #[test]
-    fn test_sort_column_tests() {
-        let mut tests = vec![
-            TestType::Unique(Default::default()).to_test(),
-            TestType::NotNull(Default::default()).to_test(),
-            TestType::Relationship(Default::default()).to_test(),
-            TestType::AcceptedValues(Default::default()).to_test(),
-            TestType::LessThanOrEqual(Default::default()).to_test(),
-            TestType::Sql(Default::default()).to_test(),
-            TestType::GreaterThanOrEqual(Default::default()).to_test(),
-        ];
-
-        let want = vec![
-            TestType::NotNull(Default::default()).to_test(),
-            TestType::Unique(Default::default()).to_test(),
-            TestType::AcceptedValues(Default::default()).to_test(),
-            TestType::Relationship(Default::default()).to_test(),
-            TestType::GreaterThanOrEqual(Default::default()).to_test(),
-            TestType::LessThanOrEqual(Default::default()).to_test(),
-            TestType::Sql(Default::default()).to_test(),
-        ];
-
-        tests.sort_by(test_by_type);
-
-        assert_eq!(want, tests);
-    }
 }
-
-// // TestGenerateTestSqlAcceptedValues_ActuallyWorks tests that the generated SQL actually works.
-// TODO This shall eventually need to be changed to work with all the databases.
-// TODO Implement the following tests:
-// func TestGenerateTestSqlAcceptedValues_ActuallyWorks(t *testing.T) {
-// 	t.Parallel()
-//
-// 	tests := []struct {
-// 		name         string
-// 		databasePrep func(context context.Context, db databases.Database) error
-// 		test         *servicev1.TestAcceptedValues
-// 		wantRows     int
-// 	}{
-// 		{
-// 			name: "simple example, valid values",
-// 			databasePrep: func(ctx context.Context, db databases.Database) error {
-// 				_, err := db.ExecContext(ctx, "CREATE TABLE users_123 (id INT)")
-// 				if err != nil {
-// 					return err
-// 				}
-// 				_, err = db.ExecContext(ctx, "INSERT INTO users_123 (id) VALUES (1), (2), (3)")
-// 				if err != nil {
-// 					return err
-// 				}
-// 				return nil
-// 			},
-// 			test: &servicev1.TestAcceptedValues{
-// 				FilePath:       "test/path.yaml",
-// 				Model:          "users",
-// 				Path:           "users_123",
-// 				Column:         "id",
-// 				AcceptedValues: []string{"1", "2", "3"},
-// 			},
-// 			wantRows: 0,
-// 		},
-// 		{
-// 			name: "2 invalid values",
-// 			databasePrep: func(ctx context.Context, db databases.Database) error {
-// 				_, err := db.ExecContext(ctx, "CREATE TABLE users_123 (id INT)")
-// 				if err != nil {
-// 					return err
-// 				}
-// 				_, err = db.ExecContext(ctx, "INSERT INTO users_123 (id) VALUES (1), (2), (3), (4), (5)")
-// 				if err != nil {
-// 					return err
-// 				}
-// 				return nil
-// 			},
-// 			test: &servicev1.TestAcceptedValues{
-// 				FilePath:       "test/path.yaml",
-// 				Model:          "users",
-// 				Path:           "users_123",
-// 				Column:         "id",
-// 				AcceptedValues: []string{"1", "2", "3"},
-// 			},
-// 			wantRows: 2,
-// 		},
-// 	}
-//
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			ctx := context.Background()
-// 			db, err := databasesImplementation.NewSqlLiteInMemory()
-// 			require.NoError(t, err)
-//
-// 			err = tt.databasePrep(ctx, db)
-// 			require.NoError(t, err)
-//
-// 			got := GenerateTestSqlAcceptedValues(tt.test)
-//
-// 			rows, err := db.QueryContext(ctx, got)
-// 			require.NoError(t, err)
-//
-// 			defer rows.Close()
-// 			count := 0
-// 			for rows.Next() {
-// 				count += 1
-// 			}
-//
-// 			assert.Equal(t, tt.wantRows, count)
-// 		})
-// 	}
-// }

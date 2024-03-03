@@ -297,7 +297,7 @@ mod tests {
         let query_generator = sqlite.query_generator();
         let project = parse_project(&file_system, &query_generator, "").unwrap();
 
-        let tests = return_tests_sql(&database, &project, &file_system, true, None).unwrap();
+        let tests = return_tests_sql(&database, &project, &file_system, true, None, None).unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 
         assert!(!tests.is_empty());
@@ -338,7 +338,14 @@ mod tests {
             Box::pin(async move {
                 let result = database.query(&sql).await;
                 match result {
-                    Ok(outs) => Ok(outs.rows.is_empty()),
+                    Ok(outs) => {
+                        if outs.rows.is_empty() {
+                            Ok(None)
+                        } else {
+                            let proto = outs.to_proto()?;
+                            Ok(Some(proto))
+                        }
+                    }
                     Err(error) => Err(format!("Error in query: \n{}\n{}", error, sql)),
                 }
             })
@@ -406,7 +413,14 @@ mod tests {
             Box::pin(async move {
                 let result = database.query(&sql).await;
                 match result {
-                    Ok(outs) => Ok(outs.rows.is_empty()),
+                    Ok(outs) => {
+                        if outs.rows.is_empty() {
+                            Ok(None)
+                        } else {
+                            let proto = outs.to_proto()?;
+                            Ok(Some(proto))
+                        }
+                    }
                     Err(error) => Err(format!("Error in query: \n{}\n{}", error, sql)),
                 }
             })

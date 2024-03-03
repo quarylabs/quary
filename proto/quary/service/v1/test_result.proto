@@ -3,6 +3,7 @@ syntax = "proto3";
 package quary.service.v1;
 
 import "google/protobuf/empty.proto";
+import "quary/service/v1/query_result.proto";
 
 option java_multiple_files = true;
 
@@ -39,8 +40,12 @@ message Passed {
 
 message Failed {
   oneof reason {
-    google.protobuf.Empty ran = 1;
+    FailedRunResults ran = 1;
     InferredChain inferred_from_tests = 2;
     InferredChainWithOperation inferred_through_tests_operation = 3;
   }
+}
+
+message FailedRunResults {
+  QueryResult query_result = 1;
 }

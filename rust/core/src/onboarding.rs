@@ -167,10 +167,9 @@ pub fn is_empty_bar_hidden_and_sqlite(
 mod tests {
     use super::*;
     use crate::config::deserialize_config_from_yaml;
-    use crate::project_file::deserialize_project_file_from_yaml;
     use prost::bytes::Bytes;
     use quary_proto::connection_config::ConnectionConfigSqLiteInMemory;
-    use quary_proto::{connection_config, File, ProjectFile};
+    use quary_proto::{connection_config, File};
     use std::collections::HashMap;
     use std::io::Cursor;
 
