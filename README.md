@@ -18,34 +18,42 @@
   </a>
 </p>
 
-![quary_core_image](https://github.com/quarylabs/quary/assets/132601011/20024c62-6ad6-42e8-937e-37a708af9c0c)
+![quary_core_image](./assets/diagram.jpg)
 
 ## What is Quary?
 
-Quary enables teams to model, test and deploy data transformations. This core is a fast and lightweight SQL transformation engine written in Rust.
+Quary enables teams to design, document, test and deploy data transformations to your SQL data stores. Quary is a SQL
+engine and CLI tool that lets you manage your data transformation projects with ease.
+
+Teams use Quary to transform their raw data tables into actionable and trustworthy insights. Teams do so by layering
+well documented and tested transformations into useful insights ready for consumption. A Quary project is formed of a
+collection of these SQL `SELECT` statements, that build on top of each other.
 
 - Visit [our website](https://www.quary.dev) to learn more
 - Visit [our documentation](https://www.quary.dev/docs) to learn how to use Quary
-
-## Understanding Quary
-
-Teams use Quary to transform their raw data tables in a data warehouse into actionable trustworthy insights. Users can easily transform their data by writing SQL select statements, which Quary then converts into tables and views within the data warehouse.
-
-A Quary project is formed by a collection of these select statements, also known as models. These models often build upon one another, creating a structured flow of data transformation. Quary simplifies the process of visualizing dependencies from the source (raw table) to the final insight. Additionally, it provides testing capabilities for the models at each stage, ensuring data integrity and accuracy.
 
 ## Getting Started
 
 ### Installation
 
-#### Homebrew installation
+The following Quary repository contains the core Quary library as well as the Quary CLI tool. The Quary CLI tool can be
+installed as following
+
+#### Homebrew installation for macOS
+
+Quary can be installed using Homebrew on macOS using the following command:
+
 ```
 brew install quarylabs/quary/quary
 ```
-#### Linux/Mac installation
-Header over to [releases](https://github.com/quarylabs/quary/releases/latest) to get the latest version of Quary for your system.
+
+#### Other installations
+
+Other builds are available in the [releases page](https://github.com/quarylabs/quary/releases/latest) to download.
+
 ### Usage
 
-Check out our template [here](https://github.com/quarylabs/template) of an example Quary project. The following commands will show you how to get started, and run some basic commands.
+Once installed, a sample project can be created and run as follows:
 
 ```shell
 mkdir example # create an empty project folder
@@ -56,14 +64,12 @@ quary test -s # run defined tests against target database
 quary build   # build and execute the model views/seeds against target database
 ```
 
-Note that you will most likely want to use our [Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=Quary.quary-extension)
-
-### Commands
-```
-quary help
-```
-
+Note that you will most likely want to use
+our [Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=Quary.quary-extension) to
+visualise the project.
 
 ## Support
 
-If you run into any problems using Quary, please let us know. We want Quary to be easy-to-use, so if you are getting confused, it is our fault, not yours. [Create an issue](https://github.com/quarylabs/quary/issues) and we'll be happy to help you out.
+If you run into any problems using Quary, please let us know. We want Quary to be easy-to-use, so if you are getting
+confused, it is our fault, not yours. [Create an issue](https://github.com/quarylabs/quary/issues) and we'll be happy to
+help you out.

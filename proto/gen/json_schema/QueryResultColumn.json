@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/QueryResultColumn",
+    "definitions": {
+        "QueryResultColumn": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "values": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Query Result Column"
+        }
+    }
+}

@@ -51,7 +51,6 @@ pub fn sql_model_finder(sql: &str) -> HashMap<String, Vec<Range>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use quary_proto::{Position, Range};
 
     #[test]
     fn test_sql_model_finder_single_line() {

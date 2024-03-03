@@ -1,18 +1,24 @@
 use crate::databases::DatabaseQueryGenerator;
 use crate::file_system::FileSystem;
 use crate::inference::{Inference, InferenceTestRunnerAction};
-use crate::project_tests::{return_model_tests_sql, return_tests_sql};
+use crate::project_tests::return_tests_sql;
 use crate::rpc_proto_defined_functions::infer_skippable_tests_internal;
 use quary_proto::test_result::TestResult::{Failed, Passed};
-use quary_proto::{failed, passed, InferredChain, InferredChainWithOperation, TestResult};
+use quary_proto::{
+    failed, passed, FailedRunResults, InferredChain, InferredChainWithOperation, TestResult,
+};
 use quary_proto::{Project, TestResults, TestRunner};
 use sqlinference::dialect::Dialect;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::future::Future;
 use std::pin::Pin;
 
-pub type RunStatementFunc =
-    Box<dyn Fn(&str) -> Pin<Box<dyn Future<Output = Result<bool, String>>>>>;
+/// RunStatementFunc is a function that takes a SQL statement and returns a future that resolves
+/// to a result. If the result, contains some returned values, then the test has failed. If the
+/// result is None, then the test has passed.
+pub type RunStatementFunc = Box<
+    dyn Fn(&str) -> Pin<Box<dyn Future<Output = Result<Option<quary_proto::QueryResult>, String>>>>,
+>;
 
 fn recursive_search_for_test(
     whether_to_skip: &HashMap<String, Inference>,
@@ -62,20 +68,22 @@ pub async fn run_tests_internal(
             let test_result = run_statement(sql.as_str()).await;
             match test_result {
                 Ok(test_result) => {
-                    if test_result {
+                    if let Some(test_result) = test_result {
                         results.push(TestResult {
                             test_name,
                             query: sql.clone(),
-                            test_result: Some(Passed(quary_proto::Passed {
-                                reason: Some(passed::Reason::Ran(Default::default())),
+                            test_result: Some(Failed(quary_proto::Failed {
+                                reason: Some(failed::Reason::Ran(FailedRunResults {
+                                    query_result: Some(test_result),
+                                })),
                             })),
                         });
                     } else {
                         results.push(TestResult {
                             test_name,
                             query: sql.clone(),
-                            test_result: Some(Failed(quary_proto::Failed {
-                                reason: Some(failed::Reason::Ran(Default::default())),
+                            test_result: Some(Passed(quary_proto::Passed {
+                                reason: Some(passed::Reason::Ran(Default::default())),
                             })),
                         });
                     }
@@ -155,13 +163,15 @@ pub async fn run_tests_internal(
                 TestResult {
                     test_name: test_name.clone(),
                     query: sql.clone(),
-                    test_result: Some(if test_result {
-                        Passed(quary_proto::Passed {
-                            reason: Some(passed::Reason::Ran(Default::default())),
+                    test_result: Some(if let Some(test_result) = test_result {
+                        Failed(quary_proto::Failed {
+                            reason: Some(failed::Reason::Ran(FailedRunResults {
+                                query_result: Some(test_result),
+                            })),
                         })
                     } else {
-                        Failed(quary_proto::Failed {
-                            reason: Some(failed::Reason::Ran(Default::default())),
+                        Passed(quary_proto::Passed {
+                            reason: Some(passed::Reason::Ran(Default::default())),
                         })
                     }),
                 },
@@ -327,6 +337,7 @@ pub async fn run_tests_internal(
                 file_system,
                 whether_to_include_model_to_source,
                 limit,
+                None,
             )?;
             let whether_to_skip =
                 infer_skippable_tests_internal(dialect, project, file_system, project_root)?;
@@ -339,6 +350,7 @@ pub async fn run_tests_internal(
                 file_system,
                 whether_to_include_model_to_source,
                 limit,
+                None,
             )?;
             run_test_all(tests, run_statement).await
         }
@@ -368,20 +380,22 @@ pub async fn run_model_tests_internal(
             let test_result = run_statement(sql.as_str()).await;
             match test_result {
                 Ok(test_result) => {
-                    if test_result {
+                    if let Some(test_result) = test_result {
                         results.push(TestResult {
                             test_name,
                             query: sql.clone(),
-                            test_result: Some(Passed(quary_proto::Passed {
-                                reason: Some(passed::Reason::Ran(Default::default())),
+                            test_result: Some(Failed(quary_proto::Failed {
+                                reason: Some(failed::Reason::Ran(FailedRunResults {
+                                    query_result: Some(test_result),
+                                })),
                             })),
                         });
                     } else {
                         results.push(TestResult {
                             test_name,
                             query: sql.clone(),
-                            test_result: Some(Failed(quary_proto::Failed {
-                                reason: Some(failed::Reason::Ran(Default::default())),
+                            test_result: Some(Passed(quary_proto::Passed {
+                                reason: Some(passed::Reason::Ran(Default::default())),
                             })),
                         });
                     }
@@ -391,13 +405,13 @@ pub async fn run_model_tests_internal(
         }
         Ok(TestResults { results })
     }
-    let tests = return_model_tests_sql(
+    let tests = return_tests_sql(
         database,
         project,
         file_system,
         whether_to_include_model_to_source,
         limit,
-        model_name,
+        Some(model_name),
     )?;
     run_test_all(tests, run_statement).await
 }
@@ -405,7 +419,6 @@ pub async fn run_model_tests_internal(
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::collections::HashMap;
 
     #[test]
     fn test_recursive_search_for_test_single() {

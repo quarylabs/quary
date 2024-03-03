@@ -1087,10 +1087,7 @@ fn extract_table(table_factor: &TableFactor) -> Result<Extracted, String> {
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
-    use crate::dialect::Dialect;
-    use crate::test::{ComparisonTest, RelationshipTest};
     use sqlparser::dialect::GenericDialect;
 
     struct TestStructure {

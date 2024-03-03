@@ -191,8 +191,91 @@ pub trait DatabaseConnection: Debug {
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator>;
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct QueryResult {
     pub columns: Vec<String>,
     pub rows: Vec<Vec<String>>,
+}
+
+impl QueryResult {
+    pub fn new(columns: Vec<String>, rows: Vec<Vec<String>>) -> Self {
+        Self { columns, rows }
+    }
+
+    pub fn to_proto(&self) -> Result<quary_proto::QueryResult, String> {
+        let values = self
+            .columns
+            .iter()
+            .enumerate()
+            .map(|(i, column)| {
+                let values = self
+                    .rows
+                    .iter()
+                    .enumerate()
+                    .map(|(j, row)| {
+                        let value = row.get(i).ok_or_else(|| {
+                            format!("row {} does not have a value for column {}", j, column)
+                        })?;
+                        Ok::<String, String>(value.to_string())
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
+                Ok(quary_proto::QueryResultColumn {
+                    name: column.clone(),
+                    values,
+                })
+            })
+            .collect::<Result<Vec<_>, String>>()?;
+        Ok(quary_proto::QueryResult { columns: values })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_query_result_to_proto_success() {
+        // Arrange
+        let columns = vec!["id".to_string(), "name".to_string()];
+        let rows = vec![
+            vec!["1".to_string(), "Alice".to_string()],
+            vec!["2".to_string(), "Bob".to_string()],
+        ];
+        let query_result = QueryResult::new(columns, rows);
+
+        // Act
+        let proto_result = query_result.to_proto();
+
+        // Assert
+        let expected_columns = vec![
+            quary_proto::QueryResultColumn {
+                name: "id".to_string(),
+                values: vec!["1".to_string(), "2".to_string()],
+            },
+            quary_proto::QueryResultColumn {
+                name: "name".to_string(),
+                values: vec!["Alice".to_string(), "Bob".to_string()],
+            },
+        ];
+        let expected = Ok(quary_proto::QueryResult {
+            columns: expected_columns,
+        });
+
+        assert_eq!(proto_result, expected);
+    }
+
+    #[test]
+    fn test_query_result_to_proto_error_missing_value() {
+        let columns = vec!["id".to_string(), "name".to_string()];
+        // The second row is missing a value
+        let rows = vec![
+            vec!["1".to_string(), "Alice".to_string()],
+            vec!["2".to_string()],
+        ];
+        let query_result = QueryResult::new(columns, rows);
+
+        let proto_result = query_result.to_proto();
+
+        assert!(proto_result.is_err());
+    }
 }

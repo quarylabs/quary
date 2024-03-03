@@ -243,7 +243,7 @@ async fn main() -> Result<(), String> {
             let query_generator = database.query_generator();
             let (project, file_system) = parse_project(&query_generator)?;
 
-            let limit = Some(1);
+            let limit = if test_args.verbose { None } else { Some(1) };
 
             let tests = return_tests_sql(
                 &database.query_generator(),
@@ -251,6 +251,7 @@ async fn main() -> Result<(), String> {
                 &file_system,
                 test_args.full_source,
                 limit,
+                None,
             )?;
 
             if test_args.dry_run {
@@ -275,7 +276,12 @@ async fn main() -> Result<(), String> {
                     let result = database.query(&sql).await;
                     let sql_with_no_newlines = sql.replace('\n', " ");
                     match result {
-                        Ok(outs) => Ok(outs.rows.is_empty()),
+                        Ok(outs) => Ok(if outs.rows.is_empty() {
+                            None
+                        } else {
+                            let proto = outs.to_proto()?;
+                            Some(proto)
+                        }),
                         Err(error) => Err(format!(
                             "Error in test query: \n{:?}\n{}",
                             error, sql_with_no_newlines
@@ -359,6 +365,26 @@ async fn main() -> Result<(), String> {
                         println!("failed tests:");
                         for test in &tests_fail {
                             println!("  {}", test.test_name);
+                            if test_args.verbose {
+                                if let Some(TestResult::Failed(reason)) = &test.test_result {
+                                    if let Some(reason) = &reason.reason {
+                                        match reason {
+                                            failed::Reason::InferredFromTests(_) => {
+                                                println!("    inferred from tests")
+                                            }
+                                            failed::Reason::InferredThroughTestsOperation(_) => {
+                                                println!("    inferred through test operation")
+                                            }
+                                            failed::Reason::Ran(results) => {
+                                                println!("    ran and returned results");
+                                                for result in &results.query_result {
+                                                    println!("    {:?}", result.columns);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                         Err(format!("{} tests failed", tests_fail.len()))
                     }

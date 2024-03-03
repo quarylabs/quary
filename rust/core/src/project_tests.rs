@@ -1,6 +1,8 @@
 use crate::databases::DatabaseQueryGenerator;
 use crate::file_system::FileSystem;
-use crate::project::{project_and_fs_to_query_sql, replace_reference_string_found};
+use crate::project::{
+    create_path_map, project_and_fs_to_query_sql, replace_reference_string_found,
+};
 use crate::schema_name::DEFAULT_SCHEMA_PREFIX;
 use crate::sql::return_reference_search;
 use crate::tests::ToSql;
@@ -8,7 +10,7 @@ use quary_proto::test::TestType::{
     AcceptedValues, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, NotNull,
     Relationship, Sql, Unique,
 };
-use quary_proto::Project;
+use quary_proto::{Project, TestRelationship};
 use std::collections::{BTreeMap, HashMap};
 
 /// Returns sql tests to run in no particular order but with the name pointing to the test.
@@ -19,154 +21,141 @@ use std::collections::{BTreeMap, HashMap};
 ///
 /// apply_limit_to_generated_tests if set to Some(usize) will apply a limit to the number of tests where
 /// the tests are generated. This is useful for speeding up the tests to limit the number of returned values.
+///
+/// filter_by_model if set to Some(&str) will filter the tests to only return tests related to the model.
 pub fn return_tests_sql(
     database: &impl DatabaseQueryGenerator,
     project: &Project,
     fs: &impl FileSystem,
     whether_to_make_test_include_models_to_source: bool,
     apply_limit_to_generated_tests: Option<usize>,
+    filter_by_model: Option<&str>,
 ) -> Result<BTreeMap<String, String>, String> {
+    let tests = if let Some(model_name) = filter_by_model {
+        let model_specific_filter = is_test_related_to_model(model_name.to_string());
+        project
+            .tests
+            .iter()
+            .filter(|(_, test)| model_specific_filter(test))
+            .collect::<HashMap<_, _>>()
+    } else {
+        project.tests.iter().collect::<HashMap<_, _>>()
+    };
+
     if whether_to_make_test_include_models_to_source {
         let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
             .map_err(|e| format!("failed to return reference search: {}", e))?;
 
-        let tests = project
-            .tests
-            .iter()
+        let path_generator = |model: &str| -> Result<String, String> {
+            let (sql, _) = project_and_fs_to_query_sql(database, project, fs, model, None)?;
+            Ok(format!("({})", sql))
+        };
+
+        let tests = tests
+            .into_iter()
             .map(|(name, test)| -> Result<(_, _), String> {
                 match &test.test_type {
-                    Some(test) => Ok((name.clone(), test)),
+                    Some(test) => Ok((name, test)),
                     None => Err(format!("test type {:?} is missing", name)),
                 }
             })
             .collect::<Result<Vec<(_, _)>, String>>()?
             .into_iter()
-            .map(|(name, test_type)| match test_type {
-                Unique(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                NotNull(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                AcceptedValues(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                GreaterThanOrEqual(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                GreaterThan(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                LessThanOrEqual(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                LessThan(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                Relationship(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.target_path = project_and_fs_to_query_sql(
-                        database,
-                        project,
-                        fs,
-                        &temp_test.target_model,
-                        None,
-                    )?
-                    .0;
-                    temp_test.target_path = format!("({})", temp_test.target_path);
-                    temp_test.source_path = project_and_fs_to_query_sql(
-                        database,
-                        project,
-                        fs,
-                        &temp_test.source_model,
-                        None,
-                    )?
-                    .0;
-                    temp_test.source_path = format!("({})", temp_test.source_path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                Sql(test) => {
-                    let mut read = fs.read_file(&test.file_path).map_err(|err| {
-                        format!(
-                            "failed to read sql file {:?} for test {:?} with error {:?}",
-                            test.file_path, name, err
-                        )
-                    })?;
-                    let mut file = String::new();
-                    read.read_to_string(&mut file).map_err(|err| {
-                        format!(
-                            "failed to read sql file {:?} for test {:?} with error {:?}",
-                            test.file_path, name, err
-                        )
-                    })?;
-                    let mut sources = project
-                        .sources
-                        .iter()
-                        .map(|(name, source)| (name.clone(), source.path.clone()))
-                        .collect::<HashMap<_, _>>();
-                    for name in project.models.keys() {
-                        let (sql, _) =
-                            project_and_fs_to_query_sql(database, project, fs, name, None)?;
-                        sources.insert(name.clone(), format!("({})", sql));
+            .map(|(name, test_type)| {
+                let sql: String = match test_type {
+                    Unique(test) => {
+                        let mut temp_test = test.clone();
+                        temp_test.path = path_generator(&temp_test.model)?;
+                        let sql = temp_test.to_sql(apply_limit_to_generated_tests);
+                        Ok::<String, String>(sql)
                     }
-                    let sql = reference_search.replace_all(
-                        file.as_str(),
-                        replace_reference_string_found(&sources, &database),
-                    );
-                    Ok((name, sql.to_string()))
-                }
+                    NotNull(test) => {
+                        let mut temp_test = test.clone();
+                        temp_test.path = path_generator(&temp_test.model)?;
+                        let sql = temp_test.to_sql(apply_limit_to_generated_tests);
+                        Ok(sql)
+                    }
+                    AcceptedValues(test) => {
+                        let mut temp_test = test.clone();
+                        temp_test.path = path_generator(&temp_test.model)?;
+                        let sql = temp_test.to_sql(apply_limit_to_generated_tests);
+                        Ok(sql)
+                    }
+                    GreaterThanOrEqual(test) => {
+                        let mut temp_test = test.clone();
+                        temp_test.path = path_generator(&temp_test.model)?;
+                        let sql = temp_test.to_sql(apply_limit_to_generated_tests);
+                        Ok(sql)
+                    }
+                    GreaterThan(test) => {
+                        let mut temp_test = test.clone();
+                        temp_test.path = path_generator(&temp_test.model)?;
+                        let sql = temp_test.to_sql(apply_limit_to_generated_tests);
+                        Ok(sql)
+                    }
+                    LessThanOrEqual(test) => {
+                        let mut temp_test = test.clone();
+                        temp_test.path = path_generator(&temp_test.model)?;
+                        let sql = temp_test.to_sql(apply_limit_to_generated_tests);
+                        Ok(sql)
+                    }
+                    LessThan(test) => {
+                        let mut temp_test = test.clone();
+                        temp_test.path = path_generator(&temp_test.model)?;
+                        let sql = temp_test.to_sql(apply_limit_to_generated_tests);
+                        Ok(sql)
+                    }
+                    Relationship(test) => {
+                        let target_path = path_generator(&test.target_model)?;
+                        let source_path = path_generator(&test.source_model)?;
+                        let test = TestRelationship {
+                            target_path,
+                            source_path,
+                            ..test.clone()
+                        };
+                        let sql = test.to_sql(apply_limit_to_generated_tests);
+                        Ok(sql)
+                    }
+                    Sql(test) => {
+                        let mut read = fs.read_file(&test.file_path).map_err(|err| {
+                            format!(
+                                "failed to read sql file {:?} for test {:?} with error {:?}",
+                                test.file_path, name, err
+                            )
+                        })?;
+                        let mut file = String::new();
+                        read.read_to_string(&mut file).map_err(|err| {
+                            format!(
+                                "failed to read sql file {:?} for test {:?} with error {:?}",
+                                test.file_path, name, err
+                            )
+                        })?;
+                        let mut sources = project
+                            .sources
+                            .iter()
+                            .map(|(name, source)| (name.clone(), source.path.clone()))
+                            .collect::<HashMap<_, _>>();
+                        for name in project.models.keys() {
+                            let (sql, _) =
+                                project_and_fs_to_query_sql(database, project, fs, name, None)?;
+                            sources.insert(name.clone(), format!("({})", sql));
+                        }
+                        let sql = reference_search.replace_all(
+                            file.as_str(),
+                            replace_reference_string_found(&sources, &database),
+                        );
+                        Ok(sql.to_string())
+                    }
+                }?;
+                Ok((name.to_string(), sql))
             })
             .collect::<Result<BTreeMap<_, _>, String>>()?;
         Ok(tests)
     } else {
         let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
             .map_err(|e| format!("failed to return reference search: {}", e))?;
-        let tests = project
-            .tests
-            .iter()
+        let tests = tests
+            .into_iter()
             .map(|(name, test)| -> Result<(_, _), String> {
                 match &test.test_type {
                     Some(test) => Ok((name.clone(), test)),
@@ -177,35 +166,35 @@ pub fn return_tests_sql(
             .into_iter()
             .map(|(name, test_type)| match test_type {
                 Unique(test) => {
-                    let sql = test.to_sql(None);
+                    let sql = test.to_sql(apply_limit_to_generated_tests);
                     Ok((name, sql))
                 }
                 NotNull(test) => {
-                    let sql = test.to_sql(None);
+                    let sql = test.to_sql(apply_limit_to_generated_tests);
                     Ok((name, sql))
                 }
                 AcceptedValues(test) => {
-                    let sql = test.to_sql(None);
+                    let sql = test.to_sql(apply_limit_to_generated_tests);
                     Ok((name, sql))
                 }
                 Relationship(test) => {
-                    let sql = test.to_sql(None);
+                    let sql = test.to_sql(apply_limit_to_generated_tests);
                     Ok((name, sql))
                 }
                 GreaterThanOrEqual(test) => {
-                    let sql = test.to_sql(None);
+                    let sql = test.to_sql(apply_limit_to_generated_tests);
                     Ok((name, sql))
                 }
                 GreaterThan(test) => {
-                    let sql = test.to_sql(None);
+                    let sql = test.to_sql(apply_limit_to_generated_tests);
                     Ok((name, sql))
                 }
                 LessThanOrEqual(test) => {
-                    let sql = test.to_sql(None);
+                    let sql = test.to_sql(apply_limit_to_generated_tests);
                     Ok((name, sql))
                 }
                 LessThan(test) => {
-                    let sql = test.to_sql(None);
+                    let sql = test.to_sql(apply_limit_to_generated_tests);
                     Ok((name, sql))
                 }
                 Sql(test) => {
@@ -222,247 +211,21 @@ pub fn return_tests_sql(
                             test.file_path, name, err
                         )
                     })?;
-                    let overrides = project
-                        .sources
-                        .iter()
-                        .map(|(name, source)| (name.clone(), source.path.clone()))
-                        .collect::<HashMap<_, _>>();
-                    let sql = reference_search
-                        .replace_all(&file, replace_reference_string_found(&overrides, &database));
-                    Ok((name, sql.to_string()))
-                }
-            })
-            .collect::<Result<BTreeMap<_, _>, String>>()?;
-        Ok(tests)
-    }
-}
 
-/// Returns sql tests for a particular model to run in no particular order but with the name pointing to the test.
-///
-/// whether_to_make_test_include_models_to_source if set to true allows users to run tests without
-/// the full models being deployed to views in the database. Rather than rely on the created views
-/// it inserts the required models in above queries to the sql query used for the test.
-///
-/// apply_limit_to_generated_tests if set to Some(usize) will apply a limit to the number of tests where
-/// the tests are generated. This is useful for speeding up the tests to limit the number of returned values.
-pub fn return_model_tests_sql(
-    database: &impl DatabaseQueryGenerator,
-    project: &Project,
-    fs: &impl FileSystem,
-    whether_to_make_test_include_models_to_source: bool,
-    apply_limit_to_generated_tests: Option<usize>,
-    model_name: &str,
-) -> Result<BTreeMap<String, String>, String> {
-    if whether_to_make_test_include_models_to_source {
-        let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
-            .map_err(|e| format!("failed to return reference search: {}", e))?;
-        let model_specific_filter = is_test_related_to_model(model_name);
-        let tests = project
-            .tests
-            .iter()
-            .filter(|(_, test)| model_specific_filter(test))
-            .map(|(name, test)| -> Result<(_, _), String> {
-                match &test.test_type {
-                    Some(test) => Ok((name.clone(), test)),
-                    None => Err(format!("test type {:?} is missing", name)),
-                }
-            })
-            .collect::<Result<Vec<(_, _)>, String>>()?
-            .into_iter()
-            .map(|(name, test_type)| match test_type {
-                Unique(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                NotNull(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                AcceptedValues(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                GreaterThanOrEqual(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                GreaterThan(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                LessThanOrEqual(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                LessThan(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.path =
-                        project_and_fs_to_query_sql(database, project, fs, &temp_test.model, None)?
-                            .0;
-                    temp_test.path = format!("({})", temp_test.path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                Relationship(test) => {
-                    let mut temp_test = test.clone();
-                    temp_test.target_path = project_and_fs_to_query_sql(
+                    let path_map = create_path_map(
                         database,
-                        project,
-                        fs,
-                        &temp_test.target_model,
-                        None,
-                    )?
-                    .0;
-                    temp_test.target_path = format!("({})", temp_test.target_path);
-                    temp_test.source_path = project_and_fs_to_query_sql(
-                        database,
-                        project,
-                        fs,
-                        &temp_test.source_model,
-                        None,
-                    )?
-                    .0;
-                    temp_test.source_path = format!("({})", temp_test.source_path);
-                    let sql = temp_test.to_sql(apply_limit_to_generated_tests);
-                    Ok((name, sql))
-                }
-                Sql(test) => {
-                    let mut read = fs.read_file(&test.file_path).map_err(|err| {
-                        format!(
-                            "failed to read sql file {:?} for test {:?} with error {:?}",
-                            test.file_path, name, err
-                        )
-                    })?;
-                    let mut file = String::new();
-                    read.read_to_string(&mut file).map_err(|err| {
-                        format!(
-                            "failed to read sql file {:?} for test {:?} with error {:?}",
-                            test.file_path, name, err
-                        )
-                    })?;
-                    let mut sources = project
-                        .sources
-                        .iter()
-                        .map(|(name, source)| (name.clone(), source.path.clone()))
-                        .collect::<HashMap<_, _>>();
-                    for name in project.models.keys() {
-                        let (sql, _) =
-                            project_and_fs_to_query_sql(database, project, fs, name, None)?;
-                        sources.insert(name.clone(), format!("({})", sql));
-                    }
-                    let sql = reference_search.replace_all(
-                        file.as_str(),
-                        replace_reference_string_found(&sources, &database),
+                        project.models.values().collect(),
+                        project.sources.values().collect(),
                     );
+                    let sql = reference_search
+                        .replace_all(&file, replace_reference_string_found(&path_map, &database));
                     Ok((name, sql.to_string()))
-                }
-            })
-            .collect::<Result<BTreeMap<_, _>, String>>()?;
-        Ok(tests)
-    } else {
-        let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
-            .map_err(|e| format!("failed to return reference search: {}", e))?;
-        let model_specific_filter = is_test_related_to_model(model_name);
-        let tests = project
-            .tests
-            .iter()
-            .filter(|(_, test)| model_specific_filter(test))
-            .map(|(name, test)| -> Result<(_, _), String> {
-                match &test.test_type {
-                    Some(test) => Ok((name.clone(), test)),
-                    None => Err(format!("test type {:?} is missing", name)),
                 }
             })
             .collect::<Result<Vec<(_, _)>, String>>()?
             .into_iter()
-            .map(|(name, test_type)| match test_type {
-                Unique(test) => {
-                    let sql = test.to_sql(None);
-                    Ok((name, sql))
-                }
-                NotNull(test) => {
-                    let sql = test.to_sql(None);
-                    Ok((name, sql))
-                }
-                AcceptedValues(test) => {
-                    let sql = test.to_sql(None);
-                    Ok((name, sql))
-                }
-                Relationship(test) => {
-                    let sql = test.to_sql(None);
-                    Ok((name, sql))
-                }
-                GreaterThanOrEqual(test) => {
-                    let sql = test.to_sql(None);
-                    Ok((name, sql))
-                }
-                GreaterThan(test) => {
-                    let sql = test.to_sql(None);
-                    Ok((name, sql))
-                }
-                LessThanOrEqual(test) => {
-                    let sql = test.to_sql(None);
-                    Ok((name, sql))
-                }
-                LessThan(test) => {
-                    let sql = test.to_sql(None);
-                    Ok((name, sql))
-                }
-                Sql(test) => {
-                    let mut read = fs.read_file(&test.file_path).map_err(|err| {
-                        format!(
-                            "failed to read sql file {:?} for test {:?} with error {:?}",
-                            test.file_path, name, err
-                        )
-                    })?;
-                    let mut file = String::new();
-                    read.read_to_string(&mut file).map_err(|err| {
-                        format!(
-                            "failed to read sql file {:?} for test {:?} with error {:?}",
-                            test.file_path, name, err
-                        )
-                    })?;
-                    let overrides = project
-                        .sources
-                        .iter()
-                        .map(|(name, source)| (name.clone(), source.path.clone()))
-                        .collect::<HashMap<_, _>>();
-                    let sql = reference_search
-                        .replace_all(&file, replace_reference_string_found(&overrides, &database));
-                    Ok((name, sql.to_string()))
-                }
-            })
-            .collect::<Result<BTreeMap<_, _>, String>>()?;
+            .map(|(name, sql)| (name.clone(), sql))
+            .collect::<BTreeMap<_, _>>();
         Ok(tests)
     }
 }
@@ -471,24 +234,26 @@ pub fn return_model_tests_sql(
 ///
 /// This function currently only checks the model at node-level and does not look for tests
 /// which may be related up the dependency-tree.
-fn is_test_related_to_model(model_name: &str) -> impl Fn(&quary_proto::Test) -> bool {
-    let model_name = model_name.to_owned();
-    move |test: &quary_proto::Test| match &test.test_type {
-        Some(quary_proto::test::TestType::Unique(test)) => test.model == model_name,
-        Some(quary_proto::test::TestType::NotNull(test)) => test.model == model_name,
-        Some(quary_proto::test::TestType::AcceptedValues(test)) => test.model == model_name,
-        Some(quary_proto::test::TestType::GreaterThanOrEqual(test)) => test.model == model_name,
-        Some(quary_proto::test::TestType::GreaterThan(test)) => test.model == model_name,
-        Some(quary_proto::test::TestType::LessThanOrEqual(test)) => test.model == model_name,
-        Some(quary_proto::test::TestType::LessThan(test)) => test.model == model_name,
-        Some(quary_proto::test::TestType::Relationship(test)) => {
-            test.source_model == model_name || test.target_model == model_name
+fn is_test_related_to_model(model_name: String) -> impl Fn(&quary_proto::Test) -> bool {
+    move |test: &quary_proto::Test| {
+        if let Some(test_type) = &test.test_type {
+            match test_type {
+                Unique(test) => test.model == model_name,
+                NotNull(test) => test.model == model_name,
+                AcceptedValues(test) => test.model == model_name,
+                GreaterThanOrEqual(test) => test.model == model_name,
+                GreaterThan(test) => test.model == model_name,
+                LessThanOrEqual(test) => test.model == model_name,
+                LessThan(test) => test.model == model_name,
+                Relationship(test) => test.source_model == model_name,
+                Sql(test) => test
+                    .references
+                    .iter()
+                    .any(|ref_model| ref_model == &model_name),
+            }
+        } else {
+            false
         }
-        Some(quary_proto::test::TestType::Sql(test_sql_file)) => test_sql_file
-            .references
-            .iter()
-            .any(|ref_model| ref_model == &model_name),
-        _ => false,
     }
 }
 
@@ -497,9 +262,7 @@ mod tests {
     use crate::database_bigquery::DatabaseQueryGeneratorBigQuery;
     use crate::database_sqlite::DatabaseQueryGeneratorSqlite;
     use crate::project::parse_project;
-    use crate::project_tests::{
-        is_test_related_to_model, return_model_tests_sql, return_tests_sql,
-    };
+    use crate::project_tests::{is_test_related_to_model, return_tests_sql};
     use crate::tests::test_to_name;
     use prost::bytes::Bytes;
     use quary_proto::test::TestType;
@@ -507,7 +270,6 @@ mod tests {
         File, FileSystem, Project, Test, TestAcceptedValues, TestNotNull, TestRelationship,
         TestSqlFile, TestUnique,
     };
-
     use std::collections::{BTreeMap, HashMap};
 
     #[test]
@@ -531,7 +293,7 @@ mod tests {
         };
         let detabase = DatabaseQueryGeneratorSqlite::default();
 
-        let results = return_tests_sql(&detabase, &project, &fs, false, None).unwrap();
+        let results = return_tests_sql(&detabase, &project, &fs, false, None, None).unwrap();
 
         assert_eq!(
             results,
@@ -588,7 +350,7 @@ models:
         let database = DatabaseQueryGeneratorSqlite::default();
         let project = parse_project(&fs, &database, "").unwrap();
 
-        let results = return_tests_sql(&database, &project, &fs, true, None).unwrap();
+        let results = return_tests_sql(&database, &project, &fs, true, None, None).unwrap();
 
         assert_eq!(
             results,
@@ -642,7 +404,7 @@ models:
             DatabaseQueryGeneratorBigQuery::new("project_1".to_string(), "dataset_1".to_string());
         let project = parse_project(&fs, &database, "").unwrap();
 
-        let results = return_tests_sql(&database, &project, &fs, true, None).unwrap();
+        let results = return_tests_sql(&database, &project, &fs, true, None, None).unwrap();
 
         assert_eq!(
             results,
@@ -700,7 +462,7 @@ models:
         let project = parse_project(&fs, &database, "").unwrap();
 
         let results =
-            return_model_tests_sql(&database, &project, &fs, true, None, "model_a").unwrap();
+            return_tests_sql(&database, &project, &fs, true, None, Some("model_a")).unwrap();
 
         assert_eq!(
             results,
@@ -755,7 +517,7 @@ models:
         let project = parse_project(&fs, &database, "").unwrap();
 
         let results =
-            return_model_tests_sql(&database, &project, &fs, true, None, "model_a").unwrap();
+            return_tests_sql(&database, &project, &fs, true, None, Some("model_a")).unwrap();
 
         assert_eq!(
             results,
@@ -823,13 +585,13 @@ models:
 
         let combined_tests = [&tests_for_model_a[..], &tests_for_model_b[..]].concat();
 
-        let filter_model_a = is_test_related_to_model("model_a");
+        let filter_model_a = is_test_related_to_model("model_a".to_string());
         let filtered_tests_for_model_a: Vec<_> = combined_tests
             .iter()
             .filter(|test| filter_model_a(test))
             .collect();
 
-        let filter_model_b = is_test_related_to_model("model_b");
+        let filter_model_b = is_test_related_to_model("model_b".to_string());
         let filtered_tests_for_model_b: Vec<_> = combined_tests
             .iter()
             .filter(|test| filter_model_b(test))
@@ -902,7 +664,7 @@ sources:
             DatabaseQueryGeneratorBigQuery::new("project_1".to_string(), "dataset_1".to_string());
         let project = parse_project(&fs, &database, "").unwrap();
 
-        let results = return_tests_sql(&database, &project, &fs, true, None).unwrap();
+        let results = return_tests_sql(&database, &project, &fs, true, None, None).unwrap();
 
         assert_eq!(
             results,
@@ -968,7 +730,7 @@ sources:
             DatabaseQueryGeneratorBigQuery::new("project_1".to_string(), "dataset_1".to_string());
         let project = parse_project(&fs, &database, "").unwrap();
 
-        let results = return_tests_sql(&database, &project, &fs, true, None).unwrap();
+        let results = return_tests_sql(&database, &project, &fs, true, None, None).unwrap();
 
         assert_eq!(
             results,

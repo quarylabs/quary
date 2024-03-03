@@ -65,6 +65,6 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {
-        format!("{}", name)
+        name.to_string()
     }
 }

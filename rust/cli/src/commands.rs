@@ -90,6 +90,9 @@ pub struct TestArgs {
     #[arg(long = "reference-source", short = 's', default_value = "false")]
     /// Run tests against source tables rather than against built views
     pub full_source: bool,
+    #[arg(long = "verbose", short = 'v', default_value = "false")]
+    /// Return the errored values from the tests
+    pub verbose: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, ValueEnum)]

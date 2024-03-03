@@ -180,6 +180,7 @@ pub fn parse_project(
     let models = parse_models(filesystem, project_root, &model_definitions)?;
 
     let path_map = create_path_map(
+        database,
         models.values().collect::<Vec<&Model>>().clone(),
         sources.values().collect::<Vec<&Source>>().clone(),
     );
@@ -312,10 +313,17 @@ fn parse_sql_tests(
         .collect()
 }
 
-fn create_path_map(models: Vec<&Model>, sources: Vec<&Source>) -> PathMap {
-    let model_entries = models
-        .iter()
-        .map(|model| (model.name.to_string(), model.name.to_string()));
+pub fn create_path_map(
+    database: &impl DatabaseQueryGenerator,
+    models: Vec<&Model>,
+    sources: Vec<&Source>,
+) -> PathMap {
+    let model_entries = models.iter().map(|model| {
+        (
+            model.name.to_string(),
+            database.return_full_path_requirement(&model.name),
+        )
+    });
     let source_entries = sources
         .iter()
         .map(|source| (source.name.to_string(), source.path.to_string()));
@@ -555,7 +563,6 @@ fn parse_column_tests(
                     file_path,
                     &source.name,
                     &source.path,
-                    database,
                 )?;
                 for (name, test) in tests {
                     safe_adder_map(&mut outs, name, test)?;
@@ -571,7 +578,6 @@ fn parse_column_tests(
                     file_path,
                     &model.name,
                     model_path.as_str(),
-                    database,
                 )?;
                 for (name, test) in tests {
                     safe_adder_map(&mut outs, name, test)?;
@@ -590,7 +596,6 @@ fn parse_column_tests_for_model_or_source(
     file_path: &str,
     model_name: &str,
     model_path: &str,
-    database: &impl DatabaseQueryGenerator,
 ) -> Result<HashMap<String, Test>, String> {
     column
         .tests
@@ -651,15 +656,13 @@ fn parse_column_tests_for_model_or_source(
                     source_path: model_path.to_string(),
                     source_column: column.name.to_string(),
                     target_model: target_model.to_string(),
-                    target_path: database.return_full_path_requirement(
-                        &path_map
-                            .get(target_model)
-                            .ok_or(format!(
-                                "test {:?} has unknown target model in {:?}",
-                                test, path_map
-                            ))?
-                            .to_string(),
-                    ),
+                    target_path: path_map
+                        .get(target_model)
+                        .ok_or(format!(
+                            "test {:?} has unknown target model in {:?}",
+                            test, path_map
+                        ))?
+                        .to_string(),
                     target_column: target_column.to_string(),
                 }
                 .to_test();
@@ -1091,10 +1094,8 @@ fn render_model_select_statement(
         .as_ref()
         .ok_or_else(|| "Connection config is required".to_string())?;
 
-    let replaced = replace_variable_templates_with_variable_defined_in_config(
-        &replaced.into_owned(),
-        connection_config,
-    )?;
+    let replaced =
+        replace_variable_templates_with_variable_defined_in_config(&replaced, connection_config)?;
     Ok(replaced)
 }
 
@@ -1164,7 +1165,7 @@ pub fn replace_reference_string_found<'a>(
             if path.starts_with('(') & path.ends_with(')') {
                 format!(" {}", path)
             } else {
-                format!(" `{}`", path)
+                format!(" {}", database.database_name_wrapper(path))
             }
         } else {
             format!(" {}", database.database_name_wrapper(model))
