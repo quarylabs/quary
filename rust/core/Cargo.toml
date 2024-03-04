@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 prost = { default-features = false, version = "0.12" }
-sqlparser = { default-features = false, version = "0.43" }
+sqlparser = { default-features = false, version = "0.44" }
 js-sys = "0.3"
 quary_proto = { path = "../../proto/gen/rust" }
 sqlinference = { path = "../sqlinference" }
