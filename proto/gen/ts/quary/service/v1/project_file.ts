@@ -23,7 +23,10 @@ export interface ProjectFile_Column {
 export interface ProjectFile_Model {
   name: string;
   description?: string | undefined;
+  tests: ModelTest[];
   columns: ProjectFile_Column[];
+  /** The materialization of the model, available types are specified by each database. */
+  materialization?: string | undefined;
 }
 
 export interface ProjectFile_Source {
@@ -37,6 +40,7 @@ export interface ProjectFile_Source {
    * - 'project_id_123.dataset_id_123.table_id_123' for a BigQuery table
    */
   path: string;
+  tests: ModelTest[];
   columns: ProjectFile_Column[];
 }
 
@@ -46,6 +50,16 @@ export interface ColumnTest {
 }
 
 export interface ColumnTest_InfoEntry {
+  key: string;
+  value: string;
+}
+
+export interface ModelTest {
+  type: string;
+  info: { [key: string]: string };
+}
+
+export interface ModelTest_InfoEntry {
   key: string;
   value: string;
 }
@@ -214,7 +228,7 @@ export const ProjectFile_Column = {
 };
 
 function createBaseProjectFile_Model(): ProjectFile_Model {
-  return { name: "", description: undefined, columns: [] };
+  return { name: "", description: undefined, tests: [], columns: [], materialization: undefined };
 }
 
 export const ProjectFile_Model = {
@@ -225,8 +239,14 @@ export const ProjectFile_Model = {
     if (message.description !== undefined) {
       writer.uint32(18).string(message.description);
     }
+    for (const v of message.tests) {
+      ModelTest.encode(v!, writer.uint32(42).fork()).ldelim();
+    }
     for (const v of message.columns) {
       ProjectFile_Column.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.materialization !== undefined) {
+      writer.uint32(34).string(message.materialization);
     }
     return writer;
   },
@@ -252,12 +272,26 @@ export const ProjectFile_Model = {
 
           message.description = reader.string();
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.tests.push(ModelTest.decode(reader, reader.uint32()));
+          continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
           message.columns.push(ProjectFile_Column.decode(reader, reader.uint32()));
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.materialization = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -272,7 +306,9 @@ export const ProjectFile_Model = {
     return {
       name: isSet(object.name) ? gt.String(object.name) : "",
       description: isSet(object.description) ? gt.String(object.description) : undefined,
+      tests: gt.Array.isArray(object?.tests) ? object.tests.map((e: any) => ModelTest.fromJSON(e)) : [],
       columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => ProjectFile_Column.fromJSON(e)) : [],
+      materialization: isSet(object.materialization) ? gt.String(object.materialization) : undefined,
     };
   },
 
@@ -284,8 +320,14 @@ export const ProjectFile_Model = {
     if (message.description !== undefined) {
       obj.description = message.description;
     }
+    if (message.tests?.length) {
+      obj.tests = message.tests.map((e) => ModelTest.toJSON(e));
+    }
     if (message.columns?.length) {
       obj.columns = message.columns.map((e) => ProjectFile_Column.toJSON(e));
+    }
+    if (message.materialization !== undefined) {
+      obj.materialization = message.materialization;
     }
     return obj;
   },
@@ -297,13 +339,15 @@ export const ProjectFile_Model = {
     const message = createBaseProjectFile_Model();
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
+    message.tests = object.tests?.map((e) => ModelTest.fromPartial(e)) || [];
     message.columns = object.columns?.map((e) => ProjectFile_Column.fromPartial(e)) || [];
+    message.materialization = object.materialization ?? undefined;
     return message;
   },
 };
 
 function createBaseProjectFile_Source(): ProjectFile_Source {
-  return { name: "", description: undefined, path: "", columns: [] };
+  return { name: "", description: undefined, path: "", tests: [], columns: [] };
 }
 
 export const ProjectFile_Source = {
@@ -316,6 +360,9 @@ export const ProjectFile_Source = {
     }
     if (message.path !== "") {
       writer.uint32(26).string(message.path);
+    }
+    for (const v of message.tests) {
+      ModelTest.encode(v!, writer.uint32(42).fork()).ldelim();
     }
     for (const v of message.columns) {
       ProjectFile_Column.encode(v!, writer.uint32(34).fork()).ldelim();
@@ -351,6 +398,13 @@ export const ProjectFile_Source = {
 
           message.path = reader.string();
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.tests.push(ModelTest.decode(reader, reader.uint32()));
+          continue;
         case 4:
           if (tag !== 34) {
             break;
@@ -372,6 +426,7 @@ export const ProjectFile_Source = {
       name: isSet(object.name) ? gt.String(object.name) : "",
       description: isSet(object.description) ? gt.String(object.description) : undefined,
       path: isSet(object.path) ? gt.String(object.path) : "",
+      tests: gt.Array.isArray(object?.tests) ? object.tests.map((e: any) => ModelTest.fromJSON(e)) : [],
       columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => ProjectFile_Column.fromJSON(e)) : [],
     };
   },
@@ -387,6 +442,9 @@ export const ProjectFile_Source = {
     if (message.path !== "") {
       obj.path = message.path;
     }
+    if (message.tests?.length) {
+      obj.tests = message.tests.map((e) => ModelTest.toJSON(e));
+    }
     if (message.columns?.length) {
       obj.columns = message.columns.map((e) => ProjectFile_Column.toJSON(e));
     }
@@ -401,6 +459,7 @@ export const ProjectFile_Source = {
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
     message.path = object.path ?? "";
+    message.tests = object.tests?.map((e) => ModelTest.fromPartial(e)) || [];
     message.columns = object.columns?.map((e) => ProjectFile_Column.fromPartial(e)) || [];
     return message;
   },
@@ -567,6 +626,173 @@ export const ColumnTest_InfoEntry = {
   },
   fromPartial<I extends Exact<DeepPartial<ColumnTest_InfoEntry>, I>>(object: I): ColumnTest_InfoEntry {
     const message = createBaseColumnTest_InfoEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
+    return message;
+  },
+};
+
+function createBaseModelTest(): ModelTest {
+  return { type: "", info: {} };
+}
+
+export const ModelTest = {
+  encode(message: ModelTest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.type !== "") {
+      writer.uint32(10).string(message.type);
+    }
+    Object.entries(message.info).forEach(([key, value]) => {
+      ModelTest_InfoEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).ldelim();
+    });
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ModelTest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseModelTest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          const entry2 = ModelTest_InfoEntry.decode(reader, reader.uint32());
+          if (entry2.value !== undefined) {
+            message.info[entry2.key] = entry2.value;
+          }
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ModelTest {
+    return {
+      type: isSet(object.type) ? gt.String(object.type) : "",
+      info: isObject(object.info)
+        ? Object.entries(object.info).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: ModelTest): unknown {
+    const obj: any = {};
+    if (message.type !== "") {
+      obj.type = message.type;
+    }
+    if (message.info) {
+      const entries = Object.entries(message.info);
+      if (entries.length > 0) {
+        obj.info = {};
+        entries.forEach(([k, v]) => {
+          obj.info[k] = v;
+        });
+      }
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ModelTest>, I>>(base?: I): ModelTest {
+    return ModelTest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ModelTest>, I>>(object: I): ModelTest {
+    const message = createBaseModelTest();
+    message.type = object.type ?? "";
+    message.info = Object.entries(object.info ?? {}).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = gt.String(value);
+      }
+      return acc;
+    }, {});
+    return message;
+  },
+};
+
+function createBaseModelTest_InfoEntry(): ModelTest_InfoEntry {
+  return { key: "", value: "" };
+}
+
+export const ModelTest_InfoEntry = {
+  encode(message: ModelTest_InfoEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ModelTest_InfoEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseModelTest_InfoEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ModelTest_InfoEntry {
+    return {
+      key: isSet(object.key) ? gt.String(object.key) : "",
+      value: isSet(object.value) ? gt.String(object.value) : "",
+    };
+  },
+
+  toJSON(message: ModelTest_InfoEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== "") {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ModelTest_InfoEntry>, I>>(base?: I): ModelTest_InfoEntry {
+    return ModelTest_InfoEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ModelTest_InfoEntry>, I>>(object: I): ModelTest_InfoEntry {
+    const message = createBaseModelTest_InfoEntry();
     message.key = object.key ?? "";
     message.value = object.value ?? "";
     return message;

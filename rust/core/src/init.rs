@@ -1,10 +1,11 @@
 use crate::file_system::FileSystem;
+use futures::io::Cursor;
+use futures::AsyncRead;
 use quary_proto::{File, FileSystem as ProtoFileSystem};
 use rust_embed::RustEmbed;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::io;
-use std::io::{Cursor, Read};
 
 #[derive(RustEmbed)]
 #[folder = "./src/init"]
@@ -14,10 +15,11 @@ pub struct Asset;
 #[folder = "./src/init_duckdb"]
 pub struct DuckDBAsset;
 
+#[async_trait::async_trait]
 impl FileSystem for Asset {
-    fn read_file(&self, path: &str) -> Result<Box<dyn Read>, io::Error> {
+    async fn read_file(&self, path: &str) -> Result<Box<dyn AsyncRead + Send + Unpin>, io::Error> {
         match Asset::get(path) {
-            Some(file) => Ok(Box::new(Cursor::new(file.data))),
+            Some(file) => Ok(Box::new(Cursor::new(file.data.into_owned()))),
             None => Err(io::Error::new(
                 io::ErrorKind::NotFound,
                 format!("Could not find file at path: {}", path),
@@ -25,7 +27,7 @@ impl FileSystem for Asset {
         }
     }
 
-    fn list_all_files_recursively(&self, path: &str) -> Result<Vec<String>, String> {
+    async fn list_all_files_recursively(&self, path: &str) -> Result<Vec<String>, String> {
         let files = Asset::iter()
             .filter_map(|file| {
                 let filename = file.as_ref();
@@ -40,10 +42,11 @@ impl FileSystem for Asset {
     }
 }
 
+#[async_trait::async_trait]
 impl FileSystem for DuckDBAsset {
-    fn read_file(&self, path: &str) -> Result<Box<dyn Read>, io::Error> {
-        match Asset::get(path) {
-            Some(file) => Ok(Box::new(Cursor::new(file.data))),
+    async fn read_file(&self, path: &str) -> Result<Box<dyn AsyncRead + Send + Unpin>, io::Error> {
+        match DuckDBAsset::get(path) {
+            Some(file) => Ok(Box::new(Cursor::new(file.data.into_owned()))),
             None => Err(io::Error::new(
                 io::ErrorKind::NotFound,
                 format!("Could not find file at path: {}", path),
@@ -51,8 +54,8 @@ impl FileSystem for DuckDBAsset {
         }
     }
 
-    fn list_all_files_recursively(&self, path: &str) -> Result<Vec<String>, String> {
-        let files = Asset::iter()
+    async fn list_all_files_recursively(&self, path: &str) -> Result<Vec<String>, String> {
+        let files = DuckDBAsset::iter()
             .filter_map(|file| {
                 let filename = file.as_ref();
                 if filename.starts_with(path) {
@@ -86,9 +89,9 @@ pub fn init_to_file_system() -> ProtoFileSystem {
     ProtoFileSystem { files: file_map }
 }
 
-pub const INIT_FOLDER_NUMBER_OF_TESTS: usize = 65;
+pub const INIT_FOLDER_NUMBER_OF_TESTS: usize = 66;
 pub const INIT_FOLDER_NUMBER_OF_TESTS_THAT_FAIL: usize = 0;
-pub const INIT_FOLDER_NUMBER_OF_TESTS_THAT_ARE_INFERRED: usize = 43;
+pub const INIT_FOLDER_NUMBER_OF_TESTS_THAT_ARE_RUN: usize = 44;
 
 #[cfg(test)]
 mod tests {
@@ -103,13 +106,13 @@ mod tests {
         assert!(!fs.files.is_empty());
     }
 
-    #[test]
-    fn test_init_parse_project() {
+    #[tokio::test]
+    async fn test_init_parse_project() {
         let db = DatabaseQueryGeneratorSqlite::default();
 
         let fs = init_to_file_system();
 
-        let project = parse_project(&fs, &db, "").unwrap();
+        let project = parse_project(&fs, &db, "").await.unwrap();
 
         assert!(!project.models.is_empty());
         assert!(!project.tests.is_empty());

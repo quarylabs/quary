@@ -76,6 +76,10 @@ models:
           - type: not_null
   - name: shifts_by_month
     description: 'This is a transformation for shifts and contains the total number of shifts for each employee by month.'
+    tests:
+      - type: multi_column_unique
+        info:
+          columns: 'employee_id,shift_month'
     columns:
       - name: employee_id
         tests:

@@ -8,8 +8,9 @@
 
 use crate::commands::{mode_to_test_runner, Cli, Commands, InitType};
 use crate::databases_connection::{database_from_config, database_query_generator_from_config};
+use crate::file_system::LocalFS;
 use clap::Parser;
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar, ProgressStyle};
 use quary_core::automatic_branching::{
     derive_hash_views, drop_statement_for_cache_view, is_cache_full_path,
 };
@@ -37,6 +38,7 @@ mod databases_duckdb;
 mod databases_postgres;
 mod databases_snowflake;
 mod databases_sqlite;
+mod file_system;
 
 // TODO For the cases where don't need full database, separate that out in the future
 
@@ -46,9 +48,12 @@ async fn main() -> Result<(), String> {
     match &args.command {
         Commands::Init(args) => {
             let dir = std::env::current_dir().map_err(|e| e.to_string())?;
-            let fs = quary_core::file_system::LocalFS::new(dir);
+            let fs = LocalFS::new(dir);
 
-            if !is_empty_bar_hidden_and_sqlite(&fs, ".").map_err(|e| e.to_string())? {
+            if !is_empty_bar_hidden_and_sqlite(&fs, ".")
+                .await
+                .map_err(|e| e.to_string())?
+            {
                 return Err("Directory is not empty".to_string());
             }
 
@@ -102,8 +107,9 @@ async fn main() -> Result<(), String> {
             let database = database_query_generator_from_config(config)
                 .map_err(|e| format!("Error creating database query generator: {}", e))?;
 
-            let (project, _) =
-                parse_project(&database).map_err(|e| format!("Error parsing project: {}", e))?;
+            let (project, _) = parse_project(&database)
+                .await
+                .map_err(|e| format!("Error parsing project: {}", e))?;
 
             let model_count = project.models.len();
             println!("Models processed: {}", model_count);
@@ -119,7 +125,7 @@ async fn main() -> Result<(), String> {
 
             let database = database_from_config(&config).await?;
             let query_generator = database.query_generator();
-            let (project, file_system) = parse_project(&query_generator)?;
+            let (project, file_system) = parse_project(&query_generator).await?;
 
             // If cache table deletes any previous cache views.
             let cache_delete_views_sqls: Vec<(String, String)> = if build_args.cache_views {
@@ -173,7 +179,8 @@ async fn main() -> Result<(), String> {
                 &query_generator,
                 false,
                 false,
-            )?;
+            )
+            .await?;
 
             if build_args.dry_run {
                 if !cache_delete_views_sqls.is_empty() {
@@ -205,18 +212,23 @@ async fn main() -> Result<(), String> {
                     + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
                     + cache_to_create.len();
                 let pb = ProgressBar::new(total_number_of_sql_statements as u64);
-
+                pb.set_style(
+                    ProgressStyle::default_bar()
+                        .template("{spinner:.green} {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
+                        .map_err(|e| e.to_string())?
+                        .progress_chars("=>-"),
+                );
                 for (name, sql) in cache_delete_views_sqls {
+                    pb.set_message(format!("Building model: {}", name));
                     pb.inc(1);
-                    pb.set_message(name.to_string());
                     database.exec(sql.as_str()).await.map_err(|e| {
                         format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
                     })?
                 }
                 for (name, sql) in &sqls {
                     for sql in sql {
+                        pb.set_message(format!("Building model: {}", name));
                         pb.inc(1);
-                        pb.set_message(name.to_string());
                         database.exec(sql.as_str()).await.map_err(|e| {
                             format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
                         })?
@@ -241,7 +253,7 @@ async fn main() -> Result<(), String> {
 
             let database = database_from_config(&config).await?;
             let query_generator = database.query_generator();
-            let (project, file_system) = parse_project(&query_generator)?;
+            let (project, file_system) = parse_project(&query_generator).await?;
 
             let limit = if test_args.verbose { None } else { Some(1) };
 
@@ -252,7 +264,8 @@ async fn main() -> Result<(), String> {
                 test_args.full_source,
                 limit,
                 None,
-            )?;
+            )
+            .await?;
 
             if test_args.dry_run {
                 for (name, test) in tests {
@@ -424,12 +437,12 @@ async fn main() -> Result<(), String> {
     }
 }
 
-fn parse_project(
+async fn parse_project(
     database: &impl DatabaseQueryGenerator,
-) -> Result<(quary_proto::Project, quary_core::file_system::LocalFS), String> {
+) -> Result<(quary_proto::Project, LocalFS), String> {
     let dir = std::env::current_dir().map_err(|e| e.to_string())?;
-    let filesystem = quary_core::file_system::LocalFS::new(dir);
-    let project = quary_core::project::parse_project(&filesystem, database, "")?;
+    let filesystem = LocalFS::new(dir);
+    let project = quary_core::project::parse_project(&filesystem, database, "").await?;
     Ok((project, filesystem))
 }
 

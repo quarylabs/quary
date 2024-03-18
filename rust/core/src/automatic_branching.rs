@@ -2,11 +2,11 @@ use crate::databases::DatabaseQueryGenerator;
 use crate::file_system::FileSystem;
 use crate::graph::{project_to_graph, ProjectGraph};
 use data_encoding::HEXLOWER;
+use futures::AsyncReadExt;
 use petgraph::visit::IntoNodeIdentifiers;
 use quary_proto::{Project, Source};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::io::Read;
 
 /// automatic branching is a strategy for investigating data in a database where some of the models and seeds
 /// have already been applied. The idea is that if you have already built views, especially
@@ -103,12 +103,13 @@ fn hash_source(source: &Source) -> String {
 }
 
 /// derive_sha256_file_contents returns the sha256 hash of the file contents.
-pub fn derive_sha256_file_contents(
+pub async fn derive_sha256_file_contents(
     fs: &impl FileSystem,
     file_path: &str,
 ) -> Result<String, String> {
-    let mut read: Box<dyn Read> = fs
+    let mut read = fs
         .read_file(file_path)
+        .await
         .map_err(|e| format!("Error reading file contents for hash: {}", e))?;
 
     let digest = {
@@ -117,6 +118,7 @@ pub fn derive_sha256_file_contents(
         loop {
             let count = read
                 .read(&mut buffer)
+                .await
                 .map_err(|e| format!("Error reading file contents for hash: {}", e))?;
             if count == 0 {
                 break;
@@ -306,6 +308,7 @@ mod tests {
     use super::*;
     use crate::database_bigquery::DatabaseQueryGeneratorBigQuery;
     use crate::database_sqlite::DatabaseQueryGeneratorSqlite;
+    use crate::file_system::convert_async_read_to_blocking_read;
     use crate::init::{init_to_file_system, Asset};
     use crate::project::parse_project;
     use crate::project_file::{deserialize_project_file_from_yaml, serialize_project_file_to_yaml};
@@ -313,16 +316,16 @@ mod tests {
     use quary_proto::FileSystem as ProtoFileSystem;
     use quary_proto::{File, Seed};
 
-    #[test]
+    #[tokio::test]
     /// test_derive_sha256_contents_of_init_compare_to_web_values tests that the sha256 hash of the
     /// matches the values extracted from running pnpm run dev:extension and when runnning compared
     /// to the init assets locally.
-    fn test_derive_sha256_contents_of_init_compare_to_web_values() {
+    async fn test_derive_sha256_contents_of_init_compare_to_web_values() {
         let assets = init_to_file_system();
 
         let database = DatabaseQueryGeneratorSqlite {};
 
-        let project = parse_project(&assets, &database, "").unwrap();
+        let project = parse_project(&assets, &database, "").await.unwrap();
 
         let model_to_check = "shifts_summary";
         let model = project.models.get(model_to_check).unwrap();
@@ -330,15 +333,17 @@ mod tests {
         let value_want = "182517b781abdd14cfca64a1e8368971e2853ca3eae51a89647f6322bc52787b";
         assert_eq!(model.file_sha256_hash, value_want);
 
-        let file_content_hash = derive_sha256_file_contents(&assets, &model.file_path).unwrap();
+        let file_content_hash = derive_sha256_file_contents(&assets, &model.file_path)
+            .await
+            .unwrap();
         assert_eq!(file_content_hash, value_want);
     }
 
     const MODEL_OF_INTEREST: &str = "shifts_summary";
     /// get_hash_derive_model_hash is a helper function for testing the derive_model_hash function.
-    fn get_hash_derive_model_hash(fs: &impl FileSystem) -> String {
+    async fn get_hash_derive_model_hash(fs: &impl FileSystem) -> String {
         let database = DatabaseQueryGeneratorSqlite {};
-        let project = parse_project(fs, &database, "").unwrap();
+        let project = parse_project(fs, &database, "").await.unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
         derive_model_hash(&project, &graph, MODEL_OF_INTEREST).unwrap()
     }
@@ -350,27 +355,29 @@ mod tests {
     /// Scenarios it tests by looking at 'shifts_summary':
     /// 8. Compare 2 seeds with change -> Change
     /// TODO NEED TO TEST SOURCES AS WELL
-    #[test]
-    fn test_derive_model_hash_different_fs() {
+    #[tokio::test]
+    async fn test_derive_model_hash_different_fs() {
         let fs = init_to_file_system();
-        let hash_0 = get_hash_derive_model_hash(&fs);
+        let hash_0 = get_hash_derive_model_hash(&fs).await;
         let fs = Asset;
-        let hash_1 = get_hash_derive_model_hash(&fs);
+        let hash_1 = get_hash_derive_model_hash(&fs).await;
+
         assert_eq!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_model_hash_same_fs() {
+    #[tokio::test]
+    async fn test_derive_model_hash_same_fs() {
         let fs = Asset;
-        let hash_0 = get_hash_derive_model_hash(&fs);
-        let hash_1 = get_hash_derive_model_hash(&fs);
+        let hash_0 = get_hash_derive_model_hash(&fs).await;
+        let hash_1 = get_hash_derive_model_hash(&fs).await;
+
         assert_eq!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_model_hash_add_model() {
+    #[tokio::test]
+    async fn test_derive_model_hash_add_model() {
         let fs = Asset;
-        let hash_0 = get_hash_derive_model_hash(&fs);
+        let hash_0 = get_hash_derive_model_hash(&fs).await;
         let mut fs = init_to_file_system();
         fs.files.insert(
             "models/shifts_summary_2.sql".to_string(),
@@ -401,19 +408,22 @@ mod tests {
                 ),
             },
         );
-        let hash_1 = get_hash_derive_model_hash(&fs);
+
+        let hash_1 = get_hash_derive_model_hash(&fs).await;
+
         assert_eq!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_model_hash_change_project_file_for_intermediary_model() {
+    #[tokio::test]
+    async fn test_derive_model_hash_change_project_file_for_intermediary_model() {
         let fs = Asset;
-        let hash_0 = get_hash_derive_model_hash(&fs);
+        let hash_0 = get_hash_derive_model_hash(&fs).await;
 
         let mut fs = init_to_file_system();
-        let reader = fs.read_file("models/staging/schema.yaml");
+        let reader = fs.read_file("models/staging/schema.yaml").await.unwrap();
+        let reader = convert_async_read_to_blocking_read(reader).await;
 
-        let mut staging_schema = deserialize_project_file_from_yaml(reader.unwrap()).unwrap();
+        let mut staging_schema = deserialize_project_file_from_yaml(reader).unwrap();
         staging_schema.models.iter_mut().for_each(|model| {
             if model.name == "stg_employees" {
                 model.columns.push(Column {
@@ -434,14 +444,15 @@ mod tests {
             },
         );
 
-        let hash_1 = get_hash_derive_model_hash(&fs);
+        let hash_1 = get_hash_derive_model_hash(&fs).await;
+
         assert_eq!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_model_hash_add_sql_test_on_end_model() {
+    #[tokio::test]
+    async fn test_derive_model_hash_add_sql_test_on_end_model() {
         let fs = Asset;
-        let hash_0 = get_hash_derive_model_hash(&fs);
+        let hash_0 = get_hash_derive_model_hash(&fs).await;
 
         let mut fs = init_to_file_system();
         fs.files.insert(
@@ -460,14 +471,15 @@ mod tests {
             },
         );
 
-        let hash_1 = get_hash_derive_model_hash(&fs);
+        let hash_1 = get_hash_derive_model_hash(&fs).await;
+
         assert_eq!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_model_hash_add_sql_test_on_in_between_model() {
+    #[tokio::test]
+    async fn test_derive_model_hash_add_sql_test_on_in_between_model() {
         let fs = Asset;
-        let hash_0 = get_hash_derive_model_hash(&fs);
+        let hash_0 = get_hash_derive_model_hash(&fs).await;
 
         let mut fs = init_to_file_system();
         fs.files.insert(
@@ -486,19 +498,23 @@ mod tests {
             },
         );
 
-        let hash_1 = get_hash_derive_model_hash(&fs);
+        let hash_1 = get_hash_derive_model_hash(&fs).await;
+
         assert_eq!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_model_hash_change_underlying_model() {
+    #[tokio::test]
+    async fn test_derive_model_hash_change_underlying_model() {
         let fs = Asset;
-        let hash_0 = get_hash_derive_model_hash(&fs);
+        let hash_0 = get_hash_derive_model_hash(&fs).await;
 
         let mut fs = init_to_file_system();
-        let mut raw_file = fs.read_file("models/staging/stg_employees.sql").unwrap();
+        let mut raw_file = fs
+            .read_file("models/staging/stg_employees.sql")
+            .await
+            .unwrap();
         let mut contents = String::new();
-        raw_file.read_to_string(&mut contents).unwrap();
+        raw_file.read_to_string(&mut contents).await.unwrap();
 
         let contents = contents.replace(' ', "  ");
         fs.files.insert(
@@ -509,21 +525,22 @@ mod tests {
             },
         );
 
-        let hash_1 = get_hash_derive_model_hash(&fs);
+        let hash_1 = get_hash_derive_model_hash(&fs).await;
+
         assert_ne!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_model_hash_change_model_itself() {
+    #[tokio::test]
+    async fn test_derive_model_hash_change_model_itself() {
         let fs = Asset;
-        let hash_0 = get_hash_derive_model_hash(&fs);
+        let hash_0 = get_hash_derive_model_hash(&fs).await;
 
         let path_of_interest = format!("models/{}.sql", MODEL_OF_INTEREST);
 
         let mut fs = init_to_file_system();
-        let mut raw_file = fs.read_file(&path_of_interest).unwrap();
+        let mut raw_file = fs.read_file(&path_of_interest).await.unwrap();
         let mut contents = String::new();
-        raw_file.read_to_string(&mut contents).unwrap();
+        raw_file.read_to_string(&mut contents).await.unwrap();
 
         let contents = contents.replace(' ', "  ");
         fs.files.insert(
@@ -534,20 +551,21 @@ mod tests {
             },
         );
 
-        let hash_1 = get_hash_derive_model_hash(&fs);
+        let hash_1 = get_hash_derive_model_hash(&fs).await;
+
         assert_ne!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_model_hash_change_underlying_seed() {
+    #[tokio::test]
+    async fn test_derive_model_hash_change_underlying_seed() {
         let fs = Asset;
-        let hash_0 = get_hash_derive_model_hash(&fs);
+        let hash_0 = get_hash_derive_model_hash(&fs).await;
 
         let file_of_interest = "seeds/raw_employees.csv";
         let mut fs = init_to_file_system();
-        let mut raw_file = fs.read_file(file_of_interest).unwrap();
+        let mut raw_file = fs.read_file(file_of_interest).await.unwrap();
         let mut contents = String::new();
-        raw_file.read_to_string(&mut contents).unwrap();
+        raw_file.read_to_string(&mut contents).await.unwrap();
 
         let mut lines: Vec<&str> = contents.split('\n').collect();
         lines.push(lines.last().unwrap());
@@ -561,16 +579,19 @@ mod tests {
             },
         );
 
-        let hash_1 = get_hash_derive_model_hash(&fs);
+        let hash_1 = get_hash_derive_model_hash(&fs).await;
+
         assert_ne!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_model_hash_for_seed_no_change() {
+    #[tokio::test]
+    async fn test_derive_model_hash_for_seed_no_change() {
         let seed_of_interest = "raw_employees";
 
         let fs = Asset;
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "").unwrap();
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+            .await
+            .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
 
         let hash_0 = derive_model_hash(&project, &graph, seed_of_interest).unwrap();
@@ -579,21 +600,23 @@ mod tests {
         assert_eq!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_model_hash_for_seed_changed_seed() {
+    #[tokio::test]
+    async fn test_derive_model_hash_for_seed_changed_seed() {
         let seed_of_interest = "raw_employees";
 
         let fs = Asset;
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "").unwrap();
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+            .await
+            .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
 
         let hash_0 = derive_model_hash(&project, &graph, seed_of_interest).unwrap();
 
         let file_of_interest = "seeds/raw_employees.csv";
         let mut fs = init_to_file_system();
-        let mut raw_file = fs.read_file(file_of_interest).unwrap();
+        let mut raw_file = fs.read_file(file_of_interest).await.unwrap();
         let mut contents = String::new();
-        raw_file.read_to_string(&mut contents).unwrap();
+        raw_file.read_to_string(&mut contents).await.unwrap();
 
         let mut lines: Vec<&str> = contents.split('\n').collect();
         lines.push(lines.last().unwrap());
@@ -606,7 +629,9 @@ mod tests {
                 contents: prost::bytes::Bytes::from(new_csv_string),
             },
         );
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "").unwrap();
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+            .await
+            .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
         let hash_1 = derive_model_hash(&project, &graph, seed_of_interest).unwrap();
 
@@ -650,20 +675,24 @@ sources:
         )
     }
 
-    #[test]
-    fn test_derive_model_hash_for_model_with_source_dont_change() {
+    #[tokio::test]
+    async fn test_derive_model_hash_for_model_with_source_dont_change() {
         let (model, fs) = file_system_for_project_with_source();
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "").unwrap();
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+            .await
+            .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
         let hash_0 = derive_model_hash(&project, &graph, &model).unwrap();
         let hash_1 = derive_model_hash(&project, &graph, &model).unwrap();
         assert_eq!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_model_hash_for_model_with_source_that_changes() {
+    #[tokio::test]
+    async fn test_derive_model_hash_for_model_with_source_that_changes() {
         let (model, fs) = file_system_for_project_with_source();
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "").unwrap();
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+            .await
+            .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
         let hash_0 = derive_model_hash(&project, &graph, &model).unwrap();
 
@@ -683,17 +712,21 @@ sources:
             },
         );
 
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "").unwrap();
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+            .await
+            .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
         let hash_1 = derive_model_hash(&project, &graph, &model).unwrap();
 
         assert_ne!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_model_hash_for_source() {
+    #[tokio::test]
+    async fn test_derive_model_hash_for_source() {
         let (_, fs) = file_system_for_project_with_source();
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "").unwrap();
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+            .await
+            .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
 
         let model = "employees_sources";
@@ -702,12 +735,12 @@ sources:
         assert_eq!(hash_0, hash_1);
     }
 
-    #[test]
-    fn test_derive_hashes() {
+    #[tokio::test]
+    async fn test_derive_hashes() {
         let fs = Asset;
         let database =
             DatabaseQueryGeneratorBigQuery::new("project_id".to_string(), "dataset_id".to_string());
-        let project = parse_project(&fs, &database, "").unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
 
         let hashes = derive_hash_views(&database, &project, &graph).unwrap();
@@ -715,18 +748,18 @@ sources:
         assert_eq!(hashes.len(), project.seeds.len() + project.models.len());
         assert!(hashes.contains_key("shifts_summary"));
         let unpacked = hashes.get("shifts_summary").unwrap();
-        assert_eq!(unpacked.0, "qqq_shifts_summary_7d2221b");
+        assert_eq!(unpacked.0, "qqq_shifts_summary_e694e97");
         assert_eq!(
             unpacked.1,
-            vec!["CREATE OR REPLACE VIEW project_id.dataset_id.qqq_shifts_summary_7d2221b AS SELECT * FROM project_id.dataset_id.shifts_summary".to_string()]
+            vec!["CREATE OR REPLACE VIEW project_id.dataset_id.qqq_shifts_summary_e694e97 AS SELECT * FROM project_id.dataset_id.shifts_summary".to_string()]
         );
     }
 
-    #[test]
-    fn test_is_cache_full_path_sqlite() {
+    #[tokio::test]
+    async fn test_is_cache_full_path_sqlite() {
         let fs = Asset;
         let database = DatabaseQueryGeneratorSqlite {};
-        let project = parse_project(&fs, &database, "").unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
 
         let derived_hash = derive_hash_views(&database, &project, &graph).unwrap();
@@ -738,12 +771,12 @@ sources:
         });
     }
 
-    #[test]
-    fn test_is_cache_full_path_bigquery() {
+    #[tokio::test]
+    async fn test_is_cache_full_path_bigquery() {
         let fs = Asset;
         let database =
             DatabaseQueryGeneratorBigQuery::new("project_id".to_string(), "dataset_id".to_string());
-        let project = parse_project(&fs, &database, "").unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
 
         let derived_hash = derive_hash_views(&database, &project, &graph).unwrap();
@@ -829,6 +862,7 @@ sources:
                         file_sha256_hash:
                             "f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b"
                                 .to_string(),
+                        materialization: None,
                         references: vec!["seed_1".to_string(), "source_1".to_string()],
                         description: None,
                         columns: vec![],
@@ -842,6 +876,7 @@ sources:
                         file_sha256_hash:
                             "00f34167b566208b3df2aebd093495f718a9d950e2dd7c7658977bb2734abff4"
                                 .to_string(),
+                        materialization: None,
                         references: vec!["seed_2".to_string(), "source_2".to_string()],
                         description: None,
                         columns: vec![],
@@ -855,6 +890,7 @@ sources:
                         file_sha256_hash:
                             "f76a243c1d2b8bd70a95eb968c1b1e8d08931166a3cf63d24f9844ec07e029f6"
                                 .to_string(),
+                        materialization: None,
                         references: vec!["seed_3".to_string(), "source_3".to_string()],
                         description: None,
                         columns: vec![],
@@ -868,6 +904,7 @@ sources:
                         file_sha256_hash:
                             "c3ac694382627234ebe1edad0f9cd75333ffbe8cf959a9c0d427625ab8e1172a"
                                 .to_string(),
+                        materialization: None,
                         references: vec![
                             "model_1".to_string(),
                             "model_2".to_string(),
@@ -956,8 +993,8 @@ sources:
         assert!(result.is_err());
     }
 
-    #[test]
-    fn test_derive_hash_views_on_seed() {
+    #[tokio::test]
+    async fn test_derive_hash_views_on_seed() {
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
                 (
@@ -982,7 +1019,7 @@ sources:
             ]),
         };
         let database = DatabaseQueryGeneratorSqlite {};
-        let project = parse_project(&fs, &database, "").unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
 
         assert!(derive_hash_views(&database, &project, &graph).is_ok());

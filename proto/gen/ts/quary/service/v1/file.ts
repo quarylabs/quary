@@ -264,7 +264,7 @@ const gt: any = (() => {
 })();
 
 function bytesFromBase64(b64: string): Uint8Array {
-  if (gt.Buffer) {
+  if ((gt as any).Buffer) {
     return Uint8Array.from(gt.Buffer.from(b64, "base64"));
   } else {
     const bin = gt.atob(b64);
@@ -277,7 +277,7 @@ function bytesFromBase64(b64: string): Uint8Array {
 }
 
 function base64FromBytes(arr: Uint8Array): string {
-  if (gt.Buffer) {
+  if ((gt as any).Buffer) {
     return gt.Buffer.from(arr).toString("base64");
   } else {
     const bin: string[] = [];

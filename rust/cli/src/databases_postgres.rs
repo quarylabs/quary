@@ -347,7 +347,9 @@ models:
             .collect(),
         };
 
-        let project = parse_project(&file_system, &database.query_generator(), "").unwrap();
+        let project = parse_project(&file_system, &database.query_generator(), "")
+            .await
+            .unwrap();
 
         let tests = return_tests_sql(
             &database.query_generator(),
@@ -357,6 +359,7 @@ models:
             None,
             None,
         )
+        .await
         .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 

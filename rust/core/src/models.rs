@@ -1,9 +1,9 @@
 use crate::databases::DatabaseQueryGenerator;
 use crate::project::replace_variable_templates_with_variable_defined_in_config;
 use crate::sql::return_reference_search;
+use futures::AsyncRead;
 use once_cell::sync::Lazy;
 use regex::Regex;
-use std::io::Read;
 
 #[allow(clippy::unwrap_used)]
 static VALIDATE_CONFIG_SCHEMA_NAME: Lazy<Regex> =
@@ -24,10 +24,11 @@ pub fn validate_model_name(name: &str) -> Result<(), String> {
 
 /// parse_model_schemas_to_views takes in a reader and reads it to a View file
 /// name_replacing_strategy takes in the reference name and replaces it with whatever strategy is necessary.
-pub fn parse_model_schemas_to_views<F>(
+pub async fn parse_model_schemas_to_views<F>(
     database: &impl DatabaseQueryGenerator,
-    file_reader: Box<dyn Read>,
+    file_reader: Box<dyn AsyncRead + Send + Unpin>,
     view_name: &str,
+    materialization: &Option<String>,
     config_schema_name: &str,
     name_replacing_strategy: F,
     project: &quary_proto::Project,
@@ -35,7 +36,7 @@ pub fn parse_model_schemas_to_views<F>(
 where
     F: Fn(&regex::Captures) -> String,
 {
-    let original_select_statement = read_normalise_model(file_reader)?;
+    let original_select_statement = read_normalise_model(file_reader).await?;
 
     let connection_config = match project.connection_config.as_ref() {
         Some(config) => config,
@@ -54,13 +55,21 @@ where
     let out_select =
         reference_search.replace_all(&vars_replaced_select_statement, name_replacing_strategy);
 
-    Ok(return_sql_model_template(database, view_name, &out_select))
+    let sql_model_template =
+        return_sql_model_template(database, view_name, materialization, &out_select)?;
+
+    Ok(sql_model_template)
 }
 
-pub fn read_normalise_model(mut file_reader: Box<dyn Read>) -> Result<String, String> {
+use futures::AsyncReadExt;
+
+pub async fn read_normalise_model(
+    mut file_reader: Box<dyn AsyncRead + Send + Unpin>,
+) -> Result<String, String> {
     let mut buf = String::new();
     file_reader
         .read_to_string(&mut buf)
+        .await
         .map_err(|e| e.to_string())?;
 
     Ok(buf.trim().strip_suffix(';').unwrap_or(&buf).to_string())
@@ -69,11 +78,12 @@ pub fn read_normalise_model(mut file_reader: Box<dyn Read>) -> Result<String, St
 fn return_sql_model_template(
     database: &impl DatabaseQueryGenerator,
     name: &str,
+    materialization: &Option<String>,
     select_statement: &str,
-) -> [String; 2] {
-    let drop = database.models_drop_view_query(name);
-    let create = database.models_create_view_query(name, select_statement);
-    [drop, create]
+) -> Result<[String; 2], String> {
+    let drop = database.models_drop_query(name, materialization)?;
+    let create = database.models_create_query(name, select_statement, materialization)?;
+    Ok([drop, create])
 }
 
 #[cfg(test)]

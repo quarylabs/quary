@@ -1,5 +1,5 @@
 use crate::config::serialize_config_to_yaml;
-use crate::file_system::FileSystem;
+use crate::file_system::{convert_async_read_to_blocking_read, FileSystem};
 use crate::init::Asset;
 use crate::project_file::{deserialize_project_file_from_yaml, serialize_project_file_to_yaml};
 use crate::sources::{build_models_from_sources, build_staging_schema_file_from_sources};
@@ -12,7 +12,7 @@ use std::string::FromUtf8Error;
 #[folder = "./src/template_files"]
 struct TemplateFiles;
 
-pub fn generate_onboarding_files(
+pub async fn generate_onboarding_files(
     connection_config: ConnectionConfig,
 ) -> Result<impl Iterator<Item = (String, String)>, String> {
     let tests_placeholder_folder = ("tests/.gitkeep".to_string(), "".to_string());
@@ -47,7 +47,8 @@ pub fn generate_onboarding_files(
     let sqlfluff_file = (".sqlfluff".to_string(), sqlfluff_contents);
 
     let vscode_file_definitions = Asset
-        .list_all_files_recursively(".vscode")?
+        .list_all_files_recursively(".vscode")
+        .await?
         .into_iter()
         .map(|path| {
             let contents = String::from_utf8(
@@ -62,7 +63,8 @@ pub fn generate_onboarding_files(
         .collect::<Result<Vec<(String, String)>, String>>()?;
 
     let github_file_definitions = Asset
-        .list_all_files_recursively(".github")?
+        .list_all_files_recursively(".github")
+        .await?
         .into_iter()
         .map(|path| {
             let contents = String::from_utf8(
@@ -97,7 +99,7 @@ pub fn generate_onboarding_files(
 /// - {folder_path}/stg_<model_name>.sql: The model files
 ///
 /// If the schema.yaml file already exists, the data will be appended to it.
-pub fn generate_source_files(
+pub async fn generate_source_files(
     project_root: &str,
     file_system: &impl FileSystem,
     folder_path: &str,
@@ -107,8 +109,9 @@ pub fn generate_source_files(
         .join(folder_path)
         .join("schema.yaml");
     let schema_file_path = path.to_str().ok_or("Invalid path")?.to_string();
-    let schema_file = match file_system.read_file(&schema_file_path) {
+    let schema_file = match file_system.read_file(&schema_file_path).await {
         Ok(file) => {
+            let file = convert_async_read_to_blocking_read(file).await;
             let schema_file = deserialize_project_file_from_yaml(file)
                 .map_err(|e| format!("Error deserializing .schema file: {}", e))?;
             Ok(schema_file)
@@ -139,12 +142,13 @@ pub fn generate_source_files(
 /// - hidden files
 /// - .sqlite files
 /// - .git folder
-pub fn is_empty_bar_hidden_and_sqlite(
+pub async fn is_empty_bar_hidden_and_sqlite(
     file_system: &impl FileSystem,
     root_path: &str,
 ) -> Result<bool, String> {
     let file_paths = file_system
         .list_all_files_recursively(root_path)
+        .await
         .map_err(|e| format!("Error listing files: {}", e))?;
 
     // Check if any file does not match the criteria
@@ -173,8 +177,8 @@ mod tests {
     use std::collections::HashMap;
     use std::io::Cursor;
 
-    #[test]
-    fn test_generate_onboarding_files() {
+    #[tokio::test]
+    async fn test_generate_onboarding_files() {
         let sqlite_config = ConnectionConfig {
             config: Some(connection_config::Config::SqliteInMemory(
                 ConnectionConfigSqLiteInMemory {},
@@ -183,6 +187,7 @@ mod tests {
         };
 
         let files = generate_onboarding_files(sqlite_config.clone())
+            .await
             .unwrap()
             .collect::<HashMap<_, _>>();
 
@@ -208,8 +213,8 @@ mod tests {
         assert_eq!(sqlite_config, deserialized_quary_config);
     }
 
-    #[test]
-    fn test_generate_source_files() {
+    #[tokio::test]
+    async fn test_generate_source_files() {
         let file_system: quary_proto::FileSystem = Default::default();
 
         let sources = vec![DatabaseSource {
@@ -220,6 +225,7 @@ mod tests {
 
         let folder_path = "models/staging";
         let files = generate_source_files("", &file_system, folder_path, &sources)
+            .await
             .unwrap()
             .collect::<HashMap<_, _>>();
 
@@ -232,8 +238,8 @@ mod tests {
         assert_eq!(deserialized_schema.sources[0].name, "raw_test_table");
     }
 
-    #[test]
-    fn is_empty_bar_hidden_and_sqlite_normal_case() {
+    #[tokio::test]
+    async fn is_empty_bar_hidden_and_sqlite_normal_case() {
         let file_system = quary_proto::FileSystem {
             files: HashMap::from([(
                 "/quary.yaml".to_string(),
@@ -244,13 +250,15 @@ mod tests {
             )]),
         };
 
-        let result = is_empty_bar_hidden_and_sqlite(&file_system, "").unwrap();
+        let result = is_empty_bar_hidden_and_sqlite(&file_system, "")
+            .await
+            .unwrap();
 
         assert!(!result);
     }
 
-    #[test]
-    fn is_empty_bar_hidden_and_sqlite_with_excluded_files() {
+    #[tokio::test]
+    async fn is_empty_bar_hidden_and_sqlite_with_excluded_files() {
         let file_system = quary_proto::FileSystem {
             files: HashMap::from([
                 (
@@ -284,7 +292,9 @@ mod tests {
             ]),
         };
 
-        let result = is_empty_bar_hidden_and_sqlite(&file_system, "").unwrap();
+        let result = is_empty_bar_hidden_and_sqlite(&file_system, "")
+            .await
+            .unwrap();
 
         assert!(result);
     }

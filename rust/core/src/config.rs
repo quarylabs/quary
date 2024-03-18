@@ -1,4 +1,4 @@
-use crate::file_system::FileSystem;
+use crate::file_system::{convert_async_read_to_blocking_read, FileSystem};
 use quary_proto::ConnectionConfig;
 use std::io;
 use std::path::Path;
@@ -16,7 +16,7 @@ pub fn serialize_config_to_yaml(config: &ConnectionConfig) -> Result<String, Str
 /// `quary.yaml`. Otherwise it returns an error.
 ///
 /// The path of the config file can be overridden by specifying a path.
-pub fn get_config_from_filesystem(
+pub async fn get_config_from_filesystem(
     file_system: &impl FileSystem,
     project_root: &str,
 ) -> Result<ConnectionConfig, String> {
@@ -24,7 +24,10 @@ pub fn get_config_from_filesystem(
 
     let file = file_system
         .read_file(path.to_str().ok_or("Invalid path")?)
+        .await
         .map_err(|e| format!("opening file: {}", e))?;
+
+    let file = convert_async_read_to_blocking_read(file).await;
     deserialize_config_from_yaml(file)
 }
 
@@ -37,8 +40,8 @@ mod tests {
     use quary_proto::{connection_config, Var};
     use std::{collections::HashMap, io::Cursor};
 
-    #[test]
-    fn test_get_config_from_filesystem_valid_config() {
+    #[tokio::test]
+    async fn test_get_config_from_filesystem_valid_config() {
         let fs = quary_proto::FileSystem {
             files: HashMap::from([(
                 "quary.yaml".to_string(),
@@ -59,7 +62,7 @@ mod tests {
             )]),
         };
 
-        let config = get_config_from_filesystem(&fs, "").unwrap();
+        let config = get_config_from_filesystem(&fs, "").await.unwrap();
 
         let expected_config = ConnectionConfig {
             config: Some(connection_config::Config::BigQuery(
@@ -77,8 +80,8 @@ mod tests {
         assert_eq!(config, expected_config);
     }
 
-    #[test]
-    fn test_get_config_from_filesystem_with_prefix() {
+    #[tokio::test]
+    async fn test_get_config_from_filesystem_with_prefix() {
         let fs = quary_proto::FileSystem {
             files: HashMap::from([(
                 "./root_folder/quary.yaml".to_string(),
@@ -96,7 +99,9 @@ mod tests {
             )]),
         };
 
-        let config = get_config_from_filesystem(&fs, "./root_folder/").unwrap();
+        let config = get_config_from_filesystem(&fs, "./root_folder/")
+            .await
+            .unwrap();
 
         let expected_config = ConnectionConfig {
             config: Some(connection_config::Config::BigQuery(
@@ -111,8 +116,8 @@ mod tests {
         assert_eq!(config, expected_config);
     }
 
-    #[test]
-    fn test_get_config_from_filesystem_invalid_path() {
+    #[tokio::test]
+    async fn test_get_config_from_filesystem_invalid_path() {
         let fs: quary_proto::FileSystem = quary_proto::FileSystem {
             files: HashMap::from([(
                 "./root_folder/quary.yaml".to_string(),
@@ -129,14 +134,15 @@ mod tests {
                 },
             )]),
         };
-        let result = get_config_from_filesystem(&fs, ".");
+        let result = get_config_from_filesystem(&fs, ".").await;
+
         assert!(result.is_err(), "Expected an error for invalid file path");
     }
 
-    #[test]
-    fn test_get_config_from_filesystem_missing_file() {
+    #[tokio::test]
+    async fn test_get_config_from_filesystem_missing_file() {
         let fs: quary_proto::FileSystem = Default::default();
-        let result = get_config_from_filesystem(&fs, ".");
+        let result = get_config_from_filesystem(&fs, ".").await;
         assert!(
             result.is_err(),
             "Expected an error for missing configuration file"

@@ -16,6 +16,9 @@
                 "file_sha256_hash": {
                     "type": "string"
                 },
+                "materialization": {
+                    "type": "string"
+                },
                 "columns": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.Model.ModelColum"

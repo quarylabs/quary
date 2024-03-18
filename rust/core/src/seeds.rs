@@ -1,15 +1,16 @@
 use crate::databases::DatabaseQueryGenerator;
+use crate::file_system::convert_async_read_to_blocking_read;
+use futures::AsyncRead;
 use std::collections::HashSet;
 use std::error::Error;
-use std::io::Read;
 
-pub fn parse_table_schema_seeds(
+pub async fn parse_table_schema_seeds(
     database: &impl DatabaseQueryGenerator,
     table_name: &str,
-    reader: impl Read,
+    reader: Box<dyn AsyncRead + Send + Unpin>,
     do_not_include_data: bool,
 ) -> Result<Vec<String>, Box<dyn Error>> {
-    let rows = read_csv_to_strings(reader)?;
+    let rows = read_csv_to_strings(reader).await?;
 
     let lengths = rows.iter().map(|r| r.len()).collect::<HashSet<usize>>();
     if lengths.len() != 1 {
@@ -27,7 +28,11 @@ pub fn parse_table_schema_seeds(
     })
 }
 
-fn read_csv_to_strings(read: impl Read) -> Result<Vec<Vec<String>>, Box<dyn Error>> {
+async fn read_csv_to_strings(
+    read: Box<dyn AsyncRead + Send + Unpin>,
+) -> Result<Vec<Vec<String>>, Box<dyn Error>> {
+    let read = convert_async_read_to_blocking_read(read).await;
+
     let mut csv_reader = csv::ReaderBuilder::new()
         .has_headers(false)
         .from_reader(read);
@@ -47,12 +52,12 @@ fn read_csv_to_strings(read: impl Read) -> Result<Vec<Vec<String>>, Box<dyn Erro
 mod test {
     use super::*;
     use crate::database_sqlite::DatabaseQueryGeneratorSqlite;
-    use std::io::Cursor;
 
-    #[test]
-    fn read_csv_to_strings_test() {
-        let reader = Cursor::new("\"a',\",b,c\n1,2,3\n4,5,6");
-        let result = read_csv_to_strings(reader).unwrap();
+    #[tokio::test]
+    async fn read_csv_to_strings_test() {
+        let reader = Box::new(futures::io::Cursor::new("\"a',\",b,c\n1,2,3\n4,5,6"));
+
+        let result = read_csv_to_strings(reader).await.unwrap();
         assert_eq!(
             result,
             vec![
@@ -63,15 +68,16 @@ mod test {
         );
     }
 
-    #[test]
-    fn test_parse_table_schema_seeds() {
+    #[tokio::test]
+    async fn test_parse_table_schema_seeds() {
         let database = DatabaseQueryGeneratorSqlite {};
 
         let table_name = "test";
-        let reader = Cursor::new("a,b,c\n1,2,3\n4,5,6");
+        let reader = Box::new(futures::io::Cursor::new("a,b,c\n1,2,3\n4,5,6"));
         let do_not_include_data = false;
-        let result =
-            parse_table_schema_seeds(&database, table_name, reader, do_not_include_data).unwrap();
+        let result = parse_table_schema_seeds(&database, table_name, reader, do_not_include_data)
+            .await
+            .unwrap();
 
         assert_eq!(
             result,
@@ -83,16 +89,19 @@ mod test {
         );
     }
 
-    #[test]
-    fn test_parse_table_schema_seeds_with_do_not_include_data() {
+    #[tokio::test]
+    async fn test_parse_table_schema_seeds_with_do_not_include_data() {
         let database = DatabaseQueryGeneratorSqlite {};
 
         let table_name = "test";
-        let reader = Cursor::new("a,b,c\n1,2,3\n4,5,6");
+        let reader = Box::new(futures::io::Cursor::new("a,b,c\n1,2,3\n4,5,6"));
         let do_not_include_data = true;
-        let result = parse_table_schema_seeds(&database, table_name, reader, do_not_include_data);
+        let result = parse_table_schema_seeds(&database, table_name, reader, do_not_include_data)
+            .await
+            .unwrap();
+
         assert_eq!(
-            result.unwrap(),
+            result,
             vec![
                 "DROP TABLE IF EXISTS test".to_string(),
                 "CREATE TABLE test (a TEXT, b TEXT, c TEXT)".to_string(),
@@ -100,14 +109,16 @@ mod test {
         );
     }
 
-    #[test]
-    fn test_parse_table_schema_seeds_with_different_lengths() {
+    #[tokio::test]
+    async fn test_parse_table_schema_seeds_with_different_lengths() {
         let database = DatabaseQueryGeneratorSqlite {};
 
         let table_name = "test";
-        let reader = Cursor::new("a,b,c\n1,2,3\n4,5");
+        let reader = Box::new(futures::io::Cursor::new("a,b,c\n1,2,3\n4,5"));
         let do_not_include_data = false;
-        let result = parse_table_schema_seeds(&database, table_name, reader, do_not_include_data);
+
+        let result =
+            parse_table_schema_seeds(&database, table_name, reader, do_not_include_data).await;
 
         assert!(result.is_err());
     }

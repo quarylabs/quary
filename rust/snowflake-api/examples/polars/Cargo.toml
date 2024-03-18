@@ -1,0 +1,16 @@
+[package]
+name = "polars-example"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.79"
+dotenv = "0.15.0"
+tokio = { version = "1.35.1", features = ["full"] }
+tracing = "0.1.40"
+tracing-subscriber = "0.3"
+
+snowflake-api = { path = "../../../snowflake-api", features = ["polars"]}
+polars = { version = ">=0.37", features = ["fmt"] }

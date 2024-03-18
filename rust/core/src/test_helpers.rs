@@ -4,7 +4,8 @@ use quary_proto::test::TestType::{
 };
 use quary_proto::{
     Test, TestAcceptedValues, TestGreaterThan, TestGreaterThanOrEqual, TestLessThan,
-    TestLessThanOrEqual, TestNotNull, TestRelationship, TestSqlFile, TestUnique,
+    TestLessThanOrEqual, TestMultiColumnUnique, TestNotNull, TestRelationship, TestSqlFile,
+    TestUnique,
 };
 
 pub trait ToTest {
@@ -87,6 +88,14 @@ impl ToTest for TestLessThanOrEqual {
     fn to_test(&self) -> Test {
         Test {
             test_type: Some(TestType::LessThanOrEqual(self.clone())),
+        }
+    }
+}
+
+impl ToTest for TestMultiColumnUnique {
+    fn to_test(&self) -> Test {
+        Test {
+            test_type: Some(TestType::MultiColumnUnique(self.clone())),
         }
     }
 }

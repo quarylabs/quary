@@ -21,8 +21,11 @@ message ProjectFile {
   message Model {
     string name = 1;
     optional string description = 2;
+    repeated ModelTest tests = 5;
 
     repeated Column columns = 3;
+    // The materialization of the model, available types are specified by each database.
+    optional string materialization = 4;
   }
 
   message Source {
@@ -32,12 +35,18 @@ message ProjectFile {
     // - 'public.users' for where the schema is 'public' and the table is 'users'
     // - 'project_id_123.dataset_id_123.table_id_123' for a BigQuery table
     string path = 3;
+    repeated ModelTest tests = 5;
 
     repeated Column columns = 4;
   }
 }
 
 message ColumnTest {
+  string type = 1;
+  map<string, string> info = 2;
+}
+
+message ModelTest {
   string type = 1;
   map<string, string> info = 2;
 }

@@ -1,10 +1,10 @@
 [package]
 name = "sqlinference"
-version = "0.0.96"
+version = "0.0.99"
 edition = "2021"
 rust-version = "1.76.0"
 
 [lib]
 
 [dependencies]
-sqlparser = { default-features = false, version = "0.43" }
+sqlparser = { default-features = false, version = "0.44" }

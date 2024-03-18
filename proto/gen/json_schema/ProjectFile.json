@@ -37,6 +37,22 @@
             "type": "object",
             "title": "Column Test"
         },
+        "quary.service.v1.ModelTest": {
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "info": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "type": "object"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Model Test"
+        },
         "quary.service.v1.ProjectFile.Column": {
             "properties": {
                 "name": {
@@ -65,11 +81,21 @@
                 "description": {
                     "type": "string"
                 },
+                "tests": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ModelTest"
+                    },
+                    "type": "array"
+                },
                 "columns": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ProjectFile.Column"
                     },
                     "type": "array"
+                },
+                "materialization": {
+                    "type": "string",
+                    "description": "The materialization of the model, available types are specified by each database."
                 }
             },
             "additionalProperties": true,
@@ -87,6 +113,12 @@
                 "path": {
                     "type": "string",
                     "description": "The full path of the source table in the database. This is used to reference the table itself. For example: - 'public.users' for where the schema is 'public' and the table is 'users' - 'project_id_123.dataset_id_123.table_id_123' for a BigQuery table"
+                },
+                "tests": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ModelTest"
+                    },
+                    "type": "array"
                 },
                 "columns": {
                     "items": {
