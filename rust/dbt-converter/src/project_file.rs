@@ -70,7 +70,9 @@ impl Model {
         Ok(quary_proto::project_file::Model {
             name: self.name.clone(),
             description: self.description.clone(),
+            materialization: None,
             columns,
+            tests: vec![],
         })
     }
 }
@@ -138,6 +140,7 @@ impl Source {
                             self.schema.clone().unwrap_or_default(),
                             table.name.clone()
                         ),
+                        tests: vec![],
                         description: table.description.clone(),
                         columns: vec![],
                     })

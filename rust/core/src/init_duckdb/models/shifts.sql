@@ -15,8 +15,8 @@ shift_details AS (
 )
 
 SELECT
-    s.employee_id AS employee_id,
-    s.shift AS shift,
+    s.employee_id,
+    s.shift,
     CAST(s.shift_date AS TIMESTAMP)
     + CAST(sd.start_time AS INTERVAL) AS shift_start,
     CAST(s.shift_date AS TIMESTAMP) + CAST(sd.end_time AS INTERVAL) AS shift_end

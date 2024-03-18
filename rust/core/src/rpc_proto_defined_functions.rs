@@ -6,6 +6,7 @@ use crate::project::{
 };
 use crate::schema_name::DEFAULT_SCHEMA_PREFIX;
 use crate::sql_inference_translator::{map_test_to_sql_inference, map_tests_to_column_tests};
+use futures::AsyncReadExt;
 use prost::bytes::Bytes;
 use quary_proto::{ColumnTest, Edge, File, Project, Test};
 use sqlinference::dialect::Dialect;
@@ -50,7 +51,7 @@ pub fn infer_tests_internal(
     Ok(out)
 }
 
-pub fn infer_skippable_tests_internal(
+pub async fn infer_skippable_tests_internal(
     dialect: &Dialect,
     project: &Project,
     file_system: &impl FileSystem,
@@ -69,7 +70,7 @@ pub fn infer_skippable_tests_internal(
         .map(|(k, v)| (v.clone(), k.clone()))
         .collect::<HashMap<_, _>>();
 
-    let model_map = name_to_raw_model_map_internal(project, file_system, project_root)?;
+    let model_map = name_to_raw_model_map_internal(project, file_system, project_root).await?;
 
     let inferred_tests = figure_out_skippable_tests(
         dialect,
@@ -158,37 +159,45 @@ pub fn infer_skippable_tests_internal(
     Ok(out_tests)
 }
 
-pub fn name_to_raw_model_map_internal(
+use futures::future::try_join_all;
+
+pub async fn name_to_raw_model_map_internal(
     project: &Project,
     file_system: &impl FileSystem,
     project_root: &str,
 ) -> Result<HashMap<String, String>, String> {
-    project
-        .models
-        .iter()
-        .map(|(name, model)| {
-            let mut file = file_system
-                .read_file({
-                    let mut path = PathBuf::from(project_root);
-                    path.push(model.file_path.as_str());
-                    path.to_str()
-                        .ok_or(
-                            "Could not convert path to string. This is a bug. Please report it."
-                                .to_string(),
-                        )?
-                        .to_string()
-                        .as_str()
-                })
-                .map_err(|_| "Failed to read file. This is a bug. Please report it.".to_string())?;
-            let mut contents = String::new();
-            file.read_to_string(&mut contents)
-                .map_err(|_| "failed to read string")?;
-            Ok((name.to_string(), contents))
-        })
-        .collect::<Result<HashMap<String, String>, String>>()
+    let futures = project.models.iter().map(|(name, model)| async move {
+        let mut file = file_system
+            .read_file({
+                let mut path = PathBuf::from(project_root);
+                path.push(model.file_path.as_str());
+                path.to_str()
+                    .ok_or(
+                        "Could not convert path to string. This is a bug. Please report it."
+                            .to_string(),
+                    )?
+                    .to_string()
+                    .as_str()
+            })
+            .await
+            .map_err(|_| "Failed to read file. This is a bug. Please report it.".to_string())?;
+
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .await
+            .map_err(|_| "failed to read string")?;
+
+        Ok::<(_, _), String>((name.to_string(), contents))
+    });
+
+    let results = try_join_all(futures)
+        .await
+        .map_err(|e| format!("Error reading models: {}", e))?;
+
+    Ok(results.into_iter().collect())
 }
 
-pub fn render_schema_internal(
+pub async fn render_schema_internal(
     database: &impl DatabaseQueryGenerator,
     project: Option<Project>,
     file_system: Option<quary_proto::FileSystem>,
@@ -199,7 +208,8 @@ pub fn render_schema_internal(
         database,
         false,
         true,
-    )?;
+    )
+    .await?;
 
     let schema = schema
         .iter()
@@ -210,7 +220,7 @@ pub fn render_schema_internal(
     Ok(schema)
 }
 
-pub fn return_full_sql_for_new_model(
+pub async fn return_full_sql_for_new_model(
     file_system: quary_proto::FileSystem,
     project_root: &str,
     database: &impl DatabaseQueryGenerator,
@@ -235,9 +245,9 @@ pub fn return_full_sql_for_new_model(
 
     // Parse the project
     // TODO Don't think this would work properly with sources as they won't be qualified
-    let project = crate::project::parse_project(&file_system, database, project_root)?;
+    let project = crate::project::parse_project(&file_system, database, project_root).await?;
     let (_, (nodes, edges)) =
-        project_and_fs_to_query_sql(database, &project, &file_system, model_name, None)?;
+        project_and_fs_to_query_sql(database, &project, &file_system, model_name, None).await?;
 
     let out_edges = edges
         .into_iter()

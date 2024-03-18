@@ -14,6 +14,7 @@ export interface Test {
     | { $case: "lessThanOrEqual"; lessThanOrEqual: TestLessThanOrEqual }
     | { $case: "greaterThan"; greaterThan: TestGreaterThan }
     | { $case: "lessThan"; lessThan: TestLessThan }
+    | { $case: "multiColumnUnique"; multiColumnUnique: TestMultiColumnUnique }
     | undefined;
 }
 
@@ -86,6 +87,13 @@ export interface TestAcceptedValues {
   acceptedValues: string[];
 }
 
+export interface TestMultiColumnUnique {
+  filePath: string;
+  model: string;
+  path: string;
+  columns: string[];
+}
+
 export interface Seed {
   name: string;
   filePath: string;
@@ -97,6 +105,7 @@ export interface Model {
   description?: string | undefined;
   filePath: string;
   fileSha256Hash: string;
+  materialization?: string | undefined;
   columns: Model_ModelColum[];
   references: string[];
 }
@@ -161,6 +170,9 @@ export const Test = {
         break;
       case "lessThan":
         TestLessThan.encode(message.testType.lessThan, writer.uint32(74).fork()).ldelim();
+        break;
+      case "multiColumnUnique":
+        TestMultiColumnUnique.encode(message.testType.multiColumnUnique, writer.uint32(82).fork()).ldelim();
         break;
     }
     return writer;
@@ -245,6 +257,16 @@ export const Test = {
 
           message.testType = { $case: "lessThan", lessThan: TestLessThan.decode(reader, reader.uint32()) };
           continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.testType = {
+            $case: "multiColumnUnique",
+            multiColumnUnique: TestMultiColumnUnique.decode(reader, reader.uint32()),
+          };
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -277,6 +299,8 @@ export const Test = {
         ? { $case: "greaterThan", greaterThan: TestGreaterThan.fromJSON(object.greaterThan) }
         : isSet(object.lessThan)
         ? { $case: "lessThan", lessThan: TestLessThan.fromJSON(object.lessThan) }
+        : isSet(object.multiColumnUnique)
+        ? { $case: "multiColumnUnique", multiColumnUnique: TestMultiColumnUnique.fromJSON(object.multiColumnUnique) }
         : undefined,
     };
   },
@@ -309,6 +333,9 @@ export const Test = {
     }
     if (message.testType?.$case === "lessThan") {
       obj.lessThan = TestLessThan.toJSON(message.testType.lessThan);
+    }
+    if (message.testType?.$case === "multiColumnUnique") {
+      obj.multiColumnUnique = TestMultiColumnUnique.toJSON(message.testType.multiColumnUnique);
     }
     return obj;
   },
@@ -389,6 +416,16 @@ export const Test = {
       object.testType?.lessThan !== null
     ) {
       message.testType = { $case: "lessThan", lessThan: TestLessThan.fromPartial(object.testType.lessThan) };
+    }
+    if (
+      object.testType?.$case === "multiColumnUnique" &&
+      object.testType?.multiColumnUnique !== undefined &&
+      object.testType?.multiColumnUnique !== null
+    ) {
+      message.testType = {
+        $case: "multiColumnUnique",
+        multiColumnUnique: TestMultiColumnUnique.fromPartial(object.testType.multiColumnUnique),
+      };
     }
     return message;
   },
@@ -1430,6 +1467,110 @@ export const TestAcceptedValues = {
   },
 };
 
+function createBaseTestMultiColumnUnique(): TestMultiColumnUnique {
+  return { filePath: "", model: "", path: "", columns: [] };
+}
+
+export const TestMultiColumnUnique = {
+  encode(message: TestMultiColumnUnique, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.filePath !== "") {
+      writer.uint32(10).string(message.filePath);
+    }
+    if (message.model !== "") {
+      writer.uint32(18).string(message.model);
+    }
+    if (message.path !== "") {
+      writer.uint32(26).string(message.path);
+    }
+    for (const v of message.columns) {
+      writer.uint32(34).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): TestMultiColumnUnique {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTestMultiColumnUnique();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.filePath = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.model = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.path = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.columns.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TestMultiColumnUnique {
+    return {
+      filePath: isSet(object.filePath) ? gt.String(object.filePath) : "",
+      model: isSet(object.model) ? gt.String(object.model) : "",
+      path: isSet(object.path) ? gt.String(object.path) : "",
+      columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => gt.String(e)) : [],
+    };
+  },
+
+  toJSON(message: TestMultiColumnUnique): unknown {
+    const obj: any = {};
+    if (message.filePath !== "") {
+      obj.filePath = message.filePath;
+    }
+    if (message.model !== "") {
+      obj.model = message.model;
+    }
+    if (message.path !== "") {
+      obj.path = message.path;
+    }
+    if (message.columns?.length) {
+      obj.columns = message.columns;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TestMultiColumnUnique>, I>>(base?: I): TestMultiColumnUnique {
+    return TestMultiColumnUnique.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TestMultiColumnUnique>, I>>(object: I): TestMultiColumnUnique {
+    const message = createBaseTestMultiColumnUnique();
+    message.filePath = object.filePath ?? "";
+    message.model = object.model ?? "";
+    message.path = object.path ?? "";
+    message.columns = object.columns?.map((e) => e) || [];
+    return message;
+  },
+};
+
 function createBaseSeed(): Seed {
   return { name: "", filePath: "", fileSha256Hash: "" };
 }
@@ -1520,7 +1661,15 @@ export const Seed = {
 };
 
 function createBaseModel(): Model {
-  return { name: "", description: undefined, filePath: "", fileSha256Hash: "", columns: [], references: [] };
+  return {
+    name: "",
+    description: undefined,
+    filePath: "",
+    fileSha256Hash: "",
+    materialization: undefined,
+    columns: [],
+    references: [],
+  };
 }
 
 export const Model = {
@@ -1536,6 +1685,9 @@ export const Model = {
     }
     if (message.fileSha256Hash !== "") {
       writer.uint32(58).string(message.fileSha256Hash);
+    }
+    if (message.materialization !== undefined) {
+      writer.uint32(66).string(message.materialization);
     }
     for (const v of message.columns) {
       Model_ModelColum.encode(v!, writer.uint32(42).fork()).ldelim();
@@ -1581,6 +1733,13 @@ export const Model = {
 
           message.fileSha256Hash = reader.string();
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.materialization = reader.string();
+          continue;
         case 5:
           if (tag !== 42) {
             break;
@@ -1610,6 +1769,7 @@ export const Model = {
       description: isSet(object.description) ? gt.String(object.description) : undefined,
       filePath: isSet(object.filePath) ? gt.String(object.filePath) : "",
       fileSha256Hash: isSet(object.fileSha256Hash) ? gt.String(object.fileSha256Hash) : "",
+      materialization: isSet(object.materialization) ? gt.String(object.materialization) : undefined,
       columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => Model_ModelColum.fromJSON(e)) : [],
       references: gt.Array.isArray(object?.references) ? object.references.map((e: any) => gt.String(e)) : [],
     };
@@ -1629,6 +1789,9 @@ export const Model = {
     if (message.fileSha256Hash !== "") {
       obj.fileSha256Hash = message.fileSha256Hash;
     }
+    if (message.materialization !== undefined) {
+      obj.materialization = message.materialization;
+    }
     if (message.columns?.length) {
       obj.columns = message.columns.map((e) => Model_ModelColum.toJSON(e));
     }
@@ -1647,6 +1810,7 @@ export const Model = {
     message.description = object.description ?? undefined;
     message.filePath = object.filePath ?? "";
     message.fileSha256Hash = object.fileSha256Hash ?? "";
+    message.materialization = object.materialization ?? undefined;
     message.columns = object.columns?.map((e) => Model_ModelColum.fromPartial(e)) || [];
     message.references = object.references?.map((e) => e) || [];
     return message;

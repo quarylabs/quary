@@ -10,9 +10,9 @@ min_shifts AS (
 )
 
 SELECT
-    x.employee_id AS employee_id,
-    x.shift_start AS shift_start,
-    x.shift_end AS shift_end
+    x.employee_id,
+    x.shift_start,
+    x.shift_end
 FROM
     q.shifts AS x
 INNER JOIN min_shifts AS y

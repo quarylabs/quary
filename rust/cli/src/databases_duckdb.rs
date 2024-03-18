@@ -423,7 +423,9 @@ HAVING COUNT(*) > 1;",
             .collect(),
         };
 
-        let project = parse_project(&file_system, &database.query_generator(), "").unwrap();
+        let project = parse_project(&file_system, &database.query_generator(), "")
+            .await
+            .unwrap();
 
         let tests = return_tests_sql(
             &database.query_generator(),
@@ -433,6 +435,7 @@ HAVING COUNT(*) > 1;",
             None,
             None,
         )
+        .await
         .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 
@@ -533,7 +536,9 @@ HAVING COUNT(*) > 1;",
             .collect(),
         };
 
-        let project = parse_project(&file_system, &database.query_generator(), "").unwrap();
+        let project = parse_project(&file_system, &database.query_generator(), "")
+            .await
+            .unwrap();
 
         let tests = return_tests_sql(
             &database.query_generator(),
@@ -543,6 +548,7 @@ HAVING COUNT(*) > 1;",
             None,
             None,
         )
+        .await
         .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 
@@ -599,7 +605,9 @@ sources:
             .collect(),
         };
 
-        let project = parse_project(&file_system, &database.query_generator(), "").unwrap();
+        let project = parse_project(&file_system, &database.query_generator(), "")
+            .await
+            .unwrap();
         let sqls = project_and_fs_to_sql_for_views(
             &project,
             &file_system,
@@ -607,6 +615,7 @@ sources:
             false,
             false,
         )
+        .await
         .unwrap();
         for sql in sqls {
             for sql in sql.1 {
@@ -622,6 +631,7 @@ sources:
             None,
             None,
         )
+        .await
         .unwrap();
         assert_eq!(tests.len(), 1);
 

@@ -105,6 +105,10 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
                 safe_adder_set(&mut taken, name.clone())?;
                 edges.push((test.model.clone(), name.clone()));
             }
+            Some(TestType::MultiColumnUnique(test)) => {
+                safe_adder_set(&mut taken, name.clone())?;
+                edges.push((test.model.clone(), name.clone()));
+            }
             _ => return Err(format!("unrecognised test type {:?}", test)),
         }
     }
@@ -760,8 +764,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_return_sub_graph_single_node() {
+    #[tokio::test]
+    async fn test_return_sub_graph_single_node() {
         let fs = FileSystem {
             files: vec![
                 ("quary.yaml", "sqliteInMemory: {}"),
@@ -781,7 +785,7 @@ mod tests {
         };
         let db = DatabaseQueryGeneratorSqlite::default();
 
-        let project = parse_project(&fs, &db, "").unwrap();
+        let project = parse_project(&fs, &db, "").await.unwrap();
 
         let graph = project_to_graph(project).unwrap();
 

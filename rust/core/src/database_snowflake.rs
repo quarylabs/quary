@@ -14,6 +14,65 @@ impl DatabaseQueryGeneratorSnowflake {
 }
 
 impl DatabaseQueryGenerator for DatabaseQueryGeneratorSnowflake {
+    fn validate_materialization_type(
+        &self,
+        materialization_type: &Option<String>,
+    ) -> Result<(), String> {
+        match materialization_type {
+            None => Ok(()),
+            Some(materialization_type)
+                if materialization_type == "view" || materialization_type == "table" =>
+            {
+                Ok(())
+            }
+            Some(materialization_type) => Err(format!(
+                "Materialization type {} is not supported. Supported types are 'view' and 'table'.",
+                materialization_type
+            )),
+        }
+    }
+    fn models_drop_query(
+        &self,
+        object_name: &str,
+        materialization_type: &Option<String>,
+    ) -> Result<String, String> {
+        let object_name = self.return_full_path_requirement(object_name);
+        let object_name = self.database_name_wrapper(&object_name);
+        match materialization_type {
+            None => Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string()),
+            Some(materialization_type) if materialization_type == "view" => {
+                Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string())
+            }
+            Some(materialization_type) if materialization_type == "table" => {
+                Ok(format!("DROP TABLE IF EXISTS {}", object_name).to_string())
+            }
+            _ => Err("Unsupported materialization type".to_string()),
+        }
+    }
+    fn models_create_query(
+        &self,
+        object_name: &str,
+        original_select_statement: &str,
+        materialization_type: &Option<String>,
+    ) -> Result<String, String> {
+        let object_name = self.return_full_path_requirement(object_name);
+        let object_name = self.database_name_wrapper(&object_name);
+        match materialization_type.as_deref() {
+            None => Ok(format!(
+                "CREATE VIEW {} AS {}",
+                object_name, original_select_statement
+            )),
+            Some("view") => Ok(format!(
+                "CREATE VIEW {} AS {}",
+                object_name, original_select_statement
+            )),
+            Some("table") => Ok(format!(
+                "CREATE TABLE {} AS {}",
+                object_name, original_select_statement
+            )),
+            _ => Err("Unsupported materialization type".to_string()),
+        }
+    }
     fn seeds_create_table_query(&self, table_name: &str, columns: &[String]) -> String {
         let table_name = self.return_full_path_requirement(table_name);
         base_for_seeds_create_table_specifying_text_type("STRING", table_name.as_str(), columns)

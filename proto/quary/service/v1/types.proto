@@ -17,6 +17,7 @@ message Test {
     TestLessThanOrEqual less_than_or_equal = 7;
     TestGreaterThan greater_than = 8;
     TestLessThan less_than = 9;
+    TestMultiColumnUnique multi_column_unique = 10;
   }
 }
 
@@ -89,6 +90,13 @@ message TestAcceptedValues {
   repeated string accepted_values = 5;
 }
 
+message TestMultiColumnUnique {
+  string file_path = 1;
+  string model = 2;
+  string path = 3;
+  repeated string columns = 4;
+}
+
 message Seed {
   string name = 1;
   string file_path = 2;
@@ -101,6 +109,8 @@ message Model {
 
   string file_path = 3;
   string file_sha256_hash = 7;
+
+  optional string materialization = 8;
 
   message ModelColum {
     string title = 1;

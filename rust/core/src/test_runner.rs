@@ -338,9 +338,10 @@ pub async fn run_tests_internal(
                 whether_to_include_model_to_source,
                 limit,
                 None,
-            )?;
+            )
+            .await?;
             let whether_to_skip =
-                infer_skippable_tests_internal(dialect, project, file_system, project_root)?;
+                infer_skippable_tests_internal(dialect, project, file_system, project_root).await?;
             run_test_skip(tests, whether_to_skip, run_statement).await
         }
         TestRunner::All => {
@@ -351,7 +352,8 @@ pub async fn run_tests_internal(
                 whether_to_include_model_to_source,
                 limit,
                 None,
-            )?;
+            )
+            .await?;
             run_test_all(tests, run_statement).await
         }
         _ => Err("Invalid test runner".to_string()),
@@ -412,7 +414,8 @@ pub async fn run_model_tests_internal(
         whether_to_include_model_to_source,
         limit,
         Some(model_name),
-    )?;
+    )
+    .await?;
     run_test_all(tests, run_statement).await
 }
 

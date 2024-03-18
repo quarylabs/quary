@@ -140,7 +140,7 @@ mod tests {
     use prost::bytes::Bytes;
     use quary_core::init::{
         init_to_file_system, Asset, INIT_FOLDER_NUMBER_OF_TESTS,
-        INIT_FOLDER_NUMBER_OF_TESTS_THAT_ARE_INFERRED, INIT_FOLDER_NUMBER_OF_TESTS_THAT_FAIL,
+        INIT_FOLDER_NUMBER_OF_TESTS_THAT_ARE_RUN, INIT_FOLDER_NUMBER_OF_TESTS_THAT_FAIL,
     };
     use quary_core::project::{
         parse_project, project_and_fs_to_query_sql, project_and_fs_to_sql_for_views,
@@ -266,10 +266,13 @@ mod tests {
 
         let file_system = Asset {};
         let query_generator = sqlite.query_generator();
-        let project = parse_project(&file_system, &query_generator, "").unwrap();
+        let project = parse_project(&file_system, &query_generator, "")
+            .await
+            .unwrap();
 
         let sqls =
             project_and_fs_to_sql_for_views(&project, &file_system, &query_generator, false, false)
+                .await
                 .unwrap();
 
         assert!(!sqls.is_empty());
@@ -295,9 +298,13 @@ mod tests {
 
         let file_system = Asset {};
         let query_generator = sqlite.query_generator();
-        let project = parse_project(&file_system, &query_generator, "").unwrap();
+        let project = parse_project(&file_system, &query_generator, "")
+            .await
+            .unwrap();
 
-        let tests = return_tests_sql(&database, &project, &file_system, true, None, None).unwrap();
+        let tests = return_tests_sql(&database, &project, &file_system, true, None, None)
+            .await
+            .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 
         assert!(!tests.is_empty());
@@ -316,10 +323,13 @@ mod tests {
 
         let file_system = Asset {};
         let query_generator = sqlite.query_generator();
-        let project = parse_project(&file_system, &query_generator, "").unwrap();
+        let project = parse_project(&file_system, &query_generator, "")
+            .await
+            .unwrap();
 
         let sqls =
             project_and_fs_to_sql_for_views(&project, &file_system, &query_generator, false, false)
+                .await
                 .unwrap();
 
         assert!(!sqls.is_empty());
@@ -391,10 +401,13 @@ mod tests {
 
         let file_system = Asset {};
         let query_generator = sqlite.query_generator();
-        let project = parse_project(&file_system, &query_generator, "").unwrap();
+        let project = parse_project(&file_system, &query_generator, "")
+            .await
+            .unwrap();
 
         let sqls =
             project_and_fs_to_sql_for_views(&project, &file_system, &query_generator, false, false)
+                .await
                 .unwrap();
 
         assert!(!sqls.is_empty());
@@ -457,7 +470,7 @@ mod tests {
             })
             .count();
 
-        assert_eq!(INIT_FOLDER_NUMBER_OF_TESTS_THAT_ARE_INFERRED, ran_tests);
+        assert_eq!(INIT_FOLDER_NUMBER_OF_TESTS_THAT_ARE_RUN, ran_tests);
     }
 
     #[tokio::test]
@@ -502,7 +515,9 @@ sources:
             },
         );
 
-        let project = parse_project(&file_system, &sqlite.query_generator(), "").unwrap();
+        let project = parse_project(&file_system, &sqlite.query_generator(), "")
+            .await
+            .unwrap();
 
         // assertions about project
         // assertions about source
@@ -526,6 +541,7 @@ sources:
         let query_generator = sqlite.query_generator();
         let sqls =
             project_and_fs_to_sql_for_views(&project, &file_system, &query_generator, false, false)
+                .await
                 .unwrap();
 
         // assert
@@ -595,7 +611,9 @@ sources:
             },
         );
 
-        let project = parse_project(&file_system, &sqlite.query_generator(), "").unwrap();
+        let project = parse_project(&file_system, &sqlite.query_generator(), "")
+            .await
+            .unwrap();
 
         let model_names = project
             .seeds
@@ -613,6 +631,7 @@ sources:
                 model_name,
                 None,
             )
+            .await
             .unwrap();
 
             sqlite.exec(&sql).await.unwrap();
@@ -659,7 +678,9 @@ models:
             },
         );
 
-        let project = parse_project(&file_system, &sqlite.query_generator(), "").unwrap();
+        let project = parse_project(&file_system, &sqlite.query_generator(), "")
+            .await
+            .unwrap();
 
         // asser that can get and apply each successfully
         let (sql, _) = project_and_fs_to_query_sql(
@@ -669,6 +690,7 @@ models:
             new_model,
             None,
         )
+        .await
         .unwrap();
 
         sqlite.exec(&sql).await.unwrap();

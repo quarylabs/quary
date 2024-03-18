@@ -2,21 +2,61 @@ use async_trait::async_trait;
 use sqlinference::dialect::Dialect;
 use std::fmt::Debug;
 
-pub trait DatabaseQueryGenerator: Debug {
-    // For Models section
-
-    /// ModelsDropViewQuery drops a view if it exists.
-    fn models_drop_view_query(&self, view_name: &str) -> String {
-        let view_name = self.return_full_path_requirement(view_name);
-        let view_name = self.database_name_wrapper(&view_name);
-        format!("DROP VIEW IF EXISTS {}", view_name)
+pub trait DatabaseQueryGenerator: Debug + Sync {
+    /// Validates the materialization flag defined in the model schema.yaml file.
+    fn validate_materialization_type(
+        &self,
+        materialization_type: &Option<String>,
+    ) -> Result<(), String> {
+        match materialization_type {
+            None => Ok(()),
+            Some(materialization_type) if materialization_type == "view" => Ok(()),
+            Some(materialization_type) => Err(format!(
+                "Materialization type {} is not supported. Supported types are 'view'.",
+                materialization_type
+            )),
+        }
     }
 
-    /// ModelsCreateViewQuery creates a view if it exists.
-    fn models_create_view_query(&self, view_name: &str, original_select_statement: &str) -> String {
-        let view_name = self.return_full_path_requirement(view_name);
-        let view_name = self.database_name_wrapper(&view_name);
-        format!("CREATE VIEW {} AS {}", view_name, original_select_statement)
+    // For Models section
+
+    /// ModelsDropQuery drops the model with type defined by the materialization setting
+    fn models_drop_query(
+        &self,
+        object_name: &str,
+        materialization_type: &Option<String>,
+    ) -> Result<String, String> {
+        let object_name = self.return_full_path_requirement(object_name);
+        let object_name = self.database_name_wrapper(&object_name);
+        match materialization_type {
+            None => Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string()),
+            Some(materialization_type) if materialization_type == "view" => {
+                Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string())
+            }
+            _ => Err("Unsupported materialization type".to_string()),
+        }
+    }
+
+    /// ModelsDropQuery creates the model with type defined by the materialization setting
+    fn models_create_query(
+        &self,
+        object_name: &str,
+        original_select_statement: &str,
+        materialization_type: &Option<String>,
+    ) -> Result<String, String> {
+        let object_name = self.return_full_path_requirement(object_name);
+        let object_name = self.database_name_wrapper(&object_name);
+        match materialization_type.as_deref() {
+            None => Ok(format!(
+                "CREATE VIEW {} AS {}",
+                object_name, original_select_statement
+            )),
+            Some("view") => Ok(format!(
+                "CREATE VIEW {} AS {}",
+                object_name, original_select_statement
+            )),
+            _ => Err("Unsupported materialization type".to_string()),
+        }
     }
 
     // For Seeds section
@@ -95,13 +135,33 @@ pub trait DatabaseQueryGenerator: Debug {
 }
 
 impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
-    fn models_drop_view_query(&self, view_name: &str) -> String {
-        self.as_ref().models_drop_view_query(view_name)
+    fn validate_materialization_type(
+        &self,
+        materialization_type: &Option<String>,
+    ) -> Result<(), String> {
+        self.as_ref()
+            .validate_materialization_type(materialization_type)
+    }
+    fn models_drop_query(
+        &self,
+        view_name: &str,
+        materialization_type: &Option<String>,
+    ) -> Result<String, String> {
+        self.as_ref()
+            .models_drop_query(view_name, materialization_type)
     }
 
-    fn models_create_view_query(&self, view_name: &str, original_select_statement: &str) -> String {
-        self.as_ref()
-            .models_create_view_query(view_name, original_select_statement)
+    fn models_create_query(
+        &self,
+        view_name: &str,
+        original_select_statement: &str,
+        materialization_type: &Option<String>,
+    ) -> Result<String, String> {
+        self.as_ref().models_create_query(
+            view_name,
+            original_select_statement,
+            materialization_type,
+        )
     }
 
     fn seeds_drop_table_query(&self, table_name: &str) -> String {
@@ -231,6 +291,8 @@ impl QueryResult {
 
 #[cfg(test)]
 mod tests {
+    use crate::database_sqlite::DatabaseQueryGeneratorSqlite;
+
     use super::*;
 
     #[test]
@@ -277,5 +339,29 @@ mod tests {
         let proto_result = query_result.to_proto();
 
         assert!(proto_result.is_err());
+    }
+
+    #[test]
+    fn test_validate_materialization_type_success() {
+        let database = Box::new(DatabaseQueryGeneratorSqlite {});
+        let materialization_type = Some("view".to_string());
+        let result = database.validate_materialization_type(&materialization_type);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_materialization_type_undefined() {
+        let database = Box::new(DatabaseQueryGeneratorSqlite {});
+        let materialization_type = None;
+        let result = database.validate_materialization_type(&materialization_type);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_materialization_type_error() {
+        let database = Box::new(DatabaseQueryGeneratorSqlite {});
+        let materialization_type = Some("garbage".to_string());
+        let result = database.validate_materialization_type(&materialization_type);
+        assert!(result.is_err());
     }
 }

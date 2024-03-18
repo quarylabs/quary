@@ -39,6 +39,10 @@
                 "less_than": {
                     "$ref": "#/definitions/quary.service.v1.TestLessThan",
                     "additionalProperties": true
+                },
+                "multi_column_unique": {
+                    "$ref": "#/definitions/quary.service.v1.TestMultiColumnUnique",
+                    "additionalProperties": true
                 }
             },
             "additionalProperties": true,
@@ -158,6 +162,28 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Test Less Than Or Equal"
+        },
+        "quary.service.v1.TestMultiColumnUnique": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "columns": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Multi Column Unique"
         },
         "quary.service.v1.TestNotNull": {
             "properties": {

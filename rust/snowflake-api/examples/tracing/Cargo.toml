@@ -1,0 +1,24 @@
+[package]
+name = "snowflake-rust-tracing"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.79"
+arrow = { version = "50.0.0", features = ["prettyprint"] }
+dotenv = "0.15.0"
+snowflake-api = { path = "../../../snowflake-api" }
+
+
+tokio = { version = "1.35.1", features = ["full"] }
+tracing = "0.1.40"
+tracing-subscriber = "0.3"
+tracing-opentelemetry = "0.22"
+opentelemetry-otlp = "0.14"
+opentelemetry = "0.21"
+opentelemetry_sdk = { version = "0.21", features = ["rt-tokio"] }
+reqwest-tracing = { version = "0.4", features = ["opentelemetry_0_21"] }
+reqwest-middleware = { version = "*" }
+opentelemetry-semantic-conventions = "0.13"

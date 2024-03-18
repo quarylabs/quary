@@ -1,8 +1,9 @@
 use quary_proto::test::TestType;
 use quary_proto::{
     Project, Test, TestAcceptedValues, TestGreaterThan, TestGreaterThanOrEqual, TestLessThan,
-    TestLessThanOrEqual, TestNotNull, TestRelationship, TestUnique,
+    TestLessThanOrEqual, TestMultiColumnUnique, TestNotNull, TestRelationship, TestUnique,
 };
+use sqlinference::test::Test as SqlInferenceTest;
 use std::path::PathBuf;
 
 pub fn test_to_name(test: &Test) -> Result<String, String> {
@@ -45,6 +46,11 @@ pub fn test_to_name(test: &Test) -> Result<String, String> {
 
             Ok(format!("test_sql_{}", path_stem))
         }
+        TestType::MultiColumnUnique(test) => Ok(format!(
+            "test_{}_unique_{}",
+            test.model,
+            test.columns.join("_")
+        )),
     }
 }
 
@@ -60,6 +66,19 @@ impl ToSql for TestNotNull {
         format!(
             "SELECT * FROM {} WHERE {} IS NULL{}",
             self.path, self.column, limit
+        )
+    }
+}
+
+impl ToSql for TestMultiColumnUnique {
+    fn to_sql(&self, limit: Option<usize>) -> String {
+        let limit = limit
+            .map(|limit| format!(" LIMIT {}", limit))
+            .unwrap_or_default();
+        let columns = self.columns.join(", ");
+        format!(
+            "SELECT {} FROM {} GROUP BY {} HAVING COUNT(*) > 1{}",
+            columns, self.path, columns, limit
         )
     }
 }
@@ -203,6 +222,7 @@ pub fn return_test_for_model_column<'a>(
                 TestType::LessThanOrEqual(test) => test.model == model && test.column == column,
                 TestType::GreaterThan(test) => test.model == model && test.column == column,
                 TestType::LessThan(test) => test.model == model && test.column == column,
+                TestType::MultiColumnUnique(_) => false,
             }
         } else {
             false
@@ -216,8 +236,6 @@ pub trait ShortTestString {
     /// it would be ">= 100".
     fn short_test_string(&self) -> Result<String, String>;
 }
-
-use sqlinference::test::Test as SqlInferenceTest;
 
 impl ShortTestString for SqlInferenceTest {
     // TODO Need to add tests for this
@@ -249,6 +267,9 @@ impl ShortTestString for Test {
     fn short_test_string(&self) -> Result<String, String> {
         match &self.test_type {
             Some(TestType::Sql(_)) => Ok("sql test".to_string()),
+            Some(TestType::MultiColumnUnique(test)) => {
+                Ok(format!("unique ({})", test.columns.join(", ")).to_string())
+            }
             Some(TestType::Unique(_)) => Ok("unique".to_string()),
             Some(TestType::NotNull(_)) => Ok("not null".to_string()),
             Some(TestType::Relationship(test)) => Ok(format!(

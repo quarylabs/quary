@@ -18,6 +18,8 @@ pub const STANDARD_TEST_TYPE_GREATER_THAN_OR_EQUAL: &str = "gte";
 pub const STANDARD_TEST_TYPE_LESS_THAN: &str = "lt";
 pub const STANDARD_TEST_TYPE_GREATER_THAN: &str = "gt";
 
+pub const STANDARD_MODEL_TEST_TYPE_MULTI_COLUMN_UNIQUE: &str = "multi_column_unique";
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -30,6 +32,8 @@ mod tests {
             models: vec![Model {
                 name: "model test".to_string(),
                 description: Some("test description for model".to_string()),
+                materialization: None,
+                tests: vec![],
                 columns: vec![Column {
                     name: "column test".to_string(),
                     description: Some("test description for column".to_string()),
@@ -40,6 +44,7 @@ mod tests {
                 name: "source_test".to_string(),
                 description: Some("test description for source".to_string()),
                 path: "source_test.source_test".to_string(),
+                tests: vec![],
                 columns: vec![Column {
                     name: "column test".to_string(),
                     description: Some("test description for sources column".to_string()),

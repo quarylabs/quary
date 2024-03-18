@@ -1,6 +1,6 @@
 [package]
 name = "quary-core"
-version = "0.0.96"
+version = "0.0.99"
 authors = ["Ben King <9087625+benfdking@users.noreply.github.com>"]
 edition = "2021"
 rust-version = "1.76.0"
@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 prost = { default-features = false, version = "0.12" }
-sqlparser = { default-features = false, version = "0.43" }
+sqlparser = { default-features = false, version = "0.44" }
 js-sys = "0.3"
 quary_proto = { path = "../../proto/gen/rust" }
 sqlinference = { path = "../sqlinference" }
@@ -23,7 +23,7 @@ once_cell = "1"
 async-trait = "0.1"
 serde_yaml = "0.9"
 serde_json = { default-features = false, version = "1", features = ["std"] }
-futures = { version = "0.3", features = ["async-await"], default-features = false }
+futures = { version = "0.3", features = ["async-await", "std"], default-features = false }
 sha2 = { default-features = false, version = "0.10" }
 data-encoding = "2.5.0"
 web-sys = { version = "0.3", default-features = false, features = [
@@ -33,4 +33,8 @@ web-sys = { version = "0.3", default-features = false, features = [
     "Request",
     "Response"
 ] }
+tokio-util = "0.7.10"
 
+
+[dev-dependencies]
+tokio = { version = "1.36.0", features = ["rt", "macros"], default-features = false }

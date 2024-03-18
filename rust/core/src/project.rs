@@ -1,7 +1,7 @@
 use crate::automatic_branching::derive_sha256_file_contents;
 use crate::config::get_config_from_filesystem;
 use crate::databases::DatabaseQueryGenerator;
-use crate::file_system::FileSystem;
+use crate::file_system::{convert_async_read_to_blocking_read, FileSystem};
 use crate::graph::{project_to_graph, Edge};
 use crate::map_helpers::safe_adder_map;
 use crate::models::{parse_model_schemas_to_views, read_normalise_model};
@@ -12,21 +12,21 @@ use crate::sql::{remove_sql_comments, return_reference_search};
 use crate::sql_inference_translator::unprefix_model;
 use crate::test_helpers::ToTest;
 use crate::tests::test_to_name;
+use futures::AsyncReadExt;
 use quary_proto::model::ModelColum;
 use quary_proto::test::TestType::{
-    AcceptedValues, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, NotNull,
-    Relationship, Sql, Unique,
+    AcceptedValues, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, MultiColumnUnique,
+    NotNull, Relationship, Sql, Unique,
 };
 use quary_proto::{
     Model, Project, ProjectFile, Seed, Source, Test, TestAcceptedValues, TestGreaterThan,
-    TestGreaterThanOrEqual, TestLessThan, TestLessThanOrEqual, TestNotNull, TestRelationship,
-    TestSqlFile, TestUnique,
+    TestGreaterThanOrEqual, TestLessThan, TestLessThanOrEqual, TestMultiColumnUnique, TestNotNull,
+    TestRelationship, TestSqlFile, TestUnique,
 };
 use sqlinference::infer_tests::{get_column_with_source, ExtractedSelect};
 use sqlparser::dialect::Dialect;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::ffi::OsStr;
-use std::io::Read;
 use std::path::{Path, PathBuf};
 
 /// build_column_description_map returns a map of column name in the sql statement to a column
@@ -73,7 +73,7 @@ pub fn build_column_description_map(
 /// build_column_description_map_for_model does the same as build_column_description_map but rather
 /// than taking a sql statement it takes a model name, reads the sql for that model and infers a
 /// description map like 'build_column_description_map' and returns the map for that model.
-pub fn build_column_description_map_for_model(
+pub async fn build_column_description_map_for_model(
     project: &Project,
     modelling_prefix: &str,
     model: &str,
@@ -86,8 +86,9 @@ pub fn build_column_description_map_for_model(
         .ok_or(format!("could not find model {}", model))?;
     let model_sql_code = file_system
         .read_file(&model.file_path)
+        .await
         .map_err(|e| format!("could not read model file {}: {}", model.file_path, e))?;
-    let model_sql_code = read_normalise_model(Box::new(model_sql_code))?;
+    let model_sql_code = read_normalise_model(Box::new(model_sql_code)).await?;
     build_column_description_map(project, &model_sql_code, modelling_prefix, dialect)
 }
 
@@ -150,20 +151,22 @@ pub fn return_tests_for_a_particular_model<'a>(
             Some(LessThanOrEqual(test)) => test.model == model,
             Some(LessThan(test)) => test.model == model,
             Some(GreaterThan(test)) => test.model == model,
+            Some(MultiColumnUnique(test)) => test.model == model,
         })
         .map(|(_, test)| test)
 }
 
 /// ParseProject parses a whole project into a project object.
-pub fn parse_project(
+pub async fn parse_project(
     filesystem: &impl FileSystem,
     database: &impl DatabaseQueryGenerator,
     project_root: &str,
 ) -> Result<Project, String> {
-    let seeds = parse_seeds(filesystem, project_root)?
+    let seeds = parse_seeds(filesystem, project_root)
+        .await?
         .into_iter()
         .collect::<HashMap<_, _>>();
-    let project_files = parse_project_files(filesystem, project_root)?;
+    let project_files = parse_project_files(filesystem, project_root, database).await?;
     let sources = parse_sources(&project_files).collect::<HashMap<_, _>>();
 
     // TODO: Think about implementing custom tests
@@ -177,7 +180,8 @@ pub fn parse_project(
         .iter()
         .map(|m| (m.name.clone(), m.clone()))
         .collect();
-    let models = parse_models(filesystem, project_root, &model_definitions)?;
+    let models = parse_models(filesystem, project_root, &model_definitions).await?;
+    validate_models(&models)?;
 
     let path_map = create_path_map(
         database,
@@ -190,7 +194,8 @@ pub fn parse_project(
         project_root,
         &path_map,
         &project_files,
-    )?;
+    )
+    .await?;
 
     // Check that models all refer to actual models
     for model in models.values() {
@@ -224,7 +229,7 @@ pub fn parse_project(
         }
     }
 
-    let connection_config = get_config_from_filesystem(filesystem, project_root)?;
+    let connection_config = get_config_from_filesystem(filesystem, project_root).await?;
 
     Ok(Project {
         seeds,
@@ -236,16 +241,18 @@ pub fn parse_project(
     })
 }
 
-fn parse_tests(
+async fn parse_tests(
     filesystem: &impl FileSystem,
     database: &impl DatabaseQueryGenerator,
     project_root: &str,
     path_map: &PathMap,
     project_files: &HashMap<String, ProjectFile>,
 ) -> Result<BTreeMap<String, Test>, String> {
-    let sql_tests = parse_sql_tests(filesystem, project_root)?;
+    let sql_tests = parse_sql_tests(filesystem, project_root).await?;
 
     let column_tests = parse_column_tests(database, project_files, path_map)?;
+
+    let model_tests = parse_model_tests_in_project_files(database, project_files)?;
 
     let mut tests = BTreeMap::<String, Test>::new();
     for (name, test) in sql_tests {
@@ -254,29 +261,35 @@ fn parse_tests(
     for (name, test) in column_tests {
         safe_adder_map(&mut tests, name, test)?;
     }
+    for (name, test) in model_tests {
+        safe_adder_map(&mut tests, name, test)?;
+    }
+
     Ok(tests)
 }
 
-fn parse_sql_tests(
+async fn parse_sql_tests(
     file_system: &impl FileSystem,
     project_root: &str,
 ) -> Result<HashMap<String, Test>, String> {
-    let paths = get_path_bufs(file_system, project_root, PATH_FOR_TESTS, EXTENSION_SQL)?;
+    let paths = get_path_bufs(file_system, project_root, PATH_FOR_TESTS, EXTENSION_SQL).await?;
 
-    let reference_search =
-        return_reference_search(DEFAULT_SCHEMA_PREFIX).map_err(|e| e.to_string())?;
-
-    paths
+    let tests = paths
         .iter()
-        .map(|path| {
+        .map(|path| async move {
+            let reference_search =
+                return_reference_search(DEFAULT_SCHEMA_PREFIX).map_err(|e| e.to_string())?;
+
             let path = path
                 .to_str()
                 .ok_or(format!("Could not parse test file path: {:?}", path))?;
             let mut file = file_system
                 .read_file(path)
+                .await
                 .map_err(|err| format!("failed to read file: {:?}", err))?;
             let mut contents = String::new();
             file.read_to_string(&mut contents)
+                .await
                 .map_err(|err| format!("failed to read to string: {:?}", err))?;
             let contents = remove_sql_comments(&contents);
             let mut references = reference_search
@@ -308,9 +321,16 @@ fn parse_sql_tests(
             };
             let name = test_to_name(&test.to_test())?;
 
-            Ok((name, test.to_test()))
+            Ok::<(String, Test), String>((name, test.to_test()))
         })
-        .collect()
+        .collect::<Vec<_>>();
+
+    Ok(futures::future::join_all(tests)
+        .await
+        .into_iter()
+        .collect::<Result<HashMap<String, Test>, _>>()?
+        .into_iter()
+        .collect::<HashMap<String, Test>>())
 }
 
 pub fn create_path_map(
@@ -330,7 +350,7 @@ pub fn create_path_map(
     model_entries.chain(source_entries).collect()
 }
 
-fn get_path_bufs(
+async fn get_path_bufs(
     filesystem: &impl FileSystem,
     project_root: &str,
     folder: &str,
@@ -344,7 +364,8 @@ fn get_path_bufs(
     ))?;
 
     filesystem
-        .list_all_files_recursively(path)?
+        .list_all_files_recursively(path)
+        .await?
         .iter()
         .map(PathBuf::from)
         .collect::<Vec<PathBuf>>()
@@ -354,24 +375,29 @@ fn get_path_bufs(
         .collect()
 }
 
-fn parse_models(
+async fn parse_models(
     filesystem: &impl FileSystem,
     project_root: &str,
     model_definitions: &ModelDefinition,
 ) -> Result<BTreeMap<String, Model>, String> {
-    let paths = get_path_bufs(filesystem, project_root, PATH_FOR_MODELS, EXTENSION_SQL)?;
+    let paths = get_path_bufs(filesystem, project_root, PATH_FOR_MODELS, EXTENSION_SQL).await?;
 
     let models = paths
         .iter()
-        .map(|path| {
+        .map(|path| async move {
             parse_model(
                 filesystem,
                 model_definitions,
                 path.to_str()
                     .ok_or(format!("Could not parse model path: {:?}", path))?,
             )
+            .await
         })
-        .collect::<Result<Vec<Model>, String>>()?;
+        .collect::<Vec<_>>();
+    let models: Vec<Model> = futures::future::join_all(models)
+        .await
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()?;
 
     let mut model_map = BTreeMap::<String, Model>::new();
     for model in models {
@@ -381,9 +407,22 @@ fn parse_models(
     Ok(model_map)
 }
 
+/// validate_models checks that the model names are valid. The checks it perrgo forms are:
+/// - model names cannot start with 'qqq' as this is reserved for internal use
+/// - model names cannot contain spaces
+fn validate_models(models: &BTreeMap<String, Model>) -> Result<(), String> {
+    if let Some(invalid) = models.keys().find(|name| name.starts_with("qqq")) {
+        return Err(format!("model name {:?} starts with 'qqq'", invalid));
+    }
+    if let Some(invalid) = models.keys().find(|name| name.contains(' ')) {
+        return Err(format!("model name {:?} contains a space", invalid));
+    }
+    Ok(())
+}
+
 pub type ModelDefinition = HashMap<String, quary_proto::project_file::Model>;
 
-fn parse_model(
+async fn parse_model(
     file_system: &impl FileSystem,
     model_definitions: &ModelDefinition,
     sql_path: &str,
@@ -405,14 +444,21 @@ fn parse_model(
         .get(&name)
         .map(|model| model.description.clone())
         .unwrap_or(None);
+    let materialization = model_definitions
+        .get(&name)
+        .map(|model| model.materialization.clone())
+        .unwrap_or(None);
+
     let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
         .map_err(|e| format!("Could not parse reference search from schema name: {:?}", e))?;
 
     let mut file = file_system
         .read_file(sql_path)
+        .await
         .map_err(|e| format!("failed to read file: {:?}", e))?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)
+        .await
         .map_err(|e| format!("failed to read string: {:?}", e))?;
     let contents = remove_sql_comments(&contents);
     // TODO: Louis to del check here
@@ -452,7 +498,7 @@ fn parse_model(
         })
         .collect();
 
-    let file_sha256_hash = derive_sha256_file_contents(file_system, sql_path)?;
+    let file_sha256_hash = derive_sha256_file_contents(file_system, sql_path).await?;
 
     if references.contains(&name) {
         return Err(format!("model {} has a reference to itself", name));
@@ -462,21 +508,22 @@ fn parse_model(
         name,
         description,
         file_sha256_hash,
+        materialization,
         file_path: sql_path.to_string(),
         columns,
         references,
     })
 }
 
-fn parse_seeds<'a>(
+async fn parse_seeds<'a>(
     filesystem: &'a impl FileSystem,
     project_root: &'a str,
 ) -> Result<Vec<(String, Seed)>, String> {
-    let paths = get_path_bufs(filesystem, project_root, PATH_FOR_SEEDS, EXTENSION_CSV)?;
+    let paths = get_path_bufs(filesystem, project_root, PATH_FOR_SEEDS, EXTENSION_CSV).await?;
 
-    paths
+    let seeds = paths
         .iter()
-        .map(|path| {
+        .map(|path| async move {
             let name = path
                 .file_stem()
                 .and_then(|name| name.to_str())
@@ -485,7 +532,7 @@ fn parse_seeds<'a>(
             let path = path
                 .to_str()
                 .ok_or(format!("Could not parse seed path: {:?}", path))?;
-            let file_sha256_hash = derive_sha256_file_contents(filesystem, path)?;
+            let file_sha256_hash = derive_sha256_file_contents(filesystem, path).await?;
             Ok((
                 name.clone(),
                 Seed {
@@ -495,32 +542,50 @@ fn parse_seeds<'a>(
                 },
             ))
         })
-        .collect()
+        .collect::<Vec<_>>();
+
+    futures::future::join_all(seeds)
+        .await
+        .into_iter()
+        .collect::<Result<_, _>>()
 }
 
-pub fn parse_project_files(
+pub async fn parse_project_files(
     filesystem: &impl FileSystem,
     project_root: &str,
-    // Map of full path to project file and project file
+    database: &impl DatabaseQueryGenerator, // Map of full path to project file and project file
 ) -> Result<HashMap<String, ProjectFile>, String> {
-    let paths = get_path_bufs(filesystem, project_root, PATH_FOR_MODELS, EXTENSION_YAML)?;
+    let paths = get_path_bufs(filesystem, project_root, PATH_FOR_MODELS, EXTENSION_YAML).await?;
 
-    paths
+    let project_files = paths
         .iter()
-        .map(|path| {
+        .map(|path| async move {
             let path_str = path
                 .to_str()
                 .ok_or_else(|| format!("Could not parse project file path: {:?}", path))?
                 .to_string(); // Convert &str to String here
             let project_file_contents = filesystem
                 .read_file(&path_str)
+                .await
                 .map_err(|e| format!("Could not read project file '{}': {:?}", path_str, e))?;
-            let project_file: ProjectFile =
-                deserialize_project_file_from_yaml(project_file_contents)
-                    .map_err(|e| format!("Could not parse project file '{}': {:?}", path_str, e))?;
+
+            let file_contents = convert_async_read_to_blocking_read(project_file_contents).await;
+            let project_file: ProjectFile = deserialize_project_file_from_yaml(file_contents)
+                .map_err(|e| format!("Could not parse project file '{}': {:?}", path_str, e))?;
+
+            // Validate each model in the project file
+            // TODO:  Move validation out of this function
+            for model in &project_file.models {
+                database.validate_materialization_type(&model.materialization)?;
+            }
             Ok((path_str, project_file))
         })
-        .collect::<Result<HashMap<String, ProjectFile>, String>>()
+        .collect::<Vec<_>>();
+
+    futures::future::join_all(project_files)
+        .await
+        .into_iter()
+        .collect::<Result<_, _>>()
 }
 
 /// Returns sources from project files
@@ -587,6 +652,65 @@ fn parse_column_tests(
     }
 
     Ok(outs)
+}
+
+/// parse_model_tests_in_project_files returns the tests for both the source and model tests
+fn parse_model_tests_in_project_files(
+    database: &impl DatabaseQueryGenerator,
+    project_files: &HashMap<String, ProjectFile>,
+) -> Result<HashMap<String, Test>, String> {
+    let mut m = HashMap::<String, Test>::new();
+
+    for (file_path, file) in project_files {
+        for model in &file.models {
+            let model_path = database.return_full_path_requirement(&model.name);
+            for test in &model.tests {
+                let test = parse_model_test_for_model_source(
+                    file_path,
+                    test,
+                    &model.name,
+                    model_path.as_str(),
+                )?;
+                let name = test_to_name(&test)?;
+
+                safe_adder_map(&mut m, name, test)?;
+            }
+        }
+    }
+
+    Ok(m)
+}
+
+fn parse_model_test_for_model_source(
+    file_path: &str,
+    test: &quary_proto::ModelTest,
+    model_name: &str,
+    model_path: &str,
+) -> Result<Test, String> {
+    match test.r#type.as_str() {
+        crate::project_file::STANDARD_MODEL_TEST_TYPE_MULTI_COLUMN_UNIQUE => {
+            if test.info.len() != 1 {
+                return Err(format!("test {:?} has more than one field in info", test));
+            } else {
+                let columns = test
+                    .info
+                    .get("columns")
+                    .ok_or(format!("test {:?} is missing columns in info", test))?;
+                let columns = columns
+                    .split(',')
+                    .map(|s| s.to_string())
+                    .collect::<Vec<String>>();
+                Ok(TestMultiColumnUnique {
+                    file_path: file_path.to_string(),
+                    model: model_name.to_string(),
+                    path: model_path.to_string(),
+                    columns,
+                }
+                .to_test())
+            }
+        }
+        _ => Err(format!("test {:?} has unknown type {}", test, test.r#type)),
+    }
 }
 
 // TODO Move this close to the other file which is the same in reverse in rpc_proto_defined
@@ -751,7 +875,7 @@ fn parse_column_tests_for_model_or_source(
 ///
 /// Returns a tuple of the sql statement and the (nodes, edges) that were used to create the sql
 /// statement.
-pub fn project_and_fs_to_query_sql(
+pub async fn project_and_fs_to_query_sql(
     database: &impl DatabaseQueryGenerator,
     project: &Project,
     file_system: &impl FileSystem,
@@ -824,7 +948,7 @@ pub fn project_and_fs_to_query_sql(
         })
         .collect::<Result<Vec<_>, String>>()?;
 
-    let sql = convert_to_select_statement(database, file_system, &to_process, project)?;
+    let sql = convert_to_select_statement(database, file_system, &to_process, project).await?;
 
     let edges = upstream.return_graph_edges()?;
     let nodes = upstream.graph.node_weights().cloned().collect();
@@ -838,7 +962,7 @@ pub fn project_and_fs_to_query_sql(
 /// model/seed).
 ///
 /// returns: Result<Vec<(String, Vec<String, Global>), Global>, String>
-pub fn project_and_fs_to_sql_for_views(
+pub async fn project_and_fs_to_sql_for_views(
     project: &Project,
     file_system: &impl FileSystem,
     database: &impl DatabaseQueryGenerator,
@@ -848,7 +972,7 @@ pub fn project_and_fs_to_sql_for_views(
     let graph = project_to_graph(project.clone())?;
     let sorted = graph.graph.get_node_sorted()?;
 
-    let models = sorted
+    let models: Vec<_> = sorted
         .iter()
         .filter_map(|node| {
             match (
@@ -864,8 +988,8 @@ pub fn project_and_fs_to_sql_for_views(
                 _ => None,
             }
         })
-        .map(|model| {
-            let file = file_system.read_file(&model.file_path).map_err(|e| {
+        .map(|model| async move {
+            let file = file_system.read_file(&model.file_path).await.map_err(|e| {
                 format!(
                     "failed to read file {:?} with error {:?}",
                     model.file_path, e
@@ -875,6 +999,7 @@ pub fn project_and_fs_to_sql_for_views(
                 database,
                 file,
                 &model.name,
+                &model.materialization,
                 DEFAULT_SCHEMA_PREFIX,
                 |s| {
                     let replaced = replace_reference_string_found_with_database(
@@ -885,10 +1010,15 @@ pub fn project_and_fs_to_sql_for_views(
                     format!(" {}", replaced)
                 },
                 project,
-            )?;
-            Ok((model.name.clone(), sql_view))
+            )
+            .await?;
+            Ok::<(String, [String; 2]), String>((model.name.clone(), sql_view))
         })
-        .collect::<Result<Vec<(String, [String; 2])>, String>>()?;
+        .collect();
+    let models: Vec<(String, [String; 2])> = futures::future::join_all(models)
+        .await
+        .into_iter()
+        .collect::<Result<_, _>>()?;
 
     let models_map: HashMap<String, Vec<String>> = models
         .iter()
@@ -910,25 +1040,28 @@ pub fn project_and_fs_to_sql_for_views(
     }
     let mut seeds: Vec<&Seed> = project.seeds.values().collect();
     seeds.sort_by_key(|a| a.name.clone());
-    let mut seeds_out: Vec<(String, Vec<String>)> = seeds
+    let seeds_out = seeds
         .iter()
-        .map(|seed| {
-            let reader = file_system.read_file(&seed.file_path).map_err(|e| {
+        .map(|seed| async move {
+            let reader = file_system.read_file(&seed.file_path).await.map_err(|e| {
                 format!(
                     "failed to read file {:?} with error {:?}",
                     seed.file_path, e
                 )
             })?;
-            let values = parse_table_schema_seeds(
-                database,
-                &seed.name,
-                reader,
-                do_not_include_seeds_data,
-            )
-            .map_err(|e| format!("failed to parse seed {:?} with error {:?}", seed.name, e))?;
-            Ok((seed.name.clone(), values))
+            let values =
+                parse_table_schema_seeds(database, &seed.name, reader, do_not_include_seeds_data)
+                    .await
+                    .map_err(|e| {
+                        format!("failed to parse seed {:?} with error {:?}", seed.name, e)
+                    })?;
+            Ok::<(String, Vec<String>), String>((seed.name.clone(), values))
         })
-        .collect::<Result<Vec<(String, Vec<String>)>, String>>()?;
+        .collect::<Vec<_>>();
+    let mut seeds_out: Vec<_> = futures::future::join_all(seeds_out)
+        .await
+        .into_iter()
+        .collect::<Result<_, _>>()?;
 
     seeds_out.append(&mut models);
     Ok(seeds_out)
@@ -938,7 +1071,7 @@ pub fn project_and_fs_to_sql_for_views(
 /// It also replaces any q.references with the actual name that is in the select. It uses no views.
 ///
 /// array of models is in the shape of [][2]string where the first element is the name of the model and the second element is the sql
-fn convert_to_select_statement(
+async fn convert_to_select_statement(
     database: &impl DatabaseQueryGenerator,
     file_system: &impl FileSystem,
     values: &[NodeWithName],
@@ -949,24 +1082,31 @@ fn convert_to_select_statement(
 
     let nodes = values
         .iter()
-        .map(|node| match &node.node {
-            ModelOrSeed::Override((name, target)) => {
-                let sql = render_override_select_statement(target);
-                Ok((name.clone(), sql))
-            }
-            ModelOrSeed::Source(source) => {
-                let sql = render_source_select_statement(source);
-                Ok((node.name.clone(), sql))
-            }
-            ModelOrSeed::Seed(seed) => {
-                let sql = render_seed_select_statement(database, file_system, seed)?;
-                Ok((node.name.clone(), sql))
-            }
-            ModelOrSeed::Model(model) => {
-                let sql = render_model_select_statement(database, file_system, model, project)?;
-                Ok((node.name.clone(), sql))
+        .map(|node| async move {
+            match &node.node {
+                ModelOrSeed::Override((name, target)) => {
+                    let sql = render_override_select_statement(target);
+                    Ok((name.clone(), sql))
+                }
+                ModelOrSeed::Source(source) => {
+                    let sql = render_source_select_statement(source);
+                    Ok((node.name.clone(), sql))
+                }
+                ModelOrSeed::Seed(seed) => {
+                    let sql = render_seed_select_statement(database, file_system, seed).await?;
+                    Ok((node.name.clone(), sql))
+                }
+                ModelOrSeed::Model(model) => {
+                    let sql = render_model_select_statement(database, file_system, model, project)
+                        .await?;
+                    Ok((node.name.clone(), sql))
+                }
             }
         })
+        .collect::<Vec<_>>();
+    let nodes = futures::future::join_all(nodes)
+        .await
+        .into_iter()
         .collect::<Result<Vec<Info>, String>>()?;
 
     match &nodes[..] {
@@ -990,17 +1130,18 @@ fn convert_to_select_statement(
     }
 }
 
-fn render_seed_select_statement(
+async fn render_seed_select_statement(
     database: &impl DatabaseQueryGenerator,
     fs: &impl FileSystem,
     seed: &Seed,
 ) -> Result<String, String> {
-    let reader = fs.read_file(seed.file_path.as_str()).map_err(|e| {
+    let reader = fs.read_file(seed.file_path.as_str()).await.map_err(|e| {
         format!(
             "failed to read file {:?} with error {:?}",
             seed.file_path, e
         )
     })?;
+    let reader = convert_async_read_to_blocking_read(reader).await;
 
     let mut csv_reader = csv::ReaderBuilder::new()
         .has_headers(false)
@@ -1065,19 +1206,19 @@ fn render_override_select_statement(override_target: &str) -> String {
     format!("SELECT * FROM {}", override_target)
 }
 
-fn render_model_select_statement(
+async fn render_model_select_statement(
     database: &impl DatabaseQueryGenerator,
     fs: &impl FileSystem,
     model: &Model,
     project: &Project,
 ) -> Result<String, String> {
-    let reader = fs.read_file(model.file_path.as_str()).map_err(|e| {
+    let reader = fs.read_file(model.file_path.as_str()).await.map_err(|e| {
         format!(
             "failed to read file {:?} with error {:?}",
             model.file_path, e
         )
     })?;
-    let sql = read_normalise_model(reader)?;
+    let sql = read_normalise_model(reader).await?;
 
     let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX).map_err(|e| {
         format!(
@@ -1202,16 +1343,18 @@ mod test {
     use crate::database_sqlite::DatabaseQueryGeneratorSqlite;
     use crate::init::Asset;
 
-    #[test]
-    fn test_return_tests_for_a_particular_model() {
+    #[tokio::test]
+    async fn test_return_tests_for_a_particular_model() {
         let assets = Asset {};
 
-        let project = parse_project(&assets, &DatabaseQueryGeneratorSqlite::default(), "").unwrap();
+        let project = parse_project(&assets, &DatabaseQueryGeneratorSqlite::default(), "")
+            .await
+            .unwrap();
 
         let tests: Vec<_> =
             return_tests_for_a_particular_model(&project, "shifts_by_month").collect();
 
-        assert_eq!(tests.len(), 5);
+        assert_eq!(tests.len(), 6);
     }
 
     #[test]
@@ -1228,8 +1371,8 @@ mod test {
         assert_eq!(expected, actual);
     }
 
-    #[test]
-    fn test_render_seed_select_statement() {
+    #[tokio::test]
+    async fn test_render_seed_select_statement() {
         let fs = quary_proto::FileSystem {
             files: vec![(
                 "test.csv".to_string(),
@@ -1251,12 +1394,14 @@ mod test {
         let expected =
             "SELECT column1 AS id,column2 AS name FROM (VALUES (\'1\',\'Bob\'),(\'2\',\'Sally\'))";
         let database = DatabaseQueryGeneratorSqlite::default();
-        let actual = render_seed_select_statement(&database, &fs, &seed).unwrap();
+        let actual = render_seed_select_statement(&database, &fs, &seed)
+            .await
+            .unwrap();
         assert_eq!(expected, actual);
     }
 
-    #[test]
-    fn test_parse_model() {
+    #[tokio::test]
+    async fn test_parse_model() {
         let sql = "WITH shifts AS (SELECT employee_id,
                             shift_date,
                             shift
@@ -1296,13 +1441,17 @@ mod test {
         let model_definitions = vec![quary_proto::project_file::Model {
             name: "test".to_string(),
             description: None,
+            tests: vec![],
+            materialization: None,
             columns: vec![],
         }]
         .into_iter()
         .map(|m| (m.name.clone(), m))
         .collect::<HashMap<String, _>>() as ModelDefinition;
 
-        let model = parse_model(&file_system, &model_definitions, "models/test.sql").unwrap();
+        let model = parse_model(&file_system, &model_definitions, "models/test.sql")
+            .await
+            .unwrap();
 
         assert_eq!(model.name, "test");
         assert_eq!(model.file_path, "models/test.sql");
@@ -1312,19 +1461,19 @@ mod test {
         assert_eq!(model.references[1], "stg_shifts");
     }
 
-    #[test]
-    fn test_parse_project_on_init() {
+    #[tokio::test]
+    async fn test_parse_project_on_init() {
         let database = DatabaseQueryGeneratorSqlite::default();
 
         let assets = Asset {};
-        let project = parse_project(&assets, &database, "").unwrap();
+        let project = parse_project(&assets, &database, "").await.unwrap();
 
         assert!(!project.models.is_empty());
         assert!(project.models.contains_key("shifts"));
     }
 
-    #[test]
-    fn test_project_and_fs_to_query_sql_sqlite_simple_model_source() {
+    #[tokio::test]
+    async fn test_project_and_fs_to_query_sql_sqlite_simple_model_source() {
         let database = DatabaseQueryGeneratorSqlite::default();
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
@@ -1356,16 +1505,17 @@ mod test {
             ]),
         };
 
-        let project = parse_project(&fs, &database, "").unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
 
-        let (sql, _) =
-            project_and_fs_to_query_sql(&database, &project, &fs, "shifts", None).unwrap();
+        let (sql, _) = project_and_fs_to_query_sql(&database, &project, &fs, "shifts", None)
+            .await
+            .unwrap();
 
         assert_eq!(sql, "WITH raw_shifts AS (SELECT * FROM raw_shifts_real_table) SELECT * FROM (SELECT employee_id, shift_date, shift FROM `raw_shifts`) AS alias");
     }
 
-    #[test]
-    fn test_project_and_fs_to_query_sql_sqlite_simple_model_model_source() {
+    #[tokio::test]
+    async fn test_project_and_fs_to_query_sql_sqlite_simple_model_model_source() {
         let database = DatabaseQueryGeneratorSqlite::default();
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
@@ -1404,17 +1554,18 @@ mod test {
             ]),
         };
 
-        let project = parse_project(&fs, &database, "").unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
 
         let (sql, _) =
             project_and_fs_to_query_sql(&database, &project, &fs, "shifts_transformed", None)
+                .await
                 .unwrap();
 
         assert_eq!(sql, "WITH\nraw_shifts AS (SELECT * FROM raw_shifts_real_table),\nshifts AS (SELECT employee_id, shift_date, shift FROM `raw_shifts`)\nSELECT * FROM (SELECT * FROM `shifts`) AS alias");
     }
 
-    #[test]
-    fn test_project_and_fs_to_query_sql_sqlite_simple_model_model_source_with_overides() {
+    #[tokio::test]
+    async fn test_project_and_fs_to_query_sql_sqlite_simple_model_model_source_with_overides() {
         let database = DatabaseQueryGeneratorSqlite::default();
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
@@ -1453,7 +1604,7 @@ mod test {
             ]),
         };
 
-        let project = parse_project(&fs, &database, "").unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
 
         let (sql, _) = project_and_fs_to_query_sql(
             &database,
@@ -1468,6 +1619,7 @@ mod test {
                 ),
             ])),
         )
+        .await
         .unwrap();
 
         assert_eq!(
@@ -1476,8 +1628,8 @@ mod test {
         );
     }
 
-    #[test]
-    fn project_and_fs_to_query_sql_with_overrides_in_middle() {
+    #[tokio::test]
+    async fn project_and_fs_to_query_sql_with_overrides_in_middle() {
         let database = DatabaseQueryGeneratorSqlite::default();
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
@@ -1582,7 +1734,7 @@ sources:
             ]),
         };
 
-        let project = parse_project(&fs, &database, "").unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
 
         let (sql, _) = project_and_fs_to_query_sql(
             &database,
@@ -1600,6 +1752,7 @@ sources:
                 ),
             ])),
         )
+        .await
         .unwrap();
 
         // Assert is one of the two possibilities
@@ -1610,8 +1763,8 @@ sources:
         assert!(sql == possibility_1 || sql == possibility_2);
     }
 
-    #[test]
-    fn test_project_and_fs_to_query_sql_sqlite_simple_model_model_source_with_overide_end() {
+    #[tokio::test]
+    async fn test_project_and_fs_to_query_sql_sqlite_simple_model_model_source_with_overide_end() {
         let database = DatabaseQueryGeneratorSqlite::default();
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
@@ -1650,7 +1803,7 @@ sources:
             ]),
         };
 
-        let project = parse_project(&fs, &database, "").unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
 
         let (sql, _) = project_and_fs_to_query_sql(
             &database,
@@ -1662,13 +1815,14 @@ sources:
                 "qqq_shifts_transformed_hash".to_string(),
             )])),
         )
+        .await
         .unwrap();
 
         assert_eq!(sql, "SELECT * FROM qqq_shifts_transformed_hash");
     }
 
-    #[test]
-    fn test_project_and_fs_to_query_sql_big_query_simple_model_source() {
+    #[tokio::test]
+    async fn test_project_and_fs_to_query_sql_big_query_simple_model_source() {
         let database = DatabaseQueryGeneratorBigQuery::new(
             "test-project".to_string(),
             "test-dataset".to_string(),
@@ -1703,17 +1857,18 @@ sources:
             ]),
         };
 
-        let project = parse_project(&fs, &database, "").unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
 
-        let (sql, _) =
-            project_and_fs_to_query_sql(&database, &project, &fs, "shifts", None).unwrap();
+        let (sql, _) = project_and_fs_to_query_sql(&database, &project, &fs, "shifts", None)
+            .await
+            .unwrap();
 
         // TODO: figure out if we should also use backticks for the table name here
         assert_eq!(sql, "WITH raw_shifts AS (SELECT * FROM test-project.test-dataset-2.raw_shifts_real_table) SELECT * FROM (SELECT employee_id, shift_date, shift FROM `raw_shifts`) AS alias");
     }
 
-    #[test]
-    fn test_project_and_fs_to_query_sql_big_query_simple_model_model_source() {
+    #[tokio::test]
+    async fn test_project_and_fs_to_query_sql_big_query_simple_model_model_source() {
         let database = DatabaseQueryGeneratorBigQuery::new(
             "test-project".to_string(),
             "test-dataset".to_string(),
@@ -1755,17 +1910,18 @@ sources:
             ]),
         };
 
-        let project = parse_project(&fs, &database, "").unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
 
         let (sql, _) =
             project_and_fs_to_query_sql(&database, &project, &fs, "shifts_transformed", None)
+                .await
                 .unwrap();
 
         assert_eq!(sql, "WITH\nraw_shifts AS (SELECT * FROM test-project.test-dataset-2.raw_shifts_real_table),\nshifts AS (SELECT employee_id, shift_date, shift FROM `raw_shifts`)\nSELECT * FROM (SELECT * FROM `shifts`) AS alias");
     }
 
-    #[test]
-    fn test_project_and_fs_to_query_sql_big_query_simple_model_model_source_with_override() {
+    #[tokio::test]
+    async fn test_project_and_fs_to_query_sql_big_query_simple_model_model_source_with_override() {
         let database = DatabaseQueryGeneratorBigQuery::new(
             "test-project".to_string(),
             "test-dataset".to_string(),
@@ -1807,7 +1963,7 @@ sources:
             ]),
         };
 
-        let project = parse_project(&fs, &database, "").unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
 
         let (sql, _) = project_and_fs_to_query_sql(
             &database,
@@ -1825,13 +1981,14 @@ sources:
                 ),
             ])),
         )
+        .await
         .unwrap();
 
         assert_eq!(sql, "WITH shifts AS (SELECT * FROM test-project.test-dataset-2.qqq_shifts_hash) SELECT * FROM (SELECT * FROM `shifts`) AS alias");
     }
 
-    #[test]
-    fn test_project_and_fs_to_sql_for_views_big_query() {
+    #[tokio::test]
+    async fn test_project_and_fs_to_sql_for_views_big_query() {
         let database =
             DatabaseQueryGeneratorBigQuery::new("quarylabs".to_string(), "transform".to_string());
         let fs = quary_proto::FileSystem {
@@ -1887,14 +2044,16 @@ sources:
             )
         ];
 
-        let project = parse_project(&fs, &database, "").unwrap();
-        let sql = project_and_fs_to_sql_for_views(&project, &fs, &database, false, false).unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
+        let sql = project_and_fs_to_sql_for_views(&project, &fs, &database, false, false)
+            .await
+            .unwrap();
 
         assert_eq!(sql, expected_output)
     }
 
-    #[test]
-    fn test_project_and_fs_to_sql_for_views_sqlite() {
+    #[tokio::test]
+    async fn test_project_and_fs_to_sql_for_views_sqlite() {
         let database = DatabaseQueryGeneratorSqlite::default();
         let fs = quary_proto::FileSystem {
             files: HashMap::from([
@@ -1950,17 +2109,16 @@ sources:
             )
         ];
 
-        let project = parse_project(&fs, &database, "").unwrap();
-        let sql = project_and_fs_to_sql_for_views(&project, &fs, &database, false, false).unwrap();
+        let project = parse_project(&fs, &database, "").await.unwrap();
+        let sql = project_and_fs_to_sql_for_views(&project, &fs, &database, false, false)
+            .await
+            .unwrap();
 
         assert_eq!(sql, expected_output)
     }
 
-    #[test]
-    fn test_return_tests_sql_no_roots() {}
-
-    #[test]
-    fn test_parse_project_with_bad_reference_but_in_comment() {
+    #[tokio::test]
+    async fn test_parse_project_with_bad_reference_but_in_comment() {
         let database = DatabaseQueryGeneratorSqlite {};
 
         let file_system = quary_proto::FileSystem {
@@ -2013,11 +2171,11 @@ sources:
             .collect(),
         };
 
-        parse_project(&file_system, &database, "").unwrap();
+        parse_project(&file_system, &database, "").await.unwrap();
     }
 
-    #[test]
-    fn test_parse_project_with_sql_beginning_with_q() {
+    #[tokio::test]
+    async fn test_parse_project_with_sql_beginning_with_q() {
         let database = DatabaseQueryGeneratorSqlite {};
 
         let file_system = quary_proto::FileSystem {
@@ -2072,7 +2230,67 @@ sources:
             .collect(),
         };
 
-        parse_project(&file_system, &database, "").unwrap();
+        parse_project(&file_system, &database, "").await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_parse_project_with_invalid_name_qqq() {
+        let database = DatabaseQueryGeneratorSqlite {};
+
+        let file_system = quary_proto::FileSystem {
+            files: vec![
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "models/qqq_shifts.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/qqq_shifts.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT '1'"),
+                    },
+                ),
+            ]
+            .into_iter()
+            .collect(),
+        };
+
+        let project = parse_project(&file_system, &database, "").await;
+
+        assert!(project.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_parse_project_with_invalid_name_space() {
+        let database = DatabaseQueryGeneratorSqlite {};
+
+        let file_system = quary_proto::FileSystem {
+            files: vec![
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "models/raw shifts.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/raw shifts.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT '1'"),
+                    },
+                ),
+            ]
+            .into_iter()
+            .collect(),
+        };
+
+        let project = parse_project(&file_system, &database, "").await;
+
+        assert!(project.is_err());
     }
 
     #[test]
@@ -2110,6 +2328,51 @@ sources:
             result,
             "SELECT\n        value1 as test_var,\n        'morning' AS shift,\n        '08:00:00' AS start_time,\n        '12:00:00' AS end_time\n    UNION ALL\n    SELECT\n        'afternoon' AS shift,\n        '12:00:00' AS start_time,\n        '16:00:00' AS end_time\n    "
         );
+    }
+
+    #[tokio::test]
+    async fn test_parse_project_with_valid_materialization() {
+        let database = DatabaseQueryGeneratorSqlite {};
+
+        let file_system = quary_proto::FileSystem {
+            files: vec![
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                "models/shifts.sql".to_string(),
+                quary_proto::File {
+                    name: "models/shifts.sql".to_string(),
+                    contents: prost::bytes::Bytes::from(
+                        "SELECT employee_id, shift_date, shift FROM q.raw_shifts -- q.raw_gibberish_in_comment",
+                    ),
+                },
+                ),
+                (
+                    "models/schema.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "
+sources:
+  - name: raw_shifts
+    path: source.data.raw_pull_requests_real_table
+models:
+  - name: shifts
+    materialization: view
+"),
+                    },
+                ),
+            ]
+            .into_iter()
+            .collect(),
+        };
+
+        parse_project(&file_system, &database, "").await.unwrap();
     }
 
     // TODO Reinstate after making get_node_sorted completely deterministic
