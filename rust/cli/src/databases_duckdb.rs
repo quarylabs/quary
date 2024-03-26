@@ -101,6 +101,10 @@ impl DatabaseConnection for DuckDB {
             .collect())
     }
 
+    async fn list_materialized_views(&self) -> Result<Vec<TableAddress>, String> {
+        Ok(vec![TableAddress{name: "none".to_string(),full_path: "none".to_string()}])
+    }
+
     async fn list_columns(&self, table: &str) -> Result<Vec<String>, String> {
         let results = self.query(&format!("PRAGMA table_info({})", table)).await?;
         Ok(results

@@ -19,9 +19,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
     ) -> Result<(), String> {
         match materialization_type {
             None => Ok(()),
-            Some(materialization_type) if materialization_type == "view" => Ok(()),
-            Some(materialization_type) if materialization_type == "table" => Ok(()),
-            Some(materialization_type) if materialization_type == "materialized_view" => Ok(()),
+            Some(t) if t == "view" || t == "materialized_view" || t == "table" => Ok(()),
             Some(materialization_type) => Err(format!(
                 "Materialization type {} is not supported. Supported types are 'view', 'table', 'materialized_view'.",
                 materialization_type
@@ -77,9 +75,30 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
             )),
             Some("materialized_view") => Ok(format!(
                 "CREATE MATERIALIZED VIEW {} AS {}",
+                // "REFRESH MATERIALIZED VIEW {}",
+                // object_name
                 object_name, original_select_statement
             )),
             _ => Err("Unsupported materialization type".to_string()),
+        }
+    }
+
+    fn models_refresh_query(
+        &self,
+        object_name: &str,
+        original_select_statement: &str,
+        materialization_type: &Option<String>,
+    ) -> Result<String, String> {
+        let object_name = self.return_full_path_requirement(object_name);
+        let object_name = self.database_name_wrapper(&object_name);
+        match materialization_type.as_deref() {
+            Some("materialized_view") => Ok(format!(
+                "REFRESH MATERIALIZED VIEW {} as {}",
+                object_name, original_select_statement
+            )),
+            Some("view") | Some("table") => Ok(format!(
+                "REFRESH MATERIALIZED VIEW {:?}", materialization_type)),
+            _ => Err("Only materialized views are refreshed".to_string()),
         }
     }
 

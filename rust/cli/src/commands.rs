@@ -29,6 +29,11 @@ pub enum Commands {
         about = "Build and execute the model views/seeds against target database"
     )]
     Build(BuildArgs),
+    #[command(
+    name = "refresh",
+    about = "Refresh materialized views against target database"
+    )]
+    Refresh(BuildArgs),
     #[command(name = "test", about = "Run defined tests against target database")]
     Test(TestArgs),
     #[command(

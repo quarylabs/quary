@@ -84,6 +84,27 @@ impl DatabaseConnection for Postgres {
         Ok(tables)
     }
 
+    async fn list_materialized_views(&self) -> Result<Vec<TableAddress>, String> {
+        let rows = sqlx::query(
+            format!("SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND table_type = 'MATERIALIZED VIEW' ORDER BY table_name DESC", self.schema).as_str(),
+        )
+            .fetch_all(&self.pool)
+            .await
+            .map_err(|e| e.to_string())?;
+
+        let mut tables = Vec::new();
+
+        for row in rows {
+            let table_name: String = row.get(0);
+            tables.push(TableAddress {
+                name: table_name.clone(),
+                full_path: table_name,
+            });
+        }
+
+        Ok(tables)
+    }
+
     async fn list_columns(&self, table: &str) -> Result<Vec<String>, String> {
         let rows = sqlx::query(&format!(
             "SELECT column_name FROM information_schema.columns WHERE table_name = '{}'",

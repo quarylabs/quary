@@ -248,6 +248,137 @@ async fn main() -> Result<(), String> {
                 Ok(())
             }
         }
+        Commands::Refresh(build_args) => {
+            let config = get_config_file(&args.project_file)?;
+
+            let database = database_from_config(&config).await?;
+            // let query_generator = database.query_generator().models_refresh_query();
+            let query_generator = database.query_generator();
+            // println!("query generator {:?}", query_generator.models_refresh_query());
+            let (project, file_system) = parse_project(&query_generator).await?;
+
+            // If cache table deletes any previous cache views.
+            let cache_delete_views_sqls: Vec<(String, String)> = if build_args.cache_views {
+                let views = database
+                    .list_materialized_views()
+                    .await
+                    .map_err(|e| format!("listing views: {:?}", e))?;
+                println!("list materialized views {:?}", views);
+                let views_with_is_cache = views
+                    .into_iter()
+                    .map(|view| {
+                        let is_cache =
+                            is_cache_full_path(&database.query_generator(), &view.full_path)?;
+                        Ok((view, is_cache))
+                    })
+                    .collect::<Result<Vec<_>, String>>()?;
+
+                let filtered_views = views_with_is_cache
+                    .into_iter()
+                    .filter_map(|(view, is_cache)| if is_cache { Some(view) } else { None })
+                    .collect::<Vec<_>>();
+                let views_with_delete_statements: Vec<(String, String)> = filtered_views
+                    .into_iter()
+                    .map(|view| {
+                        let delete_statement = drop_statement_for_cache_view(&view.full_path)?;
+                        Ok((view.name, delete_statement))
+                    })
+                    .collect::<Result<Vec<(String, String)>, String>>()?;
+
+                Ok::<_, String>(views_with_delete_statements)
+            } else {
+                Ok(vec![])
+            }?;
+
+            let cache_to_create: Vec<(String, Vec<String>)> = if build_args.cache_views {
+                let project_graph = project_to_graph(project.clone())?;
+                let views =
+                    derive_hash_views(&database.query_generator(), &project, &project_graph)?;
+                Ok::<_, String>(
+                    views
+                        .into_iter()
+                        .map(|(name, (_, sql))| (name.to_string(), sql))
+                        .collect(),
+                )
+            } else {
+                Ok(vec![])
+            }?;
+
+            let sqls = project_and_fs_to_sql_for_views(
+                &project,
+                &file_system,
+                &query_generator,
+                false,
+                false,
+            )
+                .await?;
+            println!("SQLS LIST {:?}", sqls);
+            if build_args.dry_run {
+                if !cache_delete_views_sqls.is_empty() {
+                    println!("\n-- Delete cache views\n");
+                    for (name, sql) in cache_delete_views_sqls {
+                        println!("-- {}", name);
+                        println!("{};", sql);
+                    }
+                }
+                println!("\n-- Create models\n");
+                for (name, sql) in sqls {
+                    println!("\n-- {name}");
+                    for sql in sql {
+                        println!("{};", sql);
+                    }
+                }
+                if !cache_to_create.is_empty() {
+                    println!("\n-- Create cache views\n");
+                    for (name, sql) in cache_to_create {
+                        println!("-- {}", name);
+                        for sql in sql {
+                            println!("{};", sql);
+                        }
+                    }
+                }
+                return Ok(());
+            } else {
+                let total_number_of_sql_statements = cache_delete_views_sqls.len()
+                    + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
+                    + cache_to_create.len();
+                let pb = ProgressBar::new(total_number_of_sql_statements as u64);
+                pb.set_style(
+                    ProgressStyle::default_bar()
+                        .template("{spinner:.green} {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
+                        .map_err(|e| e.to_string())?
+                        .progress_chars("=>-"),
+                );
+                for (name, sql) in cache_delete_views_sqls {
+                    pb.set_message(format!("Building model: {}", name));
+                    pb.inc(1);
+                    database.exec(sql.as_str()).await.map_err(|e| {
+                        format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
+                    })?
+                }
+                for (name, sql) in &sqls {
+                    for sql in sql {
+                        pb.set_message(format!("Building model: {}", name));
+                        pb.inc(1);
+                        database.exec(sql.as_str()).await.map_err(|e| {
+                            format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
+                        })?
+                    }
+                }
+                for (name, sql) in cache_to_create {
+                    pb.inc(1);
+                    pb.set_message(name.to_string());
+                    for sql in sql {
+                        database.exec(sql.as_str()).await.map_err(|e| {
+                            format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
+                        })?
+                    }
+                }
+                pb.finish_with_message("done");
+                println!("Refreshed {} materialized views in the database", sqls.len());
+                Ok(())
+            }
+        }
         Commands::Test(test_args) => {
             let config = get_config_file(&args.project_file)?;
 

@@ -11,8 +11,8 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
         match materialization_type {
             None => Ok(()),
             Some(materialization_type) if materialization_type == "view" => Ok(()),
-            Some(materialization_type) if materialization_type == "table" => Ok(()),
             Some(materialization_type) if materialization_type == "materialized_view" => Ok(()),
+            Some(materialization_type) if materialization_type == "table" => Ok(()),
             Some(materialization_type) => Err(format!(
                 "Materialization type {} is not supported. Supported types are 'view'.",
                 materialization_type
@@ -21,7 +21,24 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
     }
 
     // For Models section
-
+    fn models_refresh_query(
+        &self,
+        object_name: &str,
+        original_select_statement: &str,
+        materialization_type: &Option<String>,
+    ) -> Result<String, String> {
+        let object_name = self.return_full_path_requirement(object_name);
+        let object_name = self.database_name_wrapper(&object_name);
+        match materialization_type.as_deref() {
+            Some("materialized_view") => Ok(format!(
+                "REFRESH MATERIALIZED VIEW {}",
+                object_name
+            )),
+            Some("view") | Some("table") => Ok(format!(
+                "REFRESH MATERIALIZED VIEW {:?}", materialization_type)),
+            _ => Err("Only materialized views are refreshed".to_string()),
+        }
+    }
     /// ModelsDropQuery drops the model with type defined by the materialization setting
     fn models_drop_query(
         &self,
@@ -34,13 +51,7 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
             None => Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string()),
             Some(materialization_type) if materialization_type == "view" => {
                 Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string())
-            },
-            Some(materialization_type) if materialization_type == "materialized_view" => {
-                Ok(format!("DROP MATERIALIZED VIEW IF EXISTS {}", object_name).to_string())
-            },
-            Some(materialization_type) if materialization_type == "table" => {
-                Ok(format!("DROP TABLE IF EXISTS {}", object_name).to_string())
-            },
+            }
             _ => Err("Unsupported materialization type".to_string()),
         }
     }
@@ -55,16 +66,10 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type.as_deref() {
-            Some("materialized_view") => { println!("mat type {:?}", materialization_type.as_deref() ); Ok(format!(
-                "CREATE materialized VIEW {} AS {}",
-                object_name, original_select_statement
-            ))},
-
             None => Ok(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             )),
-
             Some("view") => Ok(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
@@ -178,6 +183,19 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
         )
     }
 
+    fn models_refresh_query(
+        &self,
+        view_name: &str,
+        original_select_statement: &str,
+        materialization_type: &Option<String>,
+    ) -> Result<String, String> {
+        self.as_ref().models_refresh_query(
+            view_name,
+            original_select_statement,
+            materialization_type,
+        )
+    }
+
     fn seeds_drop_table_query(&self, table_name: &str) -> String {
         self.as_ref().seeds_drop_table_query(table_name)
     }
@@ -254,6 +272,9 @@ pub trait DatabaseConnection: Debug {
     /// list_views returns the names of all the views in the schema/dataset/database that the database connection is
     /// connected to.
     async fn list_views(&self) -> Result<Vec<TableAddress>, String>;
+    /// list_materialized views returns the names of all the views in the schema/dataset/database that the database connection is
+    /// connected to.
+    async fn list_materialized_views(&self) -> Result<Vec<TableAddress>, String>;
     /// list_columns returns the columns of a table in the order they are defined in the table. If the table does not
     /// exist, an error is returned.
     async fn list_columns(&self, table: &str) -> Result<Vec<String>, String>;
@@ -327,12 +348,10 @@ mod tests {
         let expected_columns = vec![
             quary_proto::QueryResultColumn {
                 name: "id".to_string(),
-                r#type: None,
                 values: vec!["1".to_string(), "2".to_string()],
             },
             quary_proto::QueryResultColumn {
                 name: "name".to_string(),
-                r#type: None,
                 values: vec!["Alice".to_string(), "Bob".to_string()],
             },
         ];

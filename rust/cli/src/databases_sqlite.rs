@@ -67,6 +67,10 @@ impl DatabaseConnection for Sqlite {
         Ok(tables)
     }
 
+    async fn list_materialized_views(&self) -> Result<Vec<TableAddress>, String> {
+        Ok(vec![TableAddress{name: "none".to_string(),full_path: "none".to_string()}])
+    }
+
     async fn list_columns(&self, table: &str) -> Result<Vec<String>, String> {
         let rows = sqlx::query(&format!("PRAGMA table_info({})", table))
             .fetch_all(&self.pool)
