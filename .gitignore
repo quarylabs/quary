@@ -103,3 +103,7 @@ fabric.properties
 
 machine_learning/wikisql
 .vercel
+
+models*
+quary.yaml
+.idea*

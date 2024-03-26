@@ -133,6 +133,7 @@ async fn main() -> Result<(), String> {
                     .list_views()
                     .await
                     .map_err(|e| format!("listing views: {:?}", e))?;
+                println!("materialized _views {:?}", views);
                 let views_with_is_cache = views
                     .into_iter()
                     .map(|view| {
@@ -144,7 +145,7 @@ async fn main() -> Result<(), String> {
 
                 let filtered_views = views_with_is_cache
                     .into_iter()
-                    .filter_map(|(view, is_cache)| if is_cache { Some(view) } else { None })
+                    .filter_map(|(view, is_cache)| if is_cache { Some(view)  } else { None })
                     .collect::<Vec<_>>();
                 let views_with_delete_statements: Vec<(String, String)> = filtered_views
                     .into_iter()
@@ -153,7 +154,6 @@ async fn main() -> Result<(), String> {
                         Ok((view.name, delete_statement))
                     })
                     .collect::<Result<Vec<(String, String)>, String>>()?;
-
                 Ok::<_, String>(views_with_delete_statements)
             } else {
                 Ok(vec![])
@@ -254,8 +254,10 @@ async fn main() -> Result<(), String> {
             let database = database_from_config(&config).await?;
             // let query_generator = database.query_generator().models_refresh_query();
             let query_generator = database.query_generator();
-            // println!("query generator {:?}", query_generator.models_refresh_query());
+
+            println!("query generator {:?}", query_generator);
             let (project, file_system) = parse_project(&query_generator).await?;
+            println!("project {:?}", project);
 
             // If cache table deletes any previous cache views.
             let cache_delete_views_sqls: Vec<(String, String)> = if build_args.cache_views {
@@ -284,25 +286,26 @@ async fn main() -> Result<(), String> {
                         Ok((view.name, delete_statement))
                     })
                     .collect::<Result<Vec<(String, String)>, String>>()?;
+                // Ok::<_,vec!["quary_check_materialized"]>
 
                 Ok::<_, String>(views_with_delete_statements)
             } else {
                 Ok(vec![])
             }?;
 
-            let cache_to_create: Vec<(String, Vec<String>)> = if build_args.cache_views {
-                let project_graph = project_to_graph(project.clone())?;
-                let views =
-                    derive_hash_views(&database.query_generator(), &project, &project_graph)?;
-                Ok::<_, String>(
-                    views
-                        .into_iter()
-                        .map(|(name, (_, sql))| (name.to_string(), sql))
-                        .collect(),
-                )
-            } else {
-                Ok(vec![])
-            }?;
+            // let cache_to_create: Vec<(String, Vec<String>)> = if build_args.cache_views {
+            //     let project_graph = project_to_graph(project.clone())?;
+            //     let views =
+            //         derive_hash_views(&database.query_generator(), &project, &project_graph)?;
+            //     Ok::<_, String>(
+            //         views
+            //             .into_iter()
+            //             .map(|(name, (_, sql))| (name.to_string(), sql))
+            //             .collect(),
+            //     )
+            // } else {
+            //     Ok(vec![])
+            // }?;
 
             let sqls = project_and_fs_to_sql_for_views(
                 &project,
@@ -312,6 +315,8 @@ async fn main() -> Result<(), String> {
                 false,
             )
                 .await?;
+            println!("project {:?}", &project);
+
             println!("SQLS LIST {:?}", sqls);
             if build_args.dry_run {
                 if !cache_delete_views_sqls.is_empty() {
@@ -328,20 +333,21 @@ async fn main() -> Result<(), String> {
                         println!("{};", sql);
                     }
                 }
-                if !cache_to_create.is_empty() {
-                    println!("\n-- Create cache views\n");
-                    for (name, sql) in cache_to_create {
-                        println!("-- {}", name);
-                        for sql in sql {
-                            println!("{};", sql);
-                        }
-                    }
-                }
+                // if !cache_to_create.is_empty() {
+                //     println!("\n-- Create cache views\n");
+                //     for (name, sql) in cache_to_create {
+                //         println!("-- {}", name);
+                //         for sql in sql {
+                //             println!("{};", sql);
+                //         }
+                //     }
+                // }
                 return Ok(());
             } else {
-                let total_number_of_sql_statements = cache_delete_views_sqls.len()
-                    + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
-                    + cache_to_create.len();
+                let total_number_of_sql_statements = 2;
+                // let total_number_of_sql_statements = cache_delete_views_sqls.len()
+                //     + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
+                //     + cache_to_create.len();
                 let pb = ProgressBar::new(total_number_of_sql_statements as u64);
                 pb.set_style(
                     ProgressStyle::default_bar()
@@ -365,15 +371,15 @@ async fn main() -> Result<(), String> {
                         })?
                     }
                 }
-                for (name, sql) in cache_to_create {
-                    pb.inc(1);
-                    pb.set_message(name.to_string());
-                    for sql in sql {
-                        database.exec(sql.as_str()).await.map_err(|e| {
-                            format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
-                        })?
-                    }
-                }
+                // for (name, sql) in cache_to_create {
+                //     pb.inc(1);
+                //     pb.set_message(name.to_string());
+                //     for sql in sql {
+                //         database.exec(sql.as_str()).await.map_err(|e| {
+                //             format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
+                //         })?
+                //     }
+                // }
                 pb.finish_with_message("done");
                 println!("Refreshed {} materialized views in the database", sqls.len());
                 Ok(())

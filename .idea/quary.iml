@@ -9,6 +9,8 @@
       <sourceFolder url="file://$MODULE_DIR$/rust/core/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/rust/dbt-converter/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/rust/sqlinference/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/rust/snowflake-api/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/rust/snowflake-api/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
