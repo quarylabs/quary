@@ -1,8 +1,8 @@
 [package]
 name = "dbt-converter"
-version = "0.0.99"
+version = "0.0.101"
 edition = "2021"
-rust-version = "1.76.0"
+rust-version = "1.77.0"
 
 [dependencies]
 serde_yaml = "0.9"

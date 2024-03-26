@@ -632,6 +632,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
 
 [[package]]
+name = "base64"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9475866fec1451be56a3c2400fd081ff546538961565ccb5b7142cbd22bc7a51"
+
+[[package]]
 name = "base64ct"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1078,7 +1084,7 @@ checksum = "7e962a19be5cfc3f3bf6dd8f61eb50107f356ad6270fbb3ed41476571db78be5"
 
 [[package]]
 name = "dbt-converter"
-version = "0.0.99"
+version = "0.0.101"
 dependencies = [
  "quary_proto",
  "regex",
@@ -2883,7 +2889,7 @@ dependencies = [
 
 [[package]]
 name = "quary"
-version = "0.0.99"
+version = "0.0.101"
 dependencies = [
  "arrow-array 50.0.0",
  "assert_cmd",
@@ -2910,7 +2916,7 @@ dependencies = [
 
 [[package]]
 name = "quary-core"
-version = "0.0.99"
+version = "0.0.101"
 dependencies = [
  "async-trait",
  "csv",
@@ -3721,7 +3727,7 @@ dependencies = [
  "anyhow",
  "arrow 50.0.0",
  "async-trait",
- "base64 0.21.7",
+ "base64 0.22.0",
  "bytes",
  "clap",
  "futures",
@@ -3806,7 +3812,7 @@ dependencies = [
 
 [[package]]
 name = "sqlinference"
-version = "0.0.99"
+version = "0.0.101"
 dependencies = [
  "sqlparser",
 ]

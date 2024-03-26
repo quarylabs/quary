@@ -281,6 +281,7 @@ impl QueryResult {
                     .collect::<Result<Vec<_>, _>>()?;
                 Ok(quary_proto::QueryResultColumn {
                     name: column.clone(),
+                    r#type: None,
                     values,
                 })
             })
@@ -312,10 +313,12 @@ mod tests {
         let expected_columns = vec![
             quary_proto::QueryResultColumn {
                 name: "id".to_string(),
+                r#type: None,
                 values: vec!["1".to_string(), "2".to_string()],
             },
             quary_proto::QueryResultColumn {
                 name: "name".to_string(),
+                r#type: None,
                 values: vec!["Alice".to_string(), "Bob".to_string()],
             },
         ];

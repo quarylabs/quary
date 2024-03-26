@@ -10,6 +10,7 @@ export interface QueryResult {
 
 export interface QueryResultColumn {
   name: string;
+  type?: string | undefined;
   values: string[];
 }
 
@@ -73,13 +74,16 @@ export const QueryResult = {
 };
 
 function createBaseQueryResultColumn(): QueryResultColumn {
-  return { name: "", values: [] };
+  return { name: "", type: undefined, values: [] };
 }
 
 export const QueryResultColumn = {
   encode(message: QueryResultColumn, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
+    }
+    if (message.type !== undefined) {
+      writer.uint32(26).string(message.type);
     }
     for (const v of message.values) {
       writer.uint32(18).string(v!);
@@ -101,6 +105,13 @@ export const QueryResultColumn = {
 
           message.name = reader.string();
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
         case 2:
           if (tag !== 18) {
             break;
@@ -120,6 +131,7 @@ export const QueryResultColumn = {
   fromJSON(object: any): QueryResultColumn {
     return {
       name: isSet(object.name) ? gt.String(object.name) : "",
+      type: isSet(object.type) ? gt.String(object.type) : undefined,
       values: gt.Array.isArray(object?.values) ? object.values.map((e: any) => gt.String(e)) : [],
     };
   },
@@ -128,6 +140,9 @@ export const QueryResultColumn = {
     const obj: any = {};
     if (message.name !== "") {
       obj.name = message.name;
+    }
+    if (message.type !== undefined) {
+      obj.type = message.type;
     }
     if (message.values?.length) {
       obj.values = message.values;
@@ -141,6 +156,7 @@ export const QueryResultColumn = {
   fromPartial<I extends Exact<DeepPartial<QueryResultColumn>, I>>(object: I): QueryResultColumn {
     const message = createBaseQueryResultColumn();
     message.name = object.name ?? "";
+    message.type = object.type ?? undefined;
     message.values = object.values?.map((e) => e) || [];
     return message;
   },
