@@ -173,7 +173,7 @@ async fn main() -> Result<(), String> {
                 Ok(vec![])
             }?;
 
-            let sqls = project_and_fs_to_sql_for_views(
+            let mut sqls = project_and_fs_to_sql_for_views(
                 &project,
                 &file_system,
                 &query_generator,
@@ -181,7 +181,17 @@ async fn main() -> Result<(), String> {
                 false,
             )
             .await?;
-
+            let mut new_sqls = vec![];
+            for model in &sqls {
+                let mut new_statements = vec![];
+                for statement in &model.1 {
+                    if !statement.to_uppercase().contains("REFRESH") {
+                        new_statements.push(statement);
+                    }
+                }
+                new_sqls.push((&model.0, new_statements));
+            }
+            println!("new sqls {:?}", new_sqls);
             if build_args.dry_run {
                 if !cache_delete_views_sqls.is_empty() {
                     println!("\n-- Delete cache views\n");
@@ -191,7 +201,8 @@ async fn main() -> Result<(), String> {
                     }
                 }
                 println!("\n-- Create models\n");
-                for (name, sql) in sqls {
+                for (name, sql) in new_sqls {
+                // for (name, sql) in sqls {
                     println!("\n-- {name}");
                     for sql in sql {
                         println!("{};", sql);
@@ -209,7 +220,8 @@ async fn main() -> Result<(), String> {
                 return Ok(());
             } else {
                 let total_number_of_sql_statements = cache_delete_views_sqls.len()
-                    + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
+                    + new_sqls.iter().map(|(_, sqls)| new_sqls.len()).sum::<usize>()
+                    // + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
                     + cache_to_create.len();
                 let pb = ProgressBar::new(total_number_of_sql_statements as u64);
                 pb.set_style(
@@ -225,7 +237,8 @@ async fn main() -> Result<(), String> {
                         format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
                     })?
                 }
-                for (name, sql) in &sqls {
+                // for (name, sql) in &sqls {
+                for (name, sql) in &new_sqls {
                     for sql in sql {
                         pb.set_message(format!("Building model: {}", name));
                         pb.inc(1);
@@ -316,7 +329,21 @@ async fn main() -> Result<(), String> {
                 .await?;
             println!("project {:?}", &project);
 
-            println!("SQLS LIST {:?}", sqls);
+
+            println!("SQLS LIST {:?}", &sqls);
+
+            let mut new_sqls = vec![];
+            for model in &sqls {
+                let mut new_statements = vec![];
+                for statement in &model.1 {
+                    if !statement.to_uppercase().contains("CREATE") && !statement.to_uppercase().contains("DROP") {
+                        new_statements.push(statement);
+                    }
+                }
+                new_sqls.push((&model.0, new_statements));
+            }
+
+            println!("new sqls views {:?}", &new_sqls);
             if refresh_args.dry_run {
                 println!("dry run");
                 if !cache_delete_views_sqls.is_empty() {
@@ -327,7 +354,8 @@ async fn main() -> Result<(), String> {
                     }
                 }
                 println!("\n-- Create models\n");
-                for (name, sql) in sqls {
+                for (name, sql) in new_sqls {
+                // for (name, sql) in sqls {
                     println!("\n-- {name}");
                     for sql in sql {
                         println!("{};", sql);
@@ -345,7 +373,8 @@ async fn main() -> Result<(), String> {
                 return Ok(());
             } else {
                 let total_number_of_sql_statements = cache_delete_views_sqls.len()
-                    + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
+                    + new_sqls.iter().map(|(_, new_sqls)| new_sqls.len()).sum::<usize>()
+                    // + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
                     + cache_to_create.len();
                 let pb = ProgressBar::new(total_number_of_sql_statements as u64);
                 pb.set_style(
@@ -361,7 +390,8 @@ async fn main() -> Result<(), String> {
                         format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
                     })?
                 }
-                for (name, sql) in &sqls {
+                // for (name, sql) in &sqls {
+                for (name, sql) in &new_sqls {
                     for sql in sql {
                         pb.set_message(format!("Building model: {}", name));
                         pb.inc(1);
