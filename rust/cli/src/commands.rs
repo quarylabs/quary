@@ -33,7 +33,7 @@ pub enum Commands {
     name = "refresh",
     about = "Refresh materialized views against target database"
     )]
-    Refresh(BuildArgs),
+    Refresh(RefreshArgs),
     #[command(name = "test", about = "Run defined tests against target database")]
     Test(TestArgs),
     #[command(
@@ -76,6 +76,16 @@ pub struct RenderSqlArgs {
 
 #[derive(Args, Debug)]
 pub struct BuildArgs {
+    #[arg(long = "dry-run", short = 'd', default_value = "false")]
+    /// Print rendered sql statements to the terminal without running them against the database
+    pub dry_run: bool,
+    #[arg(long = "cache_views", short = 'c', default_value = "false")]
+    /// Build the cache views for the extension
+    pub cache_views: bool,
+}
+
+#[derive(Args, Debug)]
+pub struct RefreshArgs {
     #[arg(long = "dry-run", short = 'd', default_value = "false")]
     /// Print rendered sql statements to the terminal without running them against the database
     pub dry_run: bool,

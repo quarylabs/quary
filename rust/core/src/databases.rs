@@ -25,7 +25,7 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
     fn models_refresh_query(
         &self,
         object_name: &str,
-        original_select_statement: &str,
+        // original_select_statement: &str,
         materialization_type: &Option<String>,
     ) -> Result<String, String> {
         let object_name = self.return_full_path_requirement(object_name);
@@ -187,12 +187,12 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
     fn models_refresh_query(
         &self,
         view_name: &str,
-        original_select_statement: &str,
+        // original_select_statement: &str,
         materialization_type: &Option<String>,
     ) -> Result<String, String> {
         self.as_ref().models_refresh_query(
             view_name,
-            original_select_statement,
+            // original_select_statement,
             materialization_type,
         )
     }

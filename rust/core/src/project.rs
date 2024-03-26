@@ -1012,21 +1012,26 @@ pub async fn project_and_fs_to_sql_for_views(
                 project,
             )
             .await?;
-            Ok::<(String, [String; 2]), String>((model.name.clone(), sql_view))
+            println!("scheamas sqls views {:?}", sql_view);
+            Ok::<(String, Vec<String>), String>((model.name.clone(), sql_view))
+            // Ok::<(String, [String; 2]), String>((model.name.clone(), sql_view))
         })
         .collect();
-    let models: Vec<(String, [String; 2])> = futures::future::join_all(models)
+    let models: Vec<(String, Vec<String>)> = futures::future::join_all(models)
+    // let models: Vec<(String, [String; 2])> = futures::future::join_all(models)
         .await
         .into_iter()
         .collect::<Result<_, _>>()?;
-
+    println!("{:?} models", &models);
     let models_map: HashMap<String, Vec<String>> = models
         .iter()
         .map(|(name, vec)| (name.clone(), vec.to_vec()))
         .collect::<HashMap<String, Vec<String>>>();
+    println!("{:?} models_map", &models_map);
     let mut models = vec![];
     for model in sorted.iter() {
         if let Some(sqls) = models_map.get(model) {
+            println!("model push {:?}", &model);
             models.push((model.clone(), sqls.clone()));
         }
     }
