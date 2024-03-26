@@ -11,6 +11,8 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
         match materialization_type {
             None => Ok(()),
             Some(materialization_type) if materialization_type == "view" => Ok(()),
+            Some(materialization_type) if materialization_type == "table" => Ok(()),
+            Some(materialization_type) if materialization_type == "materialized_view" => Ok(()),
             Some(materialization_type) => Err(format!(
                 "Materialization type {} is not supported. Supported types are 'view'.",
                 materialization_type
@@ -32,7 +34,13 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
             None => Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string()),
             Some(materialization_type) if materialization_type == "view" => {
                 Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string())
-            }
+            },
+            Some(materialization_type) if materialization_type == "materialized_view" => {
+                Ok(format!("DROP MATERIALIZED VIEW IF EXISTS {}", object_name).to_string())
+            },
+            Some(materialization_type) if materialization_type == "table" => {
+                Ok(format!("DROP TABLE IF EXISTS {}", object_name).to_string())
+            },
             _ => Err("Unsupported materialization type".to_string()),
         }
     }
@@ -47,10 +55,16 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type.as_deref() {
+            Some("materialized_view") => { println!("mat type {:?}", materialization_type.as_deref() ); Ok(format!(
+                "CREATE materialized VIEW {} AS {}",
+                object_name, original_select_statement
+            ))},
+
             None => Ok(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             )),
+
             Some("view") => Ok(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
