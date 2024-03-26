@@ -1,9 +1,9 @@
 [package]
 name = "quary-core"
-version = "0.0.99"
+version = "0.0.101"
 authors = ["Ben King <9087625+benfdking@users.noreply.github.com>"]
 edition = "2021"
-rust-version = "1.76.0"
+rust-version = "1.77.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

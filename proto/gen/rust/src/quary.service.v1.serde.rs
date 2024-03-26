@@ -3760,12 +3760,18 @@ impl serde::Serialize for QueryResultColumn {
         if !self.name.is_empty() {
             len += 1;
         }
+        if self.r#type.is_some() {
+            len += 1;
+        }
         if !self.values.is_empty() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.QueryResultColumn", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.r#type.as_ref() {
+            struct_ser.serialize_field("type", v)?;
         }
         if !self.values.is_empty() {
             struct_ser.serialize_field("values", &self.values)?;
@@ -3781,12 +3787,14 @@ impl<'de> serde::Deserialize<'de> for QueryResultColumn {
     {
         const FIELDS: &[&str] = &[
             "name",
+            "type",
             "values",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Name,
+            Type,
             Values,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -3810,6 +3818,7 @@ impl<'de> serde::Deserialize<'de> for QueryResultColumn {
                     {
                         match value {
                             "name" => Ok(GeneratedField::Name),
+                            "type" => Ok(GeneratedField::Type),
                             "values" => Ok(GeneratedField::Values),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
@@ -3831,6 +3840,7 @@ impl<'de> serde::Deserialize<'de> for QueryResultColumn {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut name__ = None;
+                let mut r#type__ = None;
                 let mut values__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
@@ -3839,6 +3849,12 @@ impl<'de> serde::Deserialize<'de> for QueryResultColumn {
                                 return Err(serde::de::Error::duplicate_field("name"));
                             }
                             name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Type => {
+                            if r#type__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("type"));
+                            }
+                            r#type__ = map_.next_value()?;
                         }
                         GeneratedField::Values => {
                             if values__.is_some() {
@@ -3850,6 +3866,7 @@ impl<'de> serde::Deserialize<'de> for QueryResultColumn {
                 }
                 Ok(QueryResultColumn {
                     name: name__.unwrap_or_default(),
+                    r#type: r#type__,
                     values: values__.unwrap_or_default(),
                 })
             }
