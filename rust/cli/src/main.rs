@@ -182,14 +182,19 @@ async fn main() -> Result<(), String> {
             )
             .await?;
             let mut new_sqls = vec![];
+            let model_names = &build_args.model_name;
+            println!("model_names {:?}", &model_names);
             for model in &sqls {
-                let mut new_statements = vec![];
-                for statement in &model.1 {
-                    if !statement.to_uppercase().contains("REFRESH") {
-                        new_statements.push(statement);
+                if (model_names.is_some() && *model_names == Some(model.0.clone()))
+                | model_names.is_none() {
+                    let mut new_statements = vec![];
+                    for statement in &model.1 {
+                        if !statement.to_uppercase().contains("REFRESH") {
+                            new_statements.push(statement);
+                        }
                     }
+                    new_sqls.push((&model.0, new_statements));
                 }
-                new_sqls.push((&model.0, new_statements));
             }
             println!("new sqls {:?}", new_sqls);
             if build_args.dry_run {
@@ -257,7 +262,8 @@ async fn main() -> Result<(), String> {
                     }
                 }
                 pb.finish_with_message("done");
-                println!("Created {} views in the database", sqls.len());
+                println!("Created {} views in the database", new_sqls.len());
+                // println!("Created {} views in the database", sqls.len());
                 Ok(())
             }
         }
@@ -268,7 +274,7 @@ async fn main() -> Result<(), String> {
             let query_generator = database.query_generator();
 
             println!("query generator {:?}", query_generator);
-            let (project, file_system) = parse_project(&query_generator).await?;
+            let (mut project, file_system) = parse_project(&query_generator).await?;
             println!("project {:?}", project);
 
             // If cache table deletes any previous cache views.
@@ -318,7 +324,14 @@ async fn main() -> Result<(), String> {
             } else {
                 Ok(vec![])
             }?;
-
+            // Retain only models with materialization 'materialized_view'
+            project.models.retain(|_, model| {
+                if let Some(materialization) = &model.materialization {
+                    materialization == "materialized_view"
+                } else {
+                    false
+                }
+            });
             let sqls = project_and_fs_to_sql_for_views(
                 &project,
                 &file_system,
@@ -330,17 +343,24 @@ async fn main() -> Result<(), String> {
             println!("project {:?}", &project);
 
 
+
             println!("SQLS LIST {:?}", &sqls);
 
             let mut new_sqls = vec![];
+            let model_names = &refresh_args.model_name;
+            println!("model_names {:?}", &model_names);
             for model in &sqls {
-                let mut new_statements = vec![];
-                for statement in &model.1 {
-                    if !statement.to_uppercase().contains("CREATE") && !statement.to_uppercase().contains("DROP") {
-                        new_statements.push(statement);
+                if (model_names.is_some() && *model_names == Some(model.0.clone()))
+                | model_names.is_none()
+                {
+                        let mut new_statements = vec![];
+                        for statement in &model.1 {
+                            if !statement.to_uppercase().contains("CREATE") && !statement.to_uppercase().contains("DROP") {
+                                new_statements.push(statement);
+                            }
+                        }
+                        new_sqls.push((&model.0, new_statements));
                     }
-                }
-                new_sqls.push((&model.0, new_statements));
             }
 
             println!("new sqls views {:?}", &new_sqls);
@@ -410,7 +430,8 @@ async fn main() -> Result<(), String> {
                     }
                 }
                 pb.finish_with_message("done");
-                println!("Refreshed {} materialized views in the database", sqls.len());
+                println!("Refreshed {} materialized views in the database", new_sqls.len());
+                // println!("Refreshed {} materialized views in the database", sqls.len());
                 Ok(())
             }
         }

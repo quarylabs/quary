@@ -86,13 +86,8 @@ fn return_sql_model_template(
     let drop = database.models_drop_query(name, materialization)?;
     let create = database.models_create_query(name, select_statement, materialization)?;
     let refresh = database.models_refresh_query(name, materialization)?;
-    // let queries = match materialization {
-    //     Some(materialization_type) if materialization_type == "materialized_view" => vec![refresh],
-    //     _ => vec![drop, create],
-    // };
     let queries = vec![drop, create, refresh];
     Ok(queries)
-    // Ok([drop, create])
 }
 
 #[cfg(test)]

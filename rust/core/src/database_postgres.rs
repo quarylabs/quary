@@ -30,19 +30,15 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
     fn models_refresh_query(
         &self,
         object_name: &str,
-        // original_select_statement: &str,
         materialization_type: &Option<String>,
     ) -> Result<String, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type.as_deref() {
-            Some("materialized_view") => Ok(format!(
-                "REFRESH MATERIALIZED VIEW {}",
-                object_name
-            )),
-            Some("view") | Some("table") => Ok(format!(
-                "REFRESH MATERIALIZED VIEW {:?}", materialization_type)),
-            _ => Err("Only materialized views are refreshed".to_string()),
+            Some("materialized_view") => {
+                Ok(format!("REFRESH MATERIALIZED VIEW {}", object_name))
+            }
+            Some(_) | None => Ok("Only materialized views are refreshed".to_string()), // Ignore other types or None
         }
     }
 

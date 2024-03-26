@@ -49,6 +49,7 @@ pub struct ConvertDbtArgs {
     pub quary_project_path: String,
 }
 
+
 #[derive(Args, Debug)]
 pub struct InitArgs {
     #[arg(value_enum, long = "type", short = 't', default_value_t = InitType::Sqlite)]
@@ -82,6 +83,8 @@ pub struct BuildArgs {
     #[arg(long = "cache_views", short = 'c', default_value = "false")]
     /// Build the cache views for the extension
     pub cache_views: bool,
+    /// to select a model to run
+    pub model_name:  Option<String>,
 }
 
 #[derive(Args, Debug)]
@@ -92,6 +95,8 @@ pub struct RefreshArgs {
     #[arg(long = "cache_views", short = 'c', default_value = "false")]
     /// Build the cache views for the extension
     pub cache_views: bool,
+    /// to select a model to run
+    pub model_name: Option<String>,
 }
 
 #[derive(Args, Debug)]
