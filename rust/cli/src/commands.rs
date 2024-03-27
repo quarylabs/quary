@@ -30,8 +30,8 @@ pub enum Commands {
     )]
     Build(BuildArgs),
     #[command(
-    name = "refresh",
-    about = "Refresh materialized views against target database"
+        name = "refresh",
+        about = "Refresh materialized views against target database"
     )]
     Refresh(RefreshArgs),
     #[command(name = "test", about = "Run defined tests against target database")]
@@ -48,7 +48,6 @@ pub struct ConvertDbtArgs {
     /// Output path for the converted project
     pub quary_project_path: String,
 }
-
 
 #[derive(Args, Debug)]
 pub struct InitArgs {
@@ -84,7 +83,7 @@ pub struct BuildArgs {
     /// Build the cache views for the extension
     pub cache_views: bool,
     /// to select a model to run
-    pub model_name:  Option<String>,
+    pub model_name: Option<String>,
 }
 
 #[derive(Args, Debug)]

@@ -1018,7 +1018,7 @@ pub async fn project_and_fs_to_sql_for_views(
         })
         .collect();
     let models: Vec<(String, Vec<String>)> = futures::future::join_all(models)
-    // let models: Vec<(String, [String; 2])> = futures::future::join_all(models)
+        // let models: Vec<(String, [String; 2])> = futures::future::join_all(models)
         .await
         .into_iter()
         .collect::<Result<_, _>>()?;

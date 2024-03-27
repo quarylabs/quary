@@ -32,7 +32,7 @@ pub async fn parse_model_schemas_to_views<F>(
     config_schema_name: &str,
     name_replacing_strategy: F,
     project: &quary_proto::Project,
-// ) -> Result<[String; 2], String>
+    // ) -> Result<[String; 2], String>
 ) -> Result<Vec<String>, String>
 where
     F: Fn(&regex::Captures) -> String,
@@ -81,7 +81,7 @@ fn return_sql_model_template(
     name: &str,
     materialization: &Option<String>,
     select_statement: &str,
-// ) -> Result<[String; 2], String> {
+    // ) -> Result<[String; 2], String> {
 ) -> Result<Vec<String>, String> {
     let drop = database.models_drop_query(name, materialization)?;
     let create = database.models_create_query(name, select_statement, materialization)?;

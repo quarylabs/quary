@@ -31,9 +31,7 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type.as_deref() {
-            Some("materialized_view") => {
-                Ok(format!("REFRESH MATERIALIZED VIEW {}", object_name))
-            }
+            Some("materialized_view") => Ok(format!("REFRESH MATERIALIZED VIEW {}", object_name)),
             Some(_) | None => Ok("Only materialized views are refreshed".to_string()), // Ignore other types or None
         }
     }
