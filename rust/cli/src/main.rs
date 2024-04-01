@@ -181,23 +181,21 @@ async fn main() -> Result<(), String> {
                 false,
             )
             .await?;
-            let mut new_sqls = vec![];
+            let mut build_sqls = vec![];
             let model_names = &build_args.model_name;
-            println!("model_names {:?}", &model_names);
             for model in &sqls {
                 if (model_names.is_some() && *model_names == Some(model.0.clone()))
                     | model_names.is_none()
                 {
-                    let mut new_statements = vec![];
+                    let mut build_statements = vec![];
                     for statement in &model.1 {
                         if !statement.to_uppercase().contains("REFRESH") {
-                            new_statements.push(statement);
+                            build_statements.push(statement);
                         }
                     }
-                    new_sqls.push((&model.0, new_statements));
+                    build_sqls.push((&model.0, build_statements));
                 }
             }
-            println!("new sqls {:?}", new_sqls);
             if build_args.dry_run {
                 if !cache_delete_views_sqls.is_empty() {
                     println!("\n-- Delete cache views\n");
@@ -207,7 +205,7 @@ async fn main() -> Result<(), String> {
                     }
                 }
                 println!("\n-- Create models\n");
-                for (name, sql) in new_sqls {
+                for (name, sql) in build_sqls {
                     // for (name, sql) in sqls {
                     println!("\n-- {name}");
                     for sql in sql {
@@ -226,8 +224,10 @@ async fn main() -> Result<(), String> {
                 return Ok(());
             } else {
                 let total_number_of_sql_statements = cache_delete_views_sqls.len()
-                    + new_sqls.iter().map(|(_, _sqls)| new_sqls.len()).sum::<usize>()
-                    // + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
+                    + build_sqls
+                        .iter()
+                        .map(|(_, _sqls)| build_sqls.len())
+                        .sum::<usize>()
                     + cache_to_create.len();
                 let pb = ProgressBar::new(total_number_of_sql_statements as u64);
                 pb.set_style(
@@ -244,7 +244,8 @@ async fn main() -> Result<(), String> {
                     })?
                 }
                 // for (name, sql) in &sqls {
-                for (name, sql) in &new_sqls {
+                println!("build sqls {:?}", &build_sqls);
+                for (name, sql) in &build_sqls {
                     for sql in sql {
                         pb.set_message(format!("Building model: {}", name));
                         pb.inc(1);
@@ -263,8 +264,7 @@ async fn main() -> Result<(), String> {
                     }
                 }
                 pb.finish_with_message("done");
-                println!("Created {} views in the database", new_sqls.len());
-                // println!("Created {} views in the database", sqls.len());
+                println!("Created {} views in the database", build_sqls.len());
                 Ok(())
             }
         }
@@ -274,9 +274,7 @@ async fn main() -> Result<(), String> {
             let database = database_from_config(&config).await?;
             let query_generator = database.query_generator();
 
-            println!("query generator {:?}", query_generator);
             let (mut project, file_system) = parse_project(&query_generator).await?;
-            println!("project {:?}", project);
 
             // If cache table deletes any previous cache views.
             let cache_delete_views_sqls: Vec<(String, String)> = if refresh_args.cache_views {
@@ -325,7 +323,7 @@ async fn main() -> Result<(), String> {
             } else {
                 Ok(vec![])
             }?;
-            // Retain only models with materialization 'materialized_view'
+            // Retain only models with materialization type 'materialized_view'
             project.models.retain(|_, model| {
                 if let Some(materialization) = &model.materialization {
                     materialization == "materialized_view"
@@ -341,30 +339,26 @@ async fn main() -> Result<(), String> {
                 false,
             )
             .await?;
-            println!("project {:?}", &project);
 
-            println!("SQLS LIST {:?}", &sqls);
-
-            let mut new_sqls = vec![];
+            let mut materialization_sqls = vec![];
             let model_names = &refresh_args.model_name;
             println!("model_names {:?}", &model_names);
             for model in &sqls {
                 if (model_names.is_some() && *model_names == Some(model.0.clone()))
                     | model_names.is_none()
                 {
-                    let mut new_statements = vec![];
+                    let mut materialization_statements = vec![];
                     for statement in &model.1 {
                         if !statement.to_uppercase().contains("CREATE")
                             && !statement.to_uppercase().contains("DROP")
                         {
-                            new_statements.push(statement);
+                            materialization_statements.push(statement);
                         }
                     }
-                    new_sqls.push((&model.0, new_statements));
+                    materialization_sqls.push((&model.0, materialization_statements));
                 }
             }
 
-            println!("new sqls views {:?}", &new_sqls);
             if refresh_args.dry_run {
                 println!("dry run");
                 if !cache_delete_views_sqls.is_empty() {
@@ -375,7 +369,7 @@ async fn main() -> Result<(), String> {
                     }
                 }
                 println!("\n-- Create models\n");
-                for (name, sql) in new_sqls {
+                for (name, sql) in materialization_sqls {
                     // for (name, sql) in sqls {
                     println!("\n-- {name}");
                     for sql in sql {
@@ -394,7 +388,7 @@ async fn main() -> Result<(), String> {
                 return Ok(());
             } else {
                 let total_number_of_sql_statements = cache_delete_views_sqls.len()
-                    + new_sqls.iter().map(|(_, new_sqls)| new_sqls.len()).sum::<usize>()
+                    + materialization_sqls.iter().map(|(_, materialization_sqls)| materialization_sqls.len()).sum::<usize>()
                     // + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
                     + cache_to_create.len();
                 let pb = ProgressBar::new(total_number_of_sql_statements as u64);
@@ -412,7 +406,7 @@ async fn main() -> Result<(), String> {
                     })?
                 }
                 // for (name, sql) in &sqls {
-                for (name, sql) in &new_sqls {
+                for (name, sql) in &materialization_sqls {
                     for sql in sql {
                         pb.set_message(format!("Building model: {}", name));
                         pb.inc(1);
@@ -433,9 +427,8 @@ async fn main() -> Result<(), String> {
                 pb.finish_with_message("done");
                 println!(
                     "Refreshed {} materialized views in the database",
-                    new_sqls.len()
+                    materialization_sqls.len()
                 );
-                // println!("Refreshed {} materialized views in the database", sqls.len());
                 Ok(())
             }
         }

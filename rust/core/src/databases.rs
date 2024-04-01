@@ -11,9 +11,6 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
         match materialization_type {
             None => Ok(()),
             Some(t) if t == "view" || t == "materialized_view" || t == "table" => Ok(()),
-            // Some(materialization_type) if materialization_type == "view" => Ok(()),
-            // Some(materialization_type) if materialization_type == "materialized_view" => Ok(()),
-            // Some(materialization_type) if materialization_type == "table" => Ok(()),
             Some(materialization_type) => Err(format!(
                 "Materialization type {} is not supported. Supported types are 'view'.",
                 materialization_type
