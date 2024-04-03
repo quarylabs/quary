@@ -2,9 +2,8 @@ use duckdb::arrow::array::array;
 use duckdb::arrow::record_batch::RecordBatch;
 use duckdb::{params, Connection};
 use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
-use quary_core::databases::{
-    DatabaseConnection, DatabaseQueryGenerator, QueryResult, TableAddress,
-};
+use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult};
+use quary_proto::TableAddress;
 use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone)]
@@ -57,10 +56,15 @@ impl DatabaseConnection for DuckDB {
                 "SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND table_type='BASE TABLE' ORDER BY table_name",
                 schema
             ))
-                .await?
+                .await
+                .map_err(
+                    |e| format!("Failed to get tables from DuckDB: {:?}", e))
+                ?
         } else {
             self.query("SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' ORDER BY table_name")
-                .await?
+                .await                .map_err(
+                |e| format!("Failed to get tables from DuckDB: {:?}", e))
+                ?
         };
         Ok(results
             .rows
@@ -82,10 +86,17 @@ impl DatabaseConnection for DuckDB {
                 "SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND table_type='VIEW' ORDER BY table_name",
                 schema
             ))
-                .await?
+                .await
+                .map_err(
+                    |e| format!("Failed to get views from DuckDB: {:?}", e),
+                )
+                ?
         } else {
             self.query("SELECT table_name FROM information_schema.tables WHERE table_type='VIEW' ORDER BY table_name")
-                .await?
+                .await
+                .map_err(
+                    |e| format!("Failed to get views from DuckDB: {:?}", e),
+                )?
         };
         Ok(results
             .rows
@@ -102,7 +113,10 @@ impl DatabaseConnection for DuckDB {
     }
 
     async fn list_columns(&self, table: &str) -> Result<Vec<String>, String> {
-        let results = self.query(&format!("PRAGMA table_info({})", table)).await?;
+        let results = self
+            .query(&format!("PRAGMA table_info({})", table))
+            .await
+            .map_err(|e| format!("Failed to get columns for table {}: {:?}", table, e))?;
         Ok(results
             .rows
             .into_iter()
@@ -120,19 +134,23 @@ impl DatabaseConnection for DuckDB {
         return Ok(());
     }
 
-    async fn query(&self, query: &str) -> Result<QueryResult, String> {
-        let conn = self
-            .connection
-            .lock()
-            .map_err(|e| format!("Failed to get connection lock: {}", e))?;
+    async fn query(&self, query: &str) -> Result<QueryResult, QueryError> {
+        let conn = self.connection.lock().map_err(|e| {
+            QueryError::new(
+                query.to_string(),
+                format!("Failed to get connection lock: {}", e),
+            )
+        })?;
 
-        let mut stmt = conn
-            .prepare(query)
-            .map_err(|e| format!("Failed to prepare query {}: {}", query, e))?;
+        let mut stmt = conn.prepare(query).map_err(|e| {
+            QueryError::new(query.to_string(), format!("Failed to prepare query: {}", e))
+        })?;
 
         let rbs: Vec<RecordBatch> = stmt
             .query_arrow([])
-            .map_err(|e| format!("Failed to execute query {}: {}", query, e))?
+            .map_err(|e| {
+                QueryError::new(query.to_string(), format!("Failed to execute query: {}", e))
+            })?
             .collect();
 
         if rbs.len() != 1 {
@@ -149,7 +167,8 @@ impl DatabaseConnection for DuckDB {
             .map(|f| f.name().clone())
             .collect::<Vec<String>>();
 
-        let rows = convert_array_to_vec_string(rbs[0].columns())?;
+        let rows = convert_array_to_vec_string(rbs[0].columns())
+            .map_err(|e| QueryError::new(query.to_string(), e))?;
 
         Ok(QueryResult { columns, rows })
     }

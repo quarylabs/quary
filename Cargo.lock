@@ -1084,7 +1084,7 @@ checksum = "7e962a19be5cfc3f3bf6dd8f61eb50107f356ad6270fbb3ed41476571db78be5"
 
 [[package]]
 name = "dbt-converter"
-version = "0.0.101"
+version = "0.0.106"
 dependencies = [
  "quary_proto",
  "regex",
@@ -1138,6 +1138,12 @@ name = "doc-comment"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fea41bba32d969b513997752735605054bc0dfa92b4c56bf1189f2e174be7a10"
+
+[[package]]
+name = "dotenv"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
 
 [[package]]
 name = "dotenvy"
@@ -2889,13 +2895,15 @@ dependencies = [
 
 [[package]]
 name = "quary"
-version = "0.0.101"
+version = "0.0.106"
 dependencies = [
  "arrow-array 50.0.0",
  "assert_cmd",
  "async-trait",
+ "base64 0.22.0",
  "clap",
  "dbt-converter",
+ "dotenv",
  "duckdb",
  "futures",
  "gcp-bigquery-client",
@@ -2916,7 +2924,7 @@ dependencies = [
 
 [[package]]
 name = "quary-core"
-version = "0.0.101"
+version = "0.0.106"
 dependencies = [
  "async-trait",
  "csv",
@@ -3812,7 +3820,7 @@ dependencies = [
 
 [[package]]
 name = "sqlinference"
-version = "0.0.101"
+version = "0.0.106"
 dependencies = [
  "sqlparser",
 ]
@@ -4320,9 +4328,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.36.0"
+version = "1.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61285f6515fa018fb2d1e46eb21223fff441ee8db5d0f1435e8ab4f5cdb80931"
+checksum = "1adbebffeca75fcfd058afa480fb6c0b81e165a0323f9c9d39c9697e37c46787"
 dependencies = [
  "backtrace",
  "bytes",

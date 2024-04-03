@@ -762,6 +762,11 @@ export class Model extends Message<Model> {
   description?: string;
 
   /**
+   * @generated from field: repeated string tags = 4;
+   */
+  tags: string[] = [];
+
+  /**
    * @generated from field: string file_path = 3;
    */
   filePath = "";
@@ -796,6 +801,7 @@ export class Model extends Message<Model> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "tags", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 3, name: "file_path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 7, name: "file_sha256_hash", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 8, name: "materialization", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
@@ -936,6 +942,11 @@ export class Source extends Message<Source> {
   path = "";
 
   /**
+   * @generated from field: repeated string tags = 6;
+   */
+  tags: string[] = [];
+
+  /**
    * TODO Replace File path references with whole file references
    *
    * @generated from field: string file_path = 4;
@@ -958,6 +969,7 @@ export class Source extends Message<Source> {
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "tags", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 4, name: "file_path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "columns", kind: "message", T: Source_SourceColumn, repeated: true },
   ]);

@@ -1,10 +1,10 @@
 use async_trait::async_trait;
 use quary_core::database_postgres::DatabaseQueryGeneratorPostgres;
-use quary_core::databases::{
-    DatabaseConnection, DatabaseQueryGenerator, QueryResult, TableAddress,
-};
+use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult};
+use quary_proto::TableAddress;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Column, Pool, Row};
+use std::collections::HashMap;
 use std::fmt::Debug;
 
 #[derive(Debug)]
@@ -21,8 +21,30 @@ impl Postgres {
         password: &str,
         database: &str,
         schema: &str,
-        params: Option<&str>,
+        ssl_mode: Option<String>,
+        ssl_cert: Option<String>,
+        ssl_key: Option<String>,
+        ssl_root_cert: Option<String>,
     ) -> Result<Self, sqlx::Error> {
+        let params = HashMap::from([
+            ("sslmode", ssl_mode),
+            ("sslcert", ssl_cert),
+            ("sslkey", ssl_key),
+            ("sslrootcert", ssl_root_cert),
+        ])
+        .into_iter()
+        .filter_map(|(k, v)| v.map(|v| (k, v)))
+        .collect::<HashMap<&str, String>>()
+        .into_iter()
+        .map(|(k, v)| format!("{}={}", k, v.to_string()))
+        .collect::<Vec<String>>();
+
+        let params = if params.is_empty() {
+            None
+        } else {
+            Some(format!("?{}", params.join("&")))
+        };
+
         let connection_string = format!(
             "postgres://{}:{}@{}:{}/{}{}",
             user,
@@ -30,8 +52,9 @@ impl Postgres {
             host,
             port,
             database,
-            params.unwrap_or("")
+            params.unwrap_or("".to_string())
         );
+
         let pool = PgPoolOptions::new().connect(&connection_string).await?;
         Ok(Self {
             pool,
@@ -110,13 +133,13 @@ impl DatabaseConnection for Postgres {
         Ok(())
     }
 
-    async fn query(&self, query: &str) -> Result<QueryResult, String> {
+    async fn query(&self, query: &str) -> Result<QueryResult, QueryError> {
         let query_builder = sqlx::query(query);
 
         let rows = query_builder
             .fetch_all(&self.pool)
             .await
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| QueryError::new(e.to_string(), query.to_string()))?;
 
         if rows.is_empty() {
             return Ok(QueryResult {
@@ -183,6 +206,9 @@ mod tests {
             "postgres",
             "postgres",
             "public",
+            None,
+            None,
+            None,
             None,
         )
         .await
@@ -269,6 +295,9 @@ mod tests {
             "postgres",
             "postgres",
             "transform",
+            None,
+            None,
+            None,
             None,
         )
         .await
@@ -390,6 +419,9 @@ models:
             "postgres",
             "postgres",
             "transform",
+            None,
+            None,
+            None,
             None,
         )
         .await

@@ -113,9 +113,21 @@ export class ProjectFile_Model extends Message<ProjectFile_Model> {
   name = "";
 
   /**
+   * @generated from field: repeated string tags = 6;
+   */
+  tags: string[] = [];
+
+  /**
    * @generated from field: optional string description = 2;
    */
   description?: string;
+
+  /**
+   * The materialization of the model, available types are specified by each database.
+   *
+   * @generated from field: optional string materialization = 4;
+   */
+  materialization?: string;
 
   /**
    * @generated from field: repeated quary.service.v1.ModelTest tests = 5;
@@ -127,13 +139,6 @@ export class ProjectFile_Model extends Message<ProjectFile_Model> {
    */
   columns: ProjectFile_Column[] = [];
 
-  /**
-   * The materialization of the model, available types are specified by each database.
-   *
-   * @generated from field: optional string materialization = 4;
-   */
-  materialization?: string;
-
   constructor(data?: PartialMessage<ProjectFile_Model>) {
     super();
     proto3.util.initPartial(data, this);
@@ -143,10 +148,11 @@ export class ProjectFile_Model extends Message<ProjectFile_Model> {
   static readonly typeName = "quary.service.v1.ProjectFile.Model";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "tags", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "materialization", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 5, name: "tests", kind: "message", T: ModelTest, repeated: true },
     { no: 3, name: "columns", kind: "message", T: ProjectFile_Column, repeated: true },
-    { no: 4, name: "materialization", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectFile_Model {
@@ -174,6 +180,11 @@ export class ProjectFile_Source extends Message<ProjectFile_Source> {
    * @generated from field: string name = 1;
    */
   name = "";
+
+  /**
+   * @generated from field: repeated string tags = 6;
+   */
+  tags: string[] = [];
 
   /**
    * @generated from field: optional string description = 2;
@@ -208,6 +219,7 @@ export class ProjectFile_Source extends Message<ProjectFile_Source> {
   static readonly typeName = "quary.service.v1.ProjectFile.Source";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "tags", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "tests", kind: "message", T: ModelTest, repeated: true },

@@ -13,6 +13,12 @@
                 "path": {
                     "type": "string"
                 },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
                 "file_path": {
                     "type": "string",
                     "description": "TODO Replace File path references with whole file references"

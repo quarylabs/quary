@@ -34,6 +34,7 @@ mod tests {
                 description: Some("test description for model".to_string()),
                 materialization: None,
                 tests: vec![],
+                tags: vec![],
                 columns: vec![Column {
                     name: "column test".to_string(),
                     description: Some("test description for column".to_string()),
@@ -45,6 +46,7 @@ mod tests {
                 description: Some("test description for source".to_string()),
                 path: "source_test.source_test".to_string(),
                 tests: vec![],
+                tags: vec![],
                 columns: vec![Column {
                     name: "column test".to_string(),
                     description: Some("test description for sources column".to_string()),
