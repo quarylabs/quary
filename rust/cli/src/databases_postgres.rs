@@ -1,10 +1,10 @@
 use async_trait::async_trait;
 use quary_core::database_postgres::DatabaseQueryGeneratorPostgres;
-use quary_core::databases::{
-    DatabaseConnection, DatabaseQueryGenerator, QueryResult, TableAddress,
-};
+use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult};
+use quary_proto::TableAddress;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Column, Pool, Row};
+use std::collections::HashMap;
 use std::fmt::Debug;
 
 #[derive(Debug)]
@@ -21,8 +21,30 @@ impl Postgres {
         password: &str,
         database: &str,
         schema: &str,
-        params: Option<&str>,
+        ssl_mode: Option<String>,
+        ssl_cert: Option<String>,
+        ssl_key: Option<String>,
+        ssl_root_cert: Option<String>,
     ) -> Result<Self, sqlx::Error> {
+        let params = HashMap::from([
+            ("sslmode", ssl_mode),
+            ("sslcert", ssl_cert),
+            ("sslkey", ssl_key),
+            ("sslrootcert", ssl_root_cert),
+        ])
+        .into_iter()
+        .filter_map(|(k, v)| v.map(|v| (k, v)))
+        .collect::<HashMap<&str, String>>()
+        .into_iter()
+        .map(|(k, v)| format!("{}={}", k, v.to_string()))
+        .collect::<Vec<String>>();
+
+        let params = if params.is_empty() {
+            None
+        } else {
+            Some(format!("?{}", params.join("&")))
+        };
+
         let connection_string = format!(
             "postgres://{}:{}@{}:{}/{}{}",
             user,
@@ -30,8 +52,9 @@ impl Postgres {
             host,
             port,
             database,
-            params.unwrap_or("")
+            params.unwrap_or("".to_string())
         );
+
         let pool = PgPoolOptions::new().connect(&connection_string).await?;
         Ok(Self {
             pool,
@@ -110,13 +133,13 @@ impl DatabaseConnection for Postgres {
         Ok(())
     }
 
-    async fn query(&self, query: &str) -> Result<QueryResult, String> {
+    async fn query(&self, query: &str) -> Result<QueryResult, QueryError> {
         let query_builder = sqlx::query(query);
 
         let rows = query_builder
             .fetch_all(&self.pool)
             .await
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| QueryError::new(e.to_string(), query.to_string()))?;
 
         if rows.is_empty() {
             return Ok(QueryResult {
@@ -162,7 +185,7 @@ impl DatabaseConnection for Postgres {
 mod tests {
     use super::*;
     use prost::bytes::Bytes;
-    use quary_core::project::parse_project;
+    use quary_core::project::{parse_project, project_and_fs_to_sql_for_views};
     use quary_core::project_tests::return_tests_sql;
     use quary_proto::{File, FileSystem};
     use testcontainers::{clients, RunnableImage};
@@ -183,6 +206,9 @@ mod tests {
             "postgres",
             "postgres",
             "public",
+            None,
+            None,
+            None,
             None,
         )
         .await
@@ -270,6 +296,9 @@ mod tests {
             "postgres",
             "transform",
             None,
+            None,
+            None,
+            None,
         )
         .await
         .expect("Failed to instantiate Quary Postgres");
@@ -356,6 +385,153 @@ models:
             &project,
             &file_system,
             true,
+            None,
+            None,
+        )
+        .await
+        .unwrap();
+        let tests = tests.iter().collect::<Vec<_>>();
+
+        assert!(!tests.is_empty());
+
+        for (name, test) in tests.iter() {
+            let results = database
+                .query(test)
+                .await
+                .expect(&format!("Error running query {}", test));
+
+            assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_postgres_foreign_relationship_test_with_materialized_view_table() {
+        // Start a PostgreSQL container
+        let docker = clients::Cli::default();
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
+        let pg_container = docker.run(postgres_image);
+        let pg_port = pg_container.get_host_port_ipv4(5432);
+
+        let database = Postgres::new(
+            "localhost",
+            &pg_port.to_string(),
+            "postgres",
+            "postgres",
+            "postgres",
+            "transform",
+            None,
+            None,
+            None,
+            None,
+        )
+        .await
+        .expect("Failed to instantiate Quary Postgres");
+
+        database.exec("CREATE SCHEMA other_schema").await.unwrap();
+        database.exec("CREATE SCHEMA transform").await.unwrap();
+        database
+            .exec("CREATE TABLE other_schema.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        database
+            .exec("INSERT INTO other_schema.test_table VALUES (1, 'test'), (2, 'rubbish')")
+            .await
+            .unwrap();
+        database
+            .exec("CREATE TABLE transform.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        database
+            .exec("INSERT INTO transform.test_table VALUES (3, 'test_3'), (4, 'rubbish_rubiish')")
+            .await
+            .unwrap();
+
+        let file_system = FileSystem {
+            files: vec![
+                ("quary.yaml", "postgres: {schema: transform}"),
+                ("models/test_model.sql", "SELECT id FROM q.test_source"),
+                (
+                    "models/test_model_same_schema.sql",
+                    "SELECT id FROM q.test_source_same_schema",
+                ),
+                ("models/test_model_out.sql", "SELECT id FROM q.test_model"),
+                (
+                    "models/schema.yaml",
+                    "
+sources:
+    - name: test_source
+      path: other_schema.test_table
+    - name: test_source_same_schema
+      path: transform.test_table
+models:
+  - name: test_model_out
+    materialization: table
+    columns:
+      - name: id
+        tests:
+          - type: relationship
+            info:
+              column: id
+              model: test_model
+          - type: relationship
+            info:
+              column: id
+              model: test_source
+  - name: test_model_same_schema
+    materialization: materialized_view
+    columns:
+      - name: id
+        tests:
+          - type: relationship
+            info:
+              column: id
+              model: test_source_same_schema
+                    ",
+                ),
+            ]
+            .into_iter()
+            .map(|(k, v)| {
+                (
+                    k.to_string(),
+                    File {
+                        name: k.to_string(),
+                        contents: Bytes::from(v),
+                    },
+                )
+            })
+            .collect(),
+        };
+
+        let project = parse_project(&file_system, &database.query_generator(), "")
+            .await
+            .unwrap();
+
+        let sqls = project_and_fs_to_sql_for_views(
+            &project,
+            &file_system,
+            &database.query_generator(),
+            false,
+            false,
+        )
+        .await
+        .unwrap();
+        for sql in &sqls {
+            for sql in &sql.1 {
+                database.exec(&sql).await.unwrap();
+            }
+        }
+        // Run twice
+        for sql in &sqls {
+            for sql in &sql.1 {
+                database.exec(&sql).await.unwrap();
+            }
+        }
+
+        let tests = return_tests_sql(
+            &database.query_generator(),
+            &project,
+            &file_system,
+            false,
             None,
             None,
         )

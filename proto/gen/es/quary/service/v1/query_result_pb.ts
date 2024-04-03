@@ -55,6 +55,11 @@ export class QueryResultColumn extends Message<QueryResultColumn> {
   name = "";
 
   /**
+   * @generated from field: optional string type = 3;
+   */
+  type?: string;
+
+  /**
    * @generated from field: repeated string values = 2;
    */
   values: string[] = [];
@@ -68,6 +73,7 @@ export class QueryResultColumn extends Message<QueryResultColumn> {
   static readonly typeName = "quary.service.v1.QueryResultColumn";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 2, name: "values", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 

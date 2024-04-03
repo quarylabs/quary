@@ -78,8 +78,18 @@
                 "name": {
                     "type": "string"
                 },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
                 "description": {
                     "type": "string"
+                },
+                "materialization": {
+                    "type": "string",
+                    "description": "The materialization of the model, available types are specified by each database."
                 },
                 "tests": {
                     "items": {
@@ -92,10 +102,6 @@
                         "$ref": "#/definitions/quary.service.v1.ProjectFile.Column"
                     },
                     "type": "array"
-                },
-                "materialization": {
-                    "type": "string",
-                    "description": "The materialization of the model, available types are specified by each database."
                 }
             },
             "additionalProperties": true,
@@ -106,6 +112,12 @@
             "properties": {
                 "name": {
                     "type": "string"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
                 },
                 "description": {
                     "type": "string"

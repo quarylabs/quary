@@ -44,6 +44,19 @@ fn recursive_search_for_test(
     }
 }
 
+#[derive(Debug)]
+pub struct TestFailedToRun {
+    pub test_name: String,
+    pub sql: String,
+    pub error: String,
+}
+
+#[derive(Debug)]
+pub enum RunTestError {
+    TestFailedToRun(TestFailedToRun),
+    Other(String),
+}
+
 /// Runs tests on all models
 /// limit applies a SQL limit to the end of each test. By adding a limit to the end of each test, we can run them more
 /// quickly and not have to wait for an number of results, greater than the limit to be returned. This is useful for
@@ -58,11 +71,11 @@ pub async fn run_tests_internal(
     run_statement: RunStatementFunc,
     whether_to_include_model_to_source: bool,
     limit: Option<usize>,
-) -> Result<TestResults, String> {
+) -> Result<TestResults, RunTestError> {
     async fn run_test_all(
         tests_name_to_sql: BTreeMap<String, String>,
         run_statement: RunStatementFunc,
-    ) -> Result<TestResults, String> {
+    ) -> Result<TestResults, RunTestError> {
         let mut results = Vec::new();
         for (test_name, sql) in tests_name_to_sql {
             let test_result = run_statement(sql.as_str()).await;
@@ -88,7 +101,13 @@ pub async fn run_tests_internal(
                         });
                     }
                 }
-                Err(e) => return Err(format!("Failed to run test {} with error {}", test_name, e)),
+                Err(e) => {
+                    return Err(RunTestError::TestFailedToRun(TestFailedToRun {
+                        test_name,
+                        sql,
+                        error: e,
+                    }))
+                }
             }
         }
         Ok(TestResults { results })
@@ -98,7 +117,7 @@ pub async fn run_tests_internal(
         tests_name_to_sql: BTreeMap<String, String>,
         whether_to_skip: HashMap<String, Inference>,
         run_statement: RunStatementFunc,
-    ) -> Result<TestResults, String> {
+    ) -> Result<TestResults, RunTestError> {
         let tests_to_run = tests_name_to_sql
             .keys()
             .filter_map(|test_name| match whether_to_skip.get(test_name) {
@@ -108,7 +127,8 @@ pub async fn run_tests_internal(
                 },
                 None => Some(Err(format!("Test {} not found", test_name))),
             })
-            .collect::<Result<HashSet<&String>, String>>()?;
+            .collect::<Result<HashSet<&String>, String>>()
+            .map_err(|e| RunTestError::Other(e))?;
         let tests_to_just_mark_right = tests_name_to_sql
             .keys()
             .filter_map(|test_name| match whether_to_skip.get(test_name) {
@@ -118,7 +138,9 @@ pub async fn run_tests_internal(
                 },
                 None => Some(Err(format!("Test {} not found", test_name))),
             })
-            .collect::<Result<HashSet<&String>, String>>()?;
+            .collect::<Result<HashSet<&String>, String>>()
+            .map_err(|e| RunTestError::Other(e))?;
+
         let tests_to_skip_for_inference = tests_name_to_sql
             .keys()
             .filter_map(|test_name| match whether_to_skip.get(test_name) {
@@ -131,7 +153,8 @@ pub async fn run_tests_internal(
                 None => Some(Err(format!("Test {} not found", test_name))),
             })
             // Test to source test
-            .collect::<Result<HashSet<&String>, String>>()?;
+            .collect::<Result<HashSet<&String>, String>>()
+            .map_err(|e| RunTestError::Other(e))?;
         let tests_to_skip_for_inference_with_operation = tests_name_to_sql
             .keys()
             .filter_map(|test_name| match whether_to_skip.get(test_name) {
@@ -145,19 +168,25 @@ pub async fn run_tests_internal(
                 None => Some(Err(format!("Test {} not found", test_name,))),
             })
             // Test to source test
-            .collect::<Result<HashMap<&String, &String>, String>>()?;
+            .collect::<Result<HashMap<&String, &String>, String>>()
+            .map_err(|e| RunTestError::Other(e))?;
 
         let mut results = HashMap::<&String, TestResult>::new();
         for test_name in tests_to_run {
-            let sql = tests_name_to_sql.get(test_name).ok_or(
-                format!(
+            let sql = tests_name_to_sql
+                .get(test_name)
+                .ok_or(RunTestError::Other(format!(
                     "Test {} not found, tests_name_to_sql keys {:?}",
                     test_name,
                     tests_name_to_sql.keys()
-                )
-                .to_string(),
-            )?;
-            let test_result = run_statement(sql.as_str()).await?;
+                )))?;
+            let test_result = run_statement(sql.as_str()).await.map_err(|e| {
+                RunTestError::TestFailedToRun(TestFailedToRun {
+                    test_name: test_name.clone(),
+                    sql: sql.clone(),
+                    error: e,
+                })
+            })?;
             results.insert(
                 test_name,
                 TestResult {
@@ -185,7 +214,7 @@ pub async fn run_tests_internal(
                 .map(|test_name| {
                     let sql = tests_name_to_sql
                         .get(test_name)
-                        .ok_or(format!("Test {} not found", test_name))?;
+                        .ok_or(RunTestError::Other(format!("Test {} not found", test_name)))?;
                     Ok((
                         test_name,
                         TestResult {
@@ -200,28 +229,28 @@ pub async fn run_tests_internal(
                         },
                     ))
                 })
-                .collect::<Result<HashMap<&String, TestResult>, String>>()?;
+                .collect::<Result<HashMap<&String, TestResult>, RunTestError>>()?;
         results.extend(tests_to_mark_just_right_results);
 
         let mut skip_results = HashMap::<&String, TestResult>::new();
         for test_name in tests_to_skip_for_inference {
-            let sql = tests_name_to_sql.get(test_name).ok_or(
-                format!(
+            let sql = tests_name_to_sql
+                .get(test_name)
+                .ok_or(RunTestError::Other(format!(
                     "Test {} not found, tests_name_to_sql keys {:?}",
                     test_name,
                     tests_name_to_sql.keys()
-                )
-                .to_string(),
-            )?;
-            let test_sources = recursive_search_for_test(&whether_to_skip, test_name)?;
+                )))?;
+            let test_sources = recursive_search_for_test(&whether_to_skip, test_name)
+                .map_err(|e| RunTestError::Other(e))?;
             let intermediary_test_source = &test_sources
                 .last()
-                .ok_or("Failed to find last test".to_string())?;
+                .ok_or(RunTestError::Other("Failed to find last test".to_string()))?;
             let test_source = results
                 .get(intermediary_test_source)
-                .ok_or(format!(
+                .ok_or(RunTestError::Other(format!(
                     "Failed to find test source, looking at the test {:?} which was skipped and has tests sources {:?}, more specifically the last one in ran results with keys {:?}", test_name, test_sources, results.keys()
-                ))?;
+                )))?;
             match test_source.test_result {
                 Some(Passed(_)) => {
                     skip_results.insert(
@@ -252,38 +281,38 @@ pub async fn run_tests_internal(
                     );
                 }
                 _ => {
-                    return Err(format!(
+                    return Err(RunTestError::Other(format!(
                         "Failed to find test source, looking at the test {:?} which was skipped and has tests sources {:?}, more specifically the last one in ran results with keys {:?}", test_name, test_sources, results.keys()
-                    ))
+                    )))
                 }
             }
         }
 
         for (test_name, operation) in tests_to_skip_for_inference_with_operation {
-            let sql = tests_name_to_sql.get(test_name).ok_or(
-                format!(
+            let sql = tests_name_to_sql
+                .get(test_name)
+                .ok_or(RunTestError::Other(format!(
                     "Test {} not found, tests_name_to_sql keys {:?}",
                     test_name,
                     tests_name_to_sql.keys()
-                )
-                .to_string(),
-            )?;
-            let test_sources = recursive_search_for_test(&whether_to_skip, test_name)?;
+                )))?;
+            let test_sources = recursive_search_for_test(&whether_to_skip, test_name)
+                .map_err(|e| RunTestError::Other(e))?;
             if test_sources.is_empty() {
-                return Err(format!(
+                return Err(RunTestError::Other(format!(
                     "Failed to find test source, looking at the test {:?} which was skipped and has tests sources {:?}, more specifically the last one in ran results with keys {:?}",
                     test_name, test_sources, results.keys()
-                ));
+                )));
             }
             let intermediary_test_source = &test_sources.last()
-                .ok_or(format!(
+                .ok_or(RunTestError::Other(format!(
                     "Failed to find test source, looking at the test {:?} which was skipped and has tests sources {:?}, more specifically the last one in ran results with keys {:?}", test_name, test_sources, results.keys()
-                ))?;
+                )))?;
             let test_source = results
                 .get(intermediary_test_source)
-                .ok_or(format!(
+                .ok_or(RunTestError::Other(format!(
                     "Failed to find test source, looking at the test {:?} which was skipped and has tests sources {:?}, more specifically the last one in ran results with keys {:?}", test_name, test_sources, results.keys()
-                ))?;
+                )))?;
             match test_source.test_result {
                 Some(Passed(_)) => {
                     skip_results.insert(
@@ -319,7 +348,7 @@ pub async fn run_tests_internal(
                         },
                     );
                 }
-                _ => return Err("test source is empty".to_string()),
+                _ => return Err(RunTestError::Other("Test source is empty".to_string())),
             }
         }
 
@@ -339,9 +368,12 @@ pub async fn run_tests_internal(
                 limit,
                 None,
             )
-            .await?;
+            .await
+            .map_err(|e| RunTestError::Other(e))?;
             let whether_to_skip =
-                infer_skippable_tests_internal(dialect, project, file_system, project_root).await?;
+                infer_skippable_tests_internal(dialect, project, file_system, project_root)
+                    .await
+                    .map_err(|e| RunTestError::Other(e))?;
             run_test_skip(tests, whether_to_skip, run_statement).await
         }
         TestRunner::All => {
@@ -353,10 +385,14 @@ pub async fn run_tests_internal(
                 limit,
                 None,
             )
-            .await?;
+            .await
+            .map_err(|e| RunTestError::Other(e))?;
             run_test_all(tests, run_statement).await
         }
-        _ => Err("Invalid test runner".to_string()),
+        _ => Err(RunTestError::Other(format!(
+            "Test runner {:?} is invalid",
+            test_runner
+        ))),
     }
 }
 
@@ -372,37 +408,38 @@ pub async fn run_model_tests_internal(
     whether_to_include_model_to_source: bool,
     limit: Option<usize>,
     model_name: &str,
-) -> Result<TestResults, String> {
+) -> Result<TestResults, RunTestError> {
     async fn run_test_all(
         tests_name_to_sql: BTreeMap<String, String>,
         run_statement: RunStatementFunc,
-    ) -> Result<TestResults, String> {
+    ) -> Result<TestResults, RunTestError> {
         let mut results = Vec::new();
         for (test_name, sql) in tests_name_to_sql {
-            let test_result = run_statement(sql.as_str()).await;
-            match test_result {
-                Ok(test_result) => {
-                    if let Some(test_result) = test_result {
-                        results.push(TestResult {
-                            test_name,
-                            query: sql.clone(),
-                            test_result: Some(Failed(quary_proto::Failed {
-                                reason: Some(failed::Reason::Ran(FailedRunResults {
-                                    query_result: Some(test_result),
-                                })),
-                            })),
-                        });
-                    } else {
-                        results.push(TestResult {
-                            test_name,
-                            query: sql.clone(),
-                            test_result: Some(Passed(quary_proto::Passed {
-                                reason: Some(passed::Reason::Ran(Default::default())),
-                            })),
-                        });
-                    }
-                }
-                Err(e) => return Err(format!("Failed to run test {} with error {}", test_name, e)),
+            let test_result = run_statement(sql.as_str()).await.map_err(|e| {
+                RunTestError::TestFailedToRun(TestFailedToRun {
+                    test_name: test_name.clone(),
+                    sql: sql.clone(),
+                    error: e,
+                })
+            })?;
+            if let Some(test_result) = test_result {
+                results.push(TestResult {
+                    test_name,
+                    query: sql.clone(),
+                    test_result: Some(Failed(quary_proto::Failed {
+                        reason: Some(failed::Reason::Ran(FailedRunResults {
+                            query_result: Some(test_result),
+                        })),
+                    })),
+                });
+            } else {
+                results.push(TestResult {
+                    test_name,
+                    query: sql.clone(),
+                    test_result: Some(Passed(quary_proto::Passed {
+                        reason: Some(passed::Reason::Ran(Default::default())),
+                    })),
+                });
             }
         }
         Ok(TestResults { results })
@@ -415,7 +452,8 @@ pub async fn run_model_tests_internal(
         limit,
         Some(model_name),
     )
-    .await?;
+    .await
+    .map_err(|e| RunTestError::Other(e))?;
     run_test_all(tests, run_statement).await
 }
 

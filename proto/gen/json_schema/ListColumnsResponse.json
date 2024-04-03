@@ -1,16 +1,10 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$ref": "#/definitions/QueryResultColumn",
+    "$ref": "#/definitions/ListColumnsResponse",
     "definitions": {
-        "QueryResultColumn": {
+        "ListColumnsResponse": {
             "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "values": {
+                "columns": {
                     "items": {
                         "type": "string"
                     },
@@ -19,7 +13,7 @@
             },
             "additionalProperties": true,
             "type": "object",
-            "title": "Query Result Column"
+            "title": "List Columns Response"
         }
     }
 }

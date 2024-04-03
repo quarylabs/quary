@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use quary_proto::TableAddress;
 use sqlinference::dialect::Dialect;
 use std::fmt::Debug;
 
@@ -225,11 +226,16 @@ pub fn base_for_seeds_create_table_specifying_text_type(
     format!("CREATE TABLE {} ({})", table_name, values)
 }
 
-/// TableAddress is a struct that represents a table in a database. It contains the name of the table and the full path.
-#[derive(Debug, Clone, PartialEq)]
-pub struct TableAddress {
-    pub name: String,
-    pub full_path: String,
+#[derive(Debug, Clone)]
+pub struct QueryError {
+    pub query: String,
+    pub error: String,
+}
+
+impl QueryError {
+    pub fn new(query: String, error: String) -> Self {
+        Self { query, error }
+    }
 }
 
 #[async_trait]
@@ -243,10 +249,13 @@ pub trait DatabaseConnection: Debug {
     /// list_columns returns the columns of a table in the order they are defined in the table. If the table does not
     /// exist, an error is returned.
     async fn list_columns(&self, table: &str) -> Result<Vec<String>, String>;
+
     async fn exec(&self, query: &str) -> Result<(), String>;
+
     /// query returns the results of a query as a vector of rows. The first vector is the headers of
     /// the columns. The second vector is the rows.
-    async fn query(&self, query: &str) -> Result<QueryResult, String>;
+    async fn query(&self, query: &str) -> Result<QueryResult, QueryError>;
+
     /// query_generator returns the appropriate query generator
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator>;
 }
@@ -281,6 +290,7 @@ impl QueryResult {
                     .collect::<Result<Vec<_>, _>>()?;
                 Ok(quary_proto::QueryResultColumn {
                     name: column.clone(),
+                    r#type: None,
                     values,
                 })
             })
@@ -312,10 +322,12 @@ mod tests {
         let expected_columns = vec![
             quary_proto::QueryResultColumn {
                 name: "id".to_string(),
+                r#type: None,
                 values: vec!["1".to_string(), "2".to_string()],
             },
             quary_proto::QueryResultColumn {
                 name: "name".to_string(),
+                r#type: None,
                 values: vec!["Alice".to_string(), "Bob".to_string()],
             },
         ];

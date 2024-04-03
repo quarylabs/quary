@@ -1,39 +1,33 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$ref": "#/definitions/QueryResult",
+    "$ref": "#/definitions/ListViewsResponse",
     "definitions": {
-        "QueryResult": {
+        "ListViewsResponse": {
             "properties": {
-                "columns": {
+                "views": {
                     "items": {
-                        "$ref": "#/definitions/quary.service.v1.QueryResultColumn"
+                        "$ref": "#/definitions/quary.service.v1.TableAddress"
                     },
                     "type": "array"
                 }
             },
             "additionalProperties": true,
             "type": "object",
-            "title": "Query Result",
-            "description": "QueryResult is the result of a ran query."
+            "title": "List Views Response"
         },
-        "quary.service.v1.QueryResultColumn": {
+        "quary.service.v1.TableAddress": {
             "properties": {
                 "name": {
                     "type": "string"
                 },
-                "type": {
+                "full_path": {
                     "type": "string"
-                },
-                "values": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
                 }
             },
             "additionalProperties": true,
             "type": "object",
-            "title": "Query Result Column"
+            "title": "Table Address",
+            "description": "TableAddress is a struct that represents a table in a database. It contains the name of the table and the full path."
         }
     }
 }

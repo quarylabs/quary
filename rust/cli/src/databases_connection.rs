@@ -102,6 +102,27 @@ pub async fn database_from_config(
                 let database = env::var("PGDATABASE")
                     .map_err(|_| "PGDATABASE must be set to connect to Postgres".to_string())?;
 
+                let ssl_mode = if let Ok(ssl_mode) = env::var("PGSSLMODE") {
+                    Some(ssl_mode.to_string())
+                } else {
+                    None
+                };
+                let ssl_cert = if let Ok(ssl_cert) = env::var("PGSSLCERT") {
+                    Some(ssl_cert.to_string())
+                } else {
+                    None
+                };
+                let ssl_key = if let Ok(ssl_key) = env::var("PGSSLKEY") {
+                    Some(ssl_key.to_string())
+                } else {
+                    None
+                };
+                let ssl_root_cert = if let Ok(ssl_root_cert) = env::var("PGSSLROOTCERT") {
+                    Some(ssl_root_cert.to_string())
+                } else {
+                    None
+                };
+
                 let database = Postgres::new(
                     &host,
                     &port,
@@ -109,7 +130,10 @@ pub async fn database_from_config(
                     &password,
                     &database,
                     &config.schema,
-                    None,
+                    ssl_mode,
+                    ssl_cert,
+                    ssl_key,
+                    ssl_root_cert,
                 )
                 .await
                 .map_err(|e| e.to_string())?;

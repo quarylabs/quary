@@ -10,6 +10,12 @@
                 "description": {
                     "type": "string"
                 },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
                 "file_path": {
                     "type": "string"
                 },

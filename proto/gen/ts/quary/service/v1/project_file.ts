@@ -22,15 +22,19 @@ export interface ProjectFile_Column {
 
 export interface ProjectFile_Model {
   name: string;
-  description?: string | undefined;
-  tests: ModelTest[];
-  columns: ProjectFile_Column[];
+  tags: string[];
+  description?:
+    | string
+    | undefined;
   /** The materialization of the model, available types are specified by each database. */
   materialization?: string | undefined;
+  tests: ModelTest[];
+  columns: ProjectFile_Column[];
 }
 
 export interface ProjectFile_Source {
   name: string;
+  tags: string[];
   description?:
     | string
     | undefined;
@@ -228,7 +232,7 @@ export const ProjectFile_Column = {
 };
 
 function createBaseProjectFile_Model(): ProjectFile_Model {
-  return { name: "", description: undefined, tests: [], columns: [], materialization: undefined };
+  return { name: "", tags: [], description: undefined, materialization: undefined, tests: [], columns: [] };
 }
 
 export const ProjectFile_Model = {
@@ -236,17 +240,20 @@ export const ProjectFile_Model = {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
+    for (const v of message.tags) {
+      writer.uint32(50).string(v!);
+    }
     if (message.description !== undefined) {
       writer.uint32(18).string(message.description);
+    }
+    if (message.materialization !== undefined) {
+      writer.uint32(34).string(message.materialization);
     }
     for (const v of message.tests) {
       ModelTest.encode(v!, writer.uint32(42).fork()).ldelim();
     }
     for (const v of message.columns) {
       ProjectFile_Column.encode(v!, writer.uint32(26).fork()).ldelim();
-    }
-    if (message.materialization !== undefined) {
-      writer.uint32(34).string(message.materialization);
     }
     return writer;
   },
@@ -265,12 +272,26 @@ export const ProjectFile_Model = {
 
           message.name = reader.string();
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.tags.push(reader.string());
+          continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
           message.description = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.materialization = reader.string();
           continue;
         case 5:
           if (tag !== 42) {
@@ -286,13 +307,6 @@ export const ProjectFile_Model = {
 
           message.columns.push(ProjectFile_Column.decode(reader, reader.uint32()));
           continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.materialization = reader.string();
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -305,10 +319,11 @@ export const ProjectFile_Model = {
   fromJSON(object: any): ProjectFile_Model {
     return {
       name: isSet(object.name) ? gt.String(object.name) : "",
+      tags: gt.Array.isArray(object?.tags) ? object.tags.map((e: any) => gt.String(e)) : [],
       description: isSet(object.description) ? gt.String(object.description) : undefined,
+      materialization: isSet(object.materialization) ? gt.String(object.materialization) : undefined,
       tests: gt.Array.isArray(object?.tests) ? object.tests.map((e: any) => ModelTest.fromJSON(e)) : [],
       columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => ProjectFile_Column.fromJSON(e)) : [],
-      materialization: isSet(object.materialization) ? gt.String(object.materialization) : undefined,
     };
   },
 
@@ -317,17 +332,20 @@ export const ProjectFile_Model = {
     if (message.name !== "") {
       obj.name = message.name;
     }
+    if (message.tags?.length) {
+      obj.tags = message.tags;
+    }
     if (message.description !== undefined) {
       obj.description = message.description;
+    }
+    if (message.materialization !== undefined) {
+      obj.materialization = message.materialization;
     }
     if (message.tests?.length) {
       obj.tests = message.tests.map((e) => ModelTest.toJSON(e));
     }
     if (message.columns?.length) {
       obj.columns = message.columns.map((e) => ProjectFile_Column.toJSON(e));
-    }
-    if (message.materialization !== undefined) {
-      obj.materialization = message.materialization;
     }
     return obj;
   },
@@ -338,22 +356,26 @@ export const ProjectFile_Model = {
   fromPartial<I extends Exact<DeepPartial<ProjectFile_Model>, I>>(object: I): ProjectFile_Model {
     const message = createBaseProjectFile_Model();
     message.name = object.name ?? "";
+    message.tags = object.tags?.map((e) => e) || [];
     message.description = object.description ?? undefined;
+    message.materialization = object.materialization ?? undefined;
     message.tests = object.tests?.map((e) => ModelTest.fromPartial(e)) || [];
     message.columns = object.columns?.map((e) => ProjectFile_Column.fromPartial(e)) || [];
-    message.materialization = object.materialization ?? undefined;
     return message;
   },
 };
 
 function createBaseProjectFile_Source(): ProjectFile_Source {
-  return { name: "", description: undefined, path: "", tests: [], columns: [] };
+  return { name: "", tags: [], description: undefined, path: "", tests: [], columns: [] };
 }
 
 export const ProjectFile_Source = {
   encode(message: ProjectFile_Source, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
+    }
+    for (const v of message.tags) {
+      writer.uint32(50).string(v!);
     }
     if (message.description !== undefined) {
       writer.uint32(18).string(message.description);
@@ -383,6 +405,13 @@ export const ProjectFile_Source = {
           }
 
           message.name = reader.string();
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.tags.push(reader.string());
           continue;
         case 2:
           if (tag !== 18) {
@@ -424,6 +453,7 @@ export const ProjectFile_Source = {
   fromJSON(object: any): ProjectFile_Source {
     return {
       name: isSet(object.name) ? gt.String(object.name) : "",
+      tags: gt.Array.isArray(object?.tags) ? object.tags.map((e: any) => gt.String(e)) : [],
       description: isSet(object.description) ? gt.String(object.description) : undefined,
       path: isSet(object.path) ? gt.String(object.path) : "",
       tests: gt.Array.isArray(object?.tests) ? object.tests.map((e: any) => ModelTest.fromJSON(e)) : [],
@@ -435,6 +465,9 @@ export const ProjectFile_Source = {
     const obj: any = {};
     if (message.name !== "") {
       obj.name = message.name;
+    }
+    if (message.tags?.length) {
+      obj.tags = message.tags;
     }
     if (message.description !== undefined) {
       obj.description = message.description;
@@ -457,6 +490,7 @@ export const ProjectFile_Source = {
   fromPartial<I extends Exact<DeepPartial<ProjectFile_Source>, I>>(object: I): ProjectFile_Source {
     const message = createBaseProjectFile_Source();
     message.name = object.name ?? "";
+    message.tags = object.tags?.map((e) => e) || [];
     message.description = object.description ?? undefined;
     message.path = object.path ?? "";
     message.tests = object.tests?.map((e) => ModelTest.fromPartial(e)) || [];

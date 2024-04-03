@@ -9,25 +9,32 @@
 use crate::commands::{mode_to_test_runner, Cli, Commands, InitType};
 use crate::databases_connection::{database_from_config, database_query_generator_from_config};
 use crate::file_system::LocalFS;
+use base64::{engine::general_purpose, Engine as _};
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
 use quary_core::automatic_branching::{
     derive_hash_views, drop_statement_for_cache_view, is_cache_full_path,
 };
 use quary_core::config::deserialize_config_from_yaml;
-use quary_core::databases::DatabaseQueryGenerator;
+use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator};
 use quary_core::graph::project_to_graph;
 use quary_core::init::{Asset, DuckDBAsset};
 use quary_core::onboarding::is_empty_bar_hidden_and_sqlite;
 use quary_core::project::project_and_fs_to_sql_for_views;
 use quary_core::project_tests::return_tests_sql;
-use quary_core::test_runner::{run_tests_internal, RunStatementFunc};
+use quary_core::test_runner::{run_tests_internal, RunStatementFunc, RunTestError};
 use quary_proto::test_result::TestResult;
-use quary_proto::{failed, passed, ConnectionConfig};
+use quary_proto::{
+    failed, passed, ConnectionConfig, ExecRequest, ExecResponse, ListColumnsRequest,
+    ListColumnsResponse, ListTablesRequest, ListTablesResponse, ListViewsRequest,
+    ListViewsResponse, QueryRequest, QueryResponse, SayHelloRequest, SayHelloResponse,
+};
 use std::fs;
 use std::fs::File;
+use std::future::Future;
 use std::io::Write;
 use std::path::Path;
+use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -41,10 +48,35 @@ mod databases_sqlite;
 mod file_system;
 
 // TODO For the cases where don't need full database, separate that out in the future
-
 #[tokio::main]
-async fn main() -> Result<(), String> {
+async fn main() {
+    match main_wrapped().await {
+        Ok(_) => {}
+        Err(e) => {
+            // replace \\n with \n
+            let out = e.replace("\\n", "\n");
+            eprint!("{}", out);
+            std::process::exit(1);
+        }
+    }
+}
+
+async fn main_wrapped() -> Result<(), String> {
     let args = Cli::parse();
+
+    match &args.env_files[..] {
+        files if files == &[".env"] => {
+            dotenv::dotenv().ok();
+        }
+        _ => {
+            for env_file in &args.env_files {
+                if dotenv::from_filename(env_file).is_err() {
+                    return Err(format!("Error loading env file: {}", env_file));
+                }
+            }
+        }
+    }
+
     match &args.command {
         Commands::Init(args) => {
             let dir = std::env::current_dir().map_err(|e| e.to_string())?;
@@ -287,7 +319,6 @@ async fn main() -> Result<(), String> {
 
                 Box::pin(async move {
                     let result = database.query(&sql).await;
-                    let sql_with_no_newlines = sql.replace('\n', " ");
                     match result {
                         Ok(outs) => Ok(if outs.rows.is_empty() {
                             None
@@ -295,10 +326,7 @@ async fn main() -> Result<(), String> {
                             let proto = outs.to_proto()?;
                             Some(proto)
                         }),
-                        Err(error) => Err(format!(
-                            "Error in test query: \n{:?}\n{}",
-                            error, sql_with_no_newlines
-                        )),
+                        Err(error) => Err(format!("Error running query: {:?}", error)),
                     }
                 })
             });
@@ -318,7 +346,13 @@ async fn main() -> Result<(), String> {
             )
             .await
             {
-                Err(e) => Err(e),
+                Err(e) => match e {
+                    RunTestError::Other(error) => Err(error),
+                    RunTestError::TestFailedToRun(error) => Err(format!(
+                        "Test '{}' failed to run: {} with sql '{}'",
+                        error.test_name, error.error, error.sql
+                    )),
+                },
                 Ok(tests) => {
                     let tests_pass = tests
                         .results
@@ -434,7 +468,145 @@ async fn main() -> Result<(), String> {
             }
             Ok(())
         }
+        Commands::Rpc(rpc_args) => {
+            let config = get_config_file(&args.project_file)?;
+            let database = database_from_config(&config).await?;
+
+            let method = &rpc_args.method;
+            let request = &rpc_args.request;
+
+            let call = match method.as_str() {
+                "ListTables" => Ok(rpc_wrapper(list_tables)),
+                "ListViews" => Ok(rpc_wrapper(list_views)),
+                "ListColumns" => Ok(rpc_wrapper(list_columns)),
+                "Execute" => Ok(rpc_wrapper(execute)),
+                "Query" => Ok(rpc_wrapper(query)),
+                "SayHello" => Ok(rpc_wrapper(say_hello)),
+                _ => Err("error Method not found"),
+            }?;
+
+            let response = call(request.to_string(), database).await?;
+
+            println!("{}", response);
+
+            Ok(())
+        }
     }
+}
+
+async fn say_hello(
+    req: SayHelloRequest,
+    _: Box<dyn DatabaseConnection>,
+) -> Result<SayHelloResponse, String> {
+    Ok(SayHelloResponse {
+        message: format!("Hello, {}", req.name),
+    })
+}
+
+async fn list_tables(
+    _: ListTablesRequest,
+    database: Box<dyn DatabaseConnection>,
+) -> Result<ListTablesResponse, String> {
+    let tables = database
+        .list_tables()
+        .await
+        .map_err(|e| format!("Failed to list tables: {}", e))?;
+    let response = ListTablesResponse { tables };
+    Ok(response)
+}
+
+async fn list_views(
+    _: ListViewsRequest,
+    database: Box<dyn DatabaseConnection>,
+) -> Result<ListViewsResponse, String> {
+    let views = database
+        .list_views()
+        .await
+        .map_err(|e| format!("Failed to list views: {}", e))?;
+    let response = ListViewsResponse { views };
+    Ok(response)
+}
+
+async fn list_columns(
+    req: ListColumnsRequest,
+    database: Box<dyn DatabaseConnection>,
+) -> Result<ListColumnsResponse, String> {
+    let columns = database
+        .list_columns(req.table_name.as_str())
+        .await
+        .map_err(|e| format!("Failed to list columns: {}", e))?;
+    let response = ListColumnsResponse { columns };
+    Ok(response)
+}
+
+async fn execute(
+    req: ExecRequest,
+    database: Box<dyn DatabaseConnection>,
+) -> Result<ExecResponse, String> {
+    database
+        .exec(&req.query)
+        .await
+        .map_err(|e| format!("Failed to execute query: {}", e))?;
+    Ok(ExecResponse {})
+}
+
+async fn query(
+    req: QueryRequest,
+    database: Box<dyn DatabaseConnection>,
+) -> Result<QueryResponse, String> {
+    let result = database
+        .query(&req.query)
+        .await
+        .map_err(|e| format!("Failed to execute query: {:?}", e))?;
+
+    Ok(QueryResponse {
+        result: Some(result.to_proto()?),
+    })
+}
+
+fn rpc_wrapper<Fut, F, Req, Res>(
+    f: F,
+) -> Box<
+    dyn FnOnce(
+        String,
+        Box<dyn DatabaseConnection>,
+    ) -> Pin<Box<dyn Future<Output = Result<String, String>>>>,
+>
+where
+    F: FnOnce(Req, Box<dyn DatabaseConnection>) -> Fut + 'static,
+    Req: prost::Message + Default,
+    Res: prost::Message,
+    Fut: Future<Output = Result<Res, String>> + 'static,
+{
+    Box::new(
+        move |request: String, database: Box<dyn DatabaseConnection>| {
+            Box::pin(async move {
+                let decoded_request = decode(&request).map_err(|e| format!("error {}", e))?;
+                let response = f(decoded_request, database)
+                    .await
+                    .map_err(|e| format!("error {}", e))?;
+                let encoded_response = encode(response).map_err(|e| format!("error {}", e))?;
+                Ok(encoded_response)
+            })
+        },
+    )
+}
+
+fn decode<Req: prost::Message + Default>(req: &str) -> Result<Req, String> {
+    let bytes = general_purpose::STANDARD
+        .decode(req)
+        .map_err(|e| e.to_string())?;
+
+    let req = Req::decode(&bytes[..]).map_err(|e| e.to_string())?;
+    Ok(req)
+}
+
+fn encode<Res: prost::Message>(res: Res) -> Result<String, String> {
+    let mut buf = Vec::new();
+    res.encode(&mut buf).map_err(|e| e.to_string())?;
+
+    let encoded = general_purpose::STANDARD.encode(&buf);
+    Ok(encoded)
 }
 
 async fn parse_project(

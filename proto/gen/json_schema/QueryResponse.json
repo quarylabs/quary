@@ -1,17 +1,17 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$ref": "#/definitions/FailedRunResults",
+    "$ref": "#/definitions/QueryResponse",
     "definitions": {
-        "FailedRunResults": {
+        "QueryResponse": {
             "properties": {
-                "query_result": {
+                "result": {
                     "$ref": "#/definitions/quary.service.v1.QueryResult",
                     "additionalProperties": true
                 }
             },
             "additionalProperties": true,
             "type": "object",
-            "title": "Failed Run Results"
+            "title": "Query Response"
         },
         "quary.service.v1.QueryResult": {
             "properties": {

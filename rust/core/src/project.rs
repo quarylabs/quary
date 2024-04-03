@@ -448,6 +448,10 @@ async fn parse_model(
         .get(&name)
         .map(|model| model.materialization.clone())
         .unwrap_or(None);
+    let tags = model_definitions
+        .get(&name)
+        .map(|model| model.tags.clone())
+        .unwrap_or(vec![]);
 
     let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
         .map_err(|e| format!("Could not parse reference search from schema name: {:?}", e))?;
@@ -507,6 +511,7 @@ async fn parse_model(
     Ok(Model {
         name,
         description,
+        tags,
         file_sha256_hash,
         materialization,
         file_path: sql_path.to_string(),
@@ -601,6 +606,7 @@ fn parse_sources(
                     description: s.description.clone(),
                     // TODO This needs to become a location
                     path: s.path.to_string(),
+                    tags: s.tags.clone(),
                     file_path: path.to_string(),
                     // TODO Map columns or remove them from this model
                     columns: vec![],
@@ -1442,6 +1448,7 @@ mod test {
             name: "test".to_string(),
             description: None,
             tests: vec![],
+            tags: vec![],
             materialization: None,
             columns: vec![],
         }]

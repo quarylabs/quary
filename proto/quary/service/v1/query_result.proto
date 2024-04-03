@@ -11,5 +11,7 @@ message QueryResult {
 
 message QueryResultColumn {
   string name = 1;
+
+  optional string type = 3;
   repeated string values = 2;
 }
