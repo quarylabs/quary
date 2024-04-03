@@ -1,0 +1,58 @@
+syntax = "proto3";
+package quary.service.v1;
+
+import "quary/service/v1/query_result.proto";
+import "quary/service/v1/table_address.proto";
+
+option java_multiple_files = true;
+
+service CLIRPCService {
+  rpc SayHello(SayHelloRequest) returns (SayHelloResponse);
+  rpc ListTables(ListTablesRequest) returns (ListTablesResponse);
+  rpc ListViews(ListViewsRequest) returns (ListViewsResponse);
+  rpc Exec(ExecRequest) returns (ExecResponse);
+  rpc Query(QueryRequest) returns (QueryResponse);
+  rpc ListColumns(ListColumnsRequest) returns (ListColumnsResponse);
+}
+
+message SayHelloRequest {
+  string name = 1;
+}
+
+message SayHelloResponse {
+  string message = 1;
+}
+
+message ListTablesRequest {}
+
+message ListTablesResponse {
+  repeated TableAddress tables = 1;
+}
+
+message ListViewsRequest {}
+
+message ListViewsResponse {
+  repeated TableAddress views = 1;
+}
+
+message ExecRequest {
+  string query = 1;
+}
+
+message ExecResponse {}
+
+message QueryRequest {
+  string query = 1;
+}
+
+message QueryResponse {
+  QueryResult result = 1;
+}
+
+message ListColumnsRequest {
+  string table_name = 1;
+}
+
+message ListColumnsResponse {
+  repeated string columns = 1;
+}

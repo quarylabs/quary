@@ -103,6 +103,7 @@ export interface Seed {
 export interface Model {
   name: string;
   description?: string | undefined;
+  tags: string[];
   filePath: string;
   fileSha256Hash: string;
   materialization?: string | undefined;
@@ -127,6 +128,7 @@ export interface Source {
   name: string;
   description?: string | undefined;
   path: string;
+  tags: string[];
   /** TODO Replace File path references with whole file references */
   filePath: string;
   columns: Source_SourceColumn[];
@@ -1664,6 +1666,7 @@ function createBaseModel(): Model {
   return {
     name: "",
     description: undefined,
+    tags: [],
     filePath: "",
     fileSha256Hash: "",
     materialization: undefined,
@@ -1679,6 +1682,9 @@ export const Model = {
     }
     if (message.description !== undefined) {
       writer.uint32(18).string(message.description);
+    }
+    for (const v of message.tags) {
+      writer.uint32(34).string(v!);
     }
     if (message.filePath !== "") {
       writer.uint32(26).string(message.filePath);
@@ -1718,6 +1724,13 @@ export const Model = {
           }
 
           message.description = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.tags.push(reader.string());
           continue;
         case 3:
           if (tag !== 26) {
@@ -1767,6 +1780,7 @@ export const Model = {
     return {
       name: isSet(object.name) ? gt.String(object.name) : "",
       description: isSet(object.description) ? gt.String(object.description) : undefined,
+      tags: gt.Array.isArray(object?.tags) ? object.tags.map((e: any) => gt.String(e)) : [],
       filePath: isSet(object.filePath) ? gt.String(object.filePath) : "",
       fileSha256Hash: isSet(object.fileSha256Hash) ? gt.String(object.fileSha256Hash) : "",
       materialization: isSet(object.materialization) ? gt.String(object.materialization) : undefined,
@@ -1782,6 +1796,9 @@ export const Model = {
     }
     if (message.description !== undefined) {
       obj.description = message.description;
+    }
+    if (message.tags?.length) {
+      obj.tags = message.tags;
     }
     if (message.filePath !== "") {
       obj.filePath = message.filePath;
@@ -1808,6 +1825,7 @@ export const Model = {
     const message = createBaseModel();
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
+    message.tags = object.tags?.map((e) => e) || [];
     message.filePath = object.filePath ?? "";
     message.fileSha256Hash = object.fileSha256Hash ?? "";
     message.materialization = object.materialization ?? undefined;
@@ -1981,7 +1999,7 @@ export const DatabaseSource = {
 };
 
 function createBaseSource(): Source {
-  return { name: "", description: undefined, path: "", filePath: "", columns: [] };
+  return { name: "", description: undefined, path: "", tags: [], filePath: "", columns: [] };
 }
 
 export const Source = {
@@ -1994,6 +2012,9 @@ export const Source = {
     }
     if (message.path !== "") {
       writer.uint32(26).string(message.path);
+    }
+    for (const v of message.tags) {
+      writer.uint32(50).string(v!);
     }
     if (message.filePath !== "") {
       writer.uint32(34).string(message.filePath);
@@ -2032,6 +2053,13 @@ export const Source = {
 
           message.path = reader.string();
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.tags.push(reader.string());
+          continue;
         case 4:
           if (tag !== 34) {
             break;
@@ -2060,6 +2088,7 @@ export const Source = {
       name: isSet(object.name) ? gt.String(object.name) : "",
       description: isSet(object.description) ? gt.String(object.description) : undefined,
       path: isSet(object.path) ? gt.String(object.path) : "",
+      tags: gt.Array.isArray(object?.tags) ? object.tags.map((e: any) => gt.String(e)) : [],
       filePath: isSet(object.filePath) ? gt.String(object.filePath) : "",
       columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => Source_SourceColumn.fromJSON(e)) : [],
     };
@@ -2075,6 +2104,9 @@ export const Source = {
     }
     if (message.path !== "") {
       obj.path = message.path;
+    }
+    if (message.tags?.length) {
+      obj.tags = message.tags;
     }
     if (message.filePath !== "") {
       obj.filePath = message.filePath;
@@ -2093,6 +2125,7 @@ export const Source = {
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
     message.path = object.path ?? "";
+    message.tags = object.tags?.map((e) => e) || [];
     message.filePath = object.filePath ?? "";
     message.columns = object.columns?.map((e) => Source_SourceColumn.fromPartial(e)) || [];
     return message;

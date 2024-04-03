@@ -10,6 +10,9 @@ pub struct Cli {
     /// Project file location
     #[arg(long, short = 'p', global = true, default_value = "quary.yaml")]
     pub(crate) project_file: String,
+    /// .env file locations to pull env vars from
+    #[arg(long, short = 'e', global = true, default_value = ".env")]
+    pub(crate) env_files: Vec<String>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -36,6 +39,20 @@ pub enum Commands {
         about = "Convert a dbt core project to a quary project and place in the specified path"
     )]
     ConvertDbt(ConvertDbtArgs),
+    #[command(
+        name = "rpc",
+        about = "Execute an RPC call to the Rust CLI",
+        hide = true
+    )]
+    Rpc(RpcArgs),
+}
+
+#[derive(Args, Debug)]
+pub struct RpcArgs {
+    /// RPC method to call
+    pub method: String,
+    /// RPC request as a proto-encoded string
+    pub request: String,
 }
 
 #[derive(Args, Debug)]

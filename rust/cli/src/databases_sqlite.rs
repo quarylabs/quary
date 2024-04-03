@@ -1,8 +1,7 @@
 use async_trait::async_trait;
 use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
-use quary_core::databases::{
-    DatabaseConnection, DatabaseQueryGenerator, QueryResult, TableAddress,
-};
+use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult};
+use quary_proto::TableAddress;
 use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::Column;
 use sqlx::Pool;
@@ -90,13 +89,13 @@ impl DatabaseConnection for Sqlite {
         Ok(())
     }
 
-    async fn query(&self, query: &str) -> Result<QueryResult, String> {
+    async fn query(&self, query: &str) -> Result<QueryResult, QueryError> {
         let query_builder = sqlx::query(query);
 
         let sqlite_rows = query_builder
             .fetch_all(&self.pool)
             .await
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| QueryError::new(query.to_string(), e.to_string()))?;
 
         if sqlite_rows.is_empty() {
             return Ok(QueryResult {
@@ -356,7 +355,7 @@ mod tests {
                             Ok(Some(proto))
                         }
                     }
-                    Err(error) => Err(format!("Error in query: \n{}\n{}", error, sql)),
+                    Err(error) => Err(format!("Error in query: \n{:?}\n{}", error, sql)),
                 }
             })
         });
@@ -434,7 +433,7 @@ mod tests {
                             Ok(Some(proto))
                         }
                     }
-                    Err(error) => Err(format!("Error in query: \n{}\n{}", error, sql)),
+                    Err(error) => Err(format!("Error in query: {:?}", error)),
                 }
             })
         });

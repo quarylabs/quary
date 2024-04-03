@@ -1,3 +1,7 @@
+### Environment variables
+
+*.env
+
 ### Database
 
 *.sqlite

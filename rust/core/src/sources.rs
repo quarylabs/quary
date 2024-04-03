@@ -12,6 +12,7 @@ fn create_project_file_source(
             None => source.name.to_string(),
         },
         description: None,
+        tags: vec![],
         path: source.path.to_string(),
         tests: vec![],
         columns: source
@@ -63,6 +64,7 @@ pub fn build_staging_schema_file_from_sources(
                         source.name
                     )),
                     materialization: None,
+                    tags: vec![],
                     tests: vec![],
                     columns: source
                         .columns
@@ -162,6 +164,7 @@ mod tests {
                         name: "raw_test_table".to_string(),
                         description: None,
                         path: "database.test_table".to_string(),
+                        tags: vec![],
                         tests: vec![],
                         columns: vec![
                             project_file::Column {
@@ -181,6 +184,7 @@ mod tests {
                         description: None,
                         path: "database.demo_table".to_string(),
                         tests: vec![],
+                        tags: vec![],
                         columns: vec![
                             project_file::Column {
                                 name: "col1".to_string(),
@@ -202,6 +206,7 @@ mod tests {
                             "Replace this with your description for test_table".to_string()
                         ),
                         materialization: None,
+                        tags: vec![],
                         tests: vec![],
                         columns: vec![
                             project_file::Column {
@@ -222,6 +227,7 @@ mod tests {
                             "Replace this with your description for demo_table".to_string()
                         ),
                         materialization: None,
+                        tags: vec![],
                         tests: vec![],
                         columns: vec![
                             project_file::Column {
@@ -253,12 +259,14 @@ mod tests {
                     name: "test_123".to_string(),
                     description: None,
                     path: "".to_string(),
+                    tags: vec![],
                     tests: vec![],
                     columns: vec![],
                 }],
                 models: vec![project_file::Model {
                     name: "test_456".to_string(),
                     description: None,
+                    tags: vec![],
                     tests: vec![],
                     materialization: None,
                     columns: vec![],
@@ -275,6 +283,7 @@ mod tests {
                         name: "test_123".to_string(),
                         description: None,
                         path: "".to_string(),
+                        tags: vec![],
                         tests: vec![],
                         columns: vec![]
                     },
@@ -282,6 +291,7 @@ mod tests {
                         name: "raw_test_table".to_string(),
                         description: None,
                         path: "database.test_table".to_string(),
+                        tags: vec![],
                         tests: vec![],
                         columns: vec![
                             project_file::Column {
@@ -300,6 +310,7 @@ mod tests {
                         name: "raw_demo_table".to_string(),
                         description: None,
                         path: "database.demo_table".to_string(),
+                        tags: vec![],
                         tests: vec![],
                         columns: vec![
                             project_file::Column {
@@ -320,6 +331,7 @@ mod tests {
                         name: "test_456".to_string(),
                         description: None,
                         materialization: None,
+                        tags: vec![],
                         tests: vec![],
                         columns: vec![]
                     },
@@ -329,6 +341,7 @@ mod tests {
                             "Replace this with your description for test_table".to_string()
                         ),
                         materialization: None,
+                        tags: vec![],
                         tests: vec![],
                         columns: vec![
                             project_file::Column {
@@ -349,6 +362,7 @@ mod tests {
                             "Replace this with your description for demo_table".to_string()
                         ),
                         materialization: None,
+                        tags: vec![],
                         tests: vec![],
                         columns: vec![
                             project_file::Column {

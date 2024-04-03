@@ -3,9 +3,8 @@ use async_trait::async_trait;
 use quary_core::database_snowflake::{
     validate_snowfalke_account_identifier, DatabaseQueryGeneratorSnowflake,
 };
-use quary_core::databases::{
-    DatabaseConnection, DatabaseQueryGenerator, QueryResult, TableAddress,
-};
+use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult};
+use quary_proto::TableAddress;
 use regex::Regex;
 use snowflake_api::QueryResult::{Arrow, Json};
 use snowflake_api::SnowflakeApi;
@@ -119,7 +118,8 @@ impl DatabaseConnection for Snowflake {
                 )
                 .as_str(),
             )
-            .await?;
+            .await
+            .map_err(|e| format!("Failed to list tables: {:?}", e))?;
         Ok(results
             .rows
             .into_iter()
@@ -144,7 +144,7 @@ impl DatabaseConnection for Snowflake {
                 )
                 .as_str(),
             )
-            .await?;
+            .await.map_err(|e| format!("Failed to list views: {:?}", e))?;
         Ok(results
             .rows
             .into_iter()
@@ -169,7 +169,8 @@ impl DatabaseConnection for Snowflake {
                 )
                 .as_str(),
             )
-            .await?;
+            .await
+            .map_err(|e| format!("Failed to list columns: {:?}", e))?;
         Ok(tables
             .rows
             .iter()
@@ -185,12 +186,11 @@ impl DatabaseConnection for Snowflake {
         Ok(())
     }
 
-    async fn query(&self, query: &str) -> Result<QueryResult, String> {
-        let rs = self
-            .client
-            .exec(query)
-            .await
-            .map_err(|e| format!("client error '{:?}'", e))?;
+    async fn query(&self, query: &str) -> Result<QueryResult, QueryError> {
+        let rs =
+            self.client.exec(query).await.map_err(|e| {
+                QueryError::new(query.to_string(), format!("client error '{:?}'", e))
+            })?;
 
         return match rs {
             Arrow(results) => match &results[..] {
@@ -201,14 +201,21 @@ impl DatabaseConnection for Snowflake {
                         .iter()
                         .map(|f| f.name().clone())
                         .collect::<Vec<String>>();
-                    let rows = convert_array_to_vec_string(first.columns())?;
+                    let rows = convert_array_to_vec_string(first.columns())
+                        .map_err(|e| QueryError::new(query.to_string(), e))?;
                     Ok(QueryResult { columns, rows })
                 }
                 _ => {
-                    return Err("Multiple results not implemented".to_string());
+                    return Err(QueryError::new(
+                        query.to_string(),
+                        "Multiple results not implemented".to_string(),
+                    ));
                 }
             },
-            Json(_) => Err("Json results not implemented".to_string()),
+            Json(_) => Err(QueryError::new(
+                query.to_string(),
+                "Json results not implemented".to_string(),
+            )),
             snowflake_api::QueryResult::Empty => Ok(QueryResult {
                 columns: vec![],
                 rows: vec![],

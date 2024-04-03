@@ -6,9 +6,8 @@ use gcp_bigquery_client::Client;
 use google_cloud_auth::project::{create_token_source, Config};
 use google_cloud_auth::token_source::TokenSource;
 use quary_core::database_bigquery::DatabaseQueryGeneratorBigQuery;
-use quary_core::databases::{
-    DatabaseConnection, DatabaseQueryGenerator, QueryResult, TableAddress,
-};
+use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult};
+use quary_proto::TableAddress;
 use std::fmt::Debug;
 use std::sync::Arc;
 use yup_oauth2::error::AuthErrorCode;
@@ -228,13 +227,15 @@ impl DatabaseConnection for BigQuery {
         Ok(())
     }
 
-    async fn query(&self, query: &str) -> Result<QueryResult, String> {
+    async fn query(&self, query: &str) -> Result<QueryResult, QueryError> {
         let mut rs = self
             .client
             .job()
             .query(self.project_id.as_str(), QueryRequest::new(query))
             .await
-            .map_err(|e| format!("Failed to run query: {}", e))?;
+            .map_err(|e| {
+                QueryError::new(query.to_string(), format!("Failed to run query: {:?}", e))
+            })?;
 
         let mut rows: Vec<Vec<String>> = vec![];
         let columns = rs.column_names();
@@ -243,8 +244,13 @@ impl DatabaseConnection for BigQuery {
             for column in &columns {
                 let value = rs
                     .get_string_by_name(column)
-                    .map_err(|e| format!("Failed to get value: {}", e))?
-                    .ok_or(format!("Failed to get value: {}", column))?;
+                    .map_err(|e| {
+                        QueryError::new(query.to_string(), format!("Failed to get value: {:?}", e))
+                    })?
+                    .ok_or(QueryError::new(
+                        query.to_string(),
+                        format!("Failed to get value: {}", column),
+                    ))?;
                 row.push(value);
             }
             rows.push(row);

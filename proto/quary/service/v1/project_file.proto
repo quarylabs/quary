@@ -20,16 +20,18 @@ message ProjectFile {
 
   message Model {
     string name = 1;
+    repeated string tags = 6;
     optional string description = 2;
+    // The materialization of the model, available types are specified by each database.
+    optional string materialization = 4;
     repeated ModelTest tests = 5;
 
     repeated Column columns = 3;
-    // The materialization of the model, available types are specified by each database.
-    optional string materialization = 4;
   }
 
   message Source {
     string name = 1;
+    repeated string tags = 6;
     optional string description = 2;
     // The full path of the source table in the database. This is used to reference the table itself. For example:
     // - 'public.users' for where the schema is 'public' and the table is 'users'
