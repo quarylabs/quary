@@ -9,32 +9,27 @@
 use crate::commands::{mode_to_test_runner, Cli, Commands, InitType};
 use crate::databases_connection::{database_from_config, database_query_generator_from_config};
 use crate::file_system::LocalFS;
-use base64::{engine::general_purpose, Engine as _};
+use crate::rpc_functions::rpc;
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
 use quary_core::automatic_branching::{
     derive_hash_views, drop_statement_for_cache_view, is_cache_full_path,
 };
 use quary_core::config::deserialize_config_from_yaml;
-use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator};
+use quary_core::databases::{ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator};
 use quary_core::graph::project_to_graph;
 use quary_core::init::{Asset, DuckDBAsset};
 use quary_core::onboarding::is_empty_bar_hidden_and_sqlite;
 use quary_core::project::project_and_fs_to_sql_for_views;
 use quary_core::project_tests::return_tests_sql;
 use quary_core::test_runner::{run_tests_internal, RunStatementFunc, RunTestError};
+use quary_proto::project_file::Source;
 use quary_proto::test_result::TestResult;
-use quary_proto::{
-    failed, passed, ConnectionConfig, ExecRequest, ExecResponse, ListColumnsRequest,
-    ListColumnsResponse, ListTablesRequest, ListTablesResponse, ListViewsRequest,
-    ListViewsResponse, QueryRequest, QueryResponse, SayHelloRequest, SayHelloResponse,
-};
+use quary_proto::{failed, passed, project_file, ConnectionConfig, ProjectFile, TableAddress};
 use std::fs;
 use std::fs::File;
-use std::future::Future;
 use std::io::Write;
 use std::path::Path;
-use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -46,6 +41,8 @@ mod databases_postgres;
 mod databases_snowflake;
 mod databases_sqlite;
 mod file_system;
+mod rpc_functions;
+mod rpc_scaffolding;
 
 // TODO For the cases where don't need full database, separate that out in the future
 #[tokio::main]
@@ -65,7 +62,7 @@ async fn main_wrapped() -> Result<(), String> {
     let args = Cli::parse();
 
     match &args.env_files[..] {
-        files if files == &[".env"] => {
+        files if files == [".env"] => {
             dotenv::dotenv().ok();
         }
         _ => {
@@ -162,7 +159,7 @@ async fn main_wrapped() -> Result<(), String> {
             // If cache table deletes any previous cache views.
             let cache_delete_views_sqls: Vec<(String, String)> = if build_args.cache_views {
                 let views = database
-                    .list_views()
+                    .list_local_views()
                     .await
                     .map_err(|e| format!("listing views: {:?}", e))?;
                 let views_with_is_cache = views
@@ -238,7 +235,7 @@ async fn main_wrapped() -> Result<(), String> {
                         }
                     }
                 }
-                return Ok(());
+                Ok(())
             } else {
                 let total_number_of_sql_statements = cache_delete_views_sqls.len()
                     + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
@@ -468,145 +465,60 @@ async fn main_wrapped() -> Result<(), String> {
             }
             Ok(())
         }
-        Commands::Rpc(rpc_args) => {
+        Commands::GenerateSources(_) => {
             let config = get_config_file(&args.project_file)?;
             let database = database_from_config(&config).await?;
-
-            let method = &rpc_args.method;
-            let request = &rpc_args.request;
-
-            let call = match method.as_str() {
-                "ListTables" => Ok(rpc_wrapper(list_tables)),
-                "ListViews" => Ok(rpc_wrapper(list_views)),
-                "ListColumns" => Ok(rpc_wrapper(list_columns)),
-                "Execute" => Ok(rpc_wrapper(execute)),
-                "Query" => Ok(rpc_wrapper(query)),
-                "SayHello" => Ok(rpc_wrapper(say_hello)),
-                _ => Err("error Method not found"),
-            }?;
-
-            let response = call(request.to_string(), database).await?;
-
-            println!("{}", response);
-
-            Ok(())
+            generate_sources(&database).await
         }
+        Commands::Rpc(rpc_args) => rpc(&args, rpc_args).await,
     }
 }
 
-async fn say_hello(
-    req: SayHelloRequest,
-    _: Box<dyn DatabaseConnection>,
-) -> Result<SayHelloResponse, String> {
-    Ok(SayHelloResponse {
-        message: format!("Hello, {}", req.name),
-    })
+async fn generate_sources(database: &Box<dyn DatabaseConnection>) -> Result<(), String> {
+    let tables = database.list_tables().await?;
+    let views = database.list_views().await?;
+
+    let mut tables_with_columns = vec![];
+    for table in tables.into_iter().chain(views.into_iter()) {
+        let columns = database.list_columns(&table.full_path).await?;
+        tables_with_columns.push(AddressWithColumns { table, columns });
+    }
+
+    let project_file = ProjectFile {
+        sources: tables_with_columns
+            .into_iter()
+            .map(address_to_source)
+            .collect(),
+        models: vec![],
+    };
+
+    let yaml = serde_yaml::to_string(&project_file).map_err(|e| e.to_string())?;
+    print!("{}", yaml);
+    Ok(())
 }
 
-async fn list_tables(
-    _: ListTablesRequest,
-    database: Box<dyn DatabaseConnection>,
-) -> Result<ListTablesResponse, String> {
-    let tables = database
-        .list_tables()
-        .await
-        .map_err(|e| format!("Failed to list tables: {}", e))?;
-    let response = ListTablesResponse { tables };
-    Ok(response)
+struct AddressWithColumns {
+    table: TableAddress,
+    columns: Vec<ColumnWithDetails>,
 }
 
-async fn list_views(
-    _: ListViewsRequest,
-    database: Box<dyn DatabaseConnection>,
-) -> Result<ListViewsResponse, String> {
-    let views = database
-        .list_views()
-        .await
-        .map_err(|e| format!("Failed to list views: {}", e))?;
-    let response = ListViewsResponse { views };
-    Ok(response)
-}
-
-async fn list_columns(
-    req: ListColumnsRequest,
-    database: Box<dyn DatabaseConnection>,
-) -> Result<ListColumnsResponse, String> {
-    let columns = database
-        .list_columns(req.table_name.as_str())
-        .await
-        .map_err(|e| format!("Failed to list columns: {}", e))?;
-    let response = ListColumnsResponse { columns };
-    Ok(response)
-}
-
-async fn execute(
-    req: ExecRequest,
-    database: Box<dyn DatabaseConnection>,
-) -> Result<ExecResponse, String> {
-    database
-        .exec(&req.query)
-        .await
-        .map_err(|e| format!("Failed to execute query: {}", e))?;
-    Ok(ExecResponse {})
-}
-
-async fn query(
-    req: QueryRequest,
-    database: Box<dyn DatabaseConnection>,
-) -> Result<QueryResponse, String> {
-    let result = database
-        .query(&req.query)
-        .await
-        .map_err(|e| format!("Failed to execute query: {:?}", e))?;
-
-    Ok(QueryResponse {
-        result: Some(result.to_proto()?),
-    })
-}
-
-fn rpc_wrapper<Fut, F, Req, Res>(
-    f: F,
-) -> Box<
-    dyn FnOnce(
-        String,
-        Box<dyn DatabaseConnection>,
-    ) -> Pin<Box<dyn Future<Output = Result<String, String>>>>,
->
-where
-    F: FnOnce(Req, Box<dyn DatabaseConnection>) -> Fut + 'static,
-    Req: prost::Message + Default,
-    Res: prost::Message,
-    Fut: Future<Output = Result<Res, String>> + 'static,
-{
-    Box::new(
-        move |request: String, database: Box<dyn DatabaseConnection>| {
-            Box::pin(async move {
-                let decoded_request = decode(&request).map_err(|e| format!("error {}", e))?;
-                let response = f(decoded_request, database)
-                    .await
-                    .map_err(|e| format!("error {}", e))?;
-                let encoded_response = encode(response).map_err(|e| format!("error {}", e))?;
-                Ok(encoded_response)
+fn address_to_source(address_with_columns: AddressWithColumns) -> Source {
+    Source {
+        name: format!("raw_{}", address_with_columns.table.name),
+        tags: vec![],
+        description: None,
+        path: address_with_columns.table.full_path,
+        tests: vec![],
+        columns: address_with_columns
+            .columns
+            .into_iter()
+            .map(|column| project_file::Column {
+                name: column.name,
+                description: None,
+                tests: vec![],
             })
-        },
-    )
-}
-
-fn decode<Req: prost::Message + Default>(req: &str) -> Result<Req, String> {
-    let bytes = general_purpose::STANDARD
-        .decode(req)
-        .map_err(|e| e.to_string())?;
-
-    let req = Req::decode(&bytes[..]).map_err(|e| e.to_string())?;
-    Ok(req)
-}
-
-fn encode<Res: prost::Message>(res: Res) -> Result<String, String> {
-    let mut buf = Vec::new();
-    res.encode(&mut buf).map_err(|e| e.to_string())?;
-
-    let encoded = general_purpose::STANDARD.encode(&buf);
-    Ok(encoded)
+            .collect(),
+    }
 }
 
 async fn parse_project(

@@ -2,7 +2,9 @@ use duckdb::arrow::array::array;
 use duckdb::arrow::record_batch::RecordBatch;
 use duckdb::{params, Connection};
 use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
-use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult};
+use quary_core::databases::{
+    ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
+};
 use quary_proto::TableAddress;
 use std::sync::{Arc, Mutex};
 
@@ -51,6 +53,45 @@ impl DuckDB {
 #[async_trait::async_trait]
 impl DatabaseConnection for DuckDB {
     async fn list_tables(&self) -> Result<Vec<TableAddress>, String> {
+        let results =  self.query("SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' ORDER BY table_name")
+                .await
+                .map_err(
+                    |e| format!("Failed to get tables from DuckDB: {:?}", e))?;
+        Ok(results
+            .rows
+            .into_iter()
+            .map(|row| TableAddress {
+                name: row[0].clone(),
+                full_path: if let Some(schema) = &self.schema {
+                    format!("{}.{}", schema, row[0].clone())
+                } else {
+                    row[0].clone()
+                },
+            })
+            .collect())
+    }
+
+    async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
+        let results = self.query("SELECT table_name FROM information_schema.tables WHERE table_type='VIEW' ORDER BY table_name")
+            .await
+            .map_err(
+                |e| format!("Failed to get views from DuckDB: {:?}", e),
+            )?;
+        Ok(results
+            .rows
+            .into_iter()
+            .map(|row| TableAddress {
+                name: row[0].clone(),
+                full_path: if let Some(schema) = &self.schema {
+                    format!("{}.{}", schema, row[0].clone())
+                } else {
+                    row[0].clone()
+                },
+            })
+            .collect())
+    }
+
+    async fn list_local_tables(&self) -> Result<Vec<TableAddress>, String> {
         let results = if let Some(schema) = &self.schema {
             self.query(&format!(
                 "SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND table_type='BASE TABLE' ORDER BY table_name",
@@ -80,7 +121,7 @@ impl DatabaseConnection for DuckDB {
             .collect())
     }
 
-    async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
+    async fn list_local_views(&self) -> Result<Vec<TableAddress>, String> {
         let results = if let Some(schema) = &self.schema {
             self.query(&format!(
                 "SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND table_type='VIEW' ORDER BY table_name",
@@ -112,16 +153,21 @@ impl DatabaseConnection for DuckDB {
             .collect())
     }
 
-    async fn list_columns(&self, table: &str) -> Result<Vec<String>, String> {
+    async fn list_columns(&self, table: &str) -> Result<Vec<ColumnWithDetails>, String> {
         let results = self
             .query(&format!("PRAGMA table_info({})", table))
             .await
             .map_err(|e| format!("Failed to get columns for table {}: {:?}", table, e))?;
-        Ok(results
+        let columns = results
             .rows
             .into_iter()
             .map(|row| row[1].clone())
-            .collect::<Vec<String>>())
+            .map(|row| ColumnWithDetails {
+                name: row,
+                ..Default::default()
+            })
+            .collect::<Vec<_>>();
+        Ok(columns)
     }
 
     async fn exec(&self, query: &str) -> Result<(), String> {
@@ -153,7 +199,7 @@ impl DatabaseConnection for DuckDB {
             })?
             .collect();
 
-        if rbs.len() != 1 {
+        if rbs.is_empty() {
             return Ok(QueryResult {
                 columns: vec![],
                 rows: vec![],
@@ -167,12 +213,15 @@ impl DatabaseConnection for DuckDB {
             .map(|f| f.name().clone())
             .collect::<Vec<String>>();
 
-        let rows = convert_array_to_vec_string(rbs[0].columns())
-            .map_err(|e| QueryError::new(query.to_string(), e))?;
+        let mut rows = Vec::new();
+        for rb in &rbs {
+            let batch_rows = convert_array_to_vec_string(rb.columns())
+                .map_err(|e| QueryError::new(query.to_string(), e))?;
+            rows.extend(batch_rows);
+        }
 
         Ok(QueryResult { columns, rows })
     }
-
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {
         Box::new(DatabaseQueryGeneratorDuckDB::new(self.schema.clone()))
     }
@@ -251,7 +300,7 @@ mod tests {
             .await
             .unwrap();
 
-        let tables = db.list_tables().await.unwrap();
+        let tables = db.list_local_tables().await.unwrap();
         assert_eq!(
             tables,
             vec![
@@ -266,7 +315,7 @@ mod tests {
             ]
         );
 
-        let views = db.list_views().await.unwrap();
+        let views = db.list_local_views().await.unwrap();
         assert_eq!(
             views,
             vec![
@@ -282,7 +331,18 @@ mod tests {
         );
 
         let columns = db.list_columns("test_table").await.unwrap();
-        assert_eq!(columns, vec!["id", "name"]);
+        assert_eq!(
+            columns,
+            vec!["id", "name"]
+                .into_iter()
+                .map(|name| {
+                    ColumnWithDetails {
+                        name: name.to_string(),
+                        ..Default::default()
+                    }
+                })
+                .collect::<Vec<ColumnWithDetails>>()
+        );
 
         let result = db.query("SELECT * FROM test_table").await.unwrap();
         assert_eq!(result.columns, vec!["id", "name"]);
@@ -312,7 +372,7 @@ mod tests {
             .await
             .unwrap();
 
-        let tables = db.list_tables().await.unwrap();
+        let tables = db.list_local_tables().await.unwrap();
         assert_eq!(
             tables,
             vec![
@@ -327,7 +387,7 @@ mod tests {
             ]
         );
 
-        let views = db.list_views().await.unwrap();
+        let views = db.list_local_views().await.unwrap();
         assert_eq!(
             views,
             vec![
@@ -343,7 +403,18 @@ mod tests {
         );
 
         let columns = db.list_columns("test_schema.test_table").await.unwrap();
-        assert_eq!(columns, vec!["id", "name"]);
+        assert_eq!(
+            columns,
+            vec!["id", "name"]
+                .into_iter()
+                .map(|name| {
+                    ColumnWithDetails {
+                        name: name.to_string(),
+                        ..Default::default()
+                    }
+                })
+                .collect::<Vec<ColumnWithDetails>>()
+        );
 
         let result = db
             .query("SELECT * FROM test_schema.test_table")

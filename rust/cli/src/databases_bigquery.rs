@@ -6,7 +6,9 @@ use gcp_bigquery_client::Client;
 use google_cloud_auth::project::{create_token_source, Config};
 use google_cloud_auth::token_source::TokenSource;
 use quary_core::database_bigquery::DatabaseQueryGeneratorBigQuery;
-use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult};
+use quary_core::databases::{
+    ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
+};
 use quary_proto::TableAddress;
 use std::fmt::Debug;
 use std::sync::Arc;
@@ -149,8 +151,17 @@ impl BigQuery {
 
 #[async_trait]
 impl DatabaseConnection for BigQuery {
-    // TODO Return an iterator
+    // TODO Go wider and get all views in all the databases and datasets
+    async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
+        self.list_local_views().await
+    }
+
+    // TODO Go wider and get all tables in all the databases and datasets
     async fn list_tables(&self) -> Result<Vec<TableAddress>, String> {
+        self.list_local_tables().await
+    }
+
+    async fn list_local_tables(&self) -> Result<Vec<TableAddress>, String> {
         self.get_all_table_like_things()
             .await?
             .iter()
@@ -174,7 +185,7 @@ impl DatabaseConnection for BigQuery {
             .collect()
     }
 
-    async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
+    async fn list_local_views(&self) -> Result<Vec<TableAddress>, String> {
         self.get_all_table_like_things().await?
             .iter()
             .filter(|table| {
@@ -200,7 +211,7 @@ impl DatabaseConnection for BigQuery {
             .collect()
     }
 
-    async fn list_columns(&self, table: &str) -> Result<Vec<String>, String> {
+    async fn list_columns(&self, table: &str) -> Result<Vec<ColumnWithDetails>, String> {
         let tables = self
             .client
             .table()
@@ -213,7 +224,14 @@ impl DatabaseConnection for BigQuery {
             .await
             .map_err(|e| format!("Failed to get table {}: {}", table, e))?;
         let fields = tables.schema.fields.unwrap_or_default();
-        let columns = fields.iter().map(|f| f.name.clone()).collect();
+        let columns = fields
+            .iter()
+            .map(|f| f.name.clone())
+            .map(|row| ColumnWithDetails {
+                name: row,
+                ..Default::default()
+            })
+            .collect::<Vec<_>>();
         Ok(columns)
     }
 

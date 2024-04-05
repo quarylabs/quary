@@ -1,6 +1,6 @@
 [package]
 name = "quary"
-version = "0.0.106"
+version = "0.0.107"
 edition = "2021"
 rust-version = "1.77.1"
 
@@ -26,6 +26,7 @@ regex = "1.10.3"
 futures = "0.3.30"
 base64 = "0.22.0"
 dotenv = "0.15"
+serde_yaml = "0.9.33"
 
 [dev-dependencies]
 assert_cmd = "2"

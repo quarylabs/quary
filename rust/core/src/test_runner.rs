@@ -128,7 +128,7 @@ pub async fn run_tests_internal(
                 None => Some(Err(format!("Test {} not found", test_name))),
             })
             .collect::<Result<HashSet<&String>, String>>()
-            .map_err(|e| RunTestError::Other(e))?;
+            .map_err(RunTestError::Other)?;
         let tests_to_just_mark_right = tests_name_to_sql
             .keys()
             .filter_map(|test_name| match whether_to_skip.get(test_name) {
@@ -139,7 +139,7 @@ pub async fn run_tests_internal(
                 None => Some(Err(format!("Test {} not found", test_name))),
             })
             .collect::<Result<HashSet<&String>, String>>()
-            .map_err(|e| RunTestError::Other(e))?;
+            .map_err(RunTestError::Other)?;
 
         let tests_to_skip_for_inference = tests_name_to_sql
             .keys()
@@ -169,7 +169,7 @@ pub async fn run_tests_internal(
             })
             // Test to source test
             .collect::<Result<HashMap<&String, &String>, String>>()
-            .map_err(|e| RunTestError::Other(e))?;
+            .map_err(RunTestError::Other)?;
 
         let mut results = HashMap::<&String, TestResult>::new();
         for test_name in tests_to_run {
@@ -297,7 +297,7 @@ pub async fn run_tests_internal(
                     tests_name_to_sql.keys()
                 )))?;
             let test_sources = recursive_search_for_test(&whether_to_skip, test_name)
-                .map_err(|e| RunTestError::Other(e))?;
+                .map_err(RunTestError::Other)?;
             if test_sources.is_empty() {
                 return Err(RunTestError::Other(format!(
                     "Failed to find test source, looking at the test {:?} which was skipped and has tests sources {:?}, more specifically the last one in ran results with keys {:?}",
@@ -369,11 +369,11 @@ pub async fn run_tests_internal(
                 None,
             )
             .await
-            .map_err(|e| RunTestError::Other(e))?;
+            .map_err(RunTestError::Other)?;
             let whether_to_skip =
                 infer_skippable_tests_internal(dialect, project, file_system, project_root)
                     .await
-                    .map_err(|e| RunTestError::Other(e))?;
+                    .map_err(RunTestError::Other)?;
             run_test_skip(tests, whether_to_skip, run_statement).await
         }
         TestRunner::All => {
@@ -386,7 +386,7 @@ pub async fn run_tests_internal(
                 None,
             )
             .await
-            .map_err(|e| RunTestError::Other(e))?;
+            .map_err(RunTestError::Other)?;
             run_test_all(tests, run_statement).await
         }
         _ => Err(RunTestError::Other(format!(
@@ -453,7 +453,7 @@ pub async fn run_model_tests_internal(
         Some(model_name),
     )
     .await
-    .map_err(|e| RunTestError::Other(e))?;
+    .map_err(RunTestError::Other)?;
     run_test_all(tests, run_statement).await
 }
 
