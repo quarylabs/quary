@@ -1,6 +1,8 @@
 use async_trait::async_trait;
 use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
-use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult};
+use quary_core::databases::{
+    ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
+};
 use quary_proto::TableAddress;
 use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::Column;
@@ -29,6 +31,14 @@ impl Sqlite {
 #[async_trait]
 impl DatabaseConnection for Sqlite {
     async fn list_tables(&self) -> Result<Vec<TableAddress>, String> {
+        return self.list_local_tables().await;
+    }
+
+    async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
+        return self.list_local_views().await;
+    }
+
+    async fn list_local_tables(&self) -> Result<Vec<TableAddress>, String> {
         let rows = sqlx::query("SELECT name FROM sqlite_master WHERE type='table'")
             .fetch_all(&self.pool)
             .await
@@ -47,7 +57,7 @@ impl DatabaseConnection for Sqlite {
         Ok(tables)
     }
 
-    async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
+    async fn list_local_views(&self) -> Result<Vec<TableAddress>, String> {
         let rows = sqlx::query("SELECT name FROM sqlite_master WHERE type='view'")
             .fetch_all(&self.pool)
             .await
@@ -66,7 +76,7 @@ impl DatabaseConnection for Sqlite {
         Ok(tables)
     }
 
-    async fn list_columns(&self, table: &str) -> Result<Vec<String>, String> {
+    async fn list_columns(&self, table: &str) -> Result<Vec<ColumnWithDetails>, String> {
         let rows = sqlx::query(&format!("PRAGMA table_info({})", table))
             .fetch_all(&self.pool)
             .await
@@ -78,6 +88,14 @@ impl DatabaseConnection for Sqlite {
             let column_name: String = row.get(1);
             columns.push(column_name);
         }
+
+        let columns = columns
+            .into_iter()
+            .map(|name| ColumnWithDetails {
+                name,
+                ..Default::default()
+            })
+            .collect::<Vec<ColumnWithDetails>>();
 
         Ok(columns)
     }
@@ -160,7 +178,7 @@ mod tests {
             .await
             .unwrap();
 
-        let values = sqlite.list_tables().await.unwrap();
+        let values = sqlite.list_local_tables().await.unwrap();
 
         assert_eq!(
             values,
@@ -180,7 +198,7 @@ mod tests {
             .await
             .unwrap();
 
-        let values = sqlite.list_tables().await.unwrap();
+        let values = sqlite.list_local_tables().await.unwrap();
 
         assert_eq!(
             values,
@@ -197,7 +215,7 @@ mod tests {
 
         sqlite.exec("CREATE VIEW test AS SELECT 1").await.unwrap();
 
-        let values = sqlite.list_views().await.unwrap();
+        let values = sqlite.list_local_views().await.unwrap();
 
         assert_eq!(
             values,
@@ -219,7 +237,18 @@ mod tests {
 
         let values = sqlite.list_columns("test").await.unwrap();
 
-        assert_eq!(values, vec!["id", "name"]);
+        assert_eq!(
+            values,
+            vec!["id", "name"]
+                .into_iter()
+                .map(|name| {
+                    ColumnWithDetails {
+                        name: name.to_string(),
+                        ..Default::default()
+                    }
+                })
+                .collect::<Vec<ColumnWithDetails>>()
+        );
     }
 
     #[tokio::test]
@@ -233,7 +262,18 @@ mod tests {
 
         let values = sqlite.list_columns("test").await.unwrap();
 
-        assert_eq!(values, vec!["id", "name"]);
+        assert_eq!(
+            values,
+            vec!["id", "name"]
+                .into_iter()
+                .map(|name| {
+                    ColumnWithDetails {
+                        name: name.to_string(),
+                        ..Default::default()
+                    }
+                })
+                .collect::<Vec<ColumnWithDetails>>()
+        );
     }
 
     #[tokio::test]

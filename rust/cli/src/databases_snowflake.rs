@@ -3,7 +3,9 @@ use async_trait::async_trait;
 use quary_core::database_snowflake::{
     validate_snowfalke_account_identifier, DatabaseQueryGeneratorSnowflake,
 };
-use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult};
+use quary_core::databases::{
+    ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
+};
 use quary_proto::TableAddress;
 use regex::Regex;
 use snowflake_api::QueryResult::{Arrow, Json};
@@ -113,6 +115,58 @@ impl DatabaseConnection for Snowflake {
         let results = self
             .query(
                 format!(
+                    "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_CATALOG = '{}'",
+                    self.database,
+                )
+                    .as_str(),
+            )
+            .await
+            .map_err(|e| format!("Failed to list tables: {:?}", e))?;
+        Ok(results
+            .rows
+            .into_iter()
+            .map(|row| {
+                let row = row
+                    .first()
+                    .ok_or("Failed to get first column of row".to_string())?;
+                Ok(TableAddress {
+                    name: row.to_string(),
+                    full_path: format!("{}.{}.{}", self.database, self.schema, row),
+                })
+            })
+            .collect::<Result<Vec<_>, String>>()?)
+    }
+
+    async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
+        let results = self
+            .query(
+                format!(
+                    "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'VIEW' AND TABLE_CATALOG = '{}'",
+                    self.database,
+                )
+                    .as_str(),
+            )
+            .await
+            .map_err(|e| format!("Failed to list views: {:?}", e))?;
+        Ok(results
+            .rows
+            .into_iter()
+            .map(|row| {
+                let row = row
+                    .first()
+                    .ok_or("Failed to get first column of row".to_string())?;
+                Ok(TableAddress {
+                    name: row.to_string(),
+                    full_path: format!("{}.{}.{}", self.database, self.schema, row),
+                })
+            })
+            .collect::<Result<Vec<_>, String>>()?)
+    }
+
+    async fn list_local_tables(&self) -> Result<Vec<TableAddress>, String> {
+        let results = self
+            .query(
+                format!(
                     "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_CATALOG = '{}' AND TABLE_SCHEMA = '{}'",
                     self.database, self.schema
                 )
@@ -135,7 +189,7 @@ impl DatabaseConnection for Snowflake {
             .collect::<Result<Vec<_>, String>>()?)
     }
 
-    async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
+    async fn list_local_views(&self) -> Result<Vec<TableAddress>, String> {
         let results = self
             .query(
                 format!(
@@ -160,7 +214,7 @@ impl DatabaseConnection for Snowflake {
             .collect::<Result<Vec<_>, String>>()?)
     }
 
-    async fn list_columns(&self, table: &str) -> Result<Vec<String>, String> {
+    async fn list_columns(&self, table: &str) -> Result<Vec<ColumnWithDetails>, String> {
         let tables = self
             .query(
                 format!(
@@ -175,7 +229,11 @@ impl DatabaseConnection for Snowflake {
             .rows
             .iter()
             .map(|row| row[0].clone())
-            .collect::<Vec<String>>())
+            .map(|row| ColumnWithDetails {
+                name: row,
+                ..Default::default()
+            })
+            .collect::<Vec<ColumnWithDetails>>())
     }
 
     async fn exec(&self, sql: &str) -> Result<(), String> {

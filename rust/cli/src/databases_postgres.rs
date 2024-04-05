@@ -1,6 +1,8 @@
 use async_trait::async_trait;
 use quary_core::database_postgres::DatabaseQueryGeneratorPostgres;
-use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult};
+use quary_core::databases::{
+    ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
+};
 use quary_proto::TableAddress;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Column, Pool, Row};
@@ -36,7 +38,7 @@ impl Postgres {
         .filter_map(|(k, v)| v.map(|v| (k, v)))
         .collect::<HashMap<&str, String>>()
         .into_iter()
-        .map(|(k, v)| format!("{}={}", k, v.to_string()))
+        .map(|(k, v)| format!("{}={}", k, v))
         .collect::<Vec<String>>();
 
         let params = if params.is_empty() {
@@ -65,30 +67,56 @@ impl Postgres {
 
 #[async_trait]
 impl DatabaseConnection for Postgres {
-    async fn list_tables(&self) -> Result<Vec<TableAddress>, String> {
-        let rows = sqlx::query(
-            format!("SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND table_type = 'BASE TABLE' ORDER BY table_name DESC", self.schema).as_str(),
-        )
-        .fetch_all(&self.pool)
-        .await
-        .map_err(|e| e.to_string())?;
-
-        let mut tables = Vec::new();
-
-        for row in rows {
-            let table_name: String = row.get(0);
-            tables.push(TableAddress {
-                name: table_name.clone(),
-                full_path: table_name,
-            });
-        }
-
-        Ok(tables)
-    }
-
     async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
         let rows = sqlx::query(
-            format!("SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND table_type = 'VIEW' ORDER BY table_name DESC", self.schema).as_str(),
+            "
+SELECT table_name, table_schema
+FROM information_schema.tables
+WHERE table_type = 'VIEW' AND table_schema != 'information_schema' AND table_schema != 'pg_catalog'
+ORDER BY table_schema ASC, table_name ASC",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| e.to_string())?;
+        let mut tables = Vec::new();
+        for row in rows {
+            let table_name: String = row.get(0);
+            let table_schema: String = row.get(1);
+            tables.push(TableAddress {
+                name: table_name.clone(),
+                full_path: format!("{}.{}", table_schema, table_name),
+            });
+        }
+        Ok(tables)
+    }
+
+    async fn list_tables(&self) -> Result<Vec<TableAddress>, String> {
+        let rows = sqlx::query(
+            "
+SELECT table_name, table_schema
+FROM information_schema.tables
+WHERE table_type = 'BASE TABLE' AND table_schema != 'information_schema' AND table_schema != 'pg_catalog'
+ORDER BY table_schema ASC, table_name ASC",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| e.to_string())?;
+        let mut tables = Vec::new();
+        for row in rows {
+            let table_name: String = row.get(0);
+            let table_schema: String = row.get(1);
+            tables.push(TableAddress {
+                name: table_name.clone(),
+                full_path: format!("{}.{}", table_schema, table_name),
+            });
+        }
+        Ok(tables)
+    }
+
+    async fn list_local_tables(&self) -> Result<Vec<TableAddress>, String> {
+        let rows = sqlx::query(
+            format!("SELECT table_name, table_schema FROM information_schema.tables WHERE table_schema = '{}' AND table_type = 'BASE TABLE' ORDER BY table_schema DESC, table_name DESC",
+                    self.schema).as_str(),
         )
         .fetch_all(&self.pool)
         .await
@@ -98,19 +126,49 @@ impl DatabaseConnection for Postgres {
 
         for row in rows {
             let table_name: String = row.get(0);
+            let table_schema: String = row.get(1);
             tables.push(TableAddress {
                 name: table_name.clone(),
-                full_path: table_name,
+                full_path: format!("{}.{}", table_schema, table_name),
             });
         }
-
         Ok(tables)
     }
 
-    async fn list_columns(&self, table: &str) -> Result<Vec<String>, String> {
+    async fn list_local_views(&self) -> Result<Vec<TableAddress>, String> {
+        let rows = sqlx::query(
+            format!("SELECT table_name, table_schema FROM information_schema.tables WHERE table_schema = '{}' AND table_type = 'VIEW' ORDER BY table_schema DESC, table_name DESC", self.schema).as_str(),
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| e.to_string())?;
+
+        let mut tables = Vec::new();
+
+        for row in rows {
+            let table_name: String = row.get(0);
+            let table_schema: String = row.get(1);
+            tables.push(TableAddress {
+                name: table_name.clone(),
+                full_path: format!("{}.{}", table_schema, table_name),
+            });
+        }
+        Ok(tables)
+    }
+
+    async fn list_columns(&self, table: &str) -> Result<Vec<ColumnWithDetails>, String> {
+        let (schema, table) = match table.split('.').collect::<Vec<&str>>().as_slice() {
+            [schema, table] => Ok((schema.to_string(), table.to_string())),
+            [table] => Ok((self.schema.to_string(), table.to_string())),
+            _ => Err(format!(
+                "Table name {} does not contain the expected schema",
+                table
+            )),
+        }?;
         let rows = sqlx::query(&format!(
-            "SELECT column_name FROM information_schema.columns WHERE table_name = '{}'",
-            table
+            "SELECT column_name FROM information_schema.columns WHERE table_name = '{}' AND table_schema = '{}'",
+            table,
+            schema,
         ))
         .fetch_all(&self.pool)
         .await
@@ -122,6 +180,14 @@ impl DatabaseConnection for Postgres {
             let column_name: String = row.get(0);
             columns.push(column_name);
         }
+
+        let columns = columns
+            .into_iter()
+            .map(|name| ColumnWithDetails {
+                name,
+                ..Default::default()
+            })
+            .collect();
 
         Ok(columns)
     }
@@ -239,38 +305,49 @@ mod tests {
             .await
             .unwrap();
 
-        let tables = quary_postgres.list_tables().await.unwrap();
+        let tables = quary_postgres.list_local_tables().await.unwrap();
         assert_eq!(
             tables,
             vec![
                 TableAddress {
                     name: "wrong_table".to_string(),
-                    full_path: "wrong_table".to_string(),
+                    full_path: "public.wrong_table".to_string(),
                 },
                 TableAddress {
                     name: "test_table".to_string(),
-                    full_path: "test_table".to_string(),
+                    full_path: "public.test_table".to_string(),
                 },
             ]
         );
 
-        let views = quary_postgres.list_views().await.unwrap();
+        let views = quary_postgres.list_local_views().await.unwrap();
         assert_eq!(
             views,
             vec![
                 TableAddress {
                     name: "wrong_view".to_string(),
-                    full_path: "wrong_view".to_string(),
+                    full_path: "public.wrong_view".to_string(),
                 },
                 TableAddress {
                     name: "test_view".to_string(),
-                    full_path: "test_view".to_string(),
+                    full_path: "public.test_view".to_string(),
                 },
             ]
         );
 
         let columns = quary_postgres.list_columns("test_table").await.unwrap();
-        assert_eq!(columns, vec!["id", "name"]);
+        assert_eq!(
+            columns,
+            vec!["id", "name"]
+                .into_iter()
+                .map(|name| {
+                    ColumnWithDetails {
+                        name: name.to_string(),
+                        ..Default::default()
+                    }
+                })
+                .collect::<Vec<ColumnWithDetails>>()
+        );
 
         let result = quary_postgres
             .query("SELECT * FROM test_table")
@@ -278,6 +355,71 @@ mod tests {
             .unwrap();
         assert_eq!(result.columns, vec!["id", "name"]);
         assert_eq!(result.rows, vec![vec!["1", "test"], vec!["2", "rubbish"]]);
+    }
+
+    #[tokio::test]
+    async fn list_columns_in_table() {
+        // Start a PostgreSQL container
+        let docker = clients::Cli::default();
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
+        let pg_container = docker.run(postgres_image);
+        let pg_port = pg_container.get_host_port_ipv4(5432);
+
+        let database = Postgres::new(
+            "localhost",
+            &pg_port.to_string(),
+            "postgres",
+            "postgres",
+            "postgres",
+            "transform",
+            None,
+            None,
+            None,
+            None,
+        )
+        .await
+        .expect("Failed to instantiate Quary Postgres");
+
+        database.exec("CREATE SCHEMA transform").await.unwrap();
+        database
+            .exec("CREATE TABLE transform.test_table (id INTEGER, name_transform VARCHAR(255))")
+            .await
+            .unwrap();
+        database.exec("CREATE SCHEMA other_schema").await.unwrap();
+        database
+            .exec("CREATE TABLE other_schema.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+
+        let columns = database
+            .list_columns("other_schema.test_table")
+            .await
+            .unwrap();
+        assert_eq!(
+            columns,
+            vec!["id", "name"]
+                .into_iter()
+                .map(|name| {
+                    ColumnWithDetails {
+                        name: name.to_string(),
+                        ..Default::default()
+                    }
+                })
+                .collect::<Vec<ColumnWithDetails>>()
+        );
+        let columns = database.list_columns("transform.test_table").await.unwrap();
+        assert_eq!(
+            columns,
+            vec!["id", "name_transform"]
+                .into_iter()
+                .map(|name| {
+                    ColumnWithDetails {
+                        name: name.to_string(),
+                        ..Default::default()
+                    }
+                })
+                .collect::<Vec<ColumnWithDetails>>()
+        );
     }
 
     #[tokio::test]
@@ -549,5 +691,78 @@ models:
 
             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
         }
+    }
+
+    #[tokio::test]
+    async fn test_list_tables_outside_the_schema() {
+        // Start a PostgreSQL container
+        let docker = clients::Cli::default();
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
+        let pg_container = docker.run(postgres_image);
+        let pg_port = pg_container.get_host_port_ipv4(5432);
+
+        let database = Postgres::new(
+            "localhost",
+            &pg_port.to_string(),
+            "postgres",
+            "postgres",
+            "postgres",
+            "transform",
+            None,
+            None,
+            None,
+            None,
+        )
+        .await
+        .expect("Failed to instantiate Quary Postgres");
+
+        database.exec("CREATE SCHEMA other_schema").await.unwrap();
+        database.exec("CREATE SCHEMA transform").await.unwrap();
+        database
+            .exec("CREATE TABLE other_schema.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        database
+            .exec("CREATE TABLE transform.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        database
+            .exec("CREATE VIEW transform.test_view AS SELECT * FROM transform.test_table")
+            .await
+            .unwrap();
+        database
+            .exec("CREATE VIEW other_schema.test_view AS SELECT * FROM other_schema.test_table")
+            .await
+            .unwrap();
+
+        let tables = database.list_tables().await.unwrap();
+        assert_eq!(
+            tables,
+            vec![
+                TableAddress {
+                    name: "test_table".to_string(),
+                    full_path: "other_schema.test_table".to_string(),
+                },
+                TableAddress {
+                    name: "test_table".to_string(),
+                    full_path: "transform.test_table".to_string(),
+                },
+            ]
+        );
+
+        let views = database.list_views().await.unwrap();
+        assert_eq!(
+            views,
+            vec![
+                TableAddress {
+                    name: "test_view".to_string(),
+                    full_path: "other_schema.test_view".to_string(),
+                },
+                TableAddress {
+                    name: "test_view".to_string(),
+                    full_path: "transform.test_view".to_string(),
+                },
+            ]
+        );
     }
 }

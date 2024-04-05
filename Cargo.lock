@@ -1084,7 +1084,7 @@ checksum = "7e962a19be5cfc3f3bf6dd8f61eb50107f356ad6270fbb3ed41476571db78be5"
 
 [[package]]
 name = "dbt-converter"
-version = "0.0.106"
+version = "0.0.107"
 dependencies = [
  "quary_proto",
  "regex",
@@ -2895,7 +2895,7 @@ dependencies = [
 
 [[package]]
 name = "quary"
-version = "0.0.106"
+version = "0.0.107"
 dependencies = [
  "arrow-array 50.0.0",
  "assert_cmd",
@@ -2913,6 +2913,7 @@ dependencies = [
  "quary-core",
  "quary_proto",
  "regex",
+ "serde_yaml",
  "snowflake-api",
  "sqlx",
  "tempfile",
@@ -2924,7 +2925,7 @@ dependencies = [
 
 [[package]]
 name = "quary-core"
-version = "0.0.106"
+version = "0.0.107"
 dependencies = [
  "async-trait",
  "csv",
@@ -3592,9 +3593,9 @@ dependencies = [
 
 [[package]]
 name = "serde_yaml"
-version = "0.9.32"
+version = "0.9.34+deprecated"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fd075d994154d4a774f95b51fb96bdc2832b0ea48425c92546073816cda1f2f"
+checksum = "6a8b1a1a2ebf674015cc02edccce75287f1a0130d394307b36743c2f5d504b47"
 dependencies = [
  "indexmap",
  "itoa",
@@ -3820,7 +3821,7 @@ dependencies = [
 
 [[package]]
 name = "sqlinference"
-version = "0.0.106"
+version = "0.0.107"
 dependencies = [
  "sqlparser",
 ]
@@ -4508,9 +4509,9 @@ checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
 
 [[package]]
 name = "unsafe-libyaml"
-version = "0.2.10"
+version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab4c90930b95a82d00dc9e9ac071b4991924390d46cbd0dfe566148667605e4b"
+checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
 
 [[package]]
 name = "untrusted"

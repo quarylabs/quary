@@ -7,20 +7,11 @@ import "quary/service/v1/table_address.proto";
 option java_multiple_files = true;
 
 service CLIRPCService {
-  rpc SayHello(SayHelloRequest) returns (SayHelloResponse);
   rpc ListTables(ListTablesRequest) returns (ListTablesResponse);
   rpc ListViews(ListViewsRequest) returns (ListViewsResponse);
   rpc Exec(ExecRequest) returns (ExecResponse);
   rpc Query(QueryRequest) returns (QueryResponse);
   rpc ListColumns(ListColumnsRequest) returns (ListColumnsResponse);
-}
-
-message SayHelloRequest {
-  string name = 1;
-}
-
-message SayHelloResponse {
-  string message = 1;
 }
 
 message ListTablesRequest {}

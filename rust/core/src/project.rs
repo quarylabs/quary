@@ -451,7 +451,7 @@ async fn parse_model(
     let tags = model_definitions
         .get(&name)
         .map(|model| model.tags.clone())
-        .unwrap_or(vec![]);
+        .unwrap_or_default();
 
     let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
         .map_err(|e| format!("Could not parse reference search from schema name: {:?}", e))?;
@@ -696,7 +696,7 @@ fn parse_model_test_for_model_source(
     match test.r#type.as_str() {
         crate::project_file::STANDARD_MODEL_TEST_TYPE_MULTI_COLUMN_UNIQUE => {
             if test.info.len() != 1 {
-                return Err(format!("test {:?} has more than one field in info", test));
+                Err(format!("test {:?} has more than one field in info", test))
             } else {
                 let columns = test
                     .info

@@ -143,6 +143,7 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
         self.as_ref()
             .validate_materialization_type(materialization_type)
     }
+
     fn models_drop_query(
         &self,
         view_name: &str,
@@ -240,16 +241,29 @@ impl QueryError {
 
 #[async_trait]
 pub trait DatabaseConnection: Debug {
-    /// list_tables returns the names of all the tables in the schema/dataset/database that the database connection is
-    /// connected to.
+    /// list_tables returns the names of all the tables accessible in the database, not just the ones
+    /// in the schema/dataset that the database connection is connected to. This is useful for
+    /// listing tables in other schemas/datasets for building sources
     async fn list_tables(&self) -> Result<Vec<TableAddress>, String>;
-    /// list_views returns the names of all the views in the schema/dataset/database that the database connection is
-    /// connected to.
+    /// list_views returns the names of all the views accessible in the database, not just the ones
+    /// in the schema/dataset that the database connection is connected to. This is useful for
+    /// listing views in other schemas/datasets for building sources
     async fn list_views(&self) -> Result<Vec<TableAddress>, String>;
-    /// list_columns returns the columns of a table in the order they are defined in the table. If the table does not
-    /// exist, an error is returned.
-    async fn list_columns(&self, table: &str) -> Result<Vec<String>, String>;
-
+    /// list_local_tables returns the names of all the tables in the specific schema/dataset/database
+    /// that the database connection is connected to. So if the project is set up to use a specific
+    /// schema, only the tables in that schema will be returned.
+    async fn list_local_tables(&self) -> Result<Vec<TableAddress>, String>;
+    /// list_local_views returns the names of all the views in the schema/dataset/database that the database
+    /// connection is connected to. So if the project is set up to use a specific schema, only the
+    /// tables in that schema will be returned.
+    async fn list_local_views(&self) -> Result<Vec<TableAddress>, String>;
+    /// list_columns returns the columns of a table in the order they are defined in the table.
+    /// If the table does not exist, an error is returned.
+    ///
+    /// list_columns should also be able to return the columns for a full path to a table.
+    async fn list_columns(&self, path: &str) -> Result<Vec<ColumnWithDetails>, String>;
+    /// exec executes a query that does not return any results. This is useful for executing DDL
+    /// queries like CREATE TABLE, DROP TABLE, etc.
     async fn exec(&self, query: &str) -> Result<(), String>;
 
     /// query returns the results of a query as a vector of rows. The first vector is the headers of
@@ -258,6 +272,15 @@ pub trait DatabaseConnection: Debug {
 
     /// query_generator returns the appropriate query generator
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator>;
+}
+
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct ColumnWithDetails {
+    pub name: String,
+    pub description: Option<String>,
+    pub data_type: Option<String>,
+    pub is_nullable: Option<bool>,
+    pub is_unique: Option<bool>,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
