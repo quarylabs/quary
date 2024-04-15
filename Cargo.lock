@@ -1084,7 +1084,7 @@ checksum = "7e962a19be5cfc3f3bf6dd8f61eb50107f356ad6270fbb3ed41476571db78be5"
 
 [[package]]
 name = "dbt-converter"
-version = "0.0.107"
+version = "0.0.108"
 dependencies = [
  "quary_proto",
  "regex",
@@ -2895,7 +2895,7 @@ dependencies = [
 
 [[package]]
 name = "quary"
-version = "0.0.107"
+version = "0.0.108"
 dependencies = [
  "arrow-array 50.0.0",
  "assert_cmd",
@@ -2911,6 +2911,7 @@ dependencies = [
  "indicatif",
  "prost",
  "quary-core",
+ "quary-databases",
  "quary_proto",
  "regex",
  "serde_yaml",
@@ -2925,7 +2926,7 @@ dependencies = [
 
 [[package]]
 name = "quary-core"
-version = "0.0.107"
+version = "0.0.108"
 dependencies = [
  "async-trait",
  "csv",
@@ -2947,6 +2948,29 @@ dependencies = [
  "tokio",
  "tokio-util",
  "web-sys",
+]
+
+[[package]]
+name = "quary-databases"
+version = "0.0.108"
+dependencies = [
+ "arrow-array 50.0.0",
+ "assert_cmd",
+ "async-trait",
+ "duckdb",
+ "gcp-bigquery-client",
+ "google-cloud-auth",
+ "prost",
+ "quary-core",
+ "quary_proto",
+ "regex",
+ "snowflake-api",
+ "sqlx",
+ "tempfile",
+ "testcontainers",
+ "testcontainers-modules",
+ "tokio",
+ "yup-oauth2",
 ]
 
 [[package]]
@@ -3083,9 +3107,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.10.3"
+version = "1.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b62dbe01f0b06f9d8dc7d49e05a0785f153b00b2c227856282f671e0318c9b15"
+checksum = "c117dbdfde9c8308975b6a18d71f3f385c89461f7b3fb054288ecf2a2058ba4c"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -3821,7 +3845,7 @@ dependencies = [
 
 [[package]]
 name = "sqlinference"
-version = "0.0.107"
+version = "0.0.108"
 dependencies = [
  "sqlparser",
 ]

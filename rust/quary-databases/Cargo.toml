@@ -1,5 +1,5 @@
 [package]
-name = "quary"
+name = "quary-databases"
 version = "0.0.108"
 edition = "2021"
 rust-version = "1.77.1"
@@ -8,15 +8,11 @@ rust-version = "1.77.1"
 
 [dependencies]
 yup-oauth2 = { version = "8", default-features = false }
-clap = { version = "4", features = ["derive"] }
 quary-core = { path = "../core" }
-quary-databases = { path = "../quary-databases" }
-dbt-converter = { path = "../dbt-converter" }
 quary_proto = { path = "../../proto/gen/rust" }
 tokio = { version = "1", features = ["full"] }
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "postgres"] }
 async-trait = "0.1"
-indicatif = "0.17"
 gcp-bigquery-client = "0.18"
 prost = "0.12"
 google-cloud-auth = { version = "0.13", default-features = false, features = ["external-account", "rustls-tls"] }
@@ -24,10 +20,6 @@ snowflake-api = { path = "../snowflake-api" }
 arrow-array = "50"
 duckdb = { version = "0.10", features = ["bundled"] }
 regex = "1.10.4"
-futures = "0.3.30"
-base64 = "0.22.0"
-dotenv = "0.15"
-serde_yaml = "0.9.33"
 
 [dev-dependencies]
 assert_cmd = "2"

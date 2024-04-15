@@ -312,9 +312,8 @@ mod tests {
     use crate::init::{init_to_file_system, Asset};
     use crate::project::parse_project;
     use crate::project_file::{deserialize_project_file_from_yaml, serialize_project_file_to_yaml};
-    use quary_proto::project_file::Column;
-    use quary_proto::FileSystem as ProtoFileSystem;
     use quary_proto::{File, Seed};
+    use quary_proto::{FileSystem as ProtoFileSystem, ProjectFileColumn};
 
     #[tokio::test]
     /// test_derive_sha256_contents_of_init_compare_to_web_values tests that the sha256 hash of the
@@ -426,7 +425,7 @@ mod tests {
         let mut staging_schema = deserialize_project_file_from_yaml(reader).unwrap();
         staging_schema.models.iter_mut().for_each(|model| {
             if model.name == "stg_employees" {
-                model.columns.push(Column {
+                model.columns.push(ProjectFileColumn {
                     name: "doesnt exist".to_string(),
                     description: None,
                     tests: vec![],
@@ -919,6 +918,7 @@ sources:
                     },
                 ),
             ]),
+            snapshots: HashMap::new(),
             tests: Default::default(),
             sources: HashMap::from([
                 (

@@ -13,6 +13,7 @@ message Project {
   map<string, Model> models = 4;
   map<string, Test> tests = 5;
   map<string, Source> sources = 6;
+  map<string, Snapshot> snapshots = 9;
   map<string, ProjectFile> project_files = 7;
   ConnectionConfig connection_config = 8;
 }

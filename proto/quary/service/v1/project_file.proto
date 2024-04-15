@@ -5,18 +5,9 @@ package quary.service.v1;
 option java_multiple_files = true;
 
 message ProjectFile {
-  message Column {
-    // Standard types are:
-    // - not_null
-    // - unique
-    // - 'relationship' which takes into data (model and field)
-
-    string name = 1;
-    optional string description = 2;
-    repeated ColumnTest tests = 3;
-  }
-  repeated Source sources = 1;
+  repeated ProjectFileSource sources = 1;
   repeated Model models = 2;
+  repeated Snapshot snapshots = 3;
 
   message Model {
     string name = 1;
@@ -26,21 +17,48 @@ message ProjectFile {
     optional string materialization = 4;
     repeated ModelTest tests = 5;
 
-    repeated Column columns = 3;
+    repeated ProjectFileColumn columns = 3;
   }
 
-  message Source {
+  message Snapshot {
     string name = 1;
-    repeated string tags = 6;
-    optional string description = 2;
-    // The full path of the source table in the database. This is used to reference the table itself. For example:
-    // - 'public.users' for where the schema is 'public' and the table is 'users'
-    // - 'project_id_123.dataset_id_123.table_id_123' for a BigQuery table
-    string path = 3;
-    repeated ModelTest tests = 5;
-
-    repeated Column columns = 4;
+    string unique_key = 2;
+    SnapshotStrategy strategy = 3;
   }
+
+  message SnapshotStrategy {
+    oneof strategy_type {
+      TimestampStrategy timestamp = 1;
+    }
+  }
+
+  message TimestampStrategy {
+    string updated_at = 1;
+  }
+}
+
+message ProjectFileSource {
+  string name = 1;
+  repeated string tags = 6;
+  optional string description = 2;
+  // The full path of the source table in the database. This is used to reference the table itself. For example:
+  // - 'public.users' for where the schema is 'public' and the table is 'users'
+  // - 'project_id_123.dataset_id_123.table_id_123' for a BigQuery table
+  string path = 3;
+  repeated ModelTest tests = 5;
+
+  repeated ProjectFileColumn columns = 4;
+}
+
+message ProjectFileColumn {
+  // Standard types are:
+  // - not_null
+  // - unique
+  // - 'relationship' which takes into data (model and field)
+
+  string name = 1;
+  optional string description = 2;
+  repeated ColumnTest tests = 3;
 }
 
 message ColumnTest {

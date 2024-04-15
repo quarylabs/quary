@@ -154,7 +154,7 @@ pub async fn run_tests_internal(
             })
             // Test to source test
             .collect::<Result<HashSet<&String>, String>>()
-            .map_err(|e| RunTestError::Other(e))?;
+            .map_err(RunTestError::Other)?;
         let tests_to_skip_for_inference_with_operation = tests_name_to_sql
             .keys()
             .filter_map(|test_name| match whether_to_skip.get(test_name) {
@@ -242,7 +242,7 @@ pub async fn run_tests_internal(
                     tests_name_to_sql.keys()
                 )))?;
             let test_sources = recursive_search_for_test(&whether_to_skip, test_name)
-                .map_err(|e| RunTestError::Other(e))?;
+                .map_err(RunTestError::Other)?;
             let intermediary_test_source = &test_sources
                 .last()
                 .ok_or(RunTestError::Other("Failed to find last test".to_string()))?;

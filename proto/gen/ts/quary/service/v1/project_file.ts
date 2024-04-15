@@ -4,20 +4,9 @@ import * as _m0 from "protobufjs/minimal";
 export const protobufPackage = "quary.service.v1";
 
 export interface ProjectFile {
-  sources: ProjectFile_Source[];
+  sources: ProjectFileSource[];
   models: ProjectFile_Model[];
-}
-
-/**
- * Standard types are:
- * - not_null
- * - unique
- * - 'relationship' which takes into data (model and field)
- */
-export interface ProjectFile_Column {
-  name: string;
-  description?: string | undefined;
-  tests: ColumnTest[];
+  snapshots: ProjectFile_Snapshot[];
 }
 
 export interface ProjectFile_Model {
@@ -29,10 +18,24 @@ export interface ProjectFile_Model {
   /** The materialization of the model, available types are specified by each database. */
   materialization?: string | undefined;
   tests: ModelTest[];
-  columns: ProjectFile_Column[];
+  columns: ProjectFileColumn[];
 }
 
-export interface ProjectFile_Source {
+export interface ProjectFile_Snapshot {
+  name: string;
+  uniqueKey: string;
+  strategy: ProjectFile_SnapshotStrategy | undefined;
+}
+
+export interface ProjectFile_SnapshotStrategy {
+  strategyType?: { $case: "timestamp"; timestamp: ProjectFile_TimestampStrategy } | undefined;
+}
+
+export interface ProjectFile_TimestampStrategy {
+  updatedAt: string;
+}
+
+export interface ProjectFileSource {
   name: string;
   tags: string[];
   description?:
@@ -45,7 +48,19 @@ export interface ProjectFile_Source {
    */
   path: string;
   tests: ModelTest[];
-  columns: ProjectFile_Column[];
+  columns: ProjectFileColumn[];
+}
+
+/**
+ * Standard types are:
+ * - not_null
+ * - unique
+ * - 'relationship' which takes into data (model and field)
+ */
+export interface ProjectFileColumn {
+  name: string;
+  description?: string | undefined;
+  tests: ColumnTest[];
 }
 
 export interface ColumnTest {
@@ -69,16 +84,19 @@ export interface ModelTest_InfoEntry {
 }
 
 function createBaseProjectFile(): ProjectFile {
-  return { sources: [], models: [] };
+  return { sources: [], models: [], snapshots: [] };
 }
 
 export const ProjectFile = {
   encode(message: ProjectFile, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.sources) {
-      ProjectFile_Source.encode(v!, writer.uint32(10).fork()).ldelim();
+      ProjectFileSource.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     for (const v of message.models) {
       ProjectFile_Model.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    for (const v of message.snapshots) {
+      ProjectFile_Snapshot.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -95,7 +113,7 @@ export const ProjectFile = {
             break;
           }
 
-          message.sources.push(ProjectFile_Source.decode(reader, reader.uint32()));
+          message.sources.push(ProjectFileSource.decode(reader, reader.uint32()));
           continue;
         case 2:
           if (tag !== 18) {
@@ -103,6 +121,13 @@ export const ProjectFile = {
           }
 
           message.models.push(ProjectFile_Model.decode(reader, reader.uint32()));
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.snapshots.push(ProjectFile_Snapshot.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -115,18 +140,24 @@ export const ProjectFile = {
 
   fromJSON(object: any): ProjectFile {
     return {
-      sources: gt.Array.isArray(object?.sources) ? object.sources.map((e: any) => ProjectFile_Source.fromJSON(e)) : [],
+      sources: gt.Array.isArray(object?.sources) ? object.sources.map((e: any) => ProjectFileSource.fromJSON(e)) : [],
       models: gt.Array.isArray(object?.models) ? object.models.map((e: any) => ProjectFile_Model.fromJSON(e)) : [],
+      snapshots: gt.Array.isArray(object?.snapshots)
+        ? object.snapshots.map((e: any) => ProjectFile_Snapshot.fromJSON(e))
+        : [],
     };
   },
 
   toJSON(message: ProjectFile): unknown {
     const obj: any = {};
     if (message.sources?.length) {
-      obj.sources = message.sources.map((e) => ProjectFile_Source.toJSON(e));
+      obj.sources = message.sources.map((e) => ProjectFileSource.toJSON(e));
     }
     if (message.models?.length) {
       obj.models = message.models.map((e) => ProjectFile_Model.toJSON(e));
+    }
+    if (message.snapshots?.length) {
+      obj.snapshots = message.snapshots.map((e) => ProjectFile_Snapshot.toJSON(e));
     }
     return obj;
   },
@@ -136,97 +167,9 @@ export const ProjectFile = {
   },
   fromPartial<I extends Exact<DeepPartial<ProjectFile>, I>>(object: I): ProjectFile {
     const message = createBaseProjectFile();
-    message.sources = object.sources?.map((e) => ProjectFile_Source.fromPartial(e)) || [];
+    message.sources = object.sources?.map((e) => ProjectFileSource.fromPartial(e)) || [];
     message.models = object.models?.map((e) => ProjectFile_Model.fromPartial(e)) || [];
-    return message;
-  },
-};
-
-function createBaseProjectFile_Column(): ProjectFile_Column {
-  return { name: "", description: undefined, tests: [] };
-}
-
-export const ProjectFile_Column = {
-  encode(message: ProjectFile_Column, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
-    if (message.description !== undefined) {
-      writer.uint32(18).string(message.description);
-    }
-    for (const v of message.tests) {
-      ColumnTest.encode(v!, writer.uint32(26).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ProjectFile_Column {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseProjectFile_Column();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.description = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.tests.push(ColumnTest.decode(reader, reader.uint32()));
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ProjectFile_Column {
-    return {
-      name: isSet(object.name) ? gt.String(object.name) : "",
-      description: isSet(object.description) ? gt.String(object.description) : undefined,
-      tests: gt.Array.isArray(object?.tests) ? object.tests.map((e: any) => ColumnTest.fromJSON(e)) : [],
-    };
-  },
-
-  toJSON(message: ProjectFile_Column): unknown {
-    const obj: any = {};
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.description !== undefined) {
-      obj.description = message.description;
-    }
-    if (message.tests?.length) {
-      obj.tests = message.tests.map((e) => ColumnTest.toJSON(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ProjectFile_Column>, I>>(base?: I): ProjectFile_Column {
-    return ProjectFile_Column.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ProjectFile_Column>, I>>(object: I): ProjectFile_Column {
-    const message = createBaseProjectFile_Column();
-    message.name = object.name ?? "";
-    message.description = object.description ?? undefined;
-    message.tests = object.tests?.map((e) => ColumnTest.fromPartial(e)) || [];
+    message.snapshots = object.snapshots?.map((e) => ProjectFile_Snapshot.fromPartial(e)) || [];
     return message;
   },
 };
@@ -253,7 +196,7 @@ export const ProjectFile_Model = {
       ModelTest.encode(v!, writer.uint32(42).fork()).ldelim();
     }
     for (const v of message.columns) {
-      ProjectFile_Column.encode(v!, writer.uint32(26).fork()).ldelim();
+      ProjectFileColumn.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -305,7 +248,7 @@ export const ProjectFile_Model = {
             break;
           }
 
-          message.columns.push(ProjectFile_Column.decode(reader, reader.uint32()));
+          message.columns.push(ProjectFileColumn.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -323,7 +266,7 @@ export const ProjectFile_Model = {
       description: isSet(object.description) ? gt.String(object.description) : undefined,
       materialization: isSet(object.materialization) ? gt.String(object.materialization) : undefined,
       tests: gt.Array.isArray(object?.tests) ? object.tests.map((e: any) => ModelTest.fromJSON(e)) : [],
-      columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => ProjectFile_Column.fromJSON(e)) : [],
+      columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => ProjectFileColumn.fromJSON(e)) : [],
     };
   },
 
@@ -345,7 +288,7 @@ export const ProjectFile_Model = {
       obj.tests = message.tests.map((e) => ModelTest.toJSON(e));
     }
     if (message.columns?.length) {
-      obj.columns = message.columns.map((e) => ProjectFile_Column.toJSON(e));
+      obj.columns = message.columns.map((e) => ProjectFileColumn.toJSON(e));
     }
     return obj;
   },
@@ -360,17 +303,242 @@ export const ProjectFile_Model = {
     message.description = object.description ?? undefined;
     message.materialization = object.materialization ?? undefined;
     message.tests = object.tests?.map((e) => ModelTest.fromPartial(e)) || [];
-    message.columns = object.columns?.map((e) => ProjectFile_Column.fromPartial(e)) || [];
+    message.columns = object.columns?.map((e) => ProjectFileColumn.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseProjectFile_Source(): ProjectFile_Source {
+function createBaseProjectFile_Snapshot(): ProjectFile_Snapshot {
+  return { name: "", uniqueKey: "", strategy: undefined };
+}
+
+export const ProjectFile_Snapshot = {
+  encode(message: ProjectFile_Snapshot, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.uniqueKey !== "") {
+      writer.uint32(18).string(message.uniqueKey);
+    }
+    if (message.strategy !== undefined) {
+      ProjectFile_SnapshotStrategy.encode(message.strategy, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ProjectFile_Snapshot {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProjectFile_Snapshot();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.uniqueKey = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.strategy = ProjectFile_SnapshotStrategy.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProjectFile_Snapshot {
+    return {
+      name: isSet(object.name) ? gt.String(object.name) : "",
+      uniqueKey: isSet(object.uniqueKey) ? gt.String(object.uniqueKey) : "",
+      strategy: isSet(object.strategy) ? ProjectFile_SnapshotStrategy.fromJSON(object.strategy) : undefined,
+    };
+  },
+
+  toJSON(message: ProjectFile_Snapshot): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.uniqueKey !== "") {
+      obj.uniqueKey = message.uniqueKey;
+    }
+    if (message.strategy !== undefined) {
+      obj.strategy = ProjectFile_SnapshotStrategy.toJSON(message.strategy);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProjectFile_Snapshot>, I>>(base?: I): ProjectFile_Snapshot {
+    return ProjectFile_Snapshot.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProjectFile_Snapshot>, I>>(object: I): ProjectFile_Snapshot {
+    const message = createBaseProjectFile_Snapshot();
+    message.name = object.name ?? "";
+    message.uniqueKey = object.uniqueKey ?? "";
+    message.strategy = (object.strategy !== undefined && object.strategy !== null)
+      ? ProjectFile_SnapshotStrategy.fromPartial(object.strategy)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseProjectFile_SnapshotStrategy(): ProjectFile_SnapshotStrategy {
+  return { strategyType: undefined };
+}
+
+export const ProjectFile_SnapshotStrategy = {
+  encode(message: ProjectFile_SnapshotStrategy, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    switch (message.strategyType?.$case) {
+      case "timestamp":
+        ProjectFile_TimestampStrategy.encode(message.strategyType.timestamp, writer.uint32(10).fork()).ldelim();
+        break;
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ProjectFile_SnapshotStrategy {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProjectFile_SnapshotStrategy();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.strategyType = {
+            $case: "timestamp",
+            timestamp: ProjectFile_TimestampStrategy.decode(reader, reader.uint32()),
+          };
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProjectFile_SnapshotStrategy {
+    return {
+      strategyType: isSet(object.timestamp)
+        ? { $case: "timestamp", timestamp: ProjectFile_TimestampStrategy.fromJSON(object.timestamp) }
+        : undefined,
+    };
+  },
+
+  toJSON(message: ProjectFile_SnapshotStrategy): unknown {
+    const obj: any = {};
+    if (message.strategyType?.$case === "timestamp") {
+      obj.timestamp = ProjectFile_TimestampStrategy.toJSON(message.strategyType.timestamp);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProjectFile_SnapshotStrategy>, I>>(base?: I): ProjectFile_SnapshotStrategy {
+    return ProjectFile_SnapshotStrategy.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProjectFile_SnapshotStrategy>, I>>(object: I): ProjectFile_SnapshotStrategy {
+    const message = createBaseProjectFile_SnapshotStrategy();
+    if (
+      object.strategyType?.$case === "timestamp" &&
+      object.strategyType?.timestamp !== undefined &&
+      object.strategyType?.timestamp !== null
+    ) {
+      message.strategyType = {
+        $case: "timestamp",
+        timestamp: ProjectFile_TimestampStrategy.fromPartial(object.strategyType.timestamp),
+      };
+    }
+    return message;
+  },
+};
+
+function createBaseProjectFile_TimestampStrategy(): ProjectFile_TimestampStrategy {
+  return { updatedAt: "" };
+}
+
+export const ProjectFile_TimestampStrategy = {
+  encode(message: ProjectFile_TimestampStrategy, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.updatedAt !== "") {
+      writer.uint32(10).string(message.updatedAt);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ProjectFile_TimestampStrategy {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProjectFile_TimestampStrategy();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.updatedAt = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProjectFile_TimestampStrategy {
+    return { updatedAt: isSet(object.updatedAt) ? gt.String(object.updatedAt) : "" };
+  },
+
+  toJSON(message: ProjectFile_TimestampStrategy): unknown {
+    const obj: any = {};
+    if (message.updatedAt !== "") {
+      obj.updatedAt = message.updatedAt;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProjectFile_TimestampStrategy>, I>>(base?: I): ProjectFile_TimestampStrategy {
+    return ProjectFile_TimestampStrategy.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProjectFile_TimestampStrategy>, I>>(
+    object: I,
+  ): ProjectFile_TimestampStrategy {
+    const message = createBaseProjectFile_TimestampStrategy();
+    message.updatedAt = object.updatedAt ?? "";
+    return message;
+  },
+};
+
+function createBaseProjectFileSource(): ProjectFileSource {
   return { name: "", tags: [], description: undefined, path: "", tests: [], columns: [] };
 }
 
-export const ProjectFile_Source = {
-  encode(message: ProjectFile_Source, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const ProjectFileSource = {
+  encode(message: ProjectFileSource, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
@@ -387,15 +555,15 @@ export const ProjectFile_Source = {
       ModelTest.encode(v!, writer.uint32(42).fork()).ldelim();
     }
     for (const v of message.columns) {
-      ProjectFile_Column.encode(v!, writer.uint32(34).fork()).ldelim();
+      ProjectFileColumn.encode(v!, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): ProjectFile_Source {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ProjectFileSource {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseProjectFile_Source();
+    const message = createBaseProjectFileSource();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -439,7 +607,7 @@ export const ProjectFile_Source = {
             break;
           }
 
-          message.columns.push(ProjectFile_Column.decode(reader, reader.uint32()));
+          message.columns.push(ProjectFileColumn.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -450,18 +618,18 @@ export const ProjectFile_Source = {
     return message;
   },
 
-  fromJSON(object: any): ProjectFile_Source {
+  fromJSON(object: any): ProjectFileSource {
     return {
       name: isSet(object.name) ? gt.String(object.name) : "",
       tags: gt.Array.isArray(object?.tags) ? object.tags.map((e: any) => gt.String(e)) : [],
       description: isSet(object.description) ? gt.String(object.description) : undefined,
       path: isSet(object.path) ? gt.String(object.path) : "",
       tests: gt.Array.isArray(object?.tests) ? object.tests.map((e: any) => ModelTest.fromJSON(e)) : [],
-      columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => ProjectFile_Column.fromJSON(e)) : [],
+      columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => ProjectFileColumn.fromJSON(e)) : [],
     };
   },
 
-  toJSON(message: ProjectFile_Source): unknown {
+  toJSON(message: ProjectFileSource): unknown {
     const obj: any = {};
     if (message.name !== "") {
       obj.name = message.name;
@@ -479,22 +647,111 @@ export const ProjectFile_Source = {
       obj.tests = message.tests.map((e) => ModelTest.toJSON(e));
     }
     if (message.columns?.length) {
-      obj.columns = message.columns.map((e) => ProjectFile_Column.toJSON(e));
+      obj.columns = message.columns.map((e) => ProjectFileColumn.toJSON(e));
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ProjectFile_Source>, I>>(base?: I): ProjectFile_Source {
-    return ProjectFile_Source.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<ProjectFileSource>, I>>(base?: I): ProjectFileSource {
+    return ProjectFileSource.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ProjectFile_Source>, I>>(object: I): ProjectFile_Source {
-    const message = createBaseProjectFile_Source();
+  fromPartial<I extends Exact<DeepPartial<ProjectFileSource>, I>>(object: I): ProjectFileSource {
+    const message = createBaseProjectFileSource();
     message.name = object.name ?? "";
     message.tags = object.tags?.map((e) => e) || [];
     message.description = object.description ?? undefined;
     message.path = object.path ?? "";
     message.tests = object.tests?.map((e) => ModelTest.fromPartial(e)) || [];
-    message.columns = object.columns?.map((e) => ProjectFile_Column.fromPartial(e)) || [];
+    message.columns = object.columns?.map((e) => ProjectFileColumn.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseProjectFileColumn(): ProjectFileColumn {
+  return { name: "", description: undefined, tests: [] };
+}
+
+export const ProjectFileColumn = {
+  encode(message: ProjectFileColumn, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.description !== undefined) {
+      writer.uint32(18).string(message.description);
+    }
+    for (const v of message.tests) {
+      ColumnTest.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ProjectFileColumn {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProjectFileColumn();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.tests.push(ColumnTest.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProjectFileColumn {
+    return {
+      name: isSet(object.name) ? gt.String(object.name) : "",
+      description: isSet(object.description) ? gt.String(object.description) : undefined,
+      tests: gt.Array.isArray(object?.tests) ? object.tests.map((e: any) => ColumnTest.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ProjectFileColumn): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.tests?.length) {
+      obj.tests = message.tests.map((e) => ColumnTest.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProjectFileColumn>, I>>(base?: I): ProjectFileColumn {
+    return ProjectFileColumn.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProjectFileColumn>, I>>(object: I): ProjectFileColumn {
+    const message = createBaseProjectFileColumn();
+    message.name = object.name ?? "";
+    message.description = object.description ?? undefined;
+    message.tests = object.tests?.map((e) => ColumnTest.fromPartial(e)) || [];
     return message;
   },
 };

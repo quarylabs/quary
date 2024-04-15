@@ -61,7 +61,7 @@ pub enum SnowflakeApiError {
     ResponseDeserializationError(#[from] base64::DecodeError),
 
     #[error(transparent)]
-    ArrowError(#[from] arrow::error::ArrowError),
+    ArrowError(#[from] ArrowError),
 
     #[error("S3 bucket path in PUT request is invalid: `{0}`")]
     InvalidBucketPath(String),

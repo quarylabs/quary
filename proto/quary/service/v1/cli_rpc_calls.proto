@@ -1,6 +1,8 @@
 syntax = "proto3";
+
 package quary.service.v1;
 
+import "quary/service/v1/project_file.proto";
 import "quary/service/v1/query_result.proto";
 import "quary/service/v1/table_address.proto";
 
@@ -12,6 +14,7 @@ service CLIRPCService {
   rpc Exec(ExecRequest) returns (ExecResponse);
   rpc Query(QueryRequest) returns (QueryResponse);
   rpc ListColumns(ListColumnsRequest) returns (ListColumnsResponse);
+  rpc ListSources(ListSourcesRequest) returns (ListSourcesResponse);
 }
 
 message ListTablesRequest {}
@@ -46,4 +49,10 @@ message ListColumnsRequest {
 
 message ListColumnsResponse {
   repeated string columns = 1;
+}
+
+message ListSourcesRequest {}
+
+message ListSourcesResponse {
+  repeated ProjectFileSource sources = 1;
 }

@@ -319,6 +319,7 @@ mod tests {
         let project = Project {
             seeds: Default::default(),
             models: Default::default(),
+            snapshots: Default::default(),
             tests: HashMap::from([(test_to_name(&test).unwrap(), test.clone())]),
             sources: Default::default(),
             project_files: Default::default(),

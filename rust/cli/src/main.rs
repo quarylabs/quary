@@ -7,7 +7,6 @@
 #![deny(unused_import_braces)]
 
 use crate::commands::{mode_to_test_runner, Cli, Commands, InitType};
-use crate::databases_connection::{database_from_config, database_query_generator_from_config};
 use crate::file_system::LocalFS;
 use crate::rpc_functions::rpc;
 use clap::Parser;
@@ -23,9 +22,14 @@ use quary_core::onboarding::is_empty_bar_hidden_and_sqlite;
 use quary_core::project::project_and_fs_to_sql_for_views;
 use quary_core::project_tests::return_tests_sql;
 use quary_core::test_runner::{run_tests_internal, RunStatementFunc, RunTestError};
-use quary_proto::project_file::Source;
+use quary_databases::databases_connection::{
+    database_from_config, database_query_generator_from_config,
+};
 use quary_proto::test_result::TestResult;
-use quary_proto::{failed, passed, project_file, ConnectionConfig, ProjectFile, TableAddress};
+use quary_proto::{
+    failed, passed, ColumnTest, ConnectionConfig, ProjectFile, ProjectFileColumn,
+    ProjectFileSource, TableAddress,
+};
 use std::fs;
 use std::fs::File;
 use std::io::Write;
@@ -34,12 +38,6 @@ use std::sync::Arc;
 use std::time::Instant;
 
 mod commands;
-mod databases_bigquery;
-mod databases_connection;
-mod databases_duckdb;
-mod databases_postgres;
-mod databases_snowflake;
-mod databases_sqlite;
 mod file_system;
 mod rpc_functions;
 mod rpc_scaffolding;
@@ -468,13 +466,23 @@ async fn main_wrapped() -> Result<(), String> {
         Commands::GenerateSources(_) => {
             let config = get_config_file(&args.project_file)?;
             let database = database_from_config(&config).await?;
-            generate_sources(&database).await
+            let sources = generate_sources(&database).await?;
+            let project_file = ProjectFile {
+                sources,
+                models: vec![],
+                snapshots: vec![],
+            };
+            let yaml = serde_yaml::to_string(&project_file).map_err(|e| e.to_string())?;
+            print!("{}", yaml);
+            Ok(())
         }
         Commands::Rpc(rpc_args) => rpc(&args, rpc_args).await,
     }
 }
 
-async fn generate_sources(database: &Box<dyn DatabaseConnection>) -> Result<(), String> {
+async fn generate_sources(
+    database: &Box<dyn DatabaseConnection>,
+) -> Result<Vec<ProjectFileSource>, String> {
     let tables = database.list_tables().await?;
     let views = database.list_views().await?;
 
@@ -484,17 +492,10 @@ async fn generate_sources(database: &Box<dyn DatabaseConnection>) -> Result<(), 
         tables_with_columns.push(AddressWithColumns { table, columns });
     }
 
-    let project_file = ProjectFile {
-        sources: tables_with_columns
-            .into_iter()
-            .map(address_to_source)
-            .collect(),
-        models: vec![],
-    };
-
-    let yaml = serde_yaml::to_string(&project_file).map_err(|e| e.to_string())?;
-    print!("{}", yaml);
-    Ok(())
+    Ok(tables_with_columns
+        .into_iter()
+        .map(address_to_source)
+        .collect())
 }
 
 struct AddressWithColumns {
@@ -502,8 +503,8 @@ struct AddressWithColumns {
     columns: Vec<ColumnWithDetails>,
 }
 
-fn address_to_source(address_with_columns: AddressWithColumns) -> Source {
-    Source {
+fn address_to_source(address_with_columns: AddressWithColumns) -> ProjectFileSource {
+    ProjectFileSource {
         name: format!("raw_{}", address_with_columns.table.name),
         tags: vec![],
         description: None,
@@ -512,10 +513,30 @@ fn address_to_source(address_with_columns: AddressWithColumns) -> Source {
         columns: address_with_columns
             .columns
             .into_iter()
-            .map(|column| project_file::Column {
+            .map(|column| ProjectFileColumn {
                 name: column.name,
-                description: None,
-                tests: vec![],
+                description: column.description,
+                tests: vec![
+                    if column.is_nullable.unwrap_or(false) {
+                        Some(ColumnTest {
+                            r#type: "not_null".to_string(),
+                            info: Default::default(),
+                        })
+                    } else {
+                        None
+                    },
+                    if column.is_unique.unwrap_or(false) {
+                        Some(ColumnTest {
+                            r#type: "unique".to_string(),
+                            info: Default::default(),
+                        })
+                    } else {
+                        None
+                    },
+                ]
+                .into_iter()
+                .flatten()
+                .collect(),
             })
             .collect(),
     }
@@ -536,4 +557,79 @@ fn get_config_file(cfg_file: &str) -> Result<ConnectionConfig, String> {
         .map_err(|e| format!("opening config file {:?}: {:?}", cfg_file, e))?;
     let config = deserialize_config_from_yaml(file)?;
     Ok(config)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_address_to_source() {
+        let address = AddressWithColumns {
+            table: TableAddress {
+                name: "table".to_string(),
+                full_path: "schema.table".to_string(),
+            },
+            columns: vec![
+                ColumnWithDetails {
+                    name: "column1".to_string(),
+                    description: None,
+                    data_type: None,
+                    is_nullable: None,
+                    is_unique: None,
+                },
+                ColumnWithDetails {
+                    name: "column2".to_string(),
+                    description: Some("description 1".to_string()),
+                    data_type: Some("data_type".to_string()),
+                    is_nullable: Some(false),
+                    is_unique: Some(false),
+                },
+                ColumnWithDetails {
+                    name: "column3".to_string(),
+                    description: Some("description 2".to_string()),
+                    data_type: Some("data_type".to_string()),
+                    is_nullable: Some(true),
+                    is_unique: Some(true),
+                },
+            ],
+        };
+        let source = address_to_source(address);
+
+        assert_eq!(source.name, "raw_table");
+        assert_eq!(source.tags.len(), 0);
+        assert_eq!(source.description, None);
+        assert_eq!(source.path, "schema.table");
+        assert_eq!(source.tests, vec![]);
+        assert_eq!(source.columns.len(), 3);
+        assert_eq!(
+            source.columns,
+            vec![
+                ProjectFileColumn {
+                    name: "column1".to_string(),
+                    description: None,
+                    tests: vec![],
+                },
+                ProjectFileColumn {
+                    name: "column2".to_string(),
+                    description: Some("description 1".to_string()),
+                    tests: vec![],
+                },
+                ProjectFileColumn {
+                    name: "column3".to_string(),
+                    description: Some("description 2".to_string()),
+                    tests: vec![
+                        ColumnTest {
+                            r#type: "not_null".to_string(),
+                            info: Default::default(),
+                        },
+                        ColumnTest {
+                            r#type: "unique".to_string(),
+                            info: Default::default(),
+                        },
+                    ],
+                },
+            ]
+        );
+    }
 }

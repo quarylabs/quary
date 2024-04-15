@@ -121,6 +121,7 @@ pub async fn generate_source_files(
                 Ok(ProjectFile {
                     models: vec![],
                     sources: vec![],
+                    snapshots: vec![],
                 })
             } else {
                 Err(format!("Error reading .schema file: {}", io_error))

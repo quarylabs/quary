@@ -5,8 +5,8 @@ use std::collections::HashMap;
 fn create_project_file_source(
     source: &DatabaseSource,
     name_prefix: Option<&str>,
-) -> quary_proto::project_file::Source {
-    quary_proto::project_file::Source {
+) -> quary_proto::ProjectFileSource {
+    quary_proto::ProjectFileSource {
         name: match name_prefix {
             Some(prefix) => format!("{}{}", prefix, source.name),
             None => source.name.to_string(),
@@ -18,7 +18,7 @@ fn create_project_file_source(
         columns: source
             .columns
             .iter()
-            .map(|column| quary_proto::project_file::Column {
+            .map(|column| quary_proto::ProjectFileColumn {
                 name: column.to_string(),
                 description: None,
                 tests: vec![],
@@ -70,7 +70,7 @@ pub fn build_staging_schema_file_from_sources(
                         .columns
                         .clone()
                         .into_iter()
-                        .map(|column| quary_proto::project_file::Column {
+                        .map(|column| quary_proto::ProjectFileColumn {
                             name: column,
                             description: None,
                             tests: vec![],
@@ -79,6 +79,7 @@ pub fn build_staging_schema_file_from_sources(
                 }
             }))
             .collect(),
+        snapshots: vec![],
     }
 }
 
@@ -113,7 +114,7 @@ pub(crate) fn create_staging_model_sql_for_source(source: &DatabaseSource) -> St
 #[cfg(test)]
 mod tests {
     use super::*;
-    use quary_proto::project_file;
+    use quary_proto::{project_file, ProjectFileColumn, ProjectFileSource};
 
     fn create_test_source(name: &str, path: &str, columns: Vec<&str>) -> DatabaseSource {
         DatabaseSource {
@@ -160,38 +161,38 @@ mod tests {
             project_file,
             ProjectFile {
                 sources: vec![
-                    project_file::Source {
+                    ProjectFileSource {
                         name: "raw_test_table".to_string(),
                         description: None,
                         path: "database.test_table".to_string(),
                         tags: vec![],
                         tests: vec![],
                         columns: vec![
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col1".to_string(),
                                 description: None,
                                 tests: vec![]
                             },
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col2".to_string(),
                                 description: None,
                                 tests: vec![]
                             }
                         ]
                     },
-                    project_file::Source {
+                    ProjectFileSource {
                         name: "raw_demo_table".to_string(),
                         description: None,
                         path: "database.demo_table".to_string(),
                         tests: vec![],
                         tags: vec![],
                         columns: vec![
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col1".to_string(),
                                 description: None,
                                 tests: vec![]
                             },
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col2".to_string(),
                                 description: None,
                                 tests: vec![]
@@ -209,12 +210,12 @@ mod tests {
                         tags: vec![],
                         tests: vec![],
                         columns: vec![
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col1".to_string(),
                                 description: None,
                                 tests: vec![]
                             },
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col2".to_string(),
                                 description: None,
                                 tests: vec![]
@@ -230,12 +231,12 @@ mod tests {
                         tags: vec![],
                         tests: vec![],
                         columns: vec![
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col1".to_string(),
                                 description: None,
                                 tests: vec![]
                             },
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col2".to_string(),
                                 description: None,
                                 tests: vec![]
@@ -243,6 +244,7 @@ mod tests {
                         ]
                     }
                 ],
+                snapshots: vec![],
             }
         )
     }
@@ -255,7 +257,7 @@ mod tests {
         ];
         let project_file = build_staging_schema_file_from_sources(
             ProjectFile {
-                sources: vec![project_file::Source {
+                sources: vec![ProjectFileSource {
                     name: "test_123".to_string(),
                     description: None,
                     path: "".to_string(),
@@ -271,6 +273,7 @@ mod tests {
                     materialization: None,
                     columns: vec![],
                 }],
+                snapshots: vec![],
             },
             &sources,
         );
@@ -279,7 +282,7 @@ mod tests {
             project_file,
             ProjectFile {
                 sources: vec![
-                    project_file::Source {
+                    ProjectFileSource {
                         name: "test_123".to_string(),
                         description: None,
                         path: "".to_string(),
@@ -287,38 +290,38 @@ mod tests {
                         tests: vec![],
                         columns: vec![]
                     },
-                    project_file::Source {
+                    ProjectFileSource {
                         name: "raw_test_table".to_string(),
                         description: None,
                         path: "database.test_table".to_string(),
                         tags: vec![],
                         tests: vec![],
                         columns: vec![
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col1".to_string(),
                                 description: None,
                                 tests: vec![]
                             },
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col2".to_string(),
                                 description: None,
                                 tests: vec![]
                             }
                         ]
                     },
-                    project_file::Source {
+                    ProjectFileSource {
                         name: "raw_demo_table".to_string(),
                         description: None,
                         path: "database.demo_table".to_string(),
                         tags: vec![],
                         tests: vec![],
                         columns: vec![
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col1".to_string(),
                                 description: None,
                                 tests: vec![]
                             },
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col2".to_string(),
                                 description: None,
                                 tests: vec![]
@@ -344,12 +347,12 @@ mod tests {
                         tags: vec![],
                         tests: vec![],
                         columns: vec![
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col1".to_string(),
                                 description: None,
                                 tests: vec![]
                             },
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col2".to_string(),
                                 description: None,
                                 tests: vec![]
@@ -365,12 +368,12 @@ mod tests {
                         tags: vec![],
                         tests: vec![],
                         columns: vec![
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col1".to_string(),
                                 description: None,
                                 tests: vec![]
                             },
-                            project_file::Column {
+                            ProjectFileColumn {
                                 name: "col2".to_string(),
                                 description: None,
                                 tests: vec![]
@@ -378,6 +381,7 @@ mod tests {
                         ]
                     }
                 ],
+                snapshots: vec![],
             }
         )
     }

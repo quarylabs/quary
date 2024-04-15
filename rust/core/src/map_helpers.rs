@@ -10,7 +10,7 @@ pub trait MapLike<K, V> {
 // Implement the trait for HashMap
 impl<K, V> MapLike<K, V> for HashMap<K, V>
 where
-    K: Eq + std::hash::Hash,
+    K: Eq + Hash,
 {
     fn insert(&mut self, k: K, v: V) -> Option<V> {
         HashMap::insert(self, k, v)

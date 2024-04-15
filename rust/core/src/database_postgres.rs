@@ -83,6 +83,13 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         }
     }
 
+    fn seeds_drop_table_query(&self, table_name: &str) -> String {
+        format!(
+            "DROP TABLE IF EXISTS {} CASCADE",
+            self.return_full_path_requirement(table_name)
+        )
+    }
+
     fn seeds_create_table_query(&self, table_name: &str, columns: &[String]) -> String {
         let table_name = self.return_full_path_requirement(table_name);
         base_for_seeds_create_table_specifying_text_type("TEXT", &table_name, columns)
@@ -90,13 +97,6 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
 
     fn return_full_path_requirement(&self, table_name: &str) -> String {
         format!("{}.{}", self.schema, table_name)
-    }
-
-    fn seeds_drop_table_query(&self, table_name: &str) -> String {
-        format!(
-            "DROP TABLE IF EXISTS {} CASCADE",
-            self.return_full_path_requirement(table_name)
-        )
     }
 
     fn return_name_from_full_path<'a>(&self, full_path: &'a str) -> Result<&'a str, String> {

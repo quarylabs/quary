@@ -120,7 +120,31 @@ message Model {
 
   repeated ModelColum columns = 5;
 
+  // References to other models/seeds/snapshots that are used in the model. These are unique keys and sorted
+  // alphabetically.
   repeated string references = 6;
+}
+
+message Snapshot {
+  string name = 1;
+
+  string file_path = 3;
+  string file_sha256_hash = 4;
+
+  string unique_key = 5;
+  SnapshotStrategy strategy = 6;
+  message SnapshotStrategy {
+    oneof strategy_type {
+      TimestampStrategy timestamp = 1;
+    }
+    message TimestampStrategy {
+      string updated_at = 1;
+    }
+  }
+
+  // References to other seeds/sources that are used in the snapshot. These are unique keys and sorted
+  // alphabetically.
+  repeated string references = 7;
 }
 
 // Generic source structure, used as input to generate the quary-specific source structure
@@ -130,7 +154,6 @@ message DatabaseSource {
   repeated string columns = 3;
 }
 
-// Quary-specific source structure
 message Source {
   string name = 1;
   optional string description = 2;

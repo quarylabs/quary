@@ -7,6 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { TableAddress } from "./table_address_pb.js";
 import { QueryResult } from "./query_result_pb.js";
+import { ProjectFileSource } from "./project_file_pb.js";
 
 /**
  * @generated from message quary.service.v1.ListTablesRequest
@@ -357,6 +358,74 @@ export class ListColumnsResponse extends Message<ListColumnsResponse> {
 
   static equals(a: ListColumnsResponse | PlainMessage<ListColumnsResponse> | undefined, b: ListColumnsResponse | PlainMessage<ListColumnsResponse> | undefined): boolean {
     return proto3.util.equals(ListColumnsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.ListSourcesRequest
+ */
+export class ListSourcesRequest extends Message<ListSourcesRequest> {
+  constructor(data?: PartialMessage<ListSourcesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.ListSourcesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListSourcesRequest {
+    return new ListSourcesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListSourcesRequest {
+    return new ListSourcesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListSourcesRequest {
+    return new ListSourcesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListSourcesRequest | PlainMessage<ListSourcesRequest> | undefined, b: ListSourcesRequest | PlainMessage<ListSourcesRequest> | undefined): boolean {
+    return proto3.util.equals(ListSourcesRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.ListSourcesResponse
+ */
+export class ListSourcesResponse extends Message<ListSourcesResponse> {
+  /**
+   * @generated from field: repeated quary.service.v1.ProjectFileSource sources = 1;
+   */
+  sources: ProjectFileSource[] = [];
+
+  constructor(data?: PartialMessage<ListSourcesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.ListSourcesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "sources", kind: "message", T: ProjectFileSource, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListSourcesResponse {
+    return new ListSourcesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListSourcesResponse {
+    return new ListSourcesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListSourcesResponse {
+    return new ListSourcesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListSourcesResponse | PlainMessage<ListSourcesResponse> | undefined, b: ListSourcesResponse | PlainMessage<ListSourcesResponse> | undefined): boolean {
+    return proto3.util.equals(ListSourcesResponse, a, b);
   }
 }
 

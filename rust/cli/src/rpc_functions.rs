@@ -1,11 +1,12 @@
 use crate::commands::{Cli, RpcArgs};
-use crate::databases_connection::database_from_config;
-use crate::get_config_file;
 use crate::rpc_scaffolding::rpc_wrapper;
+use crate::{generate_sources, get_config_file};
 use quary_core::databases::DatabaseConnection;
+use quary_databases::databases_connection::database_from_config;
 use quary_proto::{
-    ExecRequest, ExecResponse, ListColumnsRequest, ListColumnsResponse, ListTablesRequest,
-    ListTablesResponse, ListViewsRequest, ListViewsResponse, QueryRequest, QueryResponse,
+    ExecRequest, ExecResponse, ListColumnsRequest, ListColumnsResponse, ListSourcesRequest,
+    ListSourcesResponse, ListTablesRequest, ListTablesResponse, ListViewsRequest,
+    ListViewsResponse, QueryRequest, QueryResponse,
 };
 
 pub async fn rpc(args: &Cli, rpc_args: &RpcArgs) -> Result<(), String> {
@@ -21,6 +22,7 @@ pub async fn rpc(args: &Cli, rpc_args: &RpcArgs) -> Result<(), String> {
         "ListColumns" => Ok(rpc_wrapper(list_columns)),
         "Execute" => Ok(rpc_wrapper(execute)),
         "Query" => Ok(rpc_wrapper(query)),
+        "ListSources" => Ok(rpc_wrapper(list_sources)),
         _ => Err("error Method not found"),
     }?;
 
@@ -91,4 +93,14 @@ async fn query(
     Ok(QueryResponse {
         result: Some(result.to_proto()?),
     })
+}
+
+async fn list_sources(
+    _: ListSourcesRequest,
+    database: Box<dyn DatabaseConnection>,
+) -> Result<ListSourcesResponse, String> {
+    let sources = generate_sources(&database)
+        .await
+        .map_err(|e| format!("Failed to list sources: {}", e))?;
+    Ok(ListSourcesResponse { sources })
 }

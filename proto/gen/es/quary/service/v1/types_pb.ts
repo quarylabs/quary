@@ -787,6 +787,9 @@ export class Model extends Message<Model> {
   columns: Model_ModelColum[] = [];
 
   /**
+   * References to other models/seeds/snapshots that are used in the model. These are unique keys and sorted
+   * alphabetically.
+   *
    * @generated from field: repeated string references = 6;
    */
   references: string[] = [];
@@ -870,6 +873,156 @@ export class Model_ModelColum extends Message<Model_ModelColum> {
 }
 
 /**
+ * @generated from message quary.service.v1.Snapshot
+ */
+export class Snapshot extends Message<Snapshot> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string file_path = 3;
+   */
+  filePath = "";
+
+  /**
+   * @generated from field: string file_sha256_hash = 4;
+   */
+  fileSha256Hash = "";
+
+  /**
+   * @generated from field: string unique_key = 5;
+   */
+  uniqueKey = "";
+
+  /**
+   * @generated from field: quary.service.v1.Snapshot.SnapshotStrategy strategy = 6;
+   */
+  strategy?: Snapshot_SnapshotStrategy;
+
+  /**
+   * References to other seeds/sources that are used in the snapshot. These are unique keys and sorted
+   * alphabetically.
+   *
+   * @generated from field: repeated string references = 7;
+   */
+  references: string[] = [];
+
+  constructor(data?: PartialMessage<Snapshot>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.Snapshot";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "file_path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "file_sha256_hash", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "unique_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "strategy", kind: "message", T: Snapshot_SnapshotStrategy },
+    { no: 7, name: "references", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Snapshot {
+    return new Snapshot().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Snapshot {
+    return new Snapshot().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Snapshot {
+    return new Snapshot().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Snapshot | PlainMessage<Snapshot> | undefined, b: Snapshot | PlainMessage<Snapshot> | undefined): boolean {
+    return proto3.util.equals(Snapshot, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.Snapshot.SnapshotStrategy
+ */
+export class Snapshot_SnapshotStrategy extends Message<Snapshot_SnapshotStrategy> {
+  /**
+   * @generated from oneof quary.service.v1.Snapshot.SnapshotStrategy.strategy_type
+   */
+  strategyType: {
+    /**
+     * @generated from field: quary.service.v1.Snapshot.SnapshotStrategy.TimestampStrategy timestamp = 1;
+     */
+    value: Snapshot_SnapshotStrategy_TimestampStrategy;
+    case: "timestamp";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<Snapshot_SnapshotStrategy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.Snapshot.SnapshotStrategy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "timestamp", kind: "message", T: Snapshot_SnapshotStrategy_TimestampStrategy, oneof: "strategy_type" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Snapshot_SnapshotStrategy {
+    return new Snapshot_SnapshotStrategy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Snapshot_SnapshotStrategy {
+    return new Snapshot_SnapshotStrategy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Snapshot_SnapshotStrategy {
+    return new Snapshot_SnapshotStrategy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Snapshot_SnapshotStrategy | PlainMessage<Snapshot_SnapshotStrategy> | undefined, b: Snapshot_SnapshotStrategy | PlainMessage<Snapshot_SnapshotStrategy> | undefined): boolean {
+    return proto3.util.equals(Snapshot_SnapshotStrategy, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.Snapshot.SnapshotStrategy.TimestampStrategy
+ */
+export class Snapshot_SnapshotStrategy_TimestampStrategy extends Message<Snapshot_SnapshotStrategy_TimestampStrategy> {
+  /**
+   * @generated from field: string updated_at = 1;
+   */
+  updatedAt = "";
+
+  constructor(data?: PartialMessage<Snapshot_SnapshotStrategy_TimestampStrategy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.Snapshot.SnapshotStrategy.TimestampStrategy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "updated_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Snapshot_SnapshotStrategy_TimestampStrategy {
+    return new Snapshot_SnapshotStrategy_TimestampStrategy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Snapshot_SnapshotStrategy_TimestampStrategy {
+    return new Snapshot_SnapshotStrategy_TimestampStrategy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Snapshot_SnapshotStrategy_TimestampStrategy {
+    return new Snapshot_SnapshotStrategy_TimestampStrategy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Snapshot_SnapshotStrategy_TimestampStrategy | PlainMessage<Snapshot_SnapshotStrategy_TimestampStrategy> | undefined, b: Snapshot_SnapshotStrategy_TimestampStrategy | PlainMessage<Snapshot_SnapshotStrategy_TimestampStrategy> | undefined): boolean {
+    return proto3.util.equals(Snapshot_SnapshotStrategy_TimestampStrategy, a, b);
+  }
+}
+
+/**
  * Generic source structure, used as input to generate the quary-specific source structure
  *
  * @generated from message quary.service.v1.DatabaseSource
@@ -921,8 +1074,6 @@ export class DatabaseSource extends Message<DatabaseSource> {
 }
 
 /**
- * Quary-specific source structure
- *
  * @generated from message quary.service.v1.Source
  */
 export class Source extends Message<Source> {
