@@ -1,31 +1,19 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$ref": "#/definitions/ProjectFile",
+    "$ref": "#/definitions/ListSourcesResponse",
     "definitions": {
-        "ProjectFile": {
+        "ListSourcesResponse": {
             "properties": {
                 "sources": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ProjectFileSource"
                     },
                     "type": "array"
-                },
-                "models": {
-                    "items": {
-                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Model"
-                    },
-                    "type": "array"
-                },
-                "snapshots": {
-                    "items": {
-                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Snapshot"
-                    },
-                    "type": "array"
                 }
             },
             "additionalProperties": true,
             "type": "object",
-            "title": "Project File"
+            "title": "List Sources Response"
         },
         "quary.service.v1.ColumnTest": {
             "properties": {
@@ -58,79 +46,6 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Model Test"
-        },
-        "quary.service.v1.ProjectFile.Model": {
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "tags": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "materialization": {
-                    "type": "string",
-                    "description": "The materialization of the model, available types are specified by each database."
-                },
-                "tests": {
-                    "items": {
-                        "$ref": "#/definitions/quary.service.v1.ModelTest"
-                    },
-                    "type": "array"
-                },
-                "columns": {
-                    "items": {
-                        "$ref": "#/definitions/quary.service.v1.ProjectFileColumn"
-                    },
-                    "type": "array"
-                }
-            },
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Model"
-        },
-        "quary.service.v1.ProjectFile.Snapshot": {
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "unique_key": {
-                    "type": "string"
-                },
-                "strategy": {
-                    "$ref": "#/definitions/quary.service.v1.ProjectFile.SnapshotStrategy",
-                    "additionalProperties": true
-                }
-            },
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Snapshot"
-        },
-        "quary.service.v1.ProjectFile.SnapshotStrategy": {
-            "properties": {
-                "timestamp": {
-                    "$ref": "#/definitions/quary.service.v1.ProjectFile.TimestampStrategy",
-                    "additionalProperties": true
-                }
-            },
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Snapshot Strategy"
-        },
-        "quary.service.v1.ProjectFile.TimestampStrategy": {
-            "properties": {
-                "updated_at": {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Timestamp Strategy"
         },
         "quary.service.v1.ProjectFileColumn": {
             "properties": {

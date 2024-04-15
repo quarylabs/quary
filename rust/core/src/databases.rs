@@ -285,12 +285,14 @@ pub struct ColumnWithDetails {
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct QueryResult {
-    pub columns: Vec<String>,
+    // The first element of the tuple is the name of the column and the second element is the type
+    // of the column. The second is an option as if the type is not known, it will be None.
+    pub columns: Vec<(String, Option<String>)>,
     pub rows: Vec<Vec<String>>,
 }
 
 impl QueryResult {
-    pub fn new(columns: Vec<String>, rows: Vec<Vec<String>>) -> Self {
+    pub fn new(columns: Vec<(String, Option<String>)>, rows: Vec<Vec<String>>) -> Self {
         Self { columns, rows }
     }
 
@@ -299,7 +301,7 @@ impl QueryResult {
             .columns
             .iter()
             .enumerate()
-            .map(|(i, column)| {
+            .map(|(i, (column, column_type))| {
                 let values = self
                     .rows
                     .iter()
@@ -313,7 +315,7 @@ impl QueryResult {
                     .collect::<Result<Vec<_>, _>>()?;
                 Ok(quary_proto::QueryResultColumn {
                     name: column.clone(),
-                    r#type: None,
+                    r#type: column_type.clone(),
                     values,
                 })
             })
@@ -336,7 +338,13 @@ mod tests {
             vec!["1".to_string(), "Alice".to_string()],
             vec!["2".to_string(), "Bob".to_string()],
         ];
-        let query_result = QueryResult::new(columns, rows);
+        let query_result = QueryResult::new(
+            columns
+                .iter()
+                .map(|x| (x.to_string(), None))
+                .collect::<Vec<(String, Option<String>)>>(),
+            rows,
+        );
 
         // Act
         let proto_result = query_result.to_proto();
@@ -369,7 +377,13 @@ mod tests {
             vec!["1".to_string(), "Alice".to_string()],
             vec!["2".to_string()],
         ];
-        let query_result = QueryResult::new(columns, rows);
+        let query_result = QueryResult::new(
+            columns
+                .iter()
+                .map(|x| (x.to_string(), None))
+                .collect::<Vec<(String, Option<String>)>>(),
+            rows,
+        );
 
         let proto_result = query_result.to_proto();
 

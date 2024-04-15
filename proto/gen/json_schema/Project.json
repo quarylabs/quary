@@ -32,6 +32,13 @@
                     },
                     "type": "object"
                 },
+                "snapshots": {
+                    "additionalProperties": {
+                        "$ref": "#/definitions/quary.service.v1.Snapshot",
+                        "additionalProperties": true
+                    },
+                    "type": "object"
+                },
                 "project_files": {
                     "additionalProperties": {
                         "$ref": "#/definitions/quary.service.v1.ProjectFile",
@@ -229,7 +236,8 @@
                     "items": {
                         "type": "string"
                     },
-                    "type": "array"
+                    "type": "array",
+                    "description": "References to other models/seeds/snapshots that are used in the model. These are unique keys and sorted alphabetically."
                 }
             },
             "additionalProperties": true,
@@ -269,7 +277,7 @@
             "properties": {
                 "sources": {
                     "items": {
-                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Source"
+                        "$ref": "#/definitions/quary.service.v1.ProjectFileSource"
                     },
                     "type": "array"
                 },
@@ -278,31 +286,17 @@
                         "$ref": "#/definitions/quary.service.v1.ProjectFile.Model"
                     },
                     "type": "array"
-                }
-            },
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Project File"
-        },
-        "quary.service.v1.ProjectFile.Column": {
-            "properties": {
-                "name": {
-                    "type": "string"
                 },
-                "description": {
-                    "type": "string"
-                },
-                "tests": {
+                "snapshots": {
                     "items": {
-                        "$ref": "#/definitions/quary.service.v1.ColumnTest"
+                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Snapshot"
                     },
                     "type": "array"
                 }
             },
             "additionalProperties": true,
             "type": "object",
-            "title": "Column",
-            "description": "Standard types are: - not_null - unique - 'relationship' which takes into data (model and field)"
+            "title": "Project File"
         },
         "quary.service.v1.ProjectFile.Model": {
             "properties": {
@@ -330,7 +324,7 @@
                 },
                 "columns": {
                     "items": {
-                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Column"
+                        "$ref": "#/definitions/quary.service.v1.ProjectFileColumn"
                     },
                     "type": "array"
                 }
@@ -339,7 +333,65 @@
             "type": "object",
             "title": "Model"
         },
-        "quary.service.v1.ProjectFile.Source": {
+        "quary.service.v1.ProjectFile.Snapshot": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "unique_key": {
+                    "type": "string"
+                },
+                "strategy": {
+                    "$ref": "#/definitions/quary.service.v1.ProjectFile.SnapshotStrategy",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Snapshot"
+        },
+        "quary.service.v1.ProjectFile.SnapshotStrategy": {
+            "properties": {
+                "timestamp": {
+                    "$ref": "#/definitions/quary.service.v1.ProjectFile.TimestampStrategy",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Snapshot Strategy"
+        },
+        "quary.service.v1.ProjectFile.TimestampStrategy": {
+            "properties": {
+                "updated_at": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Timestamp Strategy"
+        },
+        "quary.service.v1.ProjectFileColumn": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "tests": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ColumnTest"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Project File Column",
+            "description": "Standard types are: - not_null - unique - 'relationship' which takes into data (model and field)"
+        },
+        "quary.service.v1.ProjectFileSource": {
             "properties": {
                 "name": {
                     "type": "string"
@@ -365,14 +417,14 @@
                 },
                 "columns": {
                     "items": {
-                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Column"
+                        "$ref": "#/definitions/quary.service.v1.ProjectFileColumn"
                     },
                     "type": "array"
                 }
             },
             "additionalProperties": true,
             "type": "object",
-            "title": "Source"
+            "title": "Project File Source"
         },
         "quary.service.v1.Seed": {
             "properties": {
@@ -389,6 +441,57 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Seed"
+        },
+        "quary.service.v1.Snapshot": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "file_path": {
+                    "type": "string"
+                },
+                "file_sha256_hash": {
+                    "type": "string"
+                },
+                "unique_key": {
+                    "type": "string"
+                },
+                "strategy": {
+                    "$ref": "#/definitions/quary.service.v1.Snapshot.SnapshotStrategy",
+                    "additionalProperties": true
+                },
+                "references": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "References to other seeds/sources that are used in the snapshot. These are unique keys and sorted alphabetically."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Snapshot"
+        },
+        "quary.service.v1.Snapshot.SnapshotStrategy": {
+            "properties": {
+                "timestamp": {
+                    "$ref": "#/definitions/quary.service.v1.Snapshot.SnapshotStrategy.TimestampStrategy",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Snapshot Strategy"
+        },
+        "quary.service.v1.Snapshot.SnapshotStrategy.TimestampStrategy": {
+            "properties": {
+                "updated_at": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Timestamp Strategy"
         },
         "quary.service.v1.Source": {
             "properties": {
@@ -420,8 +523,7 @@
             },
             "additionalProperties": true,
             "type": "object",
-            "title": "Source",
-            "description": "Quary-specific source structure"
+            "title": "Source"
         },
         "quary.service.v1.Source.SourceColumn": {
             "properties": {

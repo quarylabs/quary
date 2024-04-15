@@ -1,4 +1,4 @@
-use quary_proto::ColumnTest;
+use quary_proto::{ColumnTest, ProjectFileColumn};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io;
@@ -44,7 +44,11 @@ impl ProjectFile {
             })
             .unwrap_or_default();
 
-        Ok(quary_proto::ProjectFile { sources, models })
+        Ok(quary_proto::ProjectFile {
+            sources,
+            models,
+            snapshots: vec![], // TODO: support conversion of snapshots (dbt -> Quary) QUA-468
+        })
     }
 }
 
@@ -86,11 +90,8 @@ struct Column {
 }
 
 impl Column {
-    fn to_quary(
-        &self,
-        stats: &mut ConvertDbtStats,
-    ) -> Result<quary_proto::project_file::Column, String> {
-        Ok(quary_proto::project_file::Column {
+    fn to_quary(&self, stats: &mut ConvertDbtStats) -> Result<ProjectFileColumn, String> {
+        Ok(ProjectFileColumn {
             name: self.name.clone(),
             description: self.description.clone(),
             tests: self
@@ -126,14 +127,14 @@ struct Source {
 }
 
 impl Source {
-    fn to_quary(&self) -> Result<Vec<quary_proto::project_file::Source>, String> {
-        let sources: Vec<quary_proto::project_file::Source> = self
+    fn to_quary(&self) -> Result<Vec<quary_proto::ProjectFileSource>, String> {
+        let sources: Vec<quary_proto::ProjectFileSource> = self
             .tables
             .as_ref()
             .map(|tables| {
                 tables
                     .iter()
-                    .map(|table| quary_proto::project_file::Source {
+                    .map(|table| quary_proto::ProjectFileSource {
                         name: format!("{}_{}", self.name, table.name.clone()),
                         path: format!(
                             "{}.{}.{}",

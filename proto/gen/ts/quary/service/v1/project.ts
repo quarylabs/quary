@@ -2,7 +2,7 @@
 import * as _m0 from "protobufjs/minimal";
 import { ConnectionConfig } from "./connection_config";
 import { ProjectFile } from "./project_file";
-import { Model, Seed, Source, Test } from "./types";
+import { Model, Seed, Snapshot, Source, Test } from "./types";
 
 export const protobufPackage = "quary.service.v1";
 
@@ -11,6 +11,7 @@ export interface Project {
   models: { [key: string]: Model };
   tests: { [key: string]: Test };
   sources: { [key: string]: Source };
+  snapshots: { [key: string]: Snapshot };
   projectFiles: { [key: string]: ProjectFile };
   connectionConfig: ConnectionConfig | undefined;
 }
@@ -35,13 +36,26 @@ export interface Project_SourcesEntry {
   value: Source | undefined;
 }
 
+export interface Project_SnapshotsEntry {
+  key: string;
+  value: Snapshot | undefined;
+}
+
 export interface Project_ProjectFilesEntry {
   key: string;
   value: ProjectFile | undefined;
 }
 
 function createBaseProject(): Project {
-  return { seeds: {}, models: {}, tests: {}, sources: {}, projectFiles: {}, connectionConfig: undefined };
+  return {
+    seeds: {},
+    models: {},
+    tests: {},
+    sources: {},
+    snapshots: {},
+    projectFiles: {},
+    connectionConfig: undefined,
+  };
 }
 
 export const Project = {
@@ -57,6 +71,9 @@ export const Project = {
     });
     Object.entries(message.sources).forEach(([key, value]) => {
       Project_SourcesEntry.encode({ key: key as any, value }, writer.uint32(50).fork()).ldelim();
+    });
+    Object.entries(message.snapshots).forEach(([key, value]) => {
+      Project_SnapshotsEntry.encode({ key: key as any, value }, writer.uint32(74).fork()).ldelim();
     });
     Object.entries(message.projectFiles).forEach(([key, value]) => {
       Project_ProjectFilesEntry.encode({ key: key as any, value }, writer.uint32(58).fork()).ldelim();
@@ -114,6 +131,16 @@ export const Project = {
             message.sources[entry6.key] = entry6.value;
           }
           continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          const entry9 = Project_SnapshotsEntry.decode(reader, reader.uint32());
+          if (entry9.value !== undefined) {
+            message.snapshots[entry9.key] = entry9.value;
+          }
+          continue;
         case 7:
           if (tag !== 58) {
             break;
@@ -166,6 +193,12 @@ export const Project = {
           return acc;
         }, {})
         : {},
+      snapshots: isObject(object.snapshots)
+        ? Object.entries(object.snapshots).reduce<{ [key: string]: Snapshot }>((acc, [key, value]) => {
+          acc[key] = Snapshot.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
       projectFiles: isObject(object.projectFiles)
         ? Object.entries(object.projectFiles).reduce<{ [key: string]: ProjectFile }>((acc, [key, value]) => {
           acc[key] = ProjectFile.fromJSON(value);
@@ -214,6 +247,15 @@ export const Project = {
         });
       }
     }
+    if (message.snapshots) {
+      const entries = Object.entries(message.snapshots);
+      if (entries.length > 0) {
+        obj.snapshots = {};
+        entries.forEach(([k, v]) => {
+          obj.snapshots[k] = Snapshot.toJSON(v);
+        });
+      }
+    }
     if (message.projectFiles) {
       const entries = Object.entries(message.projectFiles);
       if (entries.length > 0) {
@@ -258,6 +300,15 @@ export const Project = {
       }
       return acc;
     }, {});
+    message.snapshots = Object.entries(object.snapshots ?? {}).reduce<{ [key: string]: Snapshot }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = Snapshot.fromPartial(value);
+        }
+        return acc;
+      },
+      {},
+    );
     message.projectFiles = Object.entries(object.projectFiles ?? {}).reduce<{ [key: string]: ProjectFile }>(
       (acc, [key, value]) => {
         if (value !== undefined) {
@@ -567,6 +618,82 @@ export const Project_SourcesEntry = {
     message.key = object.key ?? "";
     message.value = (object.value !== undefined && object.value !== null)
       ? Source.fromPartial(object.value)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseProject_SnapshotsEntry(): Project_SnapshotsEntry {
+  return { key: "", value: undefined };
+}
+
+export const Project_SnapshotsEntry = {
+  encode(message: Project_SnapshotsEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      Snapshot.encode(message.value, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Project_SnapshotsEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProject_SnapshotsEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = Snapshot.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Project_SnapshotsEntry {
+    return {
+      key: isSet(object.key) ? gt.String(object.key) : "",
+      value: isSet(object.value) ? Snapshot.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: Project_SnapshotsEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = Snapshot.toJSON(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Project_SnapshotsEntry>, I>>(base?: I): Project_SnapshotsEntry {
+    return Project_SnapshotsEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Project_SnapshotsEntry>, I>>(object: I): Project_SnapshotsEntry {
+    const message = createBaseProject_SnapshotsEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? Snapshot.fromPartial(object.value)
       : undefined;
     return message;
   },

@@ -19,13 +19,13 @@ use quary_proto::test::TestType::{
     NotNull, Relationship, Sql, Unique,
 };
 use quary_proto::{
-    Model, Project, ProjectFile, Seed, Source, Test, TestAcceptedValues, TestGreaterThan,
-    TestGreaterThanOrEqual, TestLessThan, TestLessThanOrEqual, TestMultiColumnUnique, TestNotNull,
-    TestRelationship, TestSqlFile, TestUnique,
+    Model, Project, ProjectFile, ProjectFileColumn, Seed, Source, Test, TestAcceptedValues,
+    TestGreaterThan, TestGreaterThanOrEqual, TestLessThan, TestLessThanOrEqual,
+    TestMultiColumnUnique, TestNotNull, TestRelationship, TestSqlFile, TestUnique,
 };
 use sqlinference::infer_tests::{get_column_with_source, ExtractedSelect};
 use sqlparser::dialect::Dialect;
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
@@ -235,6 +235,7 @@ pub async fn parse_project(
         seeds,
         models: models.into_iter().collect(),
         sources,
+        snapshots: HashMap::new(), //todo: implement snapshots
         tests: tests.into_iter().collect(),
         project_files,
         connection_config: Some(connection_config),
@@ -440,22 +441,29 @@ async fn parse_model(
         ))?
         .to_string();
 
-    let description = model_definitions
-        .get(&name)
+    let model_definition = model_definitions.get(&name);
+    let description = model_definition
         .map(|model| model.description.clone())
         .unwrap_or(None);
-    let materialization = model_definitions
-        .get(&name)
+    let materialization = model_definition
         .map(|model| model.materialization.clone())
         .unwrap_or(None);
-    let tags = model_definitions
-        .get(&name)
+    let tags = model_definition
         .map(|model| model.tags.clone())
         .unwrap_or_default();
+    let empty = quary_proto::project_file::Model::default();
+    let columns = model_definition
+        .unwrap_or(&empty)
+        .columns
+        .iter()
+        .map(|column| ModelColum {
+            title: column.name.to_string(),
+            description: column.description.clone(),
+        })
+        .collect();
 
     let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
         .map_err(|e| format!("Could not parse reference search from schema name: {:?}", e))?;
-
     let mut file = file_system
         .read_file(sql_path)
         .await
@@ -466,7 +474,7 @@ async fn parse_model(
         .map_err(|e| format!("failed to read string: {:?}", e))?;
     let contents = remove_sql_comments(&contents);
     // TODO: Louis to del check here
-    let mut references: Vec<String> = reference_search
+    let references: Vec<String> = reference_search
         .captures_iter(&contents)
         .map(|cap| {
             cap.iter()
@@ -485,23 +493,9 @@ async fn parse_model(
         .collect::<Result<Vec<Vec<_>>, String>>()?
         .into_iter()
         .flatten()
-        .collect::<HashSet<_>>()
+        .collect::<BTreeSet<_>>()
         .into_iter()
         .collect();
-    references.sort();
-
-    let empty = quary_proto::project_file::Model::default();
-    let columns = model_definitions
-        .get(&name)
-        .unwrap_or(&empty)
-        .columns
-        .iter()
-        .map(|column| ModelColum {
-            title: column.name.to_string(),
-            description: column.description.clone(),
-        })
-        .collect();
-
     let file_sha256_hash = derive_sha256_file_contents(file_system, sql_path).await?;
 
     if references.contains(&name) {
@@ -721,7 +715,7 @@ fn parse_model_test_for_model_source(
 
 // TODO Move this close to the other file which is the same in reverse in rpc_proto_defined
 fn parse_column_tests_for_model_or_source(
-    column: &quary_proto::project_file::Column,
+    column: &ProjectFileColumn,
     path_map: &PathMap,
     file_path: &str,
     model_name: &str,

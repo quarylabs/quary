@@ -267,7 +267,7 @@ ORDER BY table_schema ASC, table_name ASC",
         }
 
         Ok(QueryResult {
-            columns,
+            columns: columns.into_iter().map(|c| (c, None)).collect(),
             rows: rows_vec,
         })
     }
@@ -385,7 +385,14 @@ mod tests {
             .query("SELECT * FROM test_table")
             .await
             .unwrap();
-        assert_eq!(result.columns, vec!["id", "name"]);
+        assert_eq!(
+            result
+                .columns
+                .iter()
+                .map(|(column, _)| column)
+                .collect::<Vec<_>>(),
+            vec!["id", "name"]
+        );
         assert_eq!(result.rows, vec![vec!["1", "test"], vec!["2", "rubbish"]]);
     }
 

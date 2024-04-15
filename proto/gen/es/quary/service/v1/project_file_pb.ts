@@ -11,14 +11,19 @@ import { Message, proto3 } from "@bufbuild/protobuf";
  */
 export class ProjectFile extends Message<ProjectFile> {
   /**
-   * @generated from field: repeated quary.service.v1.ProjectFile.Source sources = 1;
+   * @generated from field: repeated quary.service.v1.ProjectFileSource sources = 1;
    */
-  sources: ProjectFile_Source[] = [];
+  sources: ProjectFileSource[] = [];
 
   /**
    * @generated from field: repeated quary.service.v1.ProjectFile.Model models = 2;
    */
   models: ProjectFile_Model[] = [];
+
+  /**
+   * @generated from field: repeated quary.service.v1.ProjectFile.Snapshot snapshots = 3;
+   */
+  snapshots: ProjectFile_Snapshot[] = [];
 
   constructor(data?: PartialMessage<ProjectFile>) {
     super();
@@ -28,8 +33,9 @@ export class ProjectFile extends Message<ProjectFile> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "quary.service.v1.ProjectFile";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "sources", kind: "message", T: ProjectFile_Source, repeated: true },
+    { no: 1, name: "sources", kind: "message", T: ProjectFileSource, repeated: true },
     { no: 2, name: "models", kind: "message", T: ProjectFile_Model, repeated: true },
+    { no: 3, name: "snapshots", kind: "message", T: ProjectFile_Snapshot, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectFile {
@@ -46,60 +52,6 @@ export class ProjectFile extends Message<ProjectFile> {
 
   static equals(a: ProjectFile | PlainMessage<ProjectFile> | undefined, b: ProjectFile | PlainMessage<ProjectFile> | undefined): boolean {
     return proto3.util.equals(ProjectFile, a, b);
-  }
-}
-
-/**
- * Standard types are:
- * - not_null
- * - unique
- * - 'relationship' which takes into data (model and field)
- *
- * @generated from message quary.service.v1.ProjectFile.Column
- */
-export class ProjectFile_Column extends Message<ProjectFile_Column> {
-  /**
-   * @generated from field: string name = 1;
-   */
-  name = "";
-
-  /**
-   * @generated from field: optional string description = 2;
-   */
-  description?: string;
-
-  /**
-   * @generated from field: repeated quary.service.v1.ColumnTest tests = 3;
-   */
-  tests: ColumnTest[] = [];
-
-  constructor(data?: PartialMessage<ProjectFile_Column>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "quary.service.v1.ProjectFile.Column";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 3, name: "tests", kind: "message", T: ColumnTest, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectFile_Column {
-    return new ProjectFile_Column().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ProjectFile_Column {
-    return new ProjectFile_Column().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ProjectFile_Column {
-    return new ProjectFile_Column().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ProjectFile_Column | PlainMessage<ProjectFile_Column> | undefined, b: ProjectFile_Column | PlainMessage<ProjectFile_Column> | undefined): boolean {
-    return proto3.util.equals(ProjectFile_Column, a, b);
   }
 }
 
@@ -135,9 +87,9 @@ export class ProjectFile_Model extends Message<ProjectFile_Model> {
   tests: ModelTest[] = [];
 
   /**
-   * @generated from field: repeated quary.service.v1.ProjectFile.Column columns = 3;
+   * @generated from field: repeated quary.service.v1.ProjectFileColumn columns = 3;
    */
-  columns: ProjectFile_Column[] = [];
+  columns: ProjectFileColumn[] = [];
 
   constructor(data?: PartialMessage<ProjectFile_Model>) {
     super();
@@ -152,7 +104,7 @@ export class ProjectFile_Model extends Message<ProjectFile_Model> {
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 4, name: "materialization", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 5, name: "tests", kind: "message", T: ModelTest, repeated: true },
-    { no: 3, name: "columns", kind: "message", T: ProjectFile_Column, repeated: true },
+    { no: 3, name: "columns", kind: "message", T: ProjectFileColumn, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectFile_Model {
@@ -173,9 +125,138 @@ export class ProjectFile_Model extends Message<ProjectFile_Model> {
 }
 
 /**
- * @generated from message quary.service.v1.ProjectFile.Source
+ * @generated from message quary.service.v1.ProjectFile.Snapshot
  */
-export class ProjectFile_Source extends Message<ProjectFile_Source> {
+export class ProjectFile_Snapshot extends Message<ProjectFile_Snapshot> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string unique_key = 2;
+   */
+  uniqueKey = "";
+
+  /**
+   * @generated from field: quary.service.v1.ProjectFile.SnapshotStrategy strategy = 3;
+   */
+  strategy?: ProjectFile_SnapshotStrategy;
+
+  constructor(data?: PartialMessage<ProjectFile_Snapshot>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.ProjectFile.Snapshot";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "unique_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "strategy", kind: "message", T: ProjectFile_SnapshotStrategy },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectFile_Snapshot {
+    return new ProjectFile_Snapshot().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ProjectFile_Snapshot {
+    return new ProjectFile_Snapshot().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ProjectFile_Snapshot {
+    return new ProjectFile_Snapshot().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ProjectFile_Snapshot | PlainMessage<ProjectFile_Snapshot> | undefined, b: ProjectFile_Snapshot | PlainMessage<ProjectFile_Snapshot> | undefined): boolean {
+    return proto3.util.equals(ProjectFile_Snapshot, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.ProjectFile.SnapshotStrategy
+ */
+export class ProjectFile_SnapshotStrategy extends Message<ProjectFile_SnapshotStrategy> {
+  /**
+   * @generated from oneof quary.service.v1.ProjectFile.SnapshotStrategy.strategy_type
+   */
+  strategyType: {
+    /**
+     * @generated from field: quary.service.v1.ProjectFile.TimestampStrategy timestamp = 1;
+     */
+    value: ProjectFile_TimestampStrategy;
+    case: "timestamp";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<ProjectFile_SnapshotStrategy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.ProjectFile.SnapshotStrategy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "timestamp", kind: "message", T: ProjectFile_TimestampStrategy, oneof: "strategy_type" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectFile_SnapshotStrategy {
+    return new ProjectFile_SnapshotStrategy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ProjectFile_SnapshotStrategy {
+    return new ProjectFile_SnapshotStrategy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ProjectFile_SnapshotStrategy {
+    return new ProjectFile_SnapshotStrategy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ProjectFile_SnapshotStrategy | PlainMessage<ProjectFile_SnapshotStrategy> | undefined, b: ProjectFile_SnapshotStrategy | PlainMessage<ProjectFile_SnapshotStrategy> | undefined): boolean {
+    return proto3.util.equals(ProjectFile_SnapshotStrategy, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.ProjectFile.TimestampStrategy
+ */
+export class ProjectFile_TimestampStrategy extends Message<ProjectFile_TimestampStrategy> {
+  /**
+   * @generated from field: string updated_at = 1;
+   */
+  updatedAt = "";
+
+  constructor(data?: PartialMessage<ProjectFile_TimestampStrategy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.ProjectFile.TimestampStrategy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "updated_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectFile_TimestampStrategy {
+    return new ProjectFile_TimestampStrategy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ProjectFile_TimestampStrategy {
+    return new ProjectFile_TimestampStrategy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ProjectFile_TimestampStrategy {
+    return new ProjectFile_TimestampStrategy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ProjectFile_TimestampStrategy | PlainMessage<ProjectFile_TimestampStrategy> | undefined, b: ProjectFile_TimestampStrategy | PlainMessage<ProjectFile_TimestampStrategy> | undefined): boolean {
+    return proto3.util.equals(ProjectFile_TimestampStrategy, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.ProjectFileSource
+ */
+export class ProjectFileSource extends Message<ProjectFileSource> {
   /**
    * @generated from field: string name = 1;
    */
@@ -206,40 +287,94 @@ export class ProjectFile_Source extends Message<ProjectFile_Source> {
   tests: ModelTest[] = [];
 
   /**
-   * @generated from field: repeated quary.service.v1.ProjectFile.Column columns = 4;
+   * @generated from field: repeated quary.service.v1.ProjectFileColumn columns = 4;
    */
-  columns: ProjectFile_Column[] = [];
+  columns: ProjectFileColumn[] = [];
 
-  constructor(data?: PartialMessage<ProjectFile_Source>) {
+  constructor(data?: PartialMessage<ProjectFileSource>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "quary.service.v1.ProjectFile.Source";
+  static readonly typeName = "quary.service.v1.ProjectFileSource";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "tags", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "tests", kind: "message", T: ModelTest, repeated: true },
-    { no: 4, name: "columns", kind: "message", T: ProjectFile_Column, repeated: true },
+    { no: 4, name: "columns", kind: "message", T: ProjectFileColumn, repeated: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectFile_Source {
-    return new ProjectFile_Source().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectFileSource {
+    return new ProjectFileSource().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ProjectFile_Source {
-    return new ProjectFile_Source().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ProjectFileSource {
+    return new ProjectFileSource().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ProjectFile_Source {
-    return new ProjectFile_Source().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ProjectFileSource {
+    return new ProjectFileSource().fromJsonString(jsonString, options);
   }
 
-  static equals(a: ProjectFile_Source | PlainMessage<ProjectFile_Source> | undefined, b: ProjectFile_Source | PlainMessage<ProjectFile_Source> | undefined): boolean {
-    return proto3.util.equals(ProjectFile_Source, a, b);
+  static equals(a: ProjectFileSource | PlainMessage<ProjectFileSource> | undefined, b: ProjectFileSource | PlainMessage<ProjectFileSource> | undefined): boolean {
+    return proto3.util.equals(ProjectFileSource, a, b);
+  }
+}
+
+/**
+ * Standard types are:
+ * - not_null
+ * - unique
+ * - 'relationship' which takes into data (model and field)
+ *
+ * @generated from message quary.service.v1.ProjectFileColumn
+ */
+export class ProjectFileColumn extends Message<ProjectFileColumn> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: optional string description = 2;
+   */
+  description?: string;
+
+  /**
+   * @generated from field: repeated quary.service.v1.ColumnTest tests = 3;
+   */
+  tests: ColumnTest[] = [];
+
+  constructor(data?: PartialMessage<ProjectFileColumn>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.ProjectFileColumn";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "tests", kind: "message", T: ColumnTest, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectFileColumn {
+    return new ProjectFileColumn().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ProjectFileColumn {
+    return new ProjectFileColumn().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ProjectFileColumn {
+    return new ProjectFileColumn().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ProjectFileColumn | PlainMessage<ProjectFileColumn> | undefined, b: ProjectFileColumn | PlainMessage<ProjectFileColumn> | undefined): boolean {
+    return proto3.util.equals(ProjectFileColumn, a, b);
   }
 }
 

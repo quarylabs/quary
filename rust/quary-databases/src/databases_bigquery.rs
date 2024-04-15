@@ -274,7 +274,10 @@ impl DatabaseConnection for BigQuery {
             rows.push(row);
         }
 
-        Ok(QueryResult { columns, rows })
+        Ok(QueryResult {
+            columns: columns.into_iter().map(|c| (c, None)).collect(),
+            rows,
+        })
     }
 
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {

@@ -1,5 +1,6 @@
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
+import { ProjectFileSource } from "./project_file";
 import { QueryResult } from "./query_result";
 import { TableAddress } from "./table_address";
 
@@ -40,6 +41,13 @@ export interface ListColumnsRequest {
 
 export interface ListColumnsResponse {
   columns: string[];
+}
+
+export interface ListSourcesRequest {
+}
+
+export interface ListSourcesResponse {
+  sources: ProjectFileSource[];
 }
 
 function createBaseListTablesRequest(): ListTablesRequest {
@@ -572,12 +580,115 @@ export const ListColumnsResponse = {
   },
 };
 
+function createBaseListSourcesRequest(): ListSourcesRequest {
+  return {};
+}
+
+export const ListSourcesRequest = {
+  encode(_: ListSourcesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListSourcesRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListSourcesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): ListSourcesRequest {
+    return {};
+  },
+
+  toJSON(_: ListSourcesRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListSourcesRequest>, I>>(base?: I): ListSourcesRequest {
+    return ListSourcesRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ListSourcesRequest>, I>>(_: I): ListSourcesRequest {
+    const message = createBaseListSourcesRequest();
+    return message;
+  },
+};
+
+function createBaseListSourcesResponse(): ListSourcesResponse {
+  return { sources: [] };
+}
+
+export const ListSourcesResponse = {
+  encode(message: ListSourcesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.sources) {
+      ProjectFileSource.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListSourcesResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListSourcesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sources.push(ProjectFileSource.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListSourcesResponse {
+    return {
+      sources: gt.Array.isArray(object?.sources) ? object.sources.map((e: any) => ProjectFileSource.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ListSourcesResponse): unknown {
+    const obj: any = {};
+    if (message.sources?.length) {
+      obj.sources = message.sources.map((e) => ProjectFileSource.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListSourcesResponse>, I>>(base?: I): ListSourcesResponse {
+    return ListSourcesResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ListSourcesResponse>, I>>(object: I): ListSourcesResponse {
+    const message = createBaseListSourcesResponse();
+    message.sources = object.sources?.map((e) => ProjectFileSource.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 export interface CLIRPCService {
   ListTables(request: ListTablesRequest): Promise<ListTablesResponse>;
   ListViews(request: ListViewsRequest): Promise<ListViewsResponse>;
   Exec(request: ExecRequest): Promise<ExecResponse>;
   Query(request: QueryRequest): Promise<QueryResponse>;
   ListColumns(request: ListColumnsRequest): Promise<ListColumnsResponse>;
+  ListSources(request: ListSourcesRequest): Promise<ListSourcesResponse>;
 }
 
 export const CLIRPCServiceServiceName = "quary.service.v1.CLIRPCService";
@@ -592,6 +703,7 @@ export class CLIRPCServiceClientImpl implements CLIRPCService {
     this.Exec = this.Exec.bind(this);
     this.Query = this.Query.bind(this);
     this.ListColumns = this.ListColumns.bind(this);
+    this.ListSources = this.ListSources.bind(this);
   }
   ListTables(request: ListTablesRequest): Promise<ListTablesResponse> {
     const data = ListTablesRequest.encode(request).finish();
@@ -621,6 +733,12 @@ export class CLIRPCServiceClientImpl implements CLIRPCService {
     const data = ListColumnsRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "ListColumns", data);
     return promise.then((data) => ListColumnsResponse.decode(_m0.Reader.create(data)));
+  }
+
+  ListSources(request: ListSourcesRequest): Promise<ListSourcesResponse> {
+    const data = ListSourcesRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ListSources", data);
+    return promise.then((data) => ListSourcesResponse.decode(_m0.Reader.create(data)));
   }
 }
 

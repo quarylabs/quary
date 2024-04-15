@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Model, Seed, Source, Test } from "./types_pb.js";
+import { Model, Seed, Snapshot, Source, Test } from "./types_pb.js";
 import { ProjectFile } from "./project_file_pb.js";
 import { ConnectionConfig } from "./connection_config_pb.js";
 
@@ -34,6 +34,11 @@ export class Project extends Message<Project> {
   sources: { [key: string]: Source } = {};
 
   /**
+   * @generated from field: map<string, quary.service.v1.Snapshot> snapshots = 9;
+   */
+  snapshots: { [key: string]: Snapshot } = {};
+
+  /**
    * @generated from field: map<string, quary.service.v1.ProjectFile> project_files = 7;
    */
   projectFiles: { [key: string]: ProjectFile } = {};
@@ -55,6 +60,7 @@ export class Project extends Message<Project> {
     { no: 4, name: "models", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: Model} },
     { no: 5, name: "tests", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: Test} },
     { no: 6, name: "sources", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: Source} },
+    { no: 9, name: "snapshots", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: Snapshot} },
     { no: 7, name: "project_files", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ProjectFile} },
     { no: 8, name: "connection_config", kind: "message", T: ConnectionConfig },
   ]);

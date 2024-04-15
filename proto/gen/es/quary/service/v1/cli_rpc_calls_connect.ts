@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ExecRequest, ExecResponse, ListColumnsRequest, ListColumnsResponse, ListTablesRequest, ListTablesResponse, ListViewsRequest, ListViewsResponse, QueryRequest, QueryResponse } from "./cli_rpc_calls_pb.js";
+import { ExecRequest, ExecResponse, ListColumnsRequest, ListColumnsResponse, ListSourcesRequest, ListSourcesResponse, ListTablesRequest, ListTablesResponse, ListViewsRequest, ListViewsResponse, QueryRequest, QueryResponse } from "./cli_rpc_calls_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -55,6 +55,15 @@ export const CLIRPCService = {
       name: "ListColumns",
       I: ListColumnsRequest,
       O: ListColumnsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc quary.service.v1.CLIRPCService.ListSources
+     */
+    listSources: {
+      name: "ListSources",
+      I: ListSourcesRequest,
+      O: ListSourcesResponse,
       kind: MethodKind.Unary,
     },
   }

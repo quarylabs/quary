@@ -39,7 +39,7 @@ pub fn sql_model_finder(sql: &str) -> HashMap<String, Vec<Range>> {
                         start: Some(Position { line, character }),
                         end: Some(Position {
                             line,
-                            character: (character + model.len() as u32),
+                            character: character + model.len() as u32,
                         }),
                     });
             }

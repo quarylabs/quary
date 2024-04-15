@@ -2385,6 +2385,168 @@ impl<'de> serde::Deserialize<'de> for ListColumnsResponse {
         deserializer.deserialize_struct("quary.service.v1.ListColumnsResponse", FIELDS, GeneratedVisitor)
     }
 }
+impl serde::Serialize for ListSourcesRequest {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let len = 0;
+        let struct_ser = serializer.serialize_struct("quary.service.v1.ListSourcesRequest", len)?;
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for ListSourcesRequest {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                            Err(serde::de::Error::unknown_field(value, FIELDS))
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = ListSourcesRequest;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.ListSourcesRequest")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ListSourcesRequest, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                while map_.next_key::<GeneratedField>()?.is_some() {
+                    let _ = map_.next_value::<serde::de::IgnoredAny>()?;
+                }
+                Ok(ListSourcesRequest {
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.ListSourcesRequest", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for ListSourcesResponse {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.sources.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ListSourcesResponse", len)?;
+        if !self.sources.is_empty() {
+            struct_ser.serialize_field("sources", &self.sources)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for ListSourcesResponse {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "sources",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Sources,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "sources" => Ok(GeneratedField::Sources),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = ListSourcesResponse;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.ListSourcesResponse")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ListSourcesResponse, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut sources__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Sources => {
+                            if sources__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("sources"));
+                            }
+                            sources__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(ListSourcesResponse {
+                    sources: sources__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.ListSourcesResponse", FIELDS, GeneratedVisitor)
+    }
+}
 impl serde::Serialize for ListTablesRequest {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
@@ -3517,6 +3679,9 @@ impl serde::Serialize for Project {
         if !self.sources.is_empty() {
             len += 1;
         }
+        if !self.snapshots.is_empty() {
+            len += 1;
+        }
         if !self.project_files.is_empty() {
             len += 1;
         }
@@ -3535,6 +3700,9 @@ impl serde::Serialize for Project {
         }
         if !self.sources.is_empty() {
             struct_ser.serialize_field("sources", &self.sources)?;
+        }
+        if !self.snapshots.is_empty() {
+            struct_ser.serialize_field("snapshots", &self.snapshots)?;
         }
         if !self.project_files.is_empty() {
             struct_ser.serialize_field("projectFiles", &self.project_files)?;
@@ -3556,6 +3724,7 @@ impl<'de> serde::Deserialize<'de> for Project {
             "models",
             "tests",
             "sources",
+            "snapshots",
             "project_files",
             "projectFiles",
             "connection_config",
@@ -3568,6 +3737,7 @@ impl<'de> serde::Deserialize<'de> for Project {
             Models,
             Tests,
             Sources,
+            Snapshots,
             ProjectFiles,
             ConnectionConfig,
         }
@@ -3595,6 +3765,7 @@ impl<'de> serde::Deserialize<'de> for Project {
                             "models" => Ok(GeneratedField::Models),
                             "tests" => Ok(GeneratedField::Tests),
                             "sources" => Ok(GeneratedField::Sources),
+                            "snapshots" => Ok(GeneratedField::Snapshots),
                             "projectFiles" | "project_files" => Ok(GeneratedField::ProjectFiles),
                             "connectionConfig" | "connection_config" => Ok(GeneratedField::ConnectionConfig),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
@@ -3620,6 +3791,7 @@ impl<'de> serde::Deserialize<'de> for Project {
                 let mut models__ = None;
                 let mut tests__ = None;
                 let mut sources__ = None;
+                let mut snapshots__ = None;
                 let mut project_files__ = None;
                 let mut connection_config__ = None;
                 while let Some(k) = map_.next_key()? {
@@ -3656,6 +3828,14 @@ impl<'de> serde::Deserialize<'de> for Project {
                                 map_.next_value::<std::collections::HashMap<_, _>>()?
                             );
                         }
+                        GeneratedField::Snapshots => {
+                            if snapshots__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("snapshots"));
+                            }
+                            snapshots__ = Some(
+                                map_.next_value::<std::collections::HashMap<_, _>>()?
+                            );
+                        }
                         GeneratedField::ProjectFiles => {
                             if project_files__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("projectFiles"));
@@ -3677,6 +3857,7 @@ impl<'de> serde::Deserialize<'de> for Project {
                     models: models__.unwrap_or_default(),
                     tests: tests__.unwrap_or_default(),
                     sources: sources__.unwrap_or_default(),
+                    snapshots: snapshots__.unwrap_or_default(),
                     project_files: project_files__.unwrap_or_default(),
                     connection_config: connection_config__,
                 })
@@ -3807,12 +3988,18 @@ impl serde::Serialize for ProjectFile {
         if !self.models.is_empty() {
             len += 1;
         }
+        if !self.snapshots.is_empty() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.ProjectFile", len)?;
         if !self.sources.is_empty() {
             struct_ser.serialize_field("sources", &self.sources)?;
         }
         if !self.models.is_empty() {
             struct_ser.serialize_field("models", &self.models)?;
+        }
+        if !self.snapshots.is_empty() {
+            struct_ser.serialize_field("snapshots", &self.snapshots)?;
         }
         struct_ser.end()
     }
@@ -3826,12 +4013,14 @@ impl<'de> serde::Deserialize<'de> for ProjectFile {
         const FIELDS: &[&str] = &[
             "sources",
             "models",
+            "snapshots",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Sources,
             Models,
+            Snapshots,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -3855,6 +4044,7 @@ impl<'de> serde::Deserialize<'de> for ProjectFile {
                         match value {
                             "sources" => Ok(GeneratedField::Sources),
                             "models" => Ok(GeneratedField::Models),
+                            "snapshots" => Ok(GeneratedField::Snapshots),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -3876,6 +4066,7 @@ impl<'de> serde::Deserialize<'de> for ProjectFile {
             {
                 let mut sources__ = None;
                 let mut models__ = None;
+                let mut snapshots__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Sources => {
@@ -3890,140 +4081,22 @@ impl<'de> serde::Deserialize<'de> for ProjectFile {
                             }
                             models__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::Snapshots => {
+                            if snapshots__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("snapshots"));
+                            }
+                            snapshots__ = Some(map_.next_value()?);
+                        }
                     }
                 }
                 Ok(ProjectFile {
                     sources: sources__.unwrap_or_default(),
                     models: models__.unwrap_or_default(),
+                    snapshots: snapshots__.unwrap_or_default(),
                 })
             }
         }
         deserializer.deserialize_struct("quary.service.v1.ProjectFile", FIELDS, GeneratedVisitor)
-    }
-}
-impl serde::Serialize for project_file::Column {
-    #[allow(deprecated)]
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeStruct;
-        let mut len = 0;
-        if !self.name.is_empty() {
-            len += 1;
-        }
-        if self.description.is_some() {
-            len += 1;
-        }
-        if !self.tests.is_empty() {
-            len += 1;
-        }
-        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ProjectFile.Column", len)?;
-        if !self.name.is_empty() {
-            struct_ser.serialize_field("name", &self.name)?;
-        }
-        if let Some(v) = self.description.as_ref() {
-            struct_ser.serialize_field("description", v)?;
-        }
-        if !self.tests.is_empty() {
-            struct_ser.serialize_field("tests", &self.tests)?;
-        }
-        struct_ser.end()
-    }
-}
-impl<'de> serde::Deserialize<'de> for project_file::Column {
-    #[allow(deprecated)]
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        const FIELDS: &[&str] = &[
-            "name",
-            "description",
-            "tests",
-        ];
-
-        #[allow(clippy::enum_variant_names)]
-        enum GeneratedField {
-            Name,
-            Description,
-            Tests,
-        }
-        impl<'de> serde::Deserialize<'de> for GeneratedField {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct GeneratedVisitor;
-
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-                    type Value = GeneratedField;
-
-                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(formatter, "expected one of: {:?}", &FIELDS)
-                    }
-
-                    #[allow(unused_variables)]
-                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match value {
-                            "name" => Ok(GeneratedField::Name),
-                            "description" => Ok(GeneratedField::Description),
-                            "tests" => Ok(GeneratedField::Tests),
-                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
-                        }
-                    }
-                }
-                deserializer.deserialize_identifier(GeneratedVisitor)
-            }
-        }
-        struct GeneratedVisitor;
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = project_file::Column;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct quary.service.v1.ProjectFile.Column")
-            }
-
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<project_file::Column, V::Error>
-                where
-                    V: serde::de::MapAccess<'de>,
-            {
-                let mut name__ = None;
-                let mut description__ = None;
-                let mut tests__ = None;
-                while let Some(k) = map_.next_key()? {
-                    match k {
-                        GeneratedField::Name => {
-                            if name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("name"));
-                            }
-                            name__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::Description => {
-                            if description__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("description"));
-                            }
-                            description__ = map_.next_value()?;
-                        }
-                        GeneratedField::Tests => {
-                            if tests__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("tests"));
-                            }
-                            tests__ = Some(map_.next_value()?);
-                        }
-                    }
-                }
-                Ok(project_file::Column {
-                    name: name__.unwrap_or_default(),
-                    description: description__,
-                    tests: tests__.unwrap_or_default(),
-                })
-            }
-        }
-        deserializer.deserialize_struct("quary.service.v1.ProjectFile.Column", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for project_file::Model {
@@ -4202,7 +4275,446 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
         deserializer.deserialize_struct("quary.service.v1.ProjectFile.Model", FIELDS, GeneratedVisitor)
     }
 }
-impl serde::Serialize for project_file::Source {
+impl serde::Serialize for project_file::Snapshot {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if !self.unique_key.is_empty() {
+            len += 1;
+        }
+        if self.strategy.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ProjectFile.Snapshot", len)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if !self.unique_key.is_empty() {
+            struct_ser.serialize_field("uniqueKey", &self.unique_key)?;
+        }
+        if let Some(v) = self.strategy.as_ref() {
+            struct_ser.serialize_field("strategy", v)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for project_file::Snapshot {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "name",
+            "unique_key",
+            "uniqueKey",
+            "strategy",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Name,
+            UniqueKey,
+            Strategy,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "name" => Ok(GeneratedField::Name),
+                            "uniqueKey" | "unique_key" => Ok(GeneratedField::UniqueKey),
+                            "strategy" => Ok(GeneratedField::Strategy),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = project_file::Snapshot;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.ProjectFile.Snapshot")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<project_file::Snapshot, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut name__ = None;
+                let mut unique_key__ = None;
+                let mut strategy__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
+                            }
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::UniqueKey => {
+                            if unique_key__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("uniqueKey"));
+                            }
+                            unique_key__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Strategy => {
+                            if strategy__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("strategy"));
+                            }
+                            strategy__ = map_.next_value()?;
+                        }
+                    }
+                }
+                Ok(project_file::Snapshot {
+                    name: name__.unwrap_or_default(),
+                    unique_key: unique_key__.unwrap_or_default(),
+                    strategy: strategy__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.ProjectFile.Snapshot", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for project_file::SnapshotStrategy {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if self.strategy_type.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ProjectFile.SnapshotStrategy", len)?;
+        if let Some(v) = self.strategy_type.as_ref() {
+            match v {
+                project_file::snapshot_strategy::StrategyType::Timestamp(v) => {
+                    struct_ser.serialize_field("timestamp", v)?;
+                }
+            }
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for project_file::SnapshotStrategy {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "timestamp",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Timestamp,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "timestamp" => Ok(GeneratedField::Timestamp),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = project_file::SnapshotStrategy;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.ProjectFile.SnapshotStrategy")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<project_file::SnapshotStrategy, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut strategy_type__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Timestamp => {
+                            if strategy_type__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("timestamp"));
+                            }
+                            strategy_type__ = map_.next_value::<::std::option::Option<_>>()?.map(project_file::snapshot_strategy::StrategyType::Timestamp)
+;
+                        }
+                    }
+                }
+                Ok(project_file::SnapshotStrategy {
+                    strategy_type: strategy_type__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.ProjectFile.SnapshotStrategy", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for project_file::TimestampStrategy {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.updated_at.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ProjectFile.TimestampStrategy", len)?;
+        if !self.updated_at.is_empty() {
+            struct_ser.serialize_field("updatedAt", &self.updated_at)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for project_file::TimestampStrategy {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "updated_at",
+            "updatedAt",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            UpdatedAt,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "updatedAt" | "updated_at" => Ok(GeneratedField::UpdatedAt),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = project_file::TimestampStrategy;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.ProjectFile.TimestampStrategy")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<project_file::TimestampStrategy, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut updated_at__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::UpdatedAt => {
+                            if updated_at__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("updatedAt"));
+                            }
+                            updated_at__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(project_file::TimestampStrategy {
+                    updated_at: updated_at__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.ProjectFile.TimestampStrategy", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for ProjectFileColumn {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if self.description.is_some() {
+            len += 1;
+        }
+        if !self.tests.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ProjectFileColumn", len)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.description.as_ref() {
+            struct_ser.serialize_field("description", v)?;
+        }
+        if !self.tests.is_empty() {
+            struct_ser.serialize_field("tests", &self.tests)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for ProjectFileColumn {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "name",
+            "description",
+            "tests",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Name,
+            Description,
+            Tests,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "name" => Ok(GeneratedField::Name),
+                            "description" => Ok(GeneratedField::Description),
+                            "tests" => Ok(GeneratedField::Tests),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = ProjectFileColumn;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.ProjectFileColumn")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ProjectFileColumn, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut name__ = None;
+                let mut description__ = None;
+                let mut tests__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
+                            }
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Description => {
+                            if description__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("description"));
+                            }
+                            description__ = map_.next_value()?;
+                        }
+                        GeneratedField::Tests => {
+                            if tests__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("tests"));
+                            }
+                            tests__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(ProjectFileColumn {
+                    name: name__.unwrap_or_default(),
+                    description: description__,
+                    tests: tests__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.ProjectFileColumn", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for ProjectFileSource {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
@@ -4228,7 +4740,7 @@ impl serde::Serialize for project_file::Source {
         if !self.columns.is_empty() {
             len += 1;
         }
-        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ProjectFile.Source", len)?;
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ProjectFileSource", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
         }
@@ -4250,7 +4762,7 @@ impl serde::Serialize for project_file::Source {
         struct_ser.end()
     }
 }
-impl<'de> serde::Deserialize<'de> for project_file::Source {
+impl<'de> serde::Deserialize<'de> for ProjectFileSource {
     #[allow(deprecated)]
     fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
     where
@@ -4309,13 +4821,13 @@ impl<'de> serde::Deserialize<'de> for project_file::Source {
         }
         struct GeneratedVisitor;
         impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = project_file::Source;
+            type Value = ProjectFileSource;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct quary.service.v1.ProjectFile.Source")
+                formatter.write_str("struct quary.service.v1.ProjectFileSource")
             }
 
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<project_file::Source, V::Error>
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ProjectFileSource, V::Error>
                 where
                     V: serde::de::MapAccess<'de>,
             {
@@ -4365,7 +4877,7 @@ impl<'de> serde::Deserialize<'de> for project_file::Source {
                         }
                     }
                 }
-                Ok(project_file::Source {
+                Ok(ProjectFileSource {
                     name: name__.unwrap_or_default(),
                     tags: tags__.unwrap_or_default(),
                     description: description__,
@@ -4375,7 +4887,7 @@ impl<'de> serde::Deserialize<'de> for project_file::Source {
                 })
             }
         }
-        deserializer.deserialize_struct("quary.service.v1.ProjectFile.Source", FIELDS, GeneratedVisitor)
+        deserializer.deserialize_struct("quary.service.v1.ProjectFileSource", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for QueryRequest {
@@ -5624,6 +6136,373 @@ impl<'de> serde::Deserialize<'de> for Seed {
             }
         }
         deserializer.deserialize_struct("quary.service.v1.Seed", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for Snapshot {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if !self.file_path.is_empty() {
+            len += 1;
+        }
+        if !self.file_sha256_hash.is_empty() {
+            len += 1;
+        }
+        if !self.unique_key.is_empty() {
+            len += 1;
+        }
+        if self.strategy.is_some() {
+            len += 1;
+        }
+        if !self.references.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.Snapshot", len)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if !self.file_path.is_empty() {
+            struct_ser.serialize_field("filePath", &self.file_path)?;
+        }
+        if !self.file_sha256_hash.is_empty() {
+            struct_ser.serialize_field("fileSha256Hash", &self.file_sha256_hash)?;
+        }
+        if !self.unique_key.is_empty() {
+            struct_ser.serialize_field("uniqueKey", &self.unique_key)?;
+        }
+        if let Some(v) = self.strategy.as_ref() {
+            struct_ser.serialize_field("strategy", v)?;
+        }
+        if !self.references.is_empty() {
+            struct_ser.serialize_field("references", &self.references)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for Snapshot {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "name",
+            "file_path",
+            "filePath",
+            "file_sha256_hash",
+            "fileSha256Hash",
+            "unique_key",
+            "uniqueKey",
+            "strategy",
+            "references",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Name,
+            FilePath,
+            FileSha256Hash,
+            UniqueKey,
+            Strategy,
+            References,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "name" => Ok(GeneratedField::Name),
+                            "filePath" | "file_path" => Ok(GeneratedField::FilePath),
+                            "fileSha256Hash" | "file_sha256_hash" => Ok(GeneratedField::FileSha256Hash),
+                            "uniqueKey" | "unique_key" => Ok(GeneratedField::UniqueKey),
+                            "strategy" => Ok(GeneratedField::Strategy),
+                            "references" => Ok(GeneratedField::References),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = Snapshot;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.Snapshot")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<Snapshot, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut name__ = None;
+                let mut file_path__ = None;
+                let mut file_sha256_hash__ = None;
+                let mut unique_key__ = None;
+                let mut strategy__ = None;
+                let mut references__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
+                            }
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::FilePath => {
+                            if file_path__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("filePath"));
+                            }
+                            file_path__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::FileSha256Hash => {
+                            if file_sha256_hash__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("fileSha256Hash"));
+                            }
+                            file_sha256_hash__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::UniqueKey => {
+                            if unique_key__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("uniqueKey"));
+                            }
+                            unique_key__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Strategy => {
+                            if strategy__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("strategy"));
+                            }
+                            strategy__ = map_.next_value()?;
+                        }
+                        GeneratedField::References => {
+                            if references__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("references"));
+                            }
+                            references__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(Snapshot {
+                    name: name__.unwrap_or_default(),
+                    file_path: file_path__.unwrap_or_default(),
+                    file_sha256_hash: file_sha256_hash__.unwrap_or_default(),
+                    unique_key: unique_key__.unwrap_or_default(),
+                    strategy: strategy__,
+                    references: references__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.Snapshot", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for snapshot::SnapshotStrategy {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if self.strategy_type.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.Snapshot.SnapshotStrategy", len)?;
+        if let Some(v) = self.strategy_type.as_ref() {
+            match v {
+                snapshot::snapshot_strategy::StrategyType::Timestamp(v) => {
+                    struct_ser.serialize_field("timestamp", v)?;
+                }
+            }
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for snapshot::SnapshotStrategy {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "timestamp",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Timestamp,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "timestamp" => Ok(GeneratedField::Timestamp),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = snapshot::SnapshotStrategy;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.Snapshot.SnapshotStrategy")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<snapshot::SnapshotStrategy, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut strategy_type__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Timestamp => {
+                            if strategy_type__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("timestamp"));
+                            }
+                            strategy_type__ = map_.next_value::<::std::option::Option<_>>()?.map(snapshot::snapshot_strategy::StrategyType::Timestamp)
+;
+                        }
+                    }
+                }
+                Ok(snapshot::SnapshotStrategy {
+                    strategy_type: strategy_type__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.Snapshot.SnapshotStrategy", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for snapshot::snapshot_strategy::TimestampStrategy {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.updated_at.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.Snapshot.SnapshotStrategy.TimestampStrategy", len)?;
+        if !self.updated_at.is_empty() {
+            struct_ser.serialize_field("updatedAt", &self.updated_at)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for snapshot::snapshot_strategy::TimestampStrategy {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "updated_at",
+            "updatedAt",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            UpdatedAt,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "updatedAt" | "updated_at" => Ok(GeneratedField::UpdatedAt),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = snapshot::snapshot_strategy::TimestampStrategy;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.Snapshot.SnapshotStrategy.TimestampStrategy")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<snapshot::snapshot_strategy::TimestampStrategy, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut updated_at__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::UpdatedAt => {
+                            if updated_at__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("updatedAt"));
+                            }
+                            updated_at__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(snapshot::snapshot_strategy::TimestampStrategy {
+                    updated_at: updated_at__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.Snapshot.SnapshotStrategy.TimestampStrategy", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for Source {

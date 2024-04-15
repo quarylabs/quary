@@ -23,7 +23,9 @@ pub const STANDARD_MODEL_TEST_TYPE_MULTI_COLUMN_UNIQUE: &str = "multi_column_uni
 #[cfg(test)]
 mod tests {
     use super::*;
-    use quary_proto::project_file::{Column, Model, Source};
+    use quary_proto::project_file::snapshot_strategy;
+    use quary_proto::project_file::{Model, Snapshot, SnapshotStrategy, TimestampStrategy};
+    use quary_proto::{ProjectFileColumn, ProjectFileSource};
     use std::io::Cursor;
 
     #[test]
@@ -35,23 +37,34 @@ mod tests {
                 materialization: None,
                 tests: vec![],
                 tags: vec![],
-                columns: vec![Column {
+                columns: vec![ProjectFileColumn {
                     name: "column test".to_string(),
                     description: Some("test description for column".to_string()),
                     tests: vec![],
                 }],
             }],
-            sources: vec![Source {
+            sources: vec![ProjectFileSource {
                 name: "source_test".to_string(),
                 description: Some("test description for source".to_string()),
                 path: "source_test.source_test".to_string(),
                 tests: vec![],
                 tags: vec![],
-                columns: vec![Column {
+                columns: vec![ProjectFileColumn {
                     name: "column test".to_string(),
                     description: Some("test description for sources column".to_string()),
                     tests: vec![],
                 }],
+            }],
+            snapshots: vec![Snapshot {
+                name: "orders_snapshot".to_string(),
+                unique_key: "id".to_string(),
+                strategy: Some(SnapshotStrategy {
+                    strategy_type: Some(snapshot_strategy::StrategyType::Timestamp(
+                        TimestampStrategy {
+                            updated_at: "updated_at".to_string(),
+                        },
+                    )),
+                }),
             }],
         };
 

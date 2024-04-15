@@ -108,12 +108,39 @@ export interface Model {
   fileSha256Hash: string;
   materialization?: string | undefined;
   columns: Model_ModelColum[];
+  /**
+   * References to other models/seeds/snapshots that are used in the model. These are unique keys and sorted
+   * alphabetically.
+   */
   references: string[];
 }
 
 export interface Model_ModelColum {
   title: string;
   description?: string | undefined;
+}
+
+export interface Snapshot {
+  name: string;
+  filePath: string;
+  fileSha256Hash: string;
+  uniqueKey: string;
+  strategy:
+    | Snapshot_SnapshotStrategy
+    | undefined;
+  /**
+   * References to other seeds/sources that are used in the snapshot. These are unique keys and sorted
+   * alphabetically.
+   */
+  references: string[];
+}
+
+export interface Snapshot_SnapshotStrategy {
+  strategyType?: { $case: "timestamp"; timestamp: Snapshot_SnapshotStrategy_TimestampStrategy } | undefined;
+}
+
+export interface Snapshot_SnapshotStrategy_TimestampStrategy {
+  updatedAt: string;
 }
 
 /** Generic source structure, used as input to generate the quary-specific source structure */
@@ -123,7 +150,6 @@ export interface DatabaseSource {
   columns: string[];
 }
 
-/** Quary-specific source structure */
 export interface Source {
   name: string;
   description?: string | undefined;
@@ -1905,6 +1931,279 @@ export const Model_ModelColum = {
     const message = createBaseModel_ModelColum();
     message.title = object.title ?? "";
     message.description = object.description ?? undefined;
+    return message;
+  },
+};
+
+function createBaseSnapshot(): Snapshot {
+  return { name: "", filePath: "", fileSha256Hash: "", uniqueKey: "", strategy: undefined, references: [] };
+}
+
+export const Snapshot = {
+  encode(message: Snapshot, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.filePath !== "") {
+      writer.uint32(26).string(message.filePath);
+    }
+    if (message.fileSha256Hash !== "") {
+      writer.uint32(34).string(message.fileSha256Hash);
+    }
+    if (message.uniqueKey !== "") {
+      writer.uint32(42).string(message.uniqueKey);
+    }
+    if (message.strategy !== undefined) {
+      Snapshot_SnapshotStrategy.encode(message.strategy, writer.uint32(50).fork()).ldelim();
+    }
+    for (const v of message.references) {
+      writer.uint32(58).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Snapshot {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSnapshot();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.filePath = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.fileSha256Hash = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.uniqueKey = reader.string();
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.strategy = Snapshot_SnapshotStrategy.decode(reader, reader.uint32());
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.references.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Snapshot {
+    return {
+      name: isSet(object.name) ? gt.String(object.name) : "",
+      filePath: isSet(object.filePath) ? gt.String(object.filePath) : "",
+      fileSha256Hash: isSet(object.fileSha256Hash) ? gt.String(object.fileSha256Hash) : "",
+      uniqueKey: isSet(object.uniqueKey) ? gt.String(object.uniqueKey) : "",
+      strategy: isSet(object.strategy) ? Snapshot_SnapshotStrategy.fromJSON(object.strategy) : undefined,
+      references: gt.Array.isArray(object?.references) ? object.references.map((e: any) => gt.String(e)) : [],
+    };
+  },
+
+  toJSON(message: Snapshot): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.filePath !== "") {
+      obj.filePath = message.filePath;
+    }
+    if (message.fileSha256Hash !== "") {
+      obj.fileSha256Hash = message.fileSha256Hash;
+    }
+    if (message.uniqueKey !== "") {
+      obj.uniqueKey = message.uniqueKey;
+    }
+    if (message.strategy !== undefined) {
+      obj.strategy = Snapshot_SnapshotStrategy.toJSON(message.strategy);
+    }
+    if (message.references?.length) {
+      obj.references = message.references;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Snapshot>, I>>(base?: I): Snapshot {
+    return Snapshot.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Snapshot>, I>>(object: I): Snapshot {
+    const message = createBaseSnapshot();
+    message.name = object.name ?? "";
+    message.filePath = object.filePath ?? "";
+    message.fileSha256Hash = object.fileSha256Hash ?? "";
+    message.uniqueKey = object.uniqueKey ?? "";
+    message.strategy = (object.strategy !== undefined && object.strategy !== null)
+      ? Snapshot_SnapshotStrategy.fromPartial(object.strategy)
+      : undefined;
+    message.references = object.references?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseSnapshot_SnapshotStrategy(): Snapshot_SnapshotStrategy {
+  return { strategyType: undefined };
+}
+
+export const Snapshot_SnapshotStrategy = {
+  encode(message: Snapshot_SnapshotStrategy, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    switch (message.strategyType?.$case) {
+      case "timestamp":
+        Snapshot_SnapshotStrategy_TimestampStrategy.encode(message.strategyType.timestamp, writer.uint32(10).fork())
+          .ldelim();
+        break;
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Snapshot_SnapshotStrategy {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSnapshot_SnapshotStrategy();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.strategyType = {
+            $case: "timestamp",
+            timestamp: Snapshot_SnapshotStrategy_TimestampStrategy.decode(reader, reader.uint32()),
+          };
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Snapshot_SnapshotStrategy {
+    return {
+      strategyType: isSet(object.timestamp)
+        ? { $case: "timestamp", timestamp: Snapshot_SnapshotStrategy_TimestampStrategy.fromJSON(object.timestamp) }
+        : undefined,
+    };
+  },
+
+  toJSON(message: Snapshot_SnapshotStrategy): unknown {
+    const obj: any = {};
+    if (message.strategyType?.$case === "timestamp") {
+      obj.timestamp = Snapshot_SnapshotStrategy_TimestampStrategy.toJSON(message.strategyType.timestamp);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Snapshot_SnapshotStrategy>, I>>(base?: I): Snapshot_SnapshotStrategy {
+    return Snapshot_SnapshotStrategy.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Snapshot_SnapshotStrategy>, I>>(object: I): Snapshot_SnapshotStrategy {
+    const message = createBaseSnapshot_SnapshotStrategy();
+    if (
+      object.strategyType?.$case === "timestamp" &&
+      object.strategyType?.timestamp !== undefined &&
+      object.strategyType?.timestamp !== null
+    ) {
+      message.strategyType = {
+        $case: "timestamp",
+        timestamp: Snapshot_SnapshotStrategy_TimestampStrategy.fromPartial(object.strategyType.timestamp),
+      };
+    }
+    return message;
+  },
+};
+
+function createBaseSnapshot_SnapshotStrategy_TimestampStrategy(): Snapshot_SnapshotStrategy_TimestampStrategy {
+  return { updatedAt: "" };
+}
+
+export const Snapshot_SnapshotStrategy_TimestampStrategy = {
+  encode(message: Snapshot_SnapshotStrategy_TimestampStrategy, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.updatedAt !== "") {
+      writer.uint32(10).string(message.updatedAt);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Snapshot_SnapshotStrategy_TimestampStrategy {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSnapshot_SnapshotStrategy_TimestampStrategy();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.updatedAt = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Snapshot_SnapshotStrategy_TimestampStrategy {
+    return { updatedAt: isSet(object.updatedAt) ? gt.String(object.updatedAt) : "" };
+  },
+
+  toJSON(message: Snapshot_SnapshotStrategy_TimestampStrategy): unknown {
+    const obj: any = {};
+    if (message.updatedAt !== "") {
+      obj.updatedAt = message.updatedAt;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Snapshot_SnapshotStrategy_TimestampStrategy>, I>>(
+    base?: I,
+  ): Snapshot_SnapshotStrategy_TimestampStrategy {
+    return Snapshot_SnapshotStrategy_TimestampStrategy.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Snapshot_SnapshotStrategy_TimestampStrategy>, I>>(
+    object: I,
+  ): Snapshot_SnapshotStrategy_TimestampStrategy {
+    const message = createBaseSnapshot_SnapshotStrategy_TimestampStrategy();
+    message.updatedAt = object.updatedAt ?? "";
     return message;
   },
 };
