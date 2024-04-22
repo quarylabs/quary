@@ -17,7 +17,8 @@
                     "items": {
                         "type": "string"
                     },
-                    "type": "array"
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together."
                 },
                 "file_path": {
                     "type": "string",

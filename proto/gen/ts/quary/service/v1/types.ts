@@ -102,7 +102,10 @@ export interface Seed {
 
 export interface Model {
   name: string;
-  description?: string | undefined;
+  description?:
+    | string
+    | undefined;
+  /** Tags are used to group different parts of the project together. */
   tags: string[];
   filePath: string;
   fileSha256Hash: string;
@@ -122,6 +125,11 @@ export interface Model_ModelColum {
 
 export interface Snapshot {
   name: string;
+  description?:
+    | string
+    | undefined;
+  /** Tags are used to group different parts of the project together. */
+  tags: string[];
   filePath: string;
   fileSha256Hash: string;
   uniqueKey: string;
@@ -154,6 +162,7 @@ export interface Source {
   name: string;
   description?: string | undefined;
   path: string;
+  /** Tags are used to group different parts of the project together. */
   tags: string[];
   /** TODO Replace File path references with whole file references */
   filePath: string;
@@ -1936,13 +1945,28 @@ export const Model_ModelColum = {
 };
 
 function createBaseSnapshot(): Snapshot {
-  return { name: "", filePath: "", fileSha256Hash: "", uniqueKey: "", strategy: undefined, references: [] };
+  return {
+    name: "",
+    description: undefined,
+    tags: [],
+    filePath: "",
+    fileSha256Hash: "",
+    uniqueKey: "",
+    strategy: undefined,
+    references: [],
+  };
 }
 
 export const Snapshot = {
   encode(message: Snapshot, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
+    }
+    if (message.description !== undefined) {
+      writer.uint32(18).string(message.description);
+    }
+    for (const v of message.tags) {
+      writer.uint32(66).string(v!);
     }
     if (message.filePath !== "") {
       writer.uint32(26).string(message.filePath);
@@ -1975,6 +1999,20 @@ export const Snapshot = {
           }
 
           message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.tags.push(reader.string());
           continue;
         case 3:
           if (tag !== 26) {
@@ -2023,6 +2061,8 @@ export const Snapshot = {
   fromJSON(object: any): Snapshot {
     return {
       name: isSet(object.name) ? gt.String(object.name) : "",
+      description: isSet(object.description) ? gt.String(object.description) : undefined,
+      tags: gt.Array.isArray(object?.tags) ? object.tags.map((e: any) => gt.String(e)) : [],
       filePath: isSet(object.filePath) ? gt.String(object.filePath) : "",
       fileSha256Hash: isSet(object.fileSha256Hash) ? gt.String(object.fileSha256Hash) : "",
       uniqueKey: isSet(object.uniqueKey) ? gt.String(object.uniqueKey) : "",
@@ -2035,6 +2075,12 @@ export const Snapshot = {
     const obj: any = {};
     if (message.name !== "") {
       obj.name = message.name;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.tags?.length) {
+      obj.tags = message.tags;
     }
     if (message.filePath !== "") {
       obj.filePath = message.filePath;
@@ -2060,6 +2106,8 @@ export const Snapshot = {
   fromPartial<I extends Exact<DeepPartial<Snapshot>, I>>(object: I): Snapshot {
     const message = createBaseSnapshot();
     message.name = object.name ?? "";
+    message.description = object.description ?? undefined;
+    message.tags = object.tags?.map((e) => e) || [];
     message.filePath = object.filePath ?? "";
     message.fileSha256Hash = object.fileSha256Hash ?? "";
     message.uniqueKey = object.uniqueKey ?? "";

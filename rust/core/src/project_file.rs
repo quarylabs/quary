@@ -57,6 +57,8 @@ mod tests {
             }],
             snapshots: vec![Snapshot {
                 name: "orders_snapshot".to_string(),
+                description: Some("test description for snapshot".to_string()),
+                tags: vec![],
                 unique_key: "id".to_string(),
                 strategy: Some(SnapshotStrategy {
                     strategy_type: Some(snapshot_strategy::StrategyType::Timestamp(

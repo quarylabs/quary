@@ -237,6 +237,7 @@ pub async fn return_tests_sql(
                             database,
                             project.models.values().collect(),
                             project.sources.values().collect(),
+                            project.snapshots.values().collect(),
                         );
                         let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
                             .map_err(|e| format!("failed to return reference search: {}", e))?;

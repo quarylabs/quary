@@ -1,14 +1,35 @@
 use crate::databases::{base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator};
+use chrono::{DateTime, Utc};
+use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use sqlinference::dialect::Dialect;
+use std::time::SystemTime;
 
 #[derive(Debug, Clone)]
 pub struct DatabaseQueryGeneratorPostgres {
     schema: String,
+    /// override_now is used to override the current timestamp in the generated SQL. It is primarily
+    /// used for testing purposes.
+    override_now: Option<SystemTime>,
 }
 
 impl DatabaseQueryGeneratorPostgres {
-    pub fn new(schema: String) -> DatabaseQueryGeneratorPostgres {
-        DatabaseQueryGeneratorPostgres { schema }
+    pub fn new(schema: String, override_now: Option<SystemTime>) -> DatabaseQueryGeneratorPostgres {
+        DatabaseQueryGeneratorPostgres {
+            schema,
+            override_now,
+        }
+    }
+
+    fn get_now(&self) -> String {
+        if let Some(override_now) = &self.override_now {
+            let datetime: DateTime<Utc> = (*override_now).into();
+            format!(
+                "CAST('{}' AS TIMESTAMP WITH TIME ZONE)",
+                datetime.format("%Y-%m-%dT%H:%M:%SZ")
+            )
+        } else {
+            "CURRENT_TIMESTAMP".to_string()
+        }
     }
 }
 
@@ -95,6 +116,64 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         base_for_seeds_create_table_specifying_text_type("TEXT", &table_name, columns)
     }
 
+    fn generate_snapshot_sql(
+        &self,
+        path: &str,
+        templated_select: &str,
+        unique_key: &str,
+        strategy: &StrategyType,
+    ) -> Result<Vec<String>, String> {
+        match strategy {
+            StrategyType::Timestamp(timestamp) => {
+                let updated_at = &timestamp.updated_at;
+                let now = self.get_now();
+
+                let create_table_sql = format!(
+                    "CREATE TABLE IF NOT EXISTS {path} AS (
+                        SELECT
+                            ts.*,
+                            {now} AS quary_valid_from,
+                            CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS quary_valid_to,
+                            MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS TEXT)) AS TEXT)) AS quary_scd_id
+                        FROM ({templated_select}) AS ts
+                    )"
+                );
+
+                let update_sql = format!(
+                    "UPDATE {path} AS target
+                    SET quary_valid_to = source.quary_valid_from
+                    FROM (
+                        SELECT
+                            ts.*,
+                            {now} AS quary_valid_from,
+                            MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS TEXT)) AS TEXT)) AS quary_scd_id
+                        FROM ({templated_select}) AS ts
+                    ) AS source
+                    WHERE target.{unique_key} = source.{unique_key}
+                        AND target.quary_valid_to IS NULL
+                        AND CAST(source.{updated_at} AS TIMESTAMP) > CAST(target.{updated_at} AS TIMESTAMP)"
+                );
+
+                let insert_sql = format!(
+                    "INSERT INTO {path}
+                    SELECT
+                        *,
+                        {now} AS quary_valid_from,
+                        NULL AS quary_valid_to,
+                        MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS TEXT)) AS TEXT)) AS quary_scd_id
+                    FROM ({templated_select}) AS source
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM {path} AS target
+                        WHERE target.quary_scd_id = MD5(CAST(CONCAT(source.{unique_key}, CAST(source.{updated_at} AS TEXT)) AS TEXT))
+                    )"
+                );
+
+                Ok(vec![create_table_sql, update_sql, insert_sql])
+            }
+        }
+    }
+
     fn return_full_path_requirement(&self, table_name: &str) -> String {
         format!("{}.{}", self.schema, table_name)
     }
@@ -138,4 +217,29 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
     fn database_name_wrapper(&self, name: &str) -> String {
         name.to_string()
     }
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn get_now() {
+        let generator = super::DatabaseQueryGeneratorPostgres::new("schema".to_string(), None);
+        let now = generator.get_now();
+        assert_eq!(now, "CURRENT_TIMESTAMP".to_string());
+    }
+
+    #[test]
+    fn get_now_override() {
+        let generator = super::DatabaseQueryGeneratorPostgres::new(
+            "schema".to_string(),
+            Some(std::time::SystemTime::UNIX_EPOCH),
+        );
+        let now = generator.get_now();
+        assert_eq!(
+            now,
+            "CAST('1970-01-01T00:00:00Z' AS TIMESTAMP WITH TIME ZONE)".to_string()
+        );
+    }
+
+    // TODO MAKE SURE WE HAVE A TEST for sql generation
 }

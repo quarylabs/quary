@@ -4286,6 +4286,12 @@ impl serde::Serialize for project_file::Snapshot {
         if !self.name.is_empty() {
             len += 1;
         }
+        if !self.tags.is_empty() {
+            len += 1;
+        }
+        if self.description.is_some() {
+            len += 1;
+        }
         if !self.unique_key.is_empty() {
             len += 1;
         }
@@ -4295,6 +4301,12 @@ impl serde::Serialize for project_file::Snapshot {
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.ProjectFile.Snapshot", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
+        }
+        if !self.tags.is_empty() {
+            struct_ser.serialize_field("tags", &self.tags)?;
+        }
+        if let Some(v) = self.description.as_ref() {
+            struct_ser.serialize_field("description", v)?;
         }
         if !self.unique_key.is_empty() {
             struct_ser.serialize_field("uniqueKey", &self.unique_key)?;
@@ -4313,6 +4325,8 @@ impl<'de> serde::Deserialize<'de> for project_file::Snapshot {
     {
         const FIELDS: &[&str] = &[
             "name",
+            "tags",
+            "description",
             "unique_key",
             "uniqueKey",
             "strategy",
@@ -4321,6 +4335,8 @@ impl<'de> serde::Deserialize<'de> for project_file::Snapshot {
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Name,
+            Tags,
+            Description,
             UniqueKey,
             Strategy,
         }
@@ -4345,6 +4361,8 @@ impl<'de> serde::Deserialize<'de> for project_file::Snapshot {
                     {
                         match value {
                             "name" => Ok(GeneratedField::Name),
+                            "tags" => Ok(GeneratedField::Tags),
+                            "description" => Ok(GeneratedField::Description),
                             "uniqueKey" | "unique_key" => Ok(GeneratedField::UniqueKey),
                             "strategy" => Ok(GeneratedField::Strategy),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
@@ -4367,6 +4385,8 @@ impl<'de> serde::Deserialize<'de> for project_file::Snapshot {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut name__ = None;
+                let mut tags__ = None;
+                let mut description__ = None;
                 let mut unique_key__ = None;
                 let mut strategy__ = None;
                 while let Some(k) = map_.next_key()? {
@@ -4376,6 +4396,18 @@ impl<'de> serde::Deserialize<'de> for project_file::Snapshot {
                                 return Err(serde::de::Error::duplicate_field("name"));
                             }
                             name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Tags => {
+                            if tags__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("tags"));
+                            }
+                            tags__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Description => {
+                            if description__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("description"));
+                            }
+                            description__ = map_.next_value()?;
                         }
                         GeneratedField::UniqueKey => {
                             if unique_key__.is_some() {
@@ -4393,6 +4425,8 @@ impl<'de> serde::Deserialize<'de> for project_file::Snapshot {
                 }
                 Ok(project_file::Snapshot {
                     name: name__.unwrap_or_default(),
+                    tags: tags__.unwrap_or_default(),
+                    description: description__,
                     unique_key: unique_key__.unwrap_or_default(),
                     strategy: strategy__,
                 })
@@ -6149,6 +6183,12 @@ impl serde::Serialize for Snapshot {
         if !self.name.is_empty() {
             len += 1;
         }
+        if self.description.is_some() {
+            len += 1;
+        }
+        if !self.tags.is_empty() {
+            len += 1;
+        }
         if !self.file_path.is_empty() {
             len += 1;
         }
@@ -6167,6 +6207,12 @@ impl serde::Serialize for Snapshot {
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.Snapshot", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.description.as_ref() {
+            struct_ser.serialize_field("description", v)?;
+        }
+        if !self.tags.is_empty() {
+            struct_ser.serialize_field("tags", &self.tags)?;
         }
         if !self.file_path.is_empty() {
             struct_ser.serialize_field("filePath", &self.file_path)?;
@@ -6194,6 +6240,8 @@ impl<'de> serde::Deserialize<'de> for Snapshot {
     {
         const FIELDS: &[&str] = &[
             "name",
+            "description",
+            "tags",
             "file_path",
             "filePath",
             "file_sha256_hash",
@@ -6207,6 +6255,8 @@ impl<'de> serde::Deserialize<'de> for Snapshot {
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Name,
+            Description,
+            Tags,
             FilePath,
             FileSha256Hash,
             UniqueKey,
@@ -6234,6 +6284,8 @@ impl<'de> serde::Deserialize<'de> for Snapshot {
                     {
                         match value {
                             "name" => Ok(GeneratedField::Name),
+                            "description" => Ok(GeneratedField::Description),
+                            "tags" => Ok(GeneratedField::Tags),
                             "filePath" | "file_path" => Ok(GeneratedField::FilePath),
                             "fileSha256Hash" | "file_sha256_hash" => Ok(GeneratedField::FileSha256Hash),
                             "uniqueKey" | "unique_key" => Ok(GeneratedField::UniqueKey),
@@ -6259,6 +6311,8 @@ impl<'de> serde::Deserialize<'de> for Snapshot {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut name__ = None;
+                let mut description__ = None;
+                let mut tags__ = None;
                 let mut file_path__ = None;
                 let mut file_sha256_hash__ = None;
                 let mut unique_key__ = None;
@@ -6271,6 +6325,18 @@ impl<'de> serde::Deserialize<'de> for Snapshot {
                                 return Err(serde::de::Error::duplicate_field("name"));
                             }
                             name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Description => {
+                            if description__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("description"));
+                            }
+                            description__ = map_.next_value()?;
+                        }
+                        GeneratedField::Tags => {
+                            if tags__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("tags"));
+                            }
+                            tags__ = Some(map_.next_value()?);
                         }
                         GeneratedField::FilePath => {
                             if file_path__.is_some() {
@@ -6306,6 +6372,8 @@ impl<'de> serde::Deserialize<'de> for Snapshot {
                 }
                 Ok(Snapshot {
                     name: name__.unwrap_or_default(),
+                    description: description__,
+                    tags: tags__.unwrap_or_default(),
                     file_path: file_path__.unwrap_or_default(),
                     file_sha256_hash: file_sha256_hash__.unwrap_or_default(),
                     unique_key: unique_key__.unwrap_or_default(),

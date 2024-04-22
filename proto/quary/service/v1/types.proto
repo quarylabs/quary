@@ -106,6 +106,7 @@ message Seed {
 message Model {
   string name = 1;
   optional string description = 2;
+  // Tags are used to group different parts of the project together.
   repeated string tags = 4;
 
   string file_path = 3;
@@ -127,6 +128,9 @@ message Model {
 
 message Snapshot {
   string name = 1;
+  optional string description = 2;
+  // Tags are used to group different parts of the project together.
+  repeated string tags = 8;
 
   string file_path = 3;
   string file_sha256_hash = 4;
@@ -158,6 +162,7 @@ message Source {
   string name = 1;
   optional string description = 2;
   string path = 3;
+  // Tags are used to group different parts of the project together.
   repeated string tags = 6;
 
   // TODO Replace File path references with whole file references

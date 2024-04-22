@@ -762,6 +762,8 @@ export class Model extends Message<Model> {
   description?: string;
 
   /**
+   * Tags are used to group different parts of the project together.
+   *
    * @generated from field: repeated string tags = 4;
    */
   tags: string[] = [];
@@ -882,6 +884,18 @@ export class Snapshot extends Message<Snapshot> {
   name = "";
 
   /**
+   * @generated from field: optional string description = 2;
+   */
+  description?: string;
+
+  /**
+   * Tags are used to group different parts of the project together.
+   *
+   * @generated from field: repeated string tags = 8;
+   */
+  tags: string[] = [];
+
+  /**
    * @generated from field: string file_path = 3;
    */
   filePath = "";
@@ -918,6 +932,8 @@ export class Snapshot extends Message<Snapshot> {
   static readonly typeName = "quary.service.v1.Snapshot";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 8, name: "tags", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 3, name: "file_path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "file_sha256_hash", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "unique_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
@@ -1093,6 +1109,8 @@ export class Source extends Message<Source> {
   path = "";
 
   /**
+   * Tags are used to group different parts of the project together.
+   *
    * @generated from field: repeated string tags = 6;
    */
   tags: string[] = [];

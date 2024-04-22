@@ -1,16 +1,16 @@
 [package]
 name = "quary-core"
-version = "0.0.108"
+version = "0.0.111"
 authors = ["Ben King <9087625+benfdking@users.noreply.github.com>"]
 edition = "2021"
-rust-version = "1.77.1"
+rust-version = "1.77.2"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 prost = { default-features = false, version = "0.12" }
-sqlparser = { default-features = false, version = "0.44" }
+sqlparser = { default-features = false, version = "0.45" }
 js-sys = "0.3"
 quary_proto = { path = "../../proto/gen/rust" }
 sqlinference = { path = "../sqlinference" }
@@ -21,6 +21,7 @@ petgraph = { version = "0.6", default-features = false }
 regex = { version = "1", default-features = false, features = ["unicode-perl"] }
 once_cell = "1"
 async-trait = "0.1"
+chrono = "0.4"
 serde_yaml = "0.9"
 serde_json = { default-features = false, version = "1", features = ["std"] }
 futures = { version = "0.3", features = ["async-await", "std"], default-features = false }

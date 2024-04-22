@@ -1,14 +1,35 @@
 use crate::databases::{base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator};
+use chrono::{DateTime, Utc};
+use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use sqlinference::dialect::Dialect;
+use std::time::SystemTime;
 
 #[derive(Debug, Clone)]
 pub struct DatabaseQueryGeneratorDuckDB {
     schema: Option<String>,
+    /// override_now is used to override the current timestamp in the generated SQL. It is primarily
+    /// used for testing purposes.
+    override_now: Option<SystemTime>,
 }
 
 impl DatabaseQueryGeneratorDuckDB {
-    pub fn new(schema: Option<String>) -> DatabaseQueryGeneratorDuckDB {
-        DatabaseQueryGeneratorDuckDB { schema }
+    pub fn new(
+        schema: Option<String>,
+        override_now: Option<SystemTime>,
+    ) -> DatabaseQueryGeneratorDuckDB {
+        DatabaseQueryGeneratorDuckDB {
+            schema,
+            override_now,
+        }
+    }
+
+    fn get_now(&self) -> String {
+        if let Some(override_now) = &self.override_now {
+            let datetime: DateTime<Utc> = (*override_now).into();
+            format!("'{}'", datetime.format("%Y-%m-%dT%H:%M:%SZ"))
+        } else {
+            "CURRENT_TIMESTAMP".to_string()
+        }
     }
 }
 
@@ -16,6 +37,64 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorDuckDB {
     fn seeds_create_table_query(&self, table_name: &str, columns: &[String]) -> String {
         let table_name = self.return_full_path_requirement(table_name);
         base_for_seeds_create_table_specifying_text_type("TEXT", table_name.as_str(), columns)
+    }
+
+    fn generate_snapshot_sql(
+        &self,
+        path: &str,
+        templated_select: &str,
+        unique_key: &str,
+        strategy: &StrategyType,
+    ) -> Result<Vec<String>, String> {
+        match strategy {
+            StrategyType::Timestamp(timestamp) => {
+                let updated_at = &timestamp.updated_at;
+                let now = self.get_now();
+
+                let create_table_sql = format!(
+                    "CREATE TABLE IF NOT EXISTS {path} AS (
+                        SELECT
+                            *,
+                            {now} AS quary_valid_from,
+                            CAST(NULL AS TIMESTAMP) AS quary_valid_to,
+                            MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS STRING)) AS STRING)) AS quary_scd_id
+                        FROM ({templated_select})
+                    )"
+                );
+
+                let update_sql = format!(
+                    "UPDATE {path} AS target
+                    SET quary_valid_to = source.quary_valid_from
+                    FROM (
+                        SELECT
+                            *,
+                            {now} AS quary_valid_from,
+                            MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS STRING)) AS STRING)) AS quary_scd_id
+                        FROM ({templated_select})
+                    ) AS source
+                    WHERE target.{unique_key} = source.{unique_key}
+                        AND target.quary_valid_to IS NULL
+                        AND CAST(source.{updated_at} AS TIMESTAMP) > CAST(target.{updated_at} AS TIMESTAMP)"
+                );
+
+                let insert_sql = format!(
+                    "INSERT INTO {path}
+                    SELECT
+                        *,
+                        {now} AS quary_valid_from,
+                        NULL AS quary_valid_to,
+                        MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS STRING)) AS STRING)) AS quary_scd_id
+                    FROM ({templated_select}) AS source
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM {path} AS target
+                        WHERE target.quary_scd_id = MD5(CAST(CONCAT(source.{unique_key}, CAST(source.{updated_at} AS STRING)) AS STRING))
+                    )"
+                );
+
+                Ok(vec![create_table_sql, update_sql, insert_sql])
+            }
+        }
     }
 
     fn return_full_path_requirement(&self, table_name: &str) -> String {
@@ -69,17 +148,18 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorDuckDB {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
     fn test_return_full_path_requirement() {
-        let database = DatabaseQueryGeneratorDuckDB::new(None);
+        let database = DatabaseQueryGeneratorDuckDB::new(None, None);
         assert_eq!(
             database.return_full_path_requirement("table_name"),
             "table_name"
         );
 
-        let database = DatabaseQueryGeneratorDuckDB::new(Some("schema".to_string()));
+        let database = DatabaseQueryGeneratorDuckDB::new(Some("schema".to_string()), None);
         assert_eq!(
             database.return_full_path_requirement("table_name"),
             "schema.table_name"
@@ -88,15 +168,50 @@ mod tests {
 
     #[test]
     fn test_return_name_from_full_path() {
-        let database = DatabaseQueryGeneratorDuckDB::new(None);
+        let database = DatabaseQueryGeneratorDuckDB::new(None, None);
         let query = database.return_name_from_full_path("table_name");
         assert_eq!(query, Ok("table_name"));
 
-        let database = DatabaseQueryGeneratorDuckDB::new(Some("schema".to_string()));
+        let database = DatabaseQueryGeneratorDuckDB::new(Some("schema".to_string()), None);
         let query = database.return_name_from_full_path("schema.table_name");
         assert_eq!(query, Ok("table_name"));
 
         let query = database.return_name_from_full_path("error.table_name");
         assert!(query.is_err());
+    }
+
+    #[test]
+    fn test_get_now() {
+        let override_now = SystemTime::now();
+        let database = DatabaseQueryGeneratorDuckDB::new(None, Some(override_now));
+
+        let result = database.get_now();
+        let expected_datetime: DateTime<Utc> = override_now.into();
+        let expected_result = format!("'{}'", expected_datetime.format("%Y-%m-%dT%H:%M:%SZ"));
+        assert_eq!(result, expected_result);
+
+        let database = DatabaseQueryGeneratorDuckDB::new(None, None);
+        let result = database.get_now();
+        assert_eq!(result, "CURRENT_TIMESTAMP".to_string());
+    }
+
+    #[test]
+    fn test_generate_snapshot_sql() {
+        let database = DatabaseQueryGeneratorDuckDB::new(None, None);
+        let path = "mytable";
+        let templated_select = "SELECT * FROM mytable";
+        let unique_key = "id";
+        let updated_at = "updated_at";
+        let strategy = StrategyType::Timestamp(
+            quary_proto::snapshot::snapshot_strategy::TimestampStrategy {
+                updated_at: updated_at.to_string(),
+            },
+        );
+
+        let result = database
+            .generate_snapshot_sql(path, templated_select, unique_key, &strategy)
+            .unwrap();
+
+        assert_eq!(result.iter().map(|s| s.as_str()).collect::<Vec<&str>>(), vec!["CREATE TABLE IF NOT EXISTS mytable AS (\n                        SELECT\n                            *,\n                            CURRENT_TIMESTAMP AS quary_valid_from,\n                            CAST(NULL AS TIMESTAMP) AS quary_valid_to,\n                            MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                        FROM (SELECT * FROM mytable)\n                    )", "UPDATE mytable AS target\n                    SET quary_valid_to = source.quary_valid_from\n                    FROM (\n                        SELECT\n                            *,\n                            CURRENT_TIMESTAMP AS quary_valid_from,\n                            MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                        FROM (SELECT * FROM mytable)\n                    ) AS source\n                    WHERE target.id = source.id\n                        AND target.quary_valid_to IS NULL\n                        AND CAST(source.updated_at AS TIMESTAMP) > CAST(target.updated_at AS TIMESTAMP)", "INSERT INTO mytable\n                    SELECT\n                        *,\n                        CURRENT_TIMESTAMP AS quary_valid_from,\n                        NULL AS quary_valid_to,\n                        MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                    FROM (SELECT * FROM mytable) AS source\n                    WHERE NOT EXISTS (\n                        SELECT 1\n                        FROM mytable AS target\n                        WHERE target.quary_scd_id = MD5(CAST(CONCAT(source.id, CAST(source.updated_at AS STRING)) AS STRING))\n                    )"]);
     }
 }

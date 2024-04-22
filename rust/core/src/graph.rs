@@ -10,7 +10,7 @@ use petgraph::prelude::EdgeRef;
 use petgraph::visit::{Dfs, Reversed};
 use petgraph::Graph;
 use quary_proto::test::TestType;
-use quary_proto::{Model, Project, Test};
+use quary_proto::{Model, Project, Snapshot, Test};
 use std::collections::{HashMap, HashSet};
 
 /// Edge represents an edge with (from, to) node names.
@@ -31,6 +31,25 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
 
     for name in project.sources.keys() {
         safe_adder_set(&mut taken, name.clone())?;
+    }
+
+    let mut snapshots: HashMap<String, Snapshot> = HashMap::new();
+    for (name, snapshot) in &project.snapshots {
+        safe_adder_set(&mut taken, name.clone())?;
+        snapshots.insert(snapshot.name.clone(), snapshot.clone());
+    }
+    for (name, snapshot) in &project.snapshots {
+        for reference in &snapshot.references {
+            if !taken.contains(reference) {
+                return Err(format!(
+                    "reference to {} in snapshot {} does not exist in reference-able objects {}",
+                    reference,
+                    name,
+                    Vec::from_iter(taken).join(", "),
+                ));
+            };
+            edges.push((reference.clone(), snapshot.name.clone()))
+        }
     }
 
     let mut models: HashMap<String, Model> = HashMap::new();
@@ -838,7 +857,7 @@ mod tests {
     }
 
     #[test]
-    fn test_return_parent_nods_to_apply_in_order() {
+    fn test_return_parent_nodes_to_apply_in_order() {
         let tests = vec![
             // ("empty", "a", vec![], vec![]),
             ("single_node", "a", vec![["a", "b"]], vec!["a"]),

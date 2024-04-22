@@ -65,6 +65,9 @@ export class ProjectFile_Model extends Message<ProjectFile_Model> {
   name = "";
 
   /**
+   * Tags are used to group different parts of the project together. For example, you could tag all models that are
+   * related to a specific department with the same tag.
+   *
    * @generated from field: repeated string tags = 6;
    */
   tags: string[] = [];
@@ -134,6 +137,19 @@ export class ProjectFile_Snapshot extends Message<ProjectFile_Snapshot> {
   name = "";
 
   /**
+   * Tags are used to group different parts of the project together. For example, you could tag all models that are
+   * related to a specific department with the same tag.
+   *
+   * @generated from field: repeated string tags = 4;
+   */
+  tags: string[] = [];
+
+  /**
+   * @generated from field: optional string description = 5;
+   */
+  description?: string;
+
+  /**
    * @generated from field: string unique_key = 2;
    */
   uniqueKey = "";
@@ -152,6 +168,8 @@ export class ProjectFile_Snapshot extends Message<ProjectFile_Snapshot> {
   static readonly typeName = "quary.service.v1.ProjectFile.Snapshot";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "tags", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 5, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 2, name: "unique_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "strategy", kind: "message", T: ProjectFile_SnapshotStrategy },
   ]);
@@ -263,6 +281,9 @@ export class ProjectFileSource extends Message<ProjectFileSource> {
   name = "";
 
   /**
+   * Tags are used to group different parts of the project together. For example, you could tag all sources that are
+   * related to a specific department with the same tag.
+   *
    * @generated from field: repeated string tags = 6;
    */
   tags: string[] = [];

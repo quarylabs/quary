@@ -14,13 +14,14 @@ use crate::test_helpers::ToTest;
 use crate::tests::test_to_name;
 use futures::AsyncReadExt;
 use quary_proto::model::ModelColum;
+use quary_proto::snapshot::SnapshotStrategy;
 use quary_proto::test::TestType::{
     AcceptedValues, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, MultiColumnUnique,
     NotNull, Relationship, Sql, Unique,
 };
 use quary_proto::{
-    Model, Project, ProjectFile, ProjectFileColumn, Seed, Source, Test, TestAcceptedValues,
-    TestGreaterThan, TestGreaterThanOrEqual, TestLessThan, TestLessThanOrEqual,
+    ConnectionConfig, Model, Project, ProjectFile, ProjectFileColumn, Seed, Snapshot, Source, Test,
+    TestAcceptedValues, TestGreaterThan, TestGreaterThanOrEqual, TestLessThan, TestLessThanOrEqual,
     TestMultiColumnUnique, TestNotNull, TestRelationship, TestSqlFile, TestUnique,
 };
 use sqlinference::infer_tests::{get_column_with_source, ExtractedSelect};
@@ -177,16 +178,30 @@ pub async fn parse_project(
         .flat_map(|(_, project_file)| project_file.models.clone())
         .collect();
     let model_definitions = all_models
-        .iter()
-        .map(|m| (m.name.clone(), m.clone()))
+        .into_iter()
+        .map(|m| (m.name.clone(), m))
         .collect();
     let models = parse_models(filesystem, project_root, &model_definitions).await?;
     validate_models(&models)?;
 
+    let all_snapshots: Vec<quary_proto::project_file::Snapshot> = project_files
+        .iter()
+        .flat_map(|(_, project_file)| project_file.snapshots.clone())
+        .collect();
+    let project_file_snapshot_definitions = all_snapshots
+        .into_iter()
+        .map(|s| (s.name.clone(), s))
+        .collect();
+
+    let snapshots =
+        parse_snapshots(filesystem, project_root, &project_file_snapshot_definitions).await?;
+    validate_models(&snapshots)?;
+
     let path_map = create_path_map(
         database,
-        models.values().collect::<Vec<&Model>>().clone(),
-        sources.values().collect::<Vec<&Source>>().clone(),
+        models.values().collect::<Vec<&Model>>(),
+        sources.values().collect::<Vec<&Source>>(),
+        snapshots.values().collect::<Vec<&Snapshot>>(),
     );
     let tests = parse_tests(
         filesystem,
@@ -203,10 +218,25 @@ pub async fn parse_project(
             if !models.contains_key(reference)
                 && !sources.contains_key(reference)
                 && !seeds.contains_key(reference)
+                && !snapshots.contains_key(reference)
             {
                 return Err(format!(
-                    "model {:?} has reference to {:?} which is not a model or source",
+                    "model {:?} has reference to {:?} which is not a model, source or snapshot",
                     model.name, reference
+                ));
+            }
+        }
+    }
+
+    // Check that snapshots only reference sources or seeds and not models
+    for snapshot in snapshots.values() {
+        for reference in &snapshot.references {
+            if models.contains_key(reference)
+                || (!sources.contains_key(reference) && !seeds.contains_key(reference))
+            {
+                return Err(format!(
+                    "snapshot {:?} has reference to {:?} which is not a source or seed",
+                    snapshot.name, reference
                 ));
             }
         }
@@ -219,9 +249,10 @@ pub async fn parse_project(
                 if !models.contains_key(reference)
                     && !sources.contains_key(reference)
                     && !seeds.contains_key(reference)
+                    && !snapshots.contains_key(reference)
                 {
                     return Err(format!(
-                        "test {:?} has reference to {:?} which is not a model or source",
+                        "test {:?} has reference to {:?} which is not a model, source or snapshot",
                         test, reference
                     ));
                 }
@@ -235,7 +266,7 @@ pub async fn parse_project(
         seeds,
         models: models.into_iter().collect(),
         sources,
-        snapshots: HashMap::new(), //todo: implement snapshots
+        snapshots: snapshots.into_iter().collect(),
         tests: tests.into_iter().collect(),
         project_files,
         connection_config: Some(connection_config),
@@ -273,7 +304,14 @@ async fn parse_sql_tests(
     file_system: &impl FileSystem,
     project_root: &str,
 ) -> Result<HashMap<String, Test>, String> {
-    let paths = get_path_bufs(file_system, project_root, PATH_FOR_TESTS, EXTENSION_SQL).await?;
+    let paths = get_path_bufs(
+        file_system,
+        project_root,
+        PATH_FOR_TESTS,
+        EXTENSION_SQL,
+        None,
+    )
+    .await?;
 
     let tests = paths
         .iter()
@@ -338,6 +376,7 @@ pub fn create_path_map(
     database: &impl DatabaseQueryGenerator,
     models: Vec<&Model>,
     sources: Vec<&Source>,
+    snapshots: Vec<&Snapshot>,
 ) -> PathMap {
     let model_entries = models.iter().map(|model| {
         (
@@ -348,14 +387,33 @@ pub fn create_path_map(
     let source_entries = sources
         .iter()
         .map(|source| (source.name.to_string(), source.path.to_string()));
-    model_entries.chain(source_entries).collect()
+    let snapshot_entries = snapshots.iter().map(|snapshot| {
+        (
+            snapshot.name.to_string(),
+            database.return_full_path_requirement(&snapshot.name),
+        )
+    });
+    model_entries
+        .chain(source_entries)
+        .chain(snapshot_entries)
+        .collect()
 }
 
+/// get_path_bufs returns a list of paths to files in a folder with a particular extension of
+/// interest. It also allows for an optional suffix to be ignored.
+///
+/// For example, if you have a folder with the following files:
+/// - file1.sql
+/// - file2.sql
+/// - file3.snapshot.sql
+/// The function would return a list of paths to file1.sql and file2.sql if the extension of
+/// interest is 'sql' and the ignore suffix is 'snapshot.sql'.
 async fn get_path_bufs(
     filesystem: &impl FileSystem,
     project_root: &str,
     folder: &str,
     extension_of_interest: &str,
+    ignore_suffix: Option<&str>,
 ) -> Result<Vec<PathBuf>, String> {
     let mut out = PathBuf::from(project_root);
     out.push(folder);
@@ -371,7 +429,10 @@ async fn get_path_bufs(
         .map(PathBuf::from)
         .collect::<Vec<PathBuf>>()
         .iter()
-        .filter(|path: &&PathBuf| path.extension() == Some(OsStr::new(extension_of_interest)))
+        .filter(|path: &&PathBuf| {
+            path.extension() == Some(OsStr::new(extension_of_interest))
+                && ignore_suffix.map_or(true, |suffix| !path.to_string_lossy().ends_with(suffix))
+        })
         .map(|path| Ok(path.clone()))
         .collect()
 }
@@ -379,9 +440,16 @@ async fn get_path_bufs(
 async fn parse_models(
     filesystem: &impl FileSystem,
     project_root: &str,
-    model_definitions: &ModelDefinition,
+    model_definitions: &ProjectFileModelDefinitions,
 ) -> Result<BTreeMap<String, Model>, String> {
-    let paths = get_path_bufs(filesystem, project_root, PATH_FOR_MODELS, EXTENSION_SQL).await?;
+    let paths = get_path_bufs(
+        filesystem,
+        project_root,
+        PATH_FOR_MODELS,
+        EXTENSION_SQL,
+        Some(EXTENSION_SNAPSHOT_SQL),
+    )
+    .await?;
 
     let models = paths
         .iter()
@@ -408,10 +476,156 @@ async fn parse_models(
     Ok(model_map)
 }
 
+type ProjectFileSnapshotDefinitions = HashMap<String, quary_proto::project_file::Snapshot>;
+
+async fn parse_snapshots(
+    filesystem: &impl FileSystem,
+    project_root: &str,
+    project_file_snapshot_definitions: &ProjectFileSnapshotDefinitions,
+) -> Result<BTreeMap<String, Snapshot>, String> {
+    let paths = get_path_bufs(
+        filesystem,
+        project_root,
+        PATH_FOR_MODELS,
+        EXTENSION_SQL,
+        None,
+    )
+    .await?
+    .into_iter()
+    .filter(|path| {
+        path.to_str()
+            .unwrap_or("")
+            .ends_with(EXTENSION_SNAPSHOT_SQL)
+    })
+    .collect::<Vec<_>>();
+
+    let snapshots = paths
+        .iter()
+        .map(|path| async move {
+            parse_snapshot(
+                filesystem,
+                project_file_snapshot_definitions,
+                path.to_str()
+                    .ok_or(format!("Could not parse snapshot path: {:?}", path))?,
+            )
+            .await
+        })
+        .collect::<Vec<_>>();
+    let snapshots = futures::future::join_all(snapshots)
+        .await
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let mut snapshot_map = BTreeMap::<String, Snapshot>::new();
+    for snapshot in snapshots {
+        safe_adder_map(&mut snapshot_map, snapshot.name.clone(), snapshot)?;
+    }
+
+    Ok(snapshot_map)
+}
+
+async fn parse_snapshot(
+    file_system: &impl FileSystem,
+    project_file_snapshot_definitions: &ProjectFileSnapshotDefinitions,
+    sql_path: &str,
+) -> Result<Snapshot, String> {
+    let path_buf = Path::new(sql_path);
+    let name = path_buf
+        .file_stem()
+        .ok_or_else(|| format!("Could not parse snapshot name from path: {:?}", path_buf))?;
+    let name = name
+        .to_str()
+        .ok_or(format!(
+            "Could not parse snapshot name from path: {:?}",
+            path_buf
+        ))?
+        .to_string();
+    let name = name.trim_end_matches(".snapshot").to_string();
+
+    let snapshot_definition = project_file_snapshot_definitions.get(&name).ok_or(format!(
+        "Could not find snapshot definition for snapshot: {}",
+        name
+    ))?;
+
+    let description = snapshot_definition.description.clone();
+    let tags = snapshot_definition.tags.clone();
+    let unique_key = snapshot_definition.unique_key.clone();
+    let strategy = snapshot_definition
+        .strategy
+        .clone()
+        .ok_or(format!("Could not find strategy for snapshot: {}", name))?;
+    let strategy = match strategy.strategy_type {
+        Some(quary_proto::project_file::snapshot_strategy::StrategyType::Timestamp(timestamp)) => {
+            Ok(SnapshotStrategy {
+                strategy_type: Some(
+                    quary_proto::snapshot::snapshot_strategy::StrategyType::Timestamp(
+                        quary_proto::snapshot::snapshot_strategy::TimestampStrategy {
+                            updated_at: timestamp.updated_at.clone(),
+                        },
+                    ),
+                ),
+            })
+        }
+        _ => Err(format!("Invalid strategy type for snapshot: {}", name)),
+    }?;
+
+    let mut file = file_system
+        .read_file(sql_path)
+        .await
+        .map_err(|e| format!("failed to read file: {:?}", e))?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)
+        .await
+        .map_err(|e| format!("failed to read string: {:?}", e))?;
+
+    let contents = remove_sql_comments(&contents);
+
+    let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
+        .map_err(|e| format!("Could not parse reference search from schema name: {:?}", e))?;
+    let references: Vec<String> = reference_search
+        .captures_iter(&contents)
+        .map(|cap| {
+            cap.iter()
+                .map(|m| {
+                    Ok(m.ok_or(format!(
+                        "Could not parse reference search from schema name: {:?}",
+                        m
+                    ))?
+                    .as_str()
+                    .to_string())
+                })
+                .skip(1)
+                .step_by(2)
+                .collect::<Result<Vec<_>, String>>()
+        })
+        .collect::<Result<Vec<Vec<_>>, String>>()?
+        .into_iter()
+        .flatten()
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect();
+
+    let file_sha256_hash = derive_sha256_file_contents(file_system, sql_path).await?;
+
+    if references.contains(&name) {
+        return Err(format!("snapshot {} has a reference to itself", name));
+    }
+    Ok(Snapshot {
+        name,
+        description,
+        tags,
+        unique_key,
+        file_sha256_hash,
+        strategy: Some(strategy),
+        file_path: sql_path.to_string(),
+        references,
+    })
+}
+
 /// validate_models checks that the model names are valid. The checks it perrgo forms are:
 /// - model names cannot start with 'qqq' as this is reserved for internal use
 /// - model names cannot contain spaces
-fn validate_models(models: &BTreeMap<String, Model>) -> Result<(), String> {
+fn validate_models<T>(models: &BTreeMap<String, T>) -> Result<(), String> {
     if let Some(invalid) = models.keys().find(|name| name.starts_with("qqq")) {
         return Err(format!("model name {:?} starts with 'qqq'", invalid));
     }
@@ -421,11 +635,11 @@ fn validate_models(models: &BTreeMap<String, Model>) -> Result<(), String> {
     Ok(())
 }
 
-pub type ModelDefinition = HashMap<String, quary_proto::project_file::Model>;
+type ProjectFileModelDefinitions = HashMap<String, quary_proto::project_file::Model>;
 
 async fn parse_model(
     file_system: &impl FileSystem,
-    model_definitions: &ModelDefinition,
+    project_file_model_definitions: &ProjectFileModelDefinitions,
     sql_path: &str,
 ) -> Result<Model, String> {
     let path_buf = Path::new(sql_path);
@@ -441,7 +655,7 @@ async fn parse_model(
         ))?
         .to_string();
 
-    let model_definition = model_definitions.get(&name);
+    let model_definition = project_file_model_definitions.get(&name);
     let description = model_definition
         .map(|model| model.description.clone())
         .unwrap_or(None);
@@ -518,7 +732,14 @@ async fn parse_seeds<'a>(
     filesystem: &'a impl FileSystem,
     project_root: &'a str,
 ) -> Result<Vec<(String, Seed)>, String> {
-    let paths = get_path_bufs(filesystem, project_root, PATH_FOR_SEEDS, EXTENSION_CSV).await?;
+    let paths = get_path_bufs(
+        filesystem,
+        project_root,
+        PATH_FOR_SEEDS,
+        EXTENSION_CSV,
+        None,
+    )
+    .await?;
 
     let seeds = paths
         .iter()
@@ -554,7 +775,14 @@ pub async fn parse_project_files(
     project_root: &str,
     database: &impl DatabaseQueryGenerator, // Map of full path to project file and project file
 ) -> Result<HashMap<String, ProjectFile>, String> {
-    let paths = get_path_bufs(filesystem, project_root, PATH_FOR_MODELS, EXTENSION_YAML).await?;
+    let paths = get_path_bufs(
+        filesystem,
+        project_root,
+        PATH_FOR_MODELS,
+        EXTENSION_YAML,
+        None,
+    )
+    .await?;
 
     let project_files = paths
         .iter()
@@ -1067,6 +1295,78 @@ pub async fn project_and_fs_to_sql_for_views(
     Ok(seeds_out)
 }
 
+/// Generates SQL statements for snapshots based on the project and file system.
+pub async fn project_and_fs_to_sql_for_snapshots(
+    project: &Project,
+    file_system: &impl FileSystem,
+    database: &impl DatabaseQueryGenerator,
+) -> Result<Vec<(String, Vec<String>)>, String> {
+    let snapshots_out = project.snapshots.values().map(|snapshot| async move {
+        let connection_config = project
+            .connection_config
+            .clone()
+            .ok_or("missing connection config")?;
+        let sql_statements =
+            generate_snapshot_sql(&connection_config, project, database, file_system, snapshot)
+                .await?;
+        Ok::<(String, Vec<String>), String>((snapshot.name.clone(), sql_statements))
+    });
+
+    let snapshots_out: Vec<_> = futures::future::join_all(snapshots_out)
+        .await
+        .into_iter()
+        .collect::<Result<_, _>>()?;
+    Ok(snapshots_out)
+}
+
+/// Generates SQL statements for a specific snapshot.
+async fn generate_snapshot_sql(
+    connection_config: &ConnectionConfig,
+    project: &Project,
+    database: &impl DatabaseQueryGenerator,
+    file_system: &impl FileSystem,
+    snapshot: &Snapshot,
+) -> Result<Vec<String>, String> {
+    let snapshot_strategy = snapshot
+        .strategy
+        .clone()
+        .ok_or("missing snapshot strategy")?
+        .strategy_type
+        .ok_or("missing strategy type")?;
+    let snapshot_path = database.return_full_path_requirement(&snapshot.name);
+    let file = file_system
+        .read_file(&snapshot.file_path)
+        .await
+        .map_err(|e| {
+            format!(
+                "failed to read file {:?} with error {:?}",
+                &snapshot.file_path, e
+            )
+        })?;
+    let raw_query = read_normalise_model(file).await?;
+    let vars_replaced_select_statement =
+        replace_variable_templates_with_variable_defined_in_config(&raw_query, connection_config)?;
+
+    let sources = &project.sources;
+    let name_replacing_strategy = move |s: &regex::Captures| {
+        let replaced = replace_reference_string_found_with_database(sources, &database)(s);
+        let replaced = replaced.trim();
+        format!(" {}", replaced)
+    };
+
+    let reference_search =
+        return_reference_search(DEFAULT_SCHEMA_PREFIX).map_err(|e| e.to_string())?;
+    let templated_select =
+        reference_search.replace_all(&vars_replaced_select_statement, name_replacing_strategy);
+
+    database.generate_snapshot_sql(
+        &snapshot_path,
+        &templated_select,
+        &snapshot.unique_key,
+        &snapshot_strategy,
+    )
+}
+
 /// convertToSelectStatements takes in an array of model/seed and returns a string that can be used in a select statement.
 /// It also replaces any q.references with the actual name that is in the select. It uses no views.
 ///
@@ -1242,7 +1542,7 @@ async fn render_model_select_statement(
 
 pub fn replace_variable_templates_with_variable_defined_in_config(
     sql: &str,
-    connection_config: &quary_proto::ConnectionConfig,
+    connection_config: &ConnectionConfig,
 ) -> Result<String, String> {
     let re = regex::Regex::new(r"\{\{\s*var\('([^']+)'\)\s*\}\}").map_err(|e| e.to_string())?;
 
@@ -1331,6 +1631,7 @@ struct NodeWithName {
 const EXTENSION_CSV: &str = "csv";
 const EXTENSION_YAML: &str = "yaml";
 const EXTENSION_SQL: &str = "sql";
+const EXTENSION_SNAPSHOT_SQL: &str = ".snapshot.sql";
 
 pub(crate) const PATH_FOR_SEEDS: &str = "seeds";
 pub const PATH_FOR_MODELS: &str = "models";
@@ -1448,7 +1749,8 @@ mod test {
         }]
         .into_iter()
         .map(|m| (m.name.clone(), m))
-        .collect::<HashMap<String, _>>() as ModelDefinition;
+        .collect::<HashMap<String, _>>()
+            as ProjectFileModelDefinitions;
 
         let model = parse_model(&file_system, &model_definitions, "models/test.sql")
             .await
@@ -1460,6 +1762,39 @@ mod test {
         assert_eq!(model.references.len(), 2);
         assert_eq!(model.references[0], "shift_hours");
         assert_eq!(model.references[1], "stg_shifts");
+    }
+
+    #[tokio::test]
+    async fn test_parse_models_excludes_snapshots() {
+        let file_system = quary_proto::FileSystem {
+            files: vec![
+                (
+                    "models/orders.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/orders.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.raw_orders"),
+                    },
+                ),
+                (
+                    "models/orders_snapshot.snapshot.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/orders_snapshot.snapshot.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.raw_orders"),
+                    },
+                ),
+            ]
+            .into_iter()
+            .collect(),
+        };
+        let model_definitions = HashMap::new();
+
+        let models = parse_models(&file_system, "", &model_definitions)
+            .await
+            .unwrap();
+
+        assert_eq!(models.len(), 1);
+        assert!(models.contains_key("orders"));
+        assert!(!models.contains_key("orders_snapshot"));
     }
 
     #[tokio::test]
@@ -2296,7 +2631,7 @@ sources:
 
     #[test]
     fn test_replace_variable_with_config_variables() {
-        let connection_config = quary_proto::ConnectionConfig {
+        let connection_config = ConnectionConfig {
             config: Default::default(),
             vars: vec![
                 quary_proto::Var {
@@ -2374,6 +2709,347 @@ models:
         };
 
         parse_project(&file_system, &database, "").await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_parse_project_with_snapshots() {
+        let database = DatabaseQueryGeneratorSqlite::default();
+        let fs = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "models/orders_snapshot.snapshot.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/orders_snapshot.snapshot.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.raw_orders"),
+                    },
+                ),
+                (
+                    "models/schema.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "
+    sources:
+      - name: raw_orders
+        path: raw_orders_source                            
+    snapshots:
+      - name: orders_snapshot
+        description: Some snapshot description
+        unique_key: id
+        strategy:
+          timestamp:
+            updated_at: updated_at
+    ",
+                        ),
+                    },
+                ),
+            ]),
+        };
+
+        let expected_snapshot = Snapshot {
+            name: "orders_snapshot".to_string(),
+            description: Some("Some snapshot description".to_string()),
+            tags: vec![],
+            unique_key: "id".to_string(),
+            file_sha256_hash: "9560ffc874f8bafc47ab8a6c531574e16f890ab7f0269b738256dce7a2a8d41d"
+                .to_string(),
+            strategy: Some(SnapshotStrategy {
+                strategy_type: Some(
+                    quary_proto::snapshot::snapshot_strategy::StrategyType::Timestamp(
+                        quary_proto::snapshot::snapshot_strategy::TimestampStrategy {
+                            updated_at: "updated_at".to_string(),
+                        },
+                    ),
+                ),
+            }),
+            references: vec!["raw_orders".to_string()],
+            file_path: "models/orders_snapshot.snapshot.sql".to_string(),
+        };
+
+        let project = parse_project(&fs, &database, "").await.unwrap();
+
+        assert_eq!(project.snapshots.len(), 1);
+        assert_eq!(project.snapshots["orders_snapshot"], expected_snapshot);
+    }
+
+    #[tokio::test]
+    async fn test_parse_project_with_snapshots_invalid_model_reference() {
+        let database = DatabaseQueryGeneratorSqlite::default();
+        let fs = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "models/stg_orders.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/stg_orders.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.raw_orders"),
+                    },
+                ),
+                (
+                    "models/orders_snapshot.snapshot.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/orders_snapshot.snapshot.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.stg_orders"),
+                    },
+                ),
+                (
+                    "models/schema.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "
+    sources:
+      - name: raw_orders
+        path: raw_orders_source  
+    models:
+      - name: stg_orders                     
+    snapshots:
+      - name: orders_snapshot
+        unique_key: id
+        strategy:
+          timestamp:
+            updated_at: updated_at
+    ",
+                        ),
+                    },
+                ),
+            ]),
+        };
+
+        let parse_project_result = parse_project(&fs, &database, "").await;
+        assert_eq!(Err("snapshot \"orders_snapshot\" has reference to \"stg_orders\" which is not a source or seed".to_string()), parse_project_result)
+    }
+
+    #[tokio::test]
+    async fn test_parse_project_with_snapshots_invalid_self_reference() {
+        let database = DatabaseQueryGeneratorSqlite::default();
+        let fs = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "models/stg_orders.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/stg_orders.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.raw_orders"),
+                    },
+                ),
+                (
+                    "models/orders_snapshot.snapshot.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/orders_snapshot.snapshot.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.orders_snapshot"),
+                    },
+                ),
+                (
+                    "models/schema.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "
+    sources:
+      - name: raw_orders
+        path: raw_orders_source  
+    models:
+      - name: stg_orders                     
+    snapshots:
+      - name: orders_snapshot
+        unique_key: id
+        strategy:
+          timestamp:
+            updated_at: updated_at
+    ",
+                        ),
+                    },
+                ),
+            ]),
+        };
+
+        let parse_project_result = parse_project(&fs, &database, "").await;
+        assert_eq!(
+            Err("snapshot orders_snapshot has a reference to itself".to_string()),
+            parse_project_result
+        )
+    }
+
+    #[tokio::test]
+    async fn test_parse_project_with_snapshots_undefined_source() {
+        let database = DatabaseQueryGeneratorSqlite::default();
+        let fs = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "models/stg_orders.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/stg_orders.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.raw_orders"),
+                    },
+                ),
+                (
+                    "models/orders_snapshot.snapshot.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/orders_snapshot.snapshot.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.raw_random"),
+                    },
+                ),
+                (
+                    "models/schema.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "
+    sources:
+      - name: raw_orders
+        path: raw_orders_source  
+    models:
+      - name: stg_orders                     
+    snapshots:
+      - name: orders_snapshot
+        unique_key: id
+        strategy:
+          timestamp:
+            updated_at: updated_at
+    ",
+                        ),
+                    },
+                ),
+            ]),
+        };
+
+        let parse_project_result = parse_project(&fs, &database, "").await;
+        assert_eq!(
+            Err("snapshot \"orders_snapshot\" has reference to \"raw_random\" which is not a source or seed".to_string()),
+            parse_project_result
+        )
+    }
+
+    #[tokio::test]
+    async fn test_parse_project_with_snapshots_missing_definition_in_project_files() {
+        let database = DatabaseQueryGeneratorSqlite::default();
+        let fs = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "models/stg_orders.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/stg_orders.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.raw_orders"),
+                    },
+                ),
+                (
+                    "models/orders_snapshot.snapshot.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/orders_snapshot.snapshot.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.raw_random"),
+                    },
+                ),
+                (
+                    "models/schema.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "
+    sources:
+      - name: raw_orders
+        path: raw_orders_source  
+    models:
+      - name: stg_orders                     
+    ",
+                        ),
+                    },
+                ),
+            ]),
+        };
+
+        let parse_project_result = parse_project(&fs, &database, "").await;
+        assert_eq!(
+            Err("Could not find snapshot definition for snapshot: orders_snapshot".to_string()),
+            parse_project_result
+        )
+    }
+
+    #[tokio::test]
+    async fn test_parse_project_with_snapshots_missing_strategy_in_definition_in_project_files() {
+        let database = DatabaseQueryGeneratorSqlite::default();
+        let fs = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "models/stg_orders.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/stg_orders.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.raw_orders"),
+                    },
+                ),
+                (
+                    "models/orders_snapshot.snapshot.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/orders_snapshot.snapshot.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.raw_random"),
+                    },
+                ),
+                (
+                    "models/schema.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "
+    sources:
+      - name: raw_orders
+        path: raw_orders_source  
+    models:
+      - name: stg_orders                     
+    snapshots:
+      - name: orders_snapshot
+        unique_key: id
+    ",
+                        ),
+                    },
+                ),
+            ]),
+        };
+
+        let parse_project_result = parse_project(&fs, &database, "").await;
+        assert_eq!(
+            Err("Could not find strategy for snapshot: orders_snapshot".to_string()),
+            parse_project_result
+        )
     }
 
     // TODO Reinstate after making get_node_sorted completely deterministic
