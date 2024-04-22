@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # ratchet:actions/checkout@v4
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # ratchet:actions/checkout@v4
       - name: Fetch Release Assets
         id: fetch-assets
         uses: actions/github-script@211cb3fefb35a799baa5156f9321bb774fe56294 # ratchet:actions/github-script@v5
