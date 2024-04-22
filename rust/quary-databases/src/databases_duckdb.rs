@@ -1,4 +1,5 @@
-use duckdb::arrow::array::array;
+use chrono::{DateTime, Utc};
+use duckdb::arrow::array::{array, Array};
 use duckdb::arrow::record_batch::RecordBatch;
 use duckdb::{params, Connection};
 use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
@@ -48,12 +49,16 @@ impl DuckDB {
             schema,
         })
     }
+
+    fn default_schema() -> &'static str {
+        "main"
+    }
 }
 
 #[async_trait::async_trait]
 impl DatabaseConnection for DuckDB {
     async fn list_tables(&self) -> Result<Vec<TableAddress>, String> {
-        let results =  self.query("SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' ORDER BY table_name")
+        let results =  self.query("SELECT table_schema, table_name FROM information_schema.tables WHERE table_type='BASE TABLE' ORDER BY table_schema, table_name")
                 .await
                 .map_err(
                     |e| format!("Failed to get tables from DuckDB: {:?}", e))?;
@@ -62,17 +67,13 @@ impl DatabaseConnection for DuckDB {
             .into_iter()
             .map(|row| TableAddress {
                 name: row[0].clone(),
-                full_path: if let Some(schema) = &self.schema {
-                    format!("{}.{}", schema, row[0].clone())
-                } else {
-                    row[0].clone()
-                },
+                full_path: format!("{}.{}", row[0].clone(), row[1].clone()),
             })
             .collect())
     }
 
     async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
-        let results = self.query("SELECT table_name FROM information_schema.tables WHERE table_type='VIEW' ORDER BY table_name")
+        let results = self.query("SELECT table_schema, table_name FROM information_schema.tables WHERE table_type='VIEW' ORDER BY table_schema, table_name")
             .await
             .map_err(
                 |e| format!("Failed to get views from DuckDB: {:?}", e),
@@ -82,31 +83,21 @@ impl DatabaseConnection for DuckDB {
             .into_iter()
             .map(|row| TableAddress {
                 name: row[0].clone(),
-                full_path: if let Some(schema) = &self.schema {
-                    format!("{}.{}", schema, row[0].clone())
-                } else {
-                    row[0].clone()
-                },
+                full_path: format!("{}.{}", row[0].clone(), row[1].clone()),
             })
             .collect())
     }
 
     async fn list_local_tables(&self) -> Result<Vec<TableAddress>, String> {
-        let results = if let Some(schema) = &self.schema {
+        let schema = self
+            .schema
+            .clone()
+            .unwrap_or(DuckDB::default_schema().to_string());
+        let results =
             self.query(&format!(
                 "SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND table_type='BASE TABLE' ORDER BY table_name",
                 schema
-            ))
-                .await
-                .map_err(
-                    |e| format!("Failed to get tables from DuckDB: {:?}", e))
-                ?
-        } else {
-            self.query("SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' ORDER BY table_name")
-                .await                .map_err(
-                |e| format!("Failed to get tables from DuckDB: {:?}", e))
-                ?
-        };
+            )).await.map_err(|e| format!("Failed to get views from DuckDB: {:?}", e))?;
         Ok(results
             .rows
             .into_iter()
@@ -122,23 +113,15 @@ impl DatabaseConnection for DuckDB {
     }
 
     async fn list_local_views(&self) -> Result<Vec<TableAddress>, String> {
-        let results = if let Some(schema) = &self.schema {
+        let schema = self
+            .schema
+            .clone()
+            .unwrap_or(DuckDB::default_schema().to_string());
+        let results =
             self.query(&format!(
                 "SELECT table_name FROM information_schema.tables WHERE table_schema = '{}' AND table_type='VIEW' ORDER BY table_name",
                 schema
-            ))
-                .await
-                .map_err(
-                    |e| format!("Failed to get views from DuckDB: {:?}", e),
-                )
-                ?
-        } else {
-            self.query("SELECT table_name FROM information_schema.tables WHERE table_type='VIEW' ORDER BY table_name")
-                .await
-                .map_err(
-                    |e| format!("Failed to get views from DuckDB: {:?}", e),
-                )?
-        };
+            )).await.map_err(|e| format!("Failed to get views from DuckDB: {:?}", e))?;
         Ok(results
             .rows
             .into_iter()
@@ -227,13 +210,11 @@ impl DatabaseConnection for DuckDB {
     }
 
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {
-        Box::new(DatabaseQueryGeneratorDuckDB::new(self.schema.clone()))
+        Box::new(DatabaseQueryGeneratorDuckDB::new(self.schema.clone(), None))
     }
 }
 
-fn convert_array_to_vec_string(
-    array: &[Arc<dyn array::Array>],
-) -> Result<Vec<Vec<String>>, String> {
+fn convert_array_to_vec_string(array: &[Arc<dyn Array>]) -> Result<Vec<Vec<String>>, String> {
     let num_rows = array[0].len();
     let num_columns = array.len();
     let mut rows = Vec::with_capacity(num_rows);
@@ -264,8 +245,24 @@ fn convert_array_to_vec_string(
                 rows[i][j] = date_array.value(i).to_string();
             } else if let Some(date_array) = array.as_any().downcast_ref::<array::Date32Array>() {
                 rows[i][j] = date_array.value(i).to_string();
+            } else if let Some(timestamp_array) = array
+                .as_any()
+                .downcast_ref::<array::TimestampMicrosecondArray>()
+            {
+                if timestamp_array.is_null(i) {
+                    rows[i][j] = "NULL".to_string();
+                } else {
+                    let timestamp_micros = timestamp_array.value(i);
+                    let datetime_utc = DateTime::<Utc>::from_timestamp(
+                        timestamp_micros / 1_000_000,
+                        (timestamp_micros % 1_000_000) as u32 * 1_000,
+                    )
+                    .ok_or("error converting timestamp to datetime")?;
+                    rows[i][j] = datetime_utc.format("%Y-%m-%d %H:%M:%S%.6f %Z").to_string();
+                }
             } else {
-                return Err("Unsupported array type".to_string());
+                let array_type = array.data_type();
+                return Err(format!("Unsupported array type: {:?}", array_type));
             }
         }
     }
@@ -277,10 +274,14 @@ fn convert_array_to_vec_string(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::{DateTime, NaiveDateTime, Utc};
     use prost::bytes::Bytes;
-    use quary_core::project::{parse_project, project_and_fs_to_sql_for_views};
+    use quary_core::project::{
+        parse_project, project_and_fs_to_sql_for_snapshots, project_and_fs_to_sql_for_views,
+    };
     use quary_core::project_tests::return_tests_sql;
     use quary_proto::{File, FileSystem};
+    use std::time::SystemTime;
 
     #[tokio::test]
     async fn test_create_table_without_schema() {
@@ -748,5 +749,411 @@ sources:
             let results = database.query(test).await.unwrap();
             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
         }
+    }
+
+    #[tokio::test]
+    async fn test_snapshots_with_schema() {
+        // Create orders table
+
+        let target_schema = Some("analytics".to_string());
+        let database = DuckDB::new_in_memory(target_schema.clone()).unwrap();
+        database.exec("CREATE SCHEMA jaffle_shop").await.unwrap();
+
+        let datetime_str = "2023-01-01 01:00:00";
+
+        // Parse the string into a NaiveDateTime
+        let naive_datetime = NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S")
+            .expect("Failed to parse datetime string");
+
+        // Convert NaiveDateTime to DateTime<Utc>
+        let datetime_utc = DateTime::<Utc>::from_utc(naive_datetime, Utc);
+
+        // Convert DateTime<Utc> to SystemTime
+        let system_time = SystemTime::from(datetime_utc);
+
+        let db_generator =
+            DatabaseQueryGeneratorDuckDB::new(target_schema.clone(), Some(system_time));
+
+        // Create orders table
+        database
+            .exec("CREATE TABLE jaffle_shop.raw_orders (order_id INTEGER, status VARCHAR(255), updated_at TIMESTAMP)")
+            .await
+            .unwrap();
+
+        // Insert some initial data
+        database
+            .exec("INSERT INTO jaffle_shop.raw_orders VALUES (1, 'in_progress', '2023-01-01 00:00:00'), (2, 'completed', '2023-01-01 00:00:00')")
+            .await
+            .unwrap();
+
+        let file_system = FileSystem {
+            files: vec![
+                ("quary.yaml", "duckdbInMemory: {schema: analytics}"),
+                (
+                    "models/orders_snapshot.snapshot.sql",
+                    "SELECT * FROM q.raw_orders",
+                ),
+                (
+                    "models/schema.yaml",
+                    "
+sources:
+  - name: raw_orders
+    path: jaffle_shop.raw_orders
+snapshots:
+  - name: orders_snapshot
+    unique_key: order_id
+    strategy:
+      timestamp:
+        updated_at: updated_at
+",
+                ),
+            ]
+            .iter()
+            .map(|(k, v)| {
+                (
+                    k.to_string(),
+                    File {
+                        name: k.to_string(),
+                        contents: Bytes::from(v.to_string()),
+                    },
+                )
+            })
+            .collect(),
+        };
+
+        let project = parse_project(&file_system, &db_generator, "")
+            .await
+            .unwrap();
+
+        let snapshots_sql =
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator)
+                .await
+                .unwrap();
+        for (_, sql) in snapshots_sql {
+            for statement in sql {
+                database.exec(statement.as_str()).await.unwrap()
+            }
+        }
+
+        // assert the data has been created correctly in the snapshot table
+        let data = database.query("SELECT order_id, status, updated_at, quary_valid_from, quary_valid_to, quary_scd_id FROM analytics.orders_snapshot").await.unwrap();
+
+        assert_eq!(
+            data.columns
+                .iter()
+                .map(|(column, _)| column)
+                .collect::<Vec<_>>(),
+            vec![
+                "order_id",
+                "status",
+                "updated_at",
+                "quary_valid_from",
+                "quary_valid_to",
+                "quary_scd_id"
+            ]
+        );
+        assert_eq!(
+            data.rows,
+            vec![
+                vec![
+                    "1",
+                    "in_progress",
+                    "2023-01-01 00:00:00.000000 UTC",
+                    "2023-01-01T01:00:00Z",
+                    "NULL",
+                    "77f50225cf5a52d15fecaa449be2dcc4"
+                ],
+                vec![
+                    "2",
+                    "completed",
+                    "2023-01-01 00:00:00.000000 UTC",
+                    "2023-01-01T01:00:00Z",
+                    "NULL",
+                    "3bb5cc6bb5b432df7712d067f57a3780"
+                ],
+            ]
+        );
+
+        database
+        .exec("UPDATE jaffle_shop.raw_orders SET status = 'completed', updated_at = '2023-01-01 02:00:00' WHERE order_id = 1")
+        .await
+        .unwrap();
+
+        let datetime_str_updated = "2023-01-01 03:00:00";
+
+        // Parse the string into a NaiveDateTime
+        let naive_datetime_updated =
+            NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S")
+                .expect("Failed to parse datetime string");
+
+        // Convert NaiveDateTime to DateTime<Utc>
+        let datetime_utc_updated = DateTime::<Utc>::from_utc(naive_datetime_updated, Utc);
+
+        // Convert DateTime<Utc> to SystemTime
+        let system_time_updated = SystemTime::from(datetime_utc_updated);
+
+        let db_generator_updated =
+            DatabaseQueryGeneratorDuckDB::new(target_schema, Some(system_time_updated));
+
+        let snapshots_sql =
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator_updated)
+                .await
+                .unwrap();
+
+        for (_, sql) in &snapshots_sql {
+            for statement in sql {
+                database.exec(statement.as_str()).await.unwrap()
+            }
+        }
+
+        // assert the data has been created correctly in the snapshot table
+        let data = database.query("SELECT order_id, status, updated_at, quary_valid_from, quary_valid_to, quary_scd_id FROM analytics.orders_snapshot ORDER BY order_id, quary_valid_from").await.unwrap();
+
+        assert_eq!(
+            data.columns
+                .iter()
+                .map(|(column, _)| column)
+                .collect::<Vec<_>>(),
+            vec![
+                "order_id",
+                "status",
+                "updated_at",
+                "quary_valid_from",
+                "quary_valid_to",
+                "quary_scd_id"
+            ]
+        );
+        assert_eq!(
+            data.rows,
+            vec![
+                vec![
+                    "1",
+                    "in_progress",
+                    "2023-01-01 00:00:00.000000 UTC",
+                    "2023-01-01T01:00:00Z",
+                    "2023-01-01 03:00:00.000000 UTC",
+                    "77f50225cf5a52d15fecaa449be2dcc4"
+                ],
+                vec![
+                    "1",
+                    "completed",
+                    "2023-01-01 02:00:00.000000 UTC",
+                    "2023-01-01T03:00:00Z",
+                    "NULL",
+                    "f5c7798e30814925cd1a61e9e5ef6683"
+                ],
+                vec![
+                    "2",
+                    "completed",
+                    "2023-01-01 00:00:00.000000 UTC",
+                    "2023-01-01T01:00:00Z",
+                    "NULL",
+                    "3bb5cc6bb5b432df7712d067f57a3780"
+                ],
+            ]
+        );
+    }
+
+    #[tokio::test]
+    async fn test_snapshots_without_schema() {
+        // Create orders table
+
+        let target_schema = None;
+        let database = DuckDB::new_in_memory(target_schema.clone()).unwrap();
+        database.exec("CREATE SCHEMA jaffle_shop").await.unwrap();
+
+        let datetime_str = "2023-01-01 01:00:00";
+
+        // Parse the string into a NaiveDateTime
+        let naive_datetime = NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S")
+            .expect("Failed to parse datetime string");
+
+        // Convert NaiveDateTime to DateTime<Utc>
+        let datetime_utc = DateTime::<Utc>::from_utc(naive_datetime, Utc);
+
+        // Convert DateTime<Utc> to SystemTime
+        let system_time = SystemTime::from(datetime_utc);
+
+        let db_generator =
+            DatabaseQueryGeneratorDuckDB::new(target_schema.clone(), Some(system_time));
+
+        // Create orders table
+        database
+            .exec("CREATE TABLE jaffle_shop.raw_orders (order_id INTEGER, status VARCHAR(255), updated_at TIMESTAMP)")
+            .await
+            .unwrap();
+
+        // Insert some initial data
+        database
+            .exec("INSERT INTO jaffle_shop.raw_orders VALUES (1, 'in_progress', '2023-01-01 00:00:00'), (2, 'completed', '2023-01-01 00:00:00')")
+            .await
+            .unwrap();
+
+        let file_system = FileSystem {
+            files: vec![
+                ("quary.yaml", "duckdbInMemory: {schema: analytics}"),
+                (
+                    "models/orders_snapshot.snapshot.sql",
+                    "SELECT * FROM q.raw_orders",
+                ),
+                (
+                    "models/schema.yaml",
+                    "
+sources:
+  - name: raw_orders
+    path: jaffle_shop.raw_orders
+snapshots:
+  - name: orders_snapshot
+    unique_key: order_id
+    strategy:
+      timestamp:
+        updated_at: updated_at
+",
+                ),
+            ]
+            .iter()
+            .map(|(k, v)| {
+                (
+                    k.to_string(),
+                    File {
+                        name: k.to_string(),
+                        contents: Bytes::from(v.to_string()),
+                    },
+                )
+            })
+            .collect(),
+        };
+
+        let project = parse_project(&file_system, &db_generator, "")
+            .await
+            .unwrap();
+
+        let snapshots_sql =
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator)
+                .await
+                .unwrap();
+        for (_, sql) in snapshots_sql {
+            for statement in sql {
+                database.exec(statement.as_str()).await.unwrap()
+            }
+        }
+
+        // assert the data has been created correctly in the snapshot table
+        let data = database.query("SELECT order_id, status, updated_at, quary_valid_from, quary_valid_to, quary_scd_id FROM orders_snapshot").await.unwrap();
+
+        assert_eq!(
+            data.columns
+                .iter()
+                .map(|(column, _)| column)
+                .collect::<Vec<_>>(),
+            vec![
+                "order_id",
+                "status",
+                "updated_at",
+                "quary_valid_from",
+                "quary_valid_to",
+                "quary_scd_id"
+            ]
+        );
+        assert_eq!(
+            data.rows,
+            vec![
+                vec![
+                    "1",
+                    "in_progress",
+                    "2023-01-01 00:00:00.000000 UTC",
+                    "2023-01-01T01:00:00Z",
+                    "NULL",
+                    "77f50225cf5a52d15fecaa449be2dcc4"
+                ],
+                vec![
+                    "2",
+                    "completed",
+                    "2023-01-01 00:00:00.000000 UTC",
+                    "2023-01-01T01:00:00Z",
+                    "NULL",
+                    "3bb5cc6bb5b432df7712d067f57a3780"
+                ],
+            ]
+        );
+
+        database
+        .exec("UPDATE jaffle_shop.raw_orders SET status = 'completed', updated_at = '2023-01-01 02:00:00' WHERE order_id = 1")
+        .await
+        .unwrap();
+
+        let datetime_str_updated = "2023-01-01 03:00:00";
+
+        // Parse the string into a NaiveDateTime
+        let naive_datetime_updated =
+            NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S")
+                .expect("Failed to parse datetime string");
+
+        // Convert NaiveDateTime to DateTime<Utc>
+        let datetime_utc_updated = DateTime::<Utc>::from_utc(naive_datetime_updated, Utc);
+
+        // Convert DateTime<Utc> to SystemTime
+        let system_time_updated = SystemTime::from(datetime_utc_updated);
+
+        let db_generator_updated =
+            DatabaseQueryGeneratorDuckDB::new(target_schema, Some(system_time_updated));
+
+        let snapshots_sql =
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator_updated)
+                .await
+                .unwrap();
+
+        for (_, sql) in &snapshots_sql {
+            for statement in sql {
+                database.exec(statement.as_str()).await.unwrap()
+            }
+        }
+
+        // assert the data has been created correctly in the snapshot table
+        let data = database.query("SELECT order_id, status, updated_at, quary_valid_from, quary_valid_to, quary_scd_id FROM orders_snapshot ORDER BY order_id, quary_valid_from").await.unwrap();
+
+        assert_eq!(
+            data.columns
+                .iter()
+                .map(|(column, _)| column)
+                .collect::<Vec<_>>(),
+            vec![
+                "order_id",
+                "status",
+                "updated_at",
+                "quary_valid_from",
+                "quary_valid_to",
+                "quary_scd_id"
+            ]
+        );
+        assert_eq!(
+            data.rows,
+            vec![
+                vec![
+                    "1",
+                    "in_progress",
+                    "2023-01-01 00:00:00.000000 UTC",
+                    "2023-01-01T01:00:00Z",
+                    "2023-01-01 03:00:00.000000 UTC",
+                    "77f50225cf5a52d15fecaa449be2dcc4"
+                ],
+                vec![
+                    "1",
+                    "completed",
+                    "2023-01-01 02:00:00.000000 UTC",
+                    "2023-01-01T03:00:00Z",
+                    "NULL",
+                    "f5c7798e30814925cd1a61e9e5ef6683"
+                ],
+                vec![
+                    "2",
+                    "completed",
+                    "2023-01-01 00:00:00.000000 UTC",
+                    "2023-01-01T01:00:00Z",
+                    "NULL",
+                    "3bb5cc6bb5b432df7712d067f57a3780"
+                ],
+            ]
+        );
     }
 }

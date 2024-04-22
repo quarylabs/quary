@@ -7,6 +7,16 @@
                 "name": {
                     "type": "string"
                 },
+                "description": {
+                    "type": "string"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together."
+                },
                 "file_path": {
                     "type": "string"
                 },

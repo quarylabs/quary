@@ -19,7 +19,7 @@ cert-auth = ["dep:snowflake-jwt"]
 polars = ["dep:polars-core", "dep:polars-io"]
 
 [dependencies]
-arrow = "50"
+arrow = "51"
 async-trait = "0.1"
 base64 = "0.22"
 bytes = "1"
@@ -46,7 +46,7 @@ polars-core = { version = ">=0.32", optional = true}
 
 [dev-dependencies]
 anyhow = "1"
-arrow = { version = "50", features = ["prettyprint"] }
+arrow = { version = "51", features = ["prettyprint"] }
 clap = { version = "4", features = ["derive"] }
 pretty_env_logger = "0.5"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

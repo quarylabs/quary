@@ -1,4 +1,8 @@
 use assert_cmd::Command;
+use chrono::Utc;
+use quary_core::databases::DatabaseConnection;
+use quary_databases::databases_duckdb;
+use std::fs;
 use tempfile::tempdir;
 
 #[test]
@@ -225,5 +229,160 @@ duckdb:
             .args(args)
             .assert()
             .success();
+    }
+}
+
+/// This test simulates a workflow where a model references a snapshot in duckdb.
+/// 1. The initial snapshot is taken which builds the orders_snapshot table  in the database.
+/// 2. The project is built which references the orders_snapshot table.
+/// 3. The initial state of the snapshot is asserted.
+/// 4. The data is updated and a new snapshot is taken.
+/// 5. The updated state of the snapshot is asserted. (from the stg_orders_snapshot table)
+#[tokio::test]
+async fn test_duckdb_snapshots() {
+    // Setup
+    let name = "quary";
+    let temp_dir = tempdir().unwrap();
+    let project_dir = temp_dir.path();
+
+    Command::cargo_bin(name)
+        .unwrap()
+        .current_dir(project_dir)
+        .args(vec!["init", "--type=duckdb"])
+        .assert()
+        .success();
+
+    // Create data directory and orders.csv file
+    let data_dir = project_dir.join("data");
+    fs::create_dir_all(&data_dir).unwrap();
+    let orders_file = data_dir.join("orders.csv");
+    let orders_content = "id,user_id,order_date,status\n1,1,2023-06-01,in_progress";
+    fs::write(&orders_file, orders_content).unwrap();
+
+    // Create snapshots directory and orders_snapshot.snapshot.sql file
+    let snapshots_dir = project_dir.join("models").join("staging").join("snapshots");
+    fs::create_dir_all(&snapshots_dir).unwrap();
+    let orders_snapshot_file = snapshots_dir.join("orders_snapshot.snapshot.sql");
+    let orders_snapshot_content = "SELECT id, user_id, order_date, status FROM q.raw_orders";
+    fs::write(&orders_snapshot_file, orders_snapshot_content).unwrap();
+
+    let staging_models_dir = project_dir.join("models").join("staging");
+    fs::create_dir_all(&staging_models_dir).unwrap();
+    let stg_orders_snapshot_file = staging_models_dir.join("stg_orders_snapshot.sql");
+    let stg_orders_snapshot_content = "SELECT * FROM q.orders_snapshot";
+    fs::write(&stg_orders_snapshot_file, stg_orders_snapshot_content).unwrap();
+
+    // Create schema.yaml file
+    let schema_file = snapshots_dir.join("schema.yaml");
+    let schema_content = r#"
+    sources:
+      - name: raw_orders
+        path: "'data/orders.csv'"
+    models:
+      - name: stg_orders_snapshot
+    snapshots:
+      - name: orders_snapshot
+        unique_key: id
+        strategy:
+          timestamp:
+            updated_at: order_date
+    "#;
+    fs::write(&schema_file, schema_content).unwrap();
+
+    // Create quary.yaml file
+    let quary_yaml_content = "duckdb:\n  path: \"./database.db\"\n";
+    let quary_yaml_path = project_dir.join("quary.yaml");
+    fs::write(&quary_yaml_path, quary_yaml_content).unwrap();
+
+    // Take the initial snapshot and build the project which references the snapshot
+    Command::cargo_bin(name)
+        .unwrap()
+        .current_dir(project_dir)
+        .args(vec!["snapshot"])
+        .assert()
+        .success();
+    Command::cargo_bin(name)
+        .unwrap()
+        .current_dir(project_dir)
+        .args(vec!["build"])
+        .assert()
+        .success();
+
+    {
+        // Assert initial snapshot
+        let database = databases_duckdb::DuckDB::new_with_file(
+            None,
+            project_dir.join("database.db").to_str().unwrap(),
+        )
+        .ok()
+        .unwrap();
+
+        let result = database
+        .query("SELECT id, user_id, order_date, status, quary_valid_from, quary_valid_to, quary_scd_id FROM orders_snapshot")
+        .await
+        .unwrap();
+
+        assert_eq!(result.rows.len(), 1);
+        assert_eq!(result.rows[0][0], "1"); // id
+        assert_eq!(result.rows[0][3], "in_progress"); // status
+        assert_eq!(result.rows[0][5], "NULL"); // quary_valid_to
+
+        // Check that quary_valid_from has the same date as the current date
+        let current_date = Utc::now().date_naive();
+        let quary_valid_from_str = &result.rows[0][4];
+        let quary_valid_from_date = quary_valid_from_str.split_whitespace().next().unwrap();
+        let quary_valid_from =
+            chrono::NaiveDate::parse_from_str(quary_valid_from_date, "%Y-%m-%d").unwrap();
+        assert_eq!(current_date, quary_valid_from);
+
+        // Update orders.csv data
+        let updated_orders_content = "id,user_id,order_date,status\n1,1,2099-06-01,completed";
+        fs::write(&orders_file, updated_orders_content).unwrap();
+    }
+
+    // Take updated snapshot
+    Command::cargo_bin(name)
+        .unwrap()
+        .current_dir(project_dir)
+        .args(vec!["snapshot"])
+        .assert()
+        .success();
+
+    {
+        let database = databases_duckdb::DuckDB::new_with_file(
+            None,
+            project_dir.join("database.db").to_str().unwrap(),
+        )
+        .ok()
+        .unwrap();
+
+        // Assert updated snapshot
+        let updated_result = database
+            .query("SELECT id, user_id, order_date, status, quary_valid_from, quary_valid_to, quary_scd_id FROM stg_orders_snapshot ORDER BY quary_valid_from")
+            .await
+            .unwrap();
+
+        assert_eq!(updated_result.rows.len(), 2);
+
+        // Check the initial row
+        assert_eq!(updated_result.rows[0][0], "1"); // id
+        assert_eq!(updated_result.rows[0][3], "in_progress"); // status
+        assert_ne!(updated_result.rows[0][5], "NULL"); // quary_valid_to should not be NULL
+
+        // Check the updated row
+        assert_eq!(updated_result.rows[1][0], "1"); // id
+        assert_eq!(updated_result.rows[1][3], "completed"); // status
+        assert_eq!(updated_result.rows[1][5], "NULL"); // quary_valid_to should be NULL
+
+        // Check that quary_valid_from of the updated row has the same date as the current date
+        let current_date = Utc::now().date_naive();
+        let updated_quary_valid_from_str = &updated_result.rows[1][4];
+        let updated_quary_valid_from_date = updated_quary_valid_from_str
+            .split_whitespace()
+            .next()
+            .unwrap();
+        let updated_quary_valid_from =
+            chrono::NaiveDate::parse_from_str(updated_quary_valid_from_date, "%Y-%m-%d").unwrap();
+        assert_eq!(current_date, updated_quary_valid_from);
     }
 }

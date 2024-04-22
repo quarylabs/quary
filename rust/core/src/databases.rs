@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use quary_proto::TableAddress;
 use sqlinference::dialect::Dialect;
 use std::fmt::Debug;
@@ -112,6 +113,26 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
         seed_value.replace('\'', "''")
     }
 
+    /// GenerateSnapshotSQL generates the SQL statements to create a snapshot of a table.
+    ///
+    /// Inputs:
+    /// - `path`: The path of the snapshot table to be created.
+    /// - `templated_select`: The templated SELECT statement used to build the snapshot table. This means:
+    ///   - The raw SELECT statement has been normalised  (i.e. ; have been stripped as a suffix)
+    ///   - The variables referenced in the SELECT statement have been replaced with the values defined in the quary.yaml file
+    ///   - The q. references have been replaced with the underlying path of the referenced seed or source
+    /// - `unique_key`: The column that uniquely identify each row in the snapshot source table.
+    /// - `strategy`: The snapshot strategy to be used (e.g., timestamp)
+    fn generate_snapshot_sql(
+        &self,
+        _path: &str,
+        _templated_select: &str,
+        _unique_key: &str,
+        _strategy: &StrategyType,
+    ) -> Result<Vec<String>, String> {
+        Err("Database does not support snapshots".to_string())
+    }
+
     // For Helpers section
 
     /// ReturnFullPathRequirement takes in the name of the target table and prefixes it with any necessary schema/paths
@@ -186,6 +207,17 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
 
     fn escape_seed_value(&self, seed_value: &str) -> String {
         self.as_ref().escape_seed_value(seed_value)
+    }
+
+    fn generate_snapshot_sql(
+        &self,
+        path: &str,
+        select_query: &str,
+        unique_key: &str,
+        strategy: &StrategyType,
+    ) -> Result<Vec<String>, String> {
+        self.as_ref()
+            .generate_snapshot_sql(path, select_query, unique_key, strategy)
     }
 
     fn return_full_path_requirement(&self, table_name: &str) -> String {

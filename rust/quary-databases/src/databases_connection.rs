@@ -93,8 +93,6 @@ pub async fn database_from_config(
             PostgresConfig(config) => {
                 let host = env::var("PGHOST")
                     .map_err(|_| "PGHOST must be set to connect to Postgres".to_string())?;
-                let port = env::var("PGPORT")
-                    .map_err(|_| "PGPORT must be set to connect to Postgres".to_string())?;
                 let user = env::var("PGUSER")
                     .map_err(|_| "PGUSER must be set to connect to Postgres".to_string())?;
                 let password = env::var("PGPASSWORD")
@@ -102,6 +100,11 @@ pub async fn database_from_config(
                 let database = env::var("PGDATABASE")
                     .map_err(|_| "PGDATABASE must be set to connect to Postgres".to_string())?;
 
+                let port = if let Ok(port) = env::var("PGPORT") {
+                    Some(port)
+                } else {
+                    None
+                };
                 let ssl_mode = if let Ok(ssl_mode) = env::var("PGSSLMODE") {
                     Some(ssl_mode.to_string())
                 } else {
@@ -122,10 +125,15 @@ pub async fn database_from_config(
                 } else {
                     None
                 };
+                let channel_binding = if let Ok(channel_binding) = env::var("PGCHANNELBINDING") {
+                    Some(channel_binding.to_string())
+                } else {
+                    None
+                };
 
                 let database = Postgres::new(
                     &host,
-                    &port,
+                    port,
                     &user,
                     &password,
                     &database,
@@ -134,6 +142,7 @@ pub async fn database_from_config(
                     ssl_cert,
                     ssl_key,
                     ssl_root_cert,
+                    channel_binding,
                 )
                 .await
                 .map_err(|e| e.to_string())?;
@@ -167,13 +176,18 @@ pub fn database_query_generator_from_config(
             config.database,
             config.schema,
         ))),
-        Some(Duckdb(config)) => Ok(Box::new(DatabaseQueryGeneratorDuckDB::new(config.schema))),
-        Some(DuckdbInMemory(config)) => {
-            Ok(Box::new(DatabaseQueryGeneratorDuckDB::new(config.schema)))
-        }
-        Some(PostgresConfig(config)) => {
-            Ok(Box::new(DatabaseQueryGeneratorPostgres::new(config.schema)))
-        }
+        Some(Duckdb(config)) => Ok(Box::new(DatabaseQueryGeneratorDuckDB::new(
+            config.schema,
+            None,
+        ))),
+        Some(DuckdbInMemory(config)) => Ok(Box::new(DatabaseQueryGeneratorDuckDB::new(
+            config.schema,
+            None,
+        ))),
+        Some(PostgresConfig(config)) => Ok(Box::new(DatabaseQueryGeneratorPostgres::new(
+            config.schema,
+            None,
+        ))),
         _ => Err("not implemented".to_string()),
     }
 }

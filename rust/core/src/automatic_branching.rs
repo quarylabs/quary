@@ -19,10 +19,10 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 /// to the database. The views have been created as materialized views to speed up any querying.
 /// This version of the project contains an original table (T) two views (V1 & V2) that depend on
 /// each other as following:
-/// A -> V1 -> V2
+/// T -> V1 -> V2
 ///
 /// Suppose now you want to alter V2 to V2' in a way that still maintains the dependencies:
-/// A -> V1 -> V2'
+/// T -> V1 -> V2'
 /// You are essentially branching off of the 'main' version and experimenting on V2. While
 /// experimenting, you probably want to rely on the materialized V1 to compare the results but also
 /// for the performance boost. Automatic branching is a querying that relies on already applied versions

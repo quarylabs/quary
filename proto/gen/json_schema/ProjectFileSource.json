@@ -11,7 +11,8 @@
                     "items": {
                         "type": "string"
                     },
-                    "type": "array"
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together. For example, you could tag all sources that are related to a specific department with the same tag."
                 },
                 "description": {
                     "type": "string"

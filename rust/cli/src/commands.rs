@@ -49,6 +49,11 @@ pub enum Commands {
         name = "generate-sources",
         about = "Returns a project file with all sources in a database"
     )]
+    #[command(
+        name = "snapshot",
+        about = "Execute snapshots to capture data changes over time"
+    )]
+    Snapshot(SnapshotArgs),
     GenerateSources(GenerateSourcesArgs),
 }
 
@@ -58,6 +63,13 @@ pub struct RpcArgs {
     pub method: String,
     /// RPC request as a proto-encoded string
     pub request: String,
+}
+
+#[derive(Args, Debug)]
+pub struct SnapshotArgs {
+    /// Print the rendered SQL statements without executing them
+    #[arg(long = "dry-run", short = 'd', default_value = "false")]
+    pub dry_run: bool,
 }
 
 #[derive(Args, Debug)]

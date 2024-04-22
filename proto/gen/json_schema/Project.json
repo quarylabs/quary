@@ -215,7 +215,8 @@
                     "items": {
                         "type": "string"
                     },
-                    "type": "array"
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together."
                 },
                 "file_path": {
                     "type": "string"
@@ -307,7 +308,8 @@
                     "items": {
                         "type": "string"
                     },
-                    "type": "array"
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together. For example, you could tag all models that are related to a specific department with the same tag."
                 },
                 "description": {
                     "type": "string"
@@ -336,6 +338,16 @@
         "quary.service.v1.ProjectFile.Snapshot": {
             "properties": {
                 "name": {
+                    "type": "string"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together. For example, you could tag all models that are related to a specific department with the same tag."
+                },
+                "description": {
                     "type": "string"
                 },
                 "unique_key": {
@@ -400,7 +412,8 @@
                     "items": {
                         "type": "string"
                     },
-                    "type": "array"
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together. For example, you could tag all sources that are related to a specific department with the same tag."
                 },
                 "description": {
                     "type": "string"
@@ -446,6 +459,16 @@
             "properties": {
                 "name": {
                     "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together."
                 },
                 "file_path": {
                     "type": "string"
@@ -508,7 +531,8 @@
                     "items": {
                         "type": "string"
                     },
-                    "type": "array"
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together."
                 },
                 "file_path": {
                     "type": "string",

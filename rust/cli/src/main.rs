@@ -19,7 +19,7 @@ use quary_core::databases::{ColumnWithDetails, DatabaseConnection, DatabaseQuery
 use quary_core::graph::project_to_graph;
 use quary_core::init::{Asset, DuckDBAsset};
 use quary_core::onboarding::is_empty_bar_hidden_and_sqlite;
-use quary_core::project::project_and_fs_to_sql_for_views;
+use quary_core::project::{project_and_fs_to_sql_for_snapshots, project_and_fs_to_sql_for_views};
 use quary_core::project_tests::return_tests_sql;
 use quary_core::test_runner::{run_tests_internal, RunStatementFunc, RunTestError};
 use quary_databases::databases_connection::{
@@ -143,6 +143,9 @@ async fn main_wrapped() -> Result<(), String> {
 
             let test_count = project.tests.len();
             println!("Tests processed: {}", test_count);
+
+            let snapshots_count = project.snapshots.len();
+            println!("Snapshots processed: {}", snapshots_count);
 
             println!("Project compiled successfully.");
             Ok(())
@@ -271,7 +274,11 @@ async fn main_wrapped() -> Result<(), String> {
                     }
                 }
                 pb.finish_with_message("done");
-                println!("Created {} views in the database", sqls.len());
+                match sqls.len() {
+                    0 => println!("No models to build"),
+                    1 => println!("Created 1 model in the database"),
+                    n => println!("Created {} models in the database", n),
+                }
                 Ok(())
             }
         }
@@ -477,6 +484,55 @@ async fn main_wrapped() -> Result<(), String> {
             Ok(())
         }
         Commands::Rpc(rpc_args) => rpc(&args, rpc_args).await,
+        Commands::Snapshot(snapshot_args) => {
+            let config = get_config_file(&args.project_file)?;
+            let database = database_from_config(&config).await?;
+            let query_generator = database.query_generator();
+            let (project, file_system) = parse_project(&query_generator).await?;
+            let snapshots_sql =
+                project_and_fs_to_sql_for_snapshots(&project, &file_system, &query_generator)
+                    .await?;
+
+            if snapshot_args.dry_run {
+                println!("\n-- Create snapshots\n");
+                for (name, sql) in snapshots_sql {
+                    println!("\n-- {name}");
+                    for statement in sql {
+                        println!("{};", statement);
+                    }
+                }
+                Ok(())
+            } else {
+                let total_number_of_snapshots = project.snapshots.len();
+                let pb = ProgressBar::new(total_number_of_snapshots as u64);
+                pb.set_style(
+                    ProgressStyle::default_bar()
+                        .template("{spinner:.green} {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
+                        .map_err(|e| e.to_string())?
+                        .progress_chars("=>-"),
+                );
+
+                for (name, sql) in snapshots_sql {
+                    pb.set_message(format!("Building snapshot: {}", name));
+                    pb.inc(1);
+                    for statement in sql {
+                        database.exec(statement.as_str()).await.map_err(|e| {
+                            format!(
+                                "executing sql for snapshot '{}': {:?} {:?}",
+                                name, statement, e
+                            )
+                        })?;
+                    }
+                }
+
+                pb.finish_with_message("done");
+                println!(
+                    "Created/updated {} snapshot(s) in the database",
+                    total_number_of_snapshots
+                );
+                Ok(())
+            }
+        }
     }
 }
 

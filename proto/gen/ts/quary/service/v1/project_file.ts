@@ -11,6 +11,10 @@ export interface ProjectFile {
 
 export interface ProjectFile_Model {
   name: string;
+  /**
+   * Tags are used to group different parts of the project together. For example, you could tag all models that are
+   * related to a specific department with the same tag.
+   */
   tags: string[];
   description?:
     | string
@@ -23,6 +27,12 @@ export interface ProjectFile_Model {
 
 export interface ProjectFile_Snapshot {
   name: string;
+  /**
+   * Tags are used to group different parts of the project together. For example, you could tag all models that are
+   * related to a specific department with the same tag.
+   */
+  tags: string[];
+  description?: string | undefined;
   uniqueKey: string;
   strategy: ProjectFile_SnapshotStrategy | undefined;
 }
@@ -37,6 +47,10 @@ export interface ProjectFile_TimestampStrategy {
 
 export interface ProjectFileSource {
   name: string;
+  /**
+   * Tags are used to group different parts of the project together. For example, you could tag all sources that are
+   * related to a specific department with the same tag.
+   */
   tags: string[];
   description?:
     | string
@@ -309,13 +323,19 @@ export const ProjectFile_Model = {
 };
 
 function createBaseProjectFile_Snapshot(): ProjectFile_Snapshot {
-  return { name: "", uniqueKey: "", strategy: undefined };
+  return { name: "", tags: [], description: undefined, uniqueKey: "", strategy: undefined };
 }
 
 export const ProjectFile_Snapshot = {
   encode(message: ProjectFile_Snapshot, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
+    }
+    for (const v of message.tags) {
+      writer.uint32(34).string(v!);
+    }
+    if (message.description !== undefined) {
+      writer.uint32(42).string(message.description);
     }
     if (message.uniqueKey !== "") {
       writer.uint32(18).string(message.uniqueKey);
@@ -339,6 +359,20 @@ export const ProjectFile_Snapshot = {
           }
 
           message.name = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.tags.push(reader.string());
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.description = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
@@ -366,6 +400,8 @@ export const ProjectFile_Snapshot = {
   fromJSON(object: any): ProjectFile_Snapshot {
     return {
       name: isSet(object.name) ? gt.String(object.name) : "",
+      tags: gt.Array.isArray(object?.tags) ? object.tags.map((e: any) => gt.String(e)) : [],
+      description: isSet(object.description) ? gt.String(object.description) : undefined,
       uniqueKey: isSet(object.uniqueKey) ? gt.String(object.uniqueKey) : "",
       strategy: isSet(object.strategy) ? ProjectFile_SnapshotStrategy.fromJSON(object.strategy) : undefined,
     };
@@ -375,6 +411,12 @@ export const ProjectFile_Snapshot = {
     const obj: any = {};
     if (message.name !== "") {
       obj.name = message.name;
+    }
+    if (message.tags?.length) {
+      obj.tags = message.tags;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
     }
     if (message.uniqueKey !== "") {
       obj.uniqueKey = message.uniqueKey;
@@ -391,6 +433,8 @@ export const ProjectFile_Snapshot = {
   fromPartial<I extends Exact<DeepPartial<ProjectFile_Snapshot>, I>>(object: I): ProjectFile_Snapshot {
     const message = createBaseProjectFile_Snapshot();
     message.name = object.name ?? "";
+    message.tags = object.tags?.map((e) => e) || [];
+    message.description = object.description ?? undefined;
     message.uniqueKey = object.uniqueKey ?? "";
     message.strategy = (object.strategy !== undefined && object.strategy !== null)
       ? ProjectFile_SnapshotStrategy.fromPartial(object.strategy)
