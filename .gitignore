@@ -1,3 +1,7 @@
+# Generated proto
+
+proto/gen
+
 # Terrraform
 
 auth_details.tf
