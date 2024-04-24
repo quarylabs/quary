@@ -1,4 +1,6 @@
-use crate::databases::{base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator};
+use crate::databases::{
+    base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, SnapshotGenerator,
+};
 use sqlinference::dialect::Dialect;
 
 #[derive(Debug, Clone)]
@@ -66,6 +68,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorBigQuery {
         format!("`{}`", name)
     }
 }
+
+impl SnapshotGenerator for DatabaseQueryGeneratorBigQuery {}
 
 #[cfg(test)]
 mod tests {

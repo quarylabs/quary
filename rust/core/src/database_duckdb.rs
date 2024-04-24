@@ -1,4 +1,6 @@
-use crate::databases::{base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator};
+use crate::databases::{
+    base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, SnapshotGenerator,
+};
 use chrono::{DateTime, Utc};
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use sqlinference::dialect::Dialect;
@@ -36,69 +38,6 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorDuckDB {
     fn seeds_create_table_query(&self, table_name: &str, columns: &[String]) -> String {
         let table_name = self.return_full_path_requirement(table_name);
         base_for_seeds_create_table_specifying_text_type("TEXT", table_name.as_str(), columns)
-    }
-
-    fn generate_snapshot_sql(
-        &self,
-        path: &str,
-        templated_select: &str,
-        unique_key: &str,
-        strategy: &StrategyType,
-        table_exists: Option<bool>,
-    ) -> Result<Vec<String>, String> {
-        assert_eq!(
-            table_exists, None,
-            "table_exists is not necessary for DuckDB snapshots."
-        );
-        match strategy {
-            StrategyType::Timestamp(timestamp) => {
-                let updated_at = &timestamp.updated_at;
-                let now = self.get_now();
-
-                let create_table_sql = format!(
-                    "CREATE TABLE IF NOT EXISTS {path} AS (
-                        SELECT
-                            *,
-                            {now} AS quary_valid_from,
-                            CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS quary_valid_to,
-                            MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS STRING)) AS STRING)) AS quary_scd_id
-                        FROM ({templated_select})
-                    )"
-                );
-
-                let update_sql = format!(
-                    "UPDATE {path} AS target
-                    SET quary_valid_to = source.quary_valid_from
-                    FROM (
-                        SELECT
-                            *,
-                            {now} AS quary_valid_from,
-                            MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS STRING)) AS STRING)) AS quary_scd_id
-                        FROM ({templated_select})
-                    ) AS source
-                    WHERE target.{unique_key} = source.{unique_key}
-                        AND target.quary_valid_to IS NULL
-                        AND CAST(source.{updated_at} AS TIMESTAMP) > CAST(target.{updated_at} AS TIMESTAMP)"
-                );
-
-                let insert_sql = format!(
-                    "INSERT INTO {path}
-                    SELECT
-                        *,
-                        {now} AS quary_valid_from,
-                        NULL AS quary_valid_to,
-                        MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS STRING)) AS STRING)) AS quary_scd_id
-                    FROM ({templated_select}) AS source
-                    WHERE NOT EXISTS (
-                        SELECT 1
-                        FROM {path} AS target
-                        WHERE target.quary_scd_id = MD5(CAST(CONCAT(source.{unique_key}, CAST(source.{updated_at} AS STRING)) AS STRING))
-                    )"
-                );
-
-                Ok(vec![create_table_sql, update_sql, insert_sql])
-            }
-        }
     }
 
     fn return_full_path_requirement(&self, table_name: &str) -> String {
@@ -147,6 +86,92 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorDuckDB {
 
     fn database_name_wrapper(&self, name: &str) -> String {
         name.into()
+    }
+}
+
+impl SnapshotGenerator for DatabaseQueryGeneratorDuckDB {
+    fn generate_snapshot_sql(
+        &self,
+        path: &str,
+        templated_select: &str,
+        unique_key: &str,
+        strategy: &StrategyType,
+        table_exists: Option<bool>,
+    ) -> Result<Vec<String>, String> {
+        assert_eq!(
+            table_exists, None,
+            "table_exists is not necessary for DuckDB snapshots."
+        );
+
+        let snapshot_query =
+            self.generate_snapshot_query(templated_select, unique_key, strategy)?;
+
+        match strategy {
+            StrategyType::Timestamp(timestamp) => {
+                let updated_at = &timestamp.updated_at;
+                let now = self.get_now();
+
+                let create_table_sql = format!(
+                    "CREATE TABLE IF NOT EXISTS {path} AS (
+                      {snapshot_query}
+                    )"
+                );
+
+                let update_sql = format!(
+                    "UPDATE {path} AS target
+                    SET quary_valid_to = source.quary_valid_from
+                    FROM (
+                        SELECT
+                            *,
+                            {now} AS quary_valid_from,
+                            MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS STRING)) AS STRING)) AS quary_scd_id
+                        FROM ({templated_select})
+                    ) AS source
+                    WHERE target.{unique_key} = source.{unique_key}
+                        AND target.quary_valid_to IS NULL
+                        AND CAST(source.{updated_at} AS TIMESTAMP) > CAST(target.{updated_at} AS TIMESTAMP)"
+                );
+
+                let insert_sql = format!(
+                    "INSERT INTO {path}
+                    SELECT
+                        *,
+                        {now} AS quary_valid_from,
+                        NULL AS quary_valid_to,
+                        MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS STRING)) AS STRING)) AS quary_scd_id
+                    FROM ({templated_select}) AS source
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM {path} AS target
+                        WHERE target.quary_scd_id = MD5(CAST(CONCAT(source.{unique_key}, CAST(source.{updated_at} AS STRING)) AS STRING))
+                    )"
+                );
+
+                Ok(vec![create_table_sql, update_sql, insert_sql])
+            }
+        }
+    }
+
+    fn generate_snapshot_query(
+        &self,
+        templated_select: &str,
+        unique_key: &str,
+        strategy: &StrategyType,
+    ) -> Result<String, String> {
+        match strategy {
+            StrategyType::Timestamp(timestamp) => {
+                let updated_at = &timestamp.updated_at;
+                let now = self.get_now();
+                Ok(format!(
+                    "SELECT
+                        *,
+                        {now} AS quary_valid_from,
+                        CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS quary_valid_to,
+                        MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS STRING)) AS STRING)) AS quary_scd_id
+                    FROM ({templated_select})"
+                ))
+            }
+        }
     }
 }
 
@@ -218,6 +243,6 @@ mod tests {
             .generate_snapshot_sql(path, templated_select, unique_key, &strategy, None)
             .unwrap();
 
-        assert_eq!(result.iter().map(|s| s.as_str()).collect::<Vec<&str>>(), vec!["CREATE TABLE IF NOT EXISTS mytable AS (\n                        SELECT\n                            *,\n                            '2021-01-01T00:00:00Z' AS quary_valid_from,\n                            CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS quary_valid_to,\n                            MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                        FROM (SELECT * FROM mytable)\n                    )", "UPDATE mytable AS target\n                    SET quary_valid_to = source.quary_valid_from\n                    FROM (\n                        SELECT\n                            *,\n                            '2021-01-01T00:00:00Z' AS quary_valid_from,\n                            MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                        FROM (SELECT * FROM mytable)\n                    ) AS source\n                    WHERE target.id = source.id\n                        AND target.quary_valid_to IS NULL\n                        AND CAST(source.updated_at AS TIMESTAMP) > CAST(target.updated_at AS TIMESTAMP)", "INSERT INTO mytable\n                    SELECT\n                        *,\n                        '2021-01-01T00:00:00Z' AS quary_valid_from,\n                        NULL AS quary_valid_to,\n                        MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                    FROM (SELECT * FROM mytable) AS source\n                    WHERE NOT EXISTS (\n                        SELECT 1\n                        FROM mytable AS target\n                        WHERE target.quary_scd_id = MD5(CAST(CONCAT(source.id, CAST(source.updated_at AS STRING)) AS STRING))\n                    )"]);
+        assert_eq!(result.iter().map(|s| s.as_str()).collect::<Vec<&str>>(), vec!["CREATE TABLE IF NOT EXISTS mytable AS (\n                      SELECT\n                        *,\n                        '2021-01-01T00:00:00Z' AS quary_valid_from,\n                        CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS quary_valid_to,\n                        MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                    FROM (SELECT * FROM mytable)\n                    )", "UPDATE mytable AS target\n                    SET quary_valid_to = source.quary_valid_from\n                    FROM (\n                        SELECT\n                            *,\n                            '2021-01-01T00:00:00Z' AS quary_valid_from,\n                            MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                        FROM (SELECT * FROM mytable)\n                    ) AS source\n                    WHERE target.id = source.id\n                        AND target.quary_valid_to IS NULL\n                        AND CAST(source.updated_at AS TIMESTAMP) > CAST(target.updated_at AS TIMESTAMP)", "INSERT INTO mytable\n                    SELECT\n                        *,\n                        '2021-01-01T00:00:00Z' AS quary_valid_from,\n                        NULL AS quary_valid_to,\n                        MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                    FROM (SELECT * FROM mytable) AS source\n                    WHERE NOT EXISTS (\n                        SELECT 1\n                        FROM mytable AS target\n                        WHERE target.quary_scd_id = MD5(CAST(CONCAT(source.id, CAST(source.updated_at AS STRING)) AS STRING))\n                    )"]);
     }
 }
