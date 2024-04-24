@@ -11,7 +11,7 @@ yup-oauth2 = { version = "8", default-features = false }
 quary-core = { path = "../core" }
 quary_proto = { path = "../../proto/gen/rust" }
 tokio = { version = "1", features = ["full"] }
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "postgres", "chrono"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "postgres", "chrono", "bigdecimal"] }
 async-trait = "0.1"
 gcp-bigquery-client = "0.18"
 prost = "0.12"

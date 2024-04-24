@@ -22,7 +22,7 @@ pub fn remove_sql_comments(sql: &str) -> String {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]

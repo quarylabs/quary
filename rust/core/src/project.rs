@@ -1,6 +1,6 @@
 use crate::automatic_branching::derive_sha256_file_contents;
 use crate::config::get_config_from_filesystem;
-use crate::databases::DatabaseQueryGenerator;
+use crate::databases::{DatabaseConnection, DatabaseQueryGenerator};
 use crate::file_system::{convert_async_read_to_blocking_read, FileSystem};
 use crate::graph::{project_to_graph, Edge};
 use crate::map_helpers::safe_adder_map;
@@ -1300,15 +1300,23 @@ pub async fn project_and_fs_to_sql_for_snapshots(
     project: &Project,
     file_system: &impl FileSystem,
     database: &impl DatabaseQueryGenerator,
+    database_connection: &Box<dyn DatabaseConnection>,
 ) -> Result<Vec<(String, Vec<String>)>, String> {
     let snapshots_out = project.snapshots.values().map(|snapshot| async move {
         let connection_config = project
             .connection_config
             .clone()
             .ok_or("missing connection config")?;
-        let sql_statements =
-            generate_snapshot_sql(&connection_config, project, database, file_system, snapshot)
-                .await?;
+
+        let sql_statements = generate_snapshot_sql(
+            &connection_config,
+            project,
+            database,
+            file_system,
+            snapshot,
+            database_connection,
+        )
+        .await?;
         Ok::<(String, Vec<String>), String>((snapshot.name.clone(), sql_statements))
     });
 
@@ -1326,6 +1334,7 @@ async fn generate_snapshot_sql(
     database: &impl DatabaseQueryGenerator,
     file_system: &impl FileSystem,
     snapshot: &Snapshot,
+    database_connection: &Box<dyn DatabaseConnection>,
 ) -> Result<Vec<String>, String> {
     let snapshot_strategy = snapshot
         .strategy
@@ -1359,11 +1368,22 @@ async fn generate_snapshot_sql(
     let templated_select =
         reference_search.replace_all(&vars_replaced_select_statement, name_replacing_strategy);
 
+    let table_exists = match database_connection.table_exists(&snapshot_path).await {
+        Ok(Some(exists)) => Some(exists),
+        Ok(None) => None,
+        Err(err) => {
+            return Err(format!(
+                "An error occurred checking for the existence of the snapshot table: {}",
+                err
+            ));
+        }
+    };
     database.generate_snapshot_sql(
         &snapshot_path,
         &templated_select,
         &snapshot.unique_key,
         &snapshot_strategy,
+        table_exists,
     )
 }
 
@@ -1638,7 +1658,7 @@ pub const PATH_FOR_MODELS: &str = "models";
 pub(crate) const PATH_FOR_TESTS: &str = "tests";
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use crate::database_bigquery::DatabaseQueryGeneratorBigQuery;
     use crate::database_sqlite::DatabaseQueryGeneratorSqlite;
@@ -3053,24 +3073,29 @@ models:
     }
 
     // TODO Reinstate after making get_node_sorted completely deterministic
-    // #[test]
-    // fn test_project_and_fs_to_sql_for_views() {
-    //     let assets = Asset {};
-    //     let config = default_config();
-    //     let project = parse_project(&config, &assets, "").unwrap();
-    //
-    //     let sql = project_and_fs_to_query_sql(&project, &assets, "stg_shifts").unwrap();
-    //     assert_eq!(
-    //         sql.0,
-    //         "WITH raw_shifts AS (SELECT column1 AS employee_id,column2 AS shop_id,column3 AS date,column4 AS shift FROM (VALUES ('1','2','2023-01-01','morning'),('1','2','2023-01-02','morning'),('1','2','2023-01-03','morning'),('1','2','2023-01-04','morning'),('1','2','2023-01-05','morning'),('1','2','2023-01-06','morning'),('1','2','2023-01-07','morning'),('1','2','2023-01-08','morning'),('1','2','2023-01-09','morning'),('1','2','2023-01-10','morning'),('1','2','2023-01-11','morning'),('1','2','2023-01-12','morning'),('1','2','2023-01-13','morning'),('1','2','2023-01-13','afternoon'))) select\n  employee_id,\n  shop_id,\n  date as shift_date,\n  shift\nfrom\n  raw_shifts\n"
-    //     );
-    //
-    //     let sql = project_and_fs_to_query_sql(&project, &assets, "shifts_summary").unwrap();
-    //     assert_eq!(
-    //         sql.0,
-    //         "WITH\nraw_employees AS (SELECT column1 AS id,column2 AS first_name,column3 AS last_name FROM (VALUES ('1','John','Doe'),('2','Jane','Doe'),('3','Ashok','Kumar'),('4','Peter','Pan'),('5','Marie','Curie'))),\nraw_shifts AS (SELECT column1 AS employee_id,column2 AS shop_id,column3 AS date,column4 AS shift FROM (VALUES ('1','2','2023-01-01','morning'),('1','2','2023-01-02','morning'),('1','2','2023-01-03','morning'),('1','2','2023-01-04','morning'),('1','2','2023-01-05','morning'),('1','2','2023-01-06','morning'),('1','2','2023-01-07','morning'),('1','2','2023-01-08','morning'),('1','2','2023-01-09','morning'),('1','2','2023-01-10','morning'),('1','2','2023-01-11','morning'),('1','2','2023-01-12','morning'),('1','2','2023-01-13','morning'),('1','2','2023-01-13','afternoon'))),\nshift_hours AS (SELECT 'morning'  AS shift,\n       '08:00:00' AS start_time,\n       '12:00:00' AS end_time\nUNION ALL\nSELECT 'afternoon' AS shift,\n       '12:00:00'  AS start_time,\n       '16:00:00'  AS end_time),\nshift_first AS (WITH\n  min_shifts AS (\n    SELECT\n      employee_id,\n      MIN(shift_start) AS shift_start\n    FROM\n      shifts\n    GROUP BY\n      employee_id\n  )\nSELECT\n  x.employee_id AS employee_id,\n  x.shift_start AS shift_start,\n  x.shift_end AS shift_end\nFROM\n  shifts x\n  INNER JOIN min_shifts y ON y.employee_id = x.employee_id\n  AND y.shift_start = x.shift_start\nGROUP BY\n  x.employee_id,\n  x.shift_start\n),\nshift_last AS (WITH min_shifts AS (SELECT employee_id,\n                           max(shift_start) AS shift_start\n                    FROM shifts\n                    GROUP BY employee_id)\n\nSELECT x.employee_id AS employee_id,\n       x.shift_start AS shift_start,\n       x.shift_end AS shift_end\nFROM shifts x\nINNER JOIN min_shifts y\nON y.employee_id = x.employee_id AND y.shift_start = x.shift_start\nGROUP BY x.employee_id, x.shift_start),\nstg_employees AS (select\n  id as employee_id,\n  first_name,\n  last_name\nfrom\n  raw_employees\n),\nstg_shifts AS (select\n  employee_id,\n  shop_id,\n  date as shift_date,\n  shift\nfrom\n  raw_shifts\n),\nshifts AS (WITH shifts AS (SELECT employee_id,\n                       shift_date,\n                       shift\n                FROM stg_shifts\n                ),\n     shift_details AS (SELECT shift AS shift_name,\n                              start_time,\n                              end_time\n                       FROM shift_hours\n                       )\n\nSELECT s.employee_id AS employee_id,\n       s.shift AS shift,\n       datetime(s.shift_date, sd.start_time) AS shift_start,\n       datetime(s.shift_date, sd.end_time)   AS shift_end\nFROM shifts s\n         INNER JOIN shift_details sd\n                    ON s.shift = sd.shift_name\n)\nSELECT * FROM (WITH total_hours AS (\n    SELECT employee_id,\n           SUM(strftime('%s', shift_end) - strftime('%s', shift_start)) AS total_hours,\n           COUNT(*) AS total_shifts\n    FROM shifts\n    GROUP BY employee_id\n),\n\npercentage_morning_shifts AS (\n    SELECT employee_id,\n           SUM(CASE WHEN shift = 'morning' THEN 1 ELSE 0 END) AS total_morning_shifts,\n          COUNT(*) AS total_shifts\n    FROM shifts\n    GROUP BY employee_id\n)\n\nSELECT e.employee_id,\n       e.first_name,\n       e.last_name,\n       sf.shift_start AS first_shift,\n       sl.shift_start AS last_shift,\n       pms.total_morning_shifts / pms.total_shifts * 100 AS percentage_morning_shifts,\n       th.total_shifts,\n       th.total_hours\nFROM stg_employees e\nLEFT JOIN shift_first sf\n    ON e.employee_id = sf.employee_id\nLEFT JOIN shift_last sl\n    ON e.employee_id = sl.employee_id\nLEFT JOIN total_hours th\n    ON e.employee_id = th.employee_id\nLEFT JOIN percentage_morning_shifts pms\n    ON e.employee_id = pms.employee_id)"
-    //     )
-    // }
+    #[tokio::test]
+    #[ignore]
+    async fn test_project_and_fs_to_sql_for_views() {
+        let assets = Asset {};
+        let database = DatabaseQueryGeneratorSqlite::default();
+        let project = parse_project(&assets, &database, "").await.unwrap();
+
+        let sql = project_and_fs_to_query_sql(&database, &project, &assets, "stg_shifts", None)
+            .await
+            .unwrap();
+        assert_eq!(
+            sql.0,
+            "WITH raw_shifts AS (SELECT column1 AS employee_id,column2 AS shop_id,column3 AS date,column4 AS shift FROM (VALUES ('1','2','2023-01-01','morning'),('1','2','2023-01-02','morning'),('1','2','2023-01-03','morning'),('1','2','2023-01-04','morning'),('1','2','2023-01-05','morning'),('1','2','2023-01-06','morning'),('1','2','2023-01-07','morning'),('1','2','2023-01-08','morning'),('1','2','2023-01-09','morning'),('1','2','2023-01-10','morning'),('1','2','2023-01-11','morning'),('1','2','2023-01-12','morning'),('1','2','2023-01-13','morning'),('1','2','2023-01-13','afternoon'))) select\n  employee_id,\n  shop_id,\n  date as shift_date,\n  shift\nfrom\n  raw_shifts\n"
+        );
+
+        let sql = project_and_fs_to_query_sql(&database, &project, &assets, "shifts_summary", None)
+            .await
+            .unwrap();
+        assert_eq!(
+            sql.0,
+            "WITH\nraw_employees AS (SELECT column1 AS id,column2 AS first_name,column3 AS last_name FROM (VALUES ('1','John','Doe'),('2','Jane','Doe'),('3','Ashok','Kumar'),('4','Peter','Pan'),('5','Marie','Curie'))),\nraw_shifts AS (SELECT column1 AS employee_id,column2 AS shop_id,column3 AS date,column4 AS shift FROM (VALUES ('1','2','2023-01-01','morning'),('1','2','2023-01-02','morning'),('1','2','2023-01-03','morning'),('1','2','2023-01-04','morning'),('1','2','2023-01-05','morning'),('1','2','2023-01-06','morning'),('1','2','2023-01-07','morning'),('1','2','2023-01-08','morning'),('1','2','2023-01-09','morning'),('1','2','2023-01-10','morning'),('1','2','2023-01-11','morning'),('1','2','2023-01-12','morning'),('1','2','2023-01-13','morning'),('1','2','2023-01-13','afternoon'))),\nshift_hours AS (SELECT 'morning'  AS shift,\n       '08:00:00' AS start_time,\n       '12:00:00' AS end_time\nUNION ALL\nSELECT 'afternoon' AS shift,\n       '12:00:00'  AS start_time,\n       '16:00:00'  AS end_time),\nshift_first AS (WITH\n  min_shifts AS (\n    SELECT\n      employee_id,\n      MIN(shift_start) AS shift_start\n    FROM\n      shifts\n    GROUP BY\n      employee_id\n  )\nSELECT\n  x.employee_id AS employee_id,\n  x.shift_start AS shift_start,\n  x.shift_end AS shift_end\nFROM\n  shifts x\n  INNER JOIN min_shifts y ON y.employee_id = x.employee_id\n  AND y.shift_start = x.shift_start\nGROUP BY\n  x.employee_id,\n  x.shift_start\n),\nshift_last AS (WITH min_shifts AS (SELECT employee_id,\n                           max(shift_start) AS shift_start\n                    FROM shifts\n                    GROUP BY employee_id)\n\nSELECT x.employee_id AS employee_id,\n       x.shift_start AS shift_start,\n       x.shift_end AS shift_end\nFROM shifts x\nINNER JOIN min_shifts y\nON y.employee_id = x.employee_id AND y.shift_start = x.shift_start\nGROUP BY x.employee_id, x.shift_start),\nstg_employees AS (select\n  id as employee_id,\n  first_name,\n  last_name\nfrom\n  raw_employees\n),\nstg_shifts AS (select\n  employee_id,\n  shop_id,\n  date as shift_date,\n  shift\nfrom\n  raw_shifts\n),\nshifts AS (WITH shifts AS (SELECT employee_id,\n                       shift_date,\n                       shift\n                FROM stg_shifts\n                ),\n     shift_details AS (SELECT shift AS shift_name,\n                              start_time,\n                              end_time\n                       FROM shift_hours\n                       )\n\nSELECT s.employee_id AS employee_id,\n       s.shift AS shift,\n       datetime(s.shift_date, sd.start_time) AS shift_start,\n       datetime(s.shift_date, sd.end_time)   AS shift_end\nFROM shifts s\n         INNER JOIN shift_details sd\n                    ON s.shift = sd.shift_name\n)\nSELECT * FROM (WITH total_hours AS (\n    SELECT employee_id,\n           SUM(strftime('%s', shift_end) - strftime('%s', shift_start)) AS total_hours,\n           COUNT(*) AS total_shifts\n    FROM shifts\n    GROUP BY employee_id\n),\n\npercentage_morning_shifts AS (\n    SELECT employee_id,\n           SUM(CASE WHEN shift = 'morning' THEN 1 ELSE 0 END) AS total_morning_shifts,\n          COUNT(*) AS total_shifts\n    FROM shifts\n    GROUP BY employee_id\n)\n\nSELECT e.employee_id,\n       e.first_name,\n       e.last_name,\n       sf.shift_start AS first_shift,\n       sl.shift_start AS last_shift,\n       pms.total_morning_shifts / pms.total_shifts * 100 AS percentage_morning_shifts,\n       th.total_shifts,\n       th.total_hours\nFROM stg_employees e\nLEFT JOIN shift_first sf\n    ON e.employee_id = sf.employee_id\nLEFT JOIN shift_last sl\n    ON e.employee_id = sl.employee_id\nLEFT JOIN total_hours th\n    ON e.employee_id = th.employee_id\nLEFT JOIN percentage_morning_shifts pms\n    ON e.employee_id = pms.employee_id)"
+        )
+    }
 
     // TODO Implement tests
     //func Test_parseColumnTests(t *testing.T) {

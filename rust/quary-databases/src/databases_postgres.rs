@@ -5,11 +5,13 @@ use quary_core::databases::{
     ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
 };
 use quary_proto::TableAddress;
-use sqlx::postgres::{PgPoolOptions, PgRow};
+use sqlx::postgres::{PgConnectOptions, PgPoolOptions, PgRow};
+use sqlx::types::BigDecimal;
 use sqlx::{Column, Pool, Row};
 use sqlx::{Error, TypeInfo};
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::str::FromStr;
 
 #[derive(Debug)]
 pub struct Postgres {
@@ -18,6 +20,7 @@ pub struct Postgres {
 }
 
 impl Postgres {
+    // TODO This should be a builder pattern or something else
     pub async fn new(
         host: &str,
         port: Option<String>,
@@ -30,6 +33,7 @@ impl Postgres {
         ssl_key: Option<String>,
         ssl_root_cert: Option<String>,
         channel_binding: Option<String>,
+        extra_float_digits: Option<i8>,
     ) -> Result<Self, Error> {
         let params = HashMap::from([
             ("sslmode", ssl_mode),
@@ -62,7 +66,13 @@ impl Postgres {
             params.unwrap_or("".to_string())
         );
 
-        let pool = PgPoolOptions::new().connect(&connection_string).await?;
+        let options = PgConnectOptions::from_str(connection_string.as_str())?;
+        let options = if let Some(extra_float_digits) = extra_float_digits {
+            options.extra_float_digits(extra_float_digits)
+        } else {
+            options
+        };
+        let pool = PgPoolOptions::new().connect_with(options).await?;
         Ok(Self {
             pool,
             schema: schema.to_string(),
@@ -71,7 +81,10 @@ impl Postgres {
 }
 
 impl Postgres {
-    async fn list_table_like_query(&self, where_clause: &str) -> Result<Vec<TableAddress>, String> {
+    pub async fn list_table_like_query(
+        &self,
+        where_clause: &str,
+    ) -> Result<Vec<TableAddress>, String> {
         let query = format!(
             "SELECT
             CASE
@@ -274,6 +287,18 @@ impl DatabaseConnection for Postgres {
                     let value = row.try_get::<Option<String>, _>(i)?;
                     value
                 }
+                "DATE" => {
+                    let value = row
+                        .try_get::<Option<chrono::NaiveDate>, _>(i)?
+                        .map(|v| v.format("%Y-%m-%d").to_string());
+                    value
+                }
+                "NUMERIC" => {
+                    let value = row
+                        .try_get::<Option<BigDecimal>, _>(i)?
+                        .map(|v| v.to_string());
+                    value
+                }
                 _ => Some(format!("Unsupported type: {}", type_name)),
             };
             match value {
@@ -299,6 +324,10 @@ impl DatabaseConnection for Postgres {
         })
     }
 
+    async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
+        Ok(None) // not implemented
+    }
+
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {
         Box::new(DatabaseQueryGeneratorPostgres::new(
             self.schema.clone(),
@@ -322,6 +351,75 @@ mod tests {
     use testcontainers_modules::postgres::Postgres as TestcontainersPostgres;
 
     #[tokio::test]
+    async fn run_build_with_project_twice() {
+        let docker = clients::Cli::default();
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
+        let pg_container = docker.run(postgres_image);
+        let pg_port = pg_container.get_host_port_ipv4(5432);
+
+        let quary_postgres = Postgres::new(
+            "localhost",
+            Some(pg_port.to_string()),
+            "postgres",
+            "postgres",
+            "postgres",
+            "public",
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
+        .await
+        .expect("Failed to instantiate Quary Postgres");
+
+        let filesystem = FileSystem {
+            files: vec![
+                ("quary.yaml", "postgres: {schema: public}"),
+                ("models/test_model.sql", "SELECT * FROM q.test_seed"),
+                ("seeds/test_seed.csv", "id,name\n1,test\n2,rubbish"),
+            ]
+            .into_iter()
+            .map(|(k, v)| {
+                (
+                    k.to_string(),
+                    File {
+                        name: k.to_string(),
+                        contents: Bytes::from(v),
+                    },
+                )
+            })
+            .collect(),
+        };
+
+        let project = parse_project(&filesystem, &quary_postgres.query_generator(), "")
+            .await
+            .unwrap();
+        let sqls = project_and_fs_to_sql_for_views(
+            &project,
+            &filesystem,
+            &quary_postgres.query_generator(),
+            false,
+            false,
+        )
+        .await
+        .unwrap();
+
+        for sql in &sqls {
+            for sql in &sql.1 {
+                quary_postgres.exec(&sql).await.unwrap();
+            }
+        }
+        // Run twice
+        for sql in &sqls {
+            for sql in &sql.1 {
+                quary_postgres.exec(&sql).await.unwrap();
+            }
+        }
+    }
+
+    #[tokio::test]
     async fn test_postgres_list_tables_and_views() {
         // Start a PostgreSQL container
         let docker = clients::Cli::default();
@@ -336,6 +434,7 @@ mod tests {
             "postgres",
             "postgres",
             "public",
+            None,
             None,
             None,
             None,
@@ -451,6 +550,7 @@ mod tests {
             None,
             None,
             None,
+            None,
         )
         .await
         .expect("Failed to instantiate Quary Postgres");
@@ -525,6 +625,7 @@ mod tests {
             "postgres",
             "postgres",
             "transform",
+            None,
             None,
             None,
             None,
@@ -650,6 +751,7 @@ models:
             "postgres",
             "postgres",
             "transform",
+            None,
             None,
             None,
             None,
@@ -803,6 +905,7 @@ models:
             None,
             None,
             None,
+            None,
         )
         .await
         .expect("Failed to instantiate Quary Postgres");
@@ -876,6 +979,7 @@ models:
             None,
             None,
             None,
+            None,
         )
         .await
         .unwrap();
@@ -923,6 +1027,123 @@ models:
     }
 
     #[tokio::test]
+    async fn test_snapshot_with_no_time_override() {
+        let schema = "analytics";
+        let docker = clients::Cli::default();
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
+        let pg_container = docker.run(postgres_image);
+        let pg_port = pg_container.get_host_port_ipv4(5432);
+        let database: Box<dyn DatabaseConnection> = Box::new(
+            Postgres::new(
+                "localhost",
+                Some(pg_port.to_string()),
+                "postgres",
+                "postgres",
+                "postgres",
+                schema,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
+            .await
+            .unwrap(),
+        );
+
+        database.exec("CREATE SCHEMA analytics").await.unwrap();
+        database.exec("CREATE SCHEMA jaffle_shop").await.unwrap();
+
+        // Create orders table
+        database
+            .exec("CREATE TABLE jaffle_shop.raw_orders (order_id INTEGER, status VARCHAR(255), updated_at TIMESTAMP)")
+            .await
+            .unwrap();
+
+        // Insert some initial data
+        database
+            .exec("INSERT INTO jaffle_shop.raw_orders VALUES (1, 'in_progress', '2023-01-01 00:00:00'), (2, 'completed', '2023-01-01 00:00:00')")
+            .await
+            .unwrap();
+
+        let file_system = FileSystem {
+            files: vec![
+                ("quary.yaml", "duckdbInMemory: {schema: analytics}"),
+                (
+                    "models/orders_snapshot.snapshot.sql",
+                    "SELECT * FROM q.raw_orders",
+                ),
+                (
+                    "models/schema.yaml",
+                    "
+sources:
+  - name: raw_orders
+    path: jaffle_shop.raw_orders
+snapshots:
+  - name: orders_snapshot
+    unique_key: order_id
+    strategy:
+      timestamp:
+        updated_at: updated_at
+",
+                ),
+            ]
+            .iter()
+            .map(|(k, v)| {
+                (
+                    k.to_string(),
+                    File {
+                        name: k.to_string(),
+                        contents: Bytes::from(v.to_string()),
+                    },
+                )
+            })
+            .collect(),
+        };
+
+        let project = parse_project(
+            &file_system,
+            &DatabaseQueryGeneratorPostgres::new(schema.to_string(), None),
+            "",
+        )
+        .await
+        .unwrap();
+
+        let snapshots_sql = project_and_fs_to_sql_for_snapshots(
+            &project,
+            &file_system,
+            &DatabaseQueryGeneratorPostgres::new(schema.to_string(), None),
+            &database,
+        )
+        .await
+        .unwrap();
+        for (_, sql) in snapshots_sql {
+            for statement in sql {
+                database.exec(statement.as_str()).await.unwrap()
+            }
+        }
+
+        // assert the data has been created correctly in the snapshot table
+        let data = database.query("SELECT order_id, status, updated_at, quary_valid_from, quary_valid_to, quary_scd_id FROM analytics.orders_snapshot").await.unwrap();
+        assert_eq!(
+            data.columns
+                .iter()
+                .map(|(column, _)| column)
+                .collect::<Vec<_>>(),
+            vec![
+                "order_id",
+                "status",
+                "updated_at",
+                "quary_valid_from",
+                "quary_valid_to",
+                "quary_scd_id"
+            ]
+        );
+        assert_eq!(data.rows.len(), 2);
+    }
+
+    #[tokio::test]
     async fn test_snapshots_with_schema() {
         let schema = "analytics";
 
@@ -930,21 +1151,24 @@ models:
         let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
         let pg_container = docker.run(postgres_image);
         let pg_port = pg_container.get_host_port_ipv4(5432);
-        let database = Postgres::new(
-            "localhost",
-            Some(pg_port.to_string()),
-            "postgres",
-            "postgres",
-            "postgres",
-            schema,
-            None,
-            None,
-            None,
-            None,
-            None,
-        )
-        .await
-        .unwrap();
+        let database: Box<dyn DatabaseConnection> = Box::new(
+            Postgres::new(
+                "localhost",
+                Some(pg_port.to_string()),
+                "postgres",
+                "postgres",
+                "postgres",
+                schema,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
+            .await
+            .unwrap(),
+        );
 
         database.exec("CREATE SCHEMA analytics").await.unwrap();
         database.exec("CREATE SCHEMA jaffle_shop").await.unwrap();
@@ -1016,12 +1240,11 @@ snapshots:
             .unwrap();
 
         let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator)
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, &database)
                 .await
                 .unwrap();
         for (_, sql) in snapshots_sql {
             for statement in sql {
-                println!("{}", statement.as_str());
                 database.exec(statement.as_str()).await.unwrap()
             }
         }
@@ -1089,10 +1312,14 @@ snapshots:
         let db_generator_updated =
             DatabaseQueryGeneratorPostgres::new(schema.to_string(), Some(system_time_updated));
 
-        let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator_updated)
-                .await
-                .unwrap();
+        let snapshots_sql = project_and_fs_to_sql_for_snapshots(
+            &project,
+            &file_system,
+            &db_generator_updated,
+            &database,
+        )
+        .await
+        .unwrap();
 
         for (_, sql) in &snapshots_sql {
             for statement in sql {

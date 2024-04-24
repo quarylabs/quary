@@ -289,7 +289,7 @@ impl ShortTestString for Test {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use crate::test_helpers::ToTest;
     use crate::tests::{ShortTestString, ToSql};
     use quary_proto::test::TestType;

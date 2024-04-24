@@ -458,7 +458,7 @@ pub async fn run_model_tests_internal(
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]

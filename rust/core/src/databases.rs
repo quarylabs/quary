@@ -123,12 +123,14 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
     ///   - The q. references have been replaced with the underlying path of the referenced seed or source
     /// - `unique_key`: The column that uniquely identify each row in the snapshot source table.
     /// - `strategy`: The snapshot strategy to be used (e.g., timestamp)
+    /// - `table_exists`: A boolean used to check if the snapshot table already exists in the database.
     fn generate_snapshot_sql(
         &self,
         _path: &str,
         _templated_select: &str,
         _unique_key: &str,
         _strategy: &StrategyType,
+        _table_exists: Option<bool>,
     ) -> Result<Vec<String>, String> {
         Err("Database does not support snapshots".to_string())
     }
@@ -215,9 +217,10 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
         select_query: &str,
         unique_key: &str,
         strategy: &StrategyType,
+        table_exists: Option<bool>,
     ) -> Result<Vec<String>, String> {
         self.as_ref()
-            .generate_snapshot_sql(path, select_query, unique_key, strategy)
+            .generate_snapshot_sql(path, select_query, unique_key, strategy, table_exists)
     }
 
     fn return_full_path_requirement(&self, table_name: &str) -> String {
@@ -304,6 +307,12 @@ pub trait DatabaseConnection: Debug {
 
     /// query_generator returns the appropriate query generator
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator>;
+
+    /// table_exists returns a boolean whether a table at a given path exists in the database
+    /// if the path is fully qualified i.e. analaytics.table_name it will search for this else it will lean on the schema defined in the configuration
+    /// Returns an optional boolean: Some(true) if the table exists, Some(false) if it doesn't, and None if the operation is unsupported by the database.
+    /// TODO: This should be changed to return a Result<bool, String> instead of an Option<bool>
+    async fn table_exists(&self, path: &str) -> Result<Option<bool>, String>;
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]

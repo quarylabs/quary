@@ -87,7 +87,7 @@ fn return_sql_model_template(
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     //     TODO Implement tests
     //     func TestParseModelSchemasToViews(t *testing.T) {
     // 	t.Parallel()
