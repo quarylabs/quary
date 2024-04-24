@@ -1,4 +1,4 @@
-use crate::databases::DatabaseQueryGenerator;
+use crate::databases::{DatabaseQueryGenerator, SnapshotGenerator};
 use sqlinference::dialect::Dialect;
 
 #[derive(Debug, Default)]
@@ -47,6 +47,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorSqlite {
         format!("`{}`", name)
     }
 }
+
+impl SnapshotGenerator for DatabaseQueryGeneratorSqlite {}
 
 #[cfg(test)]
 mod tests {

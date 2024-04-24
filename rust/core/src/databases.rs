@@ -4,7 +4,7 @@ use quary_proto::TableAddress;
 use sqlinference::dialect::Dialect;
 use std::fmt::Debug;
 
-pub trait DatabaseQueryGenerator: Debug + Sync {
+pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
     /// Validates the materialization flag defined in the model schema.yaml file.
     fn validate_materialization_type(
         &self,
@@ -113,28 +113,6 @@ pub trait DatabaseQueryGenerator: Debug + Sync {
         seed_value.replace('\'', "''")
     }
 
-    /// GenerateSnapshotSQL generates the SQL statements to create a snapshot of a table.
-    ///
-    /// Inputs:
-    /// - `path`: The path of the snapshot table to be created.
-    /// - `templated_select`: The templated SELECT statement used to build the snapshot table. This means:
-    ///   - The raw SELECT statement has been normalised  (i.e. ; have been stripped as a suffix)
-    ///   - The variables referenced in the SELECT statement have been replaced with the values defined in the quary.yaml file
-    ///   - The q. references have been replaced with the underlying path of the referenced seed or source
-    /// - `unique_key`: The column that uniquely identify each row in the snapshot source table.
-    /// - `strategy`: The snapshot strategy to be used (e.g., timestamp)
-    /// - `table_exists`: A boolean used to check if the snapshot table already exists in the database.
-    fn generate_snapshot_sql(
-        &self,
-        _path: &str,
-        _templated_select: &str,
-        _unique_key: &str,
-        _strategy: &StrategyType,
-        _table_exists: Option<bool>,
-    ) -> Result<Vec<String>, String> {
-        Err("Database does not support snapshots".to_string())
-    }
-
     // For Helpers section
 
     /// ReturnFullPathRequirement takes in the name of the target table and prefixes it with any necessary schema/paths
@@ -211,18 +189,6 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
         self.as_ref().escape_seed_value(seed_value)
     }
 
-    fn generate_snapshot_sql(
-        &self,
-        path: &str,
-        select_query: &str,
-        unique_key: &str,
-        strategy: &StrategyType,
-        table_exists: Option<bool>,
-    ) -> Result<Vec<String>, String> {
-        self.as_ref()
-            .generate_snapshot_sql(path, select_query, unique_key, strategy, table_exists)
-    }
-
     fn return_full_path_requirement(&self, table_name: &str) -> String {
         self.as_ref().return_full_path_requirement(table_name)
     }
@@ -246,6 +212,82 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
 
     fn database_name_wrapper(&self, name: &str) -> String {
         self.as_ref().database_name_wrapper(name)
+    }
+}
+
+pub trait SnapshotGenerator {
+    /// GenerateSnapshotSQL generates the SQL statements to create a snapshot of a table.
+    ///
+    /// Inputs:
+    /// - `path`: The path of the snapshot table to be created.
+    /// - `templated_select`: The templated SELECT statement used to build the snapshot table. This means:
+    ///   - The raw SELECT statement has been normalised  (i.e. ; have been stripped as a suffix)
+    ///   - The variables referenced in the SELECT statement have been replaced with the values defined in the quary.yaml file
+    ///   - The q. references have been replaced with the underlying path of the referenced seed or source
+    /// - `unique_key`: The column that uniquely identify each row in the snapshot source table.
+    /// - `strategy`: The snapshot strategy to be used (e.g., timestamp)
+    /// - `table_exists`: A boolean used to check if the snapshot table already exists in the database.
+    fn generate_snapshot_sql(
+        &self,
+        _path: &str,
+        _templated_select: &str,
+        _unique_key: &str,
+        _strategy: &StrategyType,
+        _table_exists: Option<bool>,
+    ) -> Result<Vec<String>, String> {
+        Err("Database does not support snapshots".to_string())
+    }
+
+    /// GenerateSnapshotQuery generates the simulated SQL statements to build a snapshot of a table.
+    /// This is used to render a simulated view of what the snapshot table would look like once built for the first time using quary snapshot.
+    /// It is used by GenerateSnapshotSql to build the initial snapshot table
+    ///
+    /// This function serves a similar purpose to `generate_snapshot_sql`, but it generates a simulated query instead of the actual SQL statements
+    /// required to create and maintain the snapshot table.
+    ///
+    /// Inputs:
+    /// - `templated_select`: The templated SELECT statement used to build the snapshot table. This means:
+    ///   - The raw SELECT statement has been normalised  (i.e. ; have been stripped as a suffix)
+    ///   - The variables referenced in the SELECT statement have been replaced with the values defined in the quary.yaml file
+    ///   - The q. references have been replaced with the underlying path of the referenced seed or source
+    /// - `unique_key`: The column that uniquely identify each row in the snapshot source table.
+    /// - `strategy`: The snapshot strategy to be used (e.g., timestamp)
+    fn generate_snapshot_query(
+        &self,
+        _templated_select: &str,
+        _unique_key: &str,
+        _strategy: &StrategyType,
+    ) -> Result<String, String> {
+        Err("Database does not support snapshots".to_string())
+    }
+}
+
+impl SnapshotGenerator for Box<dyn DatabaseQueryGenerator> {
+    fn generate_snapshot_sql(
+        &self,
+        path: &str,
+        templated_select: &str,
+        unique_key: &str,
+        strategy: &StrategyType,
+        table_exists: Option<bool>,
+    ) -> Result<Vec<String>, String> {
+        self.as_ref().generate_snapshot_sql(
+            path,
+            templated_select,
+            unique_key,
+            strategy,
+            table_exists,
+        )
+    }
+
+    fn generate_snapshot_query(
+        &self,
+        templated_select: &str,
+        unique_key: &str,
+        strategy: &StrategyType,
+    ) -> Result<String, String> {
+        self.as_ref()
+            .generate_snapshot_query(templated_select, unique_key, strategy)
     }
 }
 
