@@ -1,6 +1,6 @@
 [package]
 name = "quary-databases"
-version = "0.0.111"
+version = "0.0.112"
 edition = "2021"
 rust-version = "1.77.2"
 
