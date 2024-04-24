@@ -489,9 +489,13 @@ async fn main_wrapped() -> Result<(), String> {
             let database = database_from_config(&config).await?;
             let query_generator = database.query_generator();
             let (project, file_system) = parse_project(&query_generator).await?;
-            let snapshots_sql =
-                project_and_fs_to_sql_for_snapshots(&project, &file_system, &query_generator)
-                    .await?;
+            let snapshots_sql = project_and_fs_to_sql_for_snapshots(
+                &project,
+                &file_system,
+                &query_generator,
+                &database,
+            )
+            .await?;
 
             if snapshot_args.dry_run {
                 println!("\n-- Create snapshots\n");

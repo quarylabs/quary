@@ -19,7 +19,9 @@ message ConnectionConfig {
     ConnectionConfigBigQuery big_query = 5;
     ConnectionConfigSnowflake snowflake = 6;
     ConnectionConfigPostgres postgres = 7;
+    ConnectionConfigRedshift redshift = 9;
   }
+
   repeated Var vars = 8;
 
   message ConnectionConfigSqLite {
@@ -40,16 +42,10 @@ message ConnectionConfig {
   message ConnectionConfigPostgres {
     string schema = 1;
   }
-  //
-  //  message ConnectionConfigMySql {
-  //    string username = 1;
-  //    string password = 2;
-  //    string protocol = 3;
-  //    string host = 4;
-  //    string port = 5;
-  //    string database = 6;
-  //    map<string, string> params = 7;
-  //  }
+
+  message ConnectionConfigRedshift {
+    string schema = 1;
+  }
 
   message ConnectionConfigBigQuery {
     string project_id = 1;

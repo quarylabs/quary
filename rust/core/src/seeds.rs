@@ -49,7 +49,7 @@ async fn read_csv_to_strings(
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use crate::database_sqlite::DatabaseQueryGeneratorSqlite;
 

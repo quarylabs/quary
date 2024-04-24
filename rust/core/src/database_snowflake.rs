@@ -88,7 +88,12 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorSnowflake {
         templated_select: &str,
         unique_key: &str,
         strategy: &StrategyType,
+        table_exists: Option<bool>,
     ) -> Result<Vec<String>, String> {
+        assert_eq!(
+            table_exists, None,
+            "table_exists is not necessary for Snowflake snapshots."
+        );
         match strategy {
             StrategyType::Timestamp(timestamp) => {
                 let updated_at = &timestamp.updated_at;
@@ -317,7 +322,7 @@ mod tests {
         );
 
         let result = database
-            .generate_snapshot_sql(path, templated_select, unique_key, &strategy)
+            .generate_snapshot_sql(path, templated_select, unique_key, &strategy, None)
             .unwrap();
 
         assert_eq!(result.iter().map(|s| s.as_str()).collect::<Vec<&str>>(), vec!["CREATE TABLE IF NOT EXISTS mytable AS (\n                        SELECT\n                            *,\n                            CURRENT_TIMESTAMP() AS quary_valid_from,\n                            NULL AS quary_valid_to,\n                            MD5(CONCAT(id, CAST(updated_at AS VARCHAR))) AS quary_scd_id\n                        FROM (SELECT * FROM mytable)\n                    )", "MERGE INTO mytable AS target\n                    USING (\n                        SELECT\n                            *,\n                            CURRENT_TIMESTAMP() AS quary_valid_from,\n                            MD5(CONCAT(id, CAST(updated_at AS VARCHAR))) AS quary_scd_id\n                        FROM (SELECT * FROM mytable)\n                    ) AS source\n                    ON target.id = source.id\n                    WHEN MATCHED AND target.quary_valid_to IS NULL AND source.updated_at > target.updated_at\n                    THEN UPDATE SET\n                        quary_valid_to = source.quary_valid_from,\n                        updated_at = source.updated_at", "INSERT INTO mytable\n                    SELECT\n                        *,\n                        CURRENT_TIMESTAMP() AS quary_valid_from,\n                        NULL AS quary_valid_to,\n                        MD5(CONCAT(id, CAST(updated_at AS VARCHAR))) AS quary_scd_id\n                    FROM (SELECT * FROM mytable) AS source\n                    WHERE NOT EXISTS (\n                        SELECT 1\n                        FROM mytable AS target\n                        WHERE target.quary_scd_id = MD5(CONCAT(source.id, CAST(source.updated_at AS VARCHAR)))\n                    )"]);

@@ -5,16 +5,16 @@ use sqlinference::dialect::Dialect;
 use std::time::SystemTime;
 
 #[derive(Debug, Clone)]
-pub struct DatabaseQueryGeneratorPostgres {
+pub struct DatabaseQueryGeneratorRedshift {
     schema: String,
     /// override_now is used to override the current timestamp in the generated SQL. It is primarily
     /// used for testing purposes.
     override_now: Option<SystemTime>,
 }
 
-impl DatabaseQueryGeneratorPostgres {
-    pub fn new(schema: String, override_now: Option<SystemTime>) -> DatabaseQueryGeneratorPostgres {
-        DatabaseQueryGeneratorPostgres {
+impl DatabaseQueryGeneratorRedshift {
+    pub fn new(schema: String, override_now: Option<SystemTime>) -> DatabaseQueryGeneratorRedshift {
+        DatabaseQueryGeneratorRedshift {
             schema,
             override_now,
         }
@@ -30,7 +30,7 @@ impl DatabaseQueryGeneratorPostgres {
     }
 }
 
-impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
+impl DatabaseQueryGenerator for DatabaseQueryGeneratorRedshift {
     fn validate_materialization_type(
         &self,
         materialization_type: &Option<String>,
@@ -121,17 +121,14 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         strategy: &StrategyType,
         table_exists: Option<bool>,
     ) -> Result<Vec<String>, String> {
-        assert_eq!(
-            table_exists, None,
-            "table_exists is not necessary for Postgres snapshots."
-        );
         match strategy {
             StrategyType::Timestamp(timestamp) => {
                 let updated_at = &timestamp.updated_at;
                 let now = self.get_now();
 
+                // Redshift does not support CREATE TABLE IF NOT EXISTS (w/ AS (...))
                 let create_table_sql = format!(
-                    "CREATE TABLE IF NOT EXISTS {path} AS (
+                    "CREATE TABLE {path} AS (
                         SELECT
                             ts.*,
                             {now} AS quary_valid_from,
@@ -171,7 +168,17 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
                     )"
                 );
 
-                Ok(vec![create_table_sql, update_sql, insert_sql])
+                let mut sql_statements = vec![update_sql, insert_sql];
+
+                match table_exists {
+                    Some(exists) => {
+                        if !exists {
+                            sql_statements.insert(0, create_table_sql);
+                        }
+                        Ok(sql_statements)
+                    }
+                    None => Err("table_exists is required for Redshift snapshots".to_string()),
+                }
             }
         }
     }
@@ -222,10 +229,10 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
 }
 
 #[cfg(test)]
-mod tests {
+mod test {
     #[test]
     fn get_now() {
-        let generator = super::DatabaseQueryGeneratorPostgres::new("schema".to_string(), None);
+        let generator = super::DatabaseQueryGeneratorRedshift::new("schema".to_string(), None);
         let now = generator.get_now();
 
         assert!(now.starts_with("CAST('20"));
@@ -233,7 +240,7 @@ mod tests {
 
     #[test]
     fn get_now_override() {
-        let generator = super::DatabaseQueryGeneratorPostgres::new(
+        let generator = super::DatabaseQueryGeneratorRedshift::new(
             "schema".to_string(),
             Some(std::time::SystemTime::UNIX_EPOCH),
         );

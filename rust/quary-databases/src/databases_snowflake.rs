@@ -284,6 +284,10 @@ impl DatabaseConnection for Snowflake {
         };
     }
 
+    async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
+        Ok(None) // not implemented
+    }
+
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {
         Box::new(DatabaseQueryGeneratorSnowflake::new(
             self.database.to_string(),
@@ -388,36 +392,32 @@ mod tests {
         );
         assert!(invalid_schema.is_err());
     }
-}
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//
-//     #[tokio::test]
-//     async fn test_snowflake() {
-//         let snowflake = Snowflake::new(
-//             "actual_details.eu-west-2.aws",
-//             "COMPUTE_WH",
-//             "TEST_DATABASE",
-//             "TEST_SCHEMA",
-//             "USERNAME",
-//             // Some("TEST_ROLE"),
-//             None,
-//             "rubbish_details",
-//         )
-//         .unwrap();
-//
-//         let tables = snowflake.list_tables().await.unwrap();
-//         println!("Tables: {:?}", tables);
-//         assert_eq!(tables.len(), 1);
-//
-//         let views = snowflake.list_views().await.unwrap();
-//         println!("Views: {:?}", views);
-//         assert_eq!(views.len(), 1);
-//
-//         let columns = snowflake.list_columns(&tables[0]).await.unwrap();
-//         println!("Columns: {:?}", columns);
-//         assert_eq!(columns.len(), 2);
-//     }
-// }
+    #[tokio::test]
+    #[ignore]
+    async fn test_snowflake() {
+        let snowflake = Snowflake::new(
+            "actual_details.eu-west-2.aws",
+            "COMPUTE_WH",
+            "TEST_DATABASE",
+            "TEST_SCHEMA",
+            "USERNAME",
+            // Some("TEST_ROLE"),
+            None,
+            "rubbish_details",
+        )
+        .unwrap();
+
+        let tables = snowflake.list_tables().await.unwrap();
+        println!("Tables: {:?}", tables);
+        assert_eq!(tables.len(), 1);
+
+        let views = snowflake.list_views().await.unwrap();
+        println!("Views: {:?}", views);
+        assert_eq!(views.len(), 1);
+
+        let columns = snowflake.list_columns(&tables[0].full_path).await.unwrap();
+        println!("Columns: {:?}", columns);
+        assert_eq!(columns.len(), 2);
+    }
+}

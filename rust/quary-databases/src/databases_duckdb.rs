@@ -209,6 +209,10 @@ impl DatabaseConnection for DuckDB {
         })
     }
 
+    async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
+        Ok(None) // not implemented
+    }
+
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {
         Box::new(DatabaseQueryGeneratorDuckDB::new(self.schema.clone(), None))
     }
@@ -752,11 +756,107 @@ sources:
     }
 
     #[tokio::test]
+    async fn test_snapshot_with_no_time_override() {
+        let target_schema = Some("analytics".to_string());
+        let database: Box<dyn DatabaseConnection> =
+            Box::new(DuckDB::new_in_memory(target_schema.clone()).unwrap());
+        database.exec("CREATE SCHEMA jaffle_shop").await.unwrap();
+
+        // Create orders table
+        database
+            .exec("CREATE TABLE jaffle_shop.raw_orders (order_id INTEGER, status VARCHAR(255), updated_at TIMESTAMP)")
+            .await
+            .unwrap();
+
+        // Insert some initial data
+        database
+            .exec("INSERT INTO jaffle_shop.raw_orders VALUES (1, 'in_progress', '2023-01-01 00:00:00'), (2, 'completed', '2023-01-01 00:00:00')")
+            .await
+            .unwrap();
+
+        let file_system = FileSystem {
+            files: vec![
+                ("quary.yaml", "duckdbInMemory: {schema: analytics}"),
+                (
+                    "models/orders_snapshot.snapshot.sql",
+                    "SELECT * FROM q.raw_orders",
+                ),
+                (
+                    "models/schema.yaml",
+                    "
+sources:
+  - name: raw_orders
+    path: jaffle_shop.raw_orders
+snapshots:
+  - name: orders_snapshot
+    unique_key: order_id
+    strategy:
+      timestamp:
+        updated_at: updated_at
+",
+                ),
+            ]
+            .iter()
+            .map(|(k, v)| {
+                (
+                    k.to_string(),
+                    File {
+                        name: k.to_string(),
+                        contents: Bytes::from(v.to_string()),
+                    },
+                )
+            })
+            .collect(),
+        };
+
+        let project = parse_project(
+            &file_system,
+            &DatabaseQueryGeneratorDuckDB::new(target_schema.clone(), None),
+            "",
+        )
+        .await
+        .unwrap();
+
+        let snapshots_sql = project_and_fs_to_sql_for_snapshots(
+            &project,
+            &file_system,
+            &DatabaseQueryGeneratorDuckDB::new(target_schema.clone(), None),
+            &database,
+        )
+        .await
+        .unwrap();
+        for (_, sql) in snapshots_sql {
+            for statement in sql {
+                database.exec(statement.as_str()).await.unwrap()
+            }
+        }
+
+        // assert the data has been created correctly in the snapshot table
+        let data = database.query("SELECT order_id, status, updated_at, quary_valid_from, quary_valid_to, quary_scd_id FROM analytics.orders_snapshot").await.unwrap();
+        assert_eq!(
+            data.columns
+                .iter()
+                .map(|(column, _)| column)
+                .collect::<Vec<_>>(),
+            vec![
+                "order_id",
+                "status",
+                "updated_at",
+                "quary_valid_from",
+                "quary_valid_to",
+                "quary_scd_id"
+            ]
+        );
+        assert_eq!(data.rows.len(), 2);
+    }
+
+    #[tokio::test]
     async fn test_snapshots_with_schema() {
         // Create orders table
 
         let target_schema = Some("analytics".to_string());
-        let database = DuckDB::new_in_memory(target_schema.clone()).unwrap();
+        let database: Box<dyn DatabaseConnection> =
+            Box::new(DuckDB::new_in_memory(target_schema.clone()).unwrap());
         database.exec("CREATE SCHEMA jaffle_shop").await.unwrap();
 
         let datetime_str = "2023-01-01 01:00:00";
@@ -826,7 +926,7 @@ snapshots:
             .unwrap();
 
         let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator)
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, &database)
                 .await
                 .unwrap();
         for (_, sql) in snapshots_sql {
@@ -895,10 +995,14 @@ snapshots:
         let db_generator_updated =
             DatabaseQueryGeneratorDuckDB::new(target_schema, Some(system_time_updated));
 
-        let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator_updated)
-                .await
-                .unwrap();
+        let snapshots_sql = project_and_fs_to_sql_for_snapshots(
+            &project,
+            &file_system,
+            &db_generator_updated,
+            &database,
+        )
+        .await
+        .unwrap();
 
         for (_, sql) in &snapshots_sql {
             for statement in sql {
@@ -959,7 +1063,8 @@ snapshots:
         // Create orders table
 
         let target_schema = None;
-        let database = DuckDB::new_in_memory(target_schema.clone()).unwrap();
+        let database: Box<dyn DatabaseConnection> =
+            Box::new(DuckDB::new_in_memory(target_schema.clone()).unwrap());
         database.exec("CREATE SCHEMA jaffle_shop").await.unwrap();
 
         let datetime_str = "2023-01-01 01:00:00";
@@ -1029,7 +1134,7 @@ snapshots:
             .unwrap();
 
         let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator)
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, &database)
                 .await
                 .unwrap();
         for (_, sql) in snapshots_sql {
@@ -1098,10 +1203,14 @@ snapshots:
         let db_generator_updated =
             DatabaseQueryGeneratorDuckDB::new(target_schema, Some(system_time_updated));
 
-        let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator_updated)
-                .await
-                .unwrap();
+        let snapshots_sql = project_and_fs_to_sql_for_snapshots(
+            &project,
+            &file_system,
+            &db_generator_updated,
+            &database,
+        )
+        .await
+        .unwrap();
 
         for (_, sql) in &snapshots_sql {
             for statement in sql {
