@@ -308,7 +308,7 @@ mod tests {
             None,
         )
         .await
-        .expect("Failed to instantiate Quary Postgres");
+        .unwrap();
 
         quary_postgres
             .exec("CREATE TABLE wrong_table (id INTEGER, name VARCHAR(255))")
@@ -410,7 +410,8 @@ mod tests {
             None,
         )
         .await
-        .expect("Failed to instantiate Quary Postgres");
+        .unwrap();
+
 
         database.exec("CREATE SCHEMA transform").await.unwrap();
         database
@@ -488,7 +489,7 @@ mod tests {
             None,
         )
         .await
-        .expect("Failed to instantiate Quary Postgres");
+        .unwrap();
 
         database.exec("CREATE SCHEMA other_schema").await.unwrap();
         database.exec("CREATE SCHEMA transform").await.unwrap();
@@ -585,7 +586,7 @@ models:
             let results = database
                 .query(test)
                 .await
-                .expect(&format!("Error running query {}", test));
+                .unwrap();
 
             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
         }

@@ -127,7 +127,7 @@ mod tests {
     async fn test_redshift_list_tables_and_views() {
         let quary_postgres = Redshift::new("", None, "", "", "", "", None, None, None, None, None)
             .await
-            .expect("Failed to instantiate Quary Redshift");
+            .unwrap();
 
         quary_postgres
             .exec("CREATE TABLE wrong_table (id INTEGER, name VARCHAR(255))")
@@ -220,7 +220,7 @@ mod tests {
     async fn test_redshift_list_columns_in_table() {
         let database = Redshift::new("", None, "", "", "", "", None, None, None, None, None)
             .await
-            .expect("Failed to instantiate Quary Redshift");
+            .unwrap();
 
         database
             .exec("CREATE SCHEMA IF NOT EXISTS transform")
@@ -288,7 +288,7 @@ mod tests {
     async fn test_redshift_foreign_relationship_test_with_schema() {
         let database = Redshift::new("", None, "", "", "", "", None, None, None, None, None)
             .await
-            .expect("Failed to instantiate Quary Redshift");
+            .unwrap();
 
         database
             .exec("CREATE SCHEMA IF NOT EXISTS other_schema")
@@ -388,10 +388,7 @@ mod tests {
         assert!(!tests.is_empty());
 
         for (name, test) in tests.iter() {
-            let results = database
-                .query(test)
-                .await
-                .expect(&format!("Error running query {}", test));
+            let results = database.query(test).await.unwrap();
 
             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
         }
@@ -404,7 +401,7 @@ mod tests {
     async fn test_redshift_foreign_relationship_test_with_materialized_view_table() {
         let database = Redshift::new("", None, "", "", "", "", None, None, None, None, None)
             .await
-            .expect("Failed to instantiate Quary Redshift");
+            .unwrap();
 
         database
             .exec("CREATE SCHEMA IF NOT EXISTS other_schema")
@@ -527,10 +524,7 @@ mod tests {
         assert!(!tests.is_empty());
 
         for (name, test) in tests.iter() {
-            let results = database
-                .query(test)
-                .await
-                .expect(&format!("Error running query {}", test));
+            let results = database.query(test).await.unwrap();
 
             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
         }
@@ -541,7 +535,7 @@ mod tests {
     async fn test_list_tables_outside_the_schema() {
         let database = Redshift::new("", None, "", "", "", "", None, None, None, None, None)
             .await
-            .expect("Failed to instantiate Quary Postgres");
+            .unwrap();
 
         database.exec("CREATE SCHEMA other_schema").await.unwrap();
         database.exec("CREATE SCHEMA transform").await.unwrap();
@@ -660,8 +654,8 @@ mod tests {
         let datetime_str = "2023-01-01 01:00:00";
 
         // Parse the string into a NaiveDateTime
-        let naive_datetime = NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S")
-            .expect("Failed to parse datetime string");
+        let naive_datetime =
+            NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S").unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc = DateTime::<Utc>::from_utc(naive_datetime, Utc);
@@ -785,8 +779,7 @@ mod tests {
 
         // Parse the string into a NaiveDateTime
         let naive_datetime_updated =
-            NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S")
-                .expect("Failed to parse datetime string");
+            NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S").unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc_updated = DateTime::<Utc>::from_utc(naive_datetime_updated, Utc);
