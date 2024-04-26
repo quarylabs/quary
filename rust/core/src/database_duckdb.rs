@@ -30,7 +30,10 @@ impl DatabaseQueryGeneratorDuckDB {
             .override_now
             .map(|time| -> DateTime<Utc> { time.into() })
             .unwrap_or(SystemTime::now().into());
-        format!("'{}'", datetime.format("%Y-%m-%dT%H:%M:%SZ"))
+        format!(
+            "CAST ('{}' AS TIMESTAMP WITH TIME ZONE)",
+            datetime.format("%Y-%m-%dT%H:%M:%SZ")
+        )
     }
 }
 
@@ -128,7 +131,7 @@ impl SnapshotGenerator for DatabaseQueryGeneratorDuckDB {
                     ) AS source
                     WHERE target.{unique_key} = source.{unique_key}
                         AND target.quary_valid_to IS NULL
-                        AND CAST(source.{updated_at} AS TIMESTAMP) > CAST(target.{updated_at} AS TIMESTAMP)"
+                        AND CAST(source.{updated_at} AS TIMESTAMP WITH TIME ZONE) > CAST(target.{updated_at} AS TIMESTAMP WITH TIME ZONE)"
                 );
 
                 let insert_sql = format!(
@@ -136,7 +139,7 @@ impl SnapshotGenerator for DatabaseQueryGeneratorDuckDB {
                     SELECT
                         *,
                         {now} AS quary_valid_from,
-                        NULL AS quary_valid_to,
+                        CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS quary_valid_to,
                         MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS STRING)) AS STRING)) AS quary_scd_id
                     FROM ({templated_select}) AS source
                     WHERE NOT EXISTS (
@@ -176,7 +179,6 @@ impl SnapshotGenerator for DatabaseQueryGeneratorDuckDB {
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
@@ -213,10 +215,14 @@ mod tests {
         let override_now = SystemTime::now();
         let database = DatabaseQueryGeneratorDuckDB::new(None, Some(override_now));
 
+        // TODO Improve test
         let result = database.get_now();
         let expected_datetime: DateTime<Utc> = override_now.into();
-        let expected_result = format!("'{}'", expected_datetime.format("%Y-%m-%dT%H:%M:%SZ"));
-        assert_eq!(result, expected_result);
+        let expected_result = format!(
+            "CAST ('{}' AS TIMESTAMP WITH TIME ZONE)",
+            expected_datetime.format("%Y-%m-%dT%H:%M:%SZ")
+        );
+        assert_eq!(expected_result, result);
     }
 
     #[test]
@@ -242,6 +248,9 @@ mod tests {
             .generate_snapshot_sql(path, templated_select, unique_key, &strategy, None)
             .unwrap();
 
-        assert_eq!(result.iter().map(|s| s.as_str()).collect::<Vec<&str>>(), vec!["CREATE TABLE IF NOT EXISTS mytable AS (\n                      SELECT\n                        *,\n                        '2021-01-01T00:00:00Z' AS quary_valid_from,\n                        CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS quary_valid_to,\n                        MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                    FROM (SELECT * FROM mytable)\n                    )", "UPDATE mytable AS target\n                    SET quary_valid_to = source.quary_valid_from\n                    FROM (\n                        SELECT\n                            *,\n                            '2021-01-01T00:00:00Z' AS quary_valid_from,\n                            MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                        FROM (SELECT * FROM mytable)\n                    ) AS source\n                    WHERE target.id = source.id\n                        AND target.quary_valid_to IS NULL\n                        AND CAST(source.updated_at AS TIMESTAMP) > CAST(target.updated_at AS TIMESTAMP)", "INSERT INTO mytable\n                    SELECT\n                        *,\n                        '2021-01-01T00:00:00Z' AS quary_valid_from,\n                        NULL AS quary_valid_to,\n                        MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                    FROM (SELECT * FROM mytable) AS source\n                    WHERE NOT EXISTS (\n                        SELECT 1\n                        FROM mytable AS target\n                        WHERE target.quary_scd_id = MD5(CAST(CONCAT(source.id, CAST(source.updated_at AS STRING)) AS STRING))\n                    )"]);
+        assert_eq!(
+            vec!["CREATE TABLE IF NOT EXISTS mytable AS (\n                      SELECT\n                        *,\n                        CAST ('2021-01-01T00:00:00Z' AS TIMESTAMP WITH TIME ZONE) AS quary_valid_from,\n                        CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS quary_valid_to,\n                        MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                    FROM (SELECT * FROM mytable)\n                    )", "UPDATE mytable AS target\n                    SET quary_valid_to = source.quary_valid_from\n                    FROM (\n                        SELECT\n                            *,\n                            CAST ('2021-01-01T00:00:00Z' AS TIMESTAMP WITH TIME ZONE) AS quary_valid_from,\n                            MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                        FROM (SELECT * FROM mytable)\n                    ) AS source\n                    WHERE target.id = source.id\n                        AND target.quary_valid_to IS NULL\n                        AND CAST(source.updated_at AS TIMESTAMP WITH TIME ZONE) > CAST(target.updated_at AS TIMESTAMP WITH TIME ZONE)", "INSERT INTO mytable\n                    SELECT\n                        *,\n                        CAST ('2021-01-01T00:00:00Z' AS TIMESTAMP WITH TIME ZONE) AS quary_valid_from,\n                        CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS quary_valid_to,\n                        MD5(CAST(CONCAT(id, CAST(updated_at AS STRING)) AS STRING)) AS quary_scd_id\n                    FROM (SELECT * FROM mytable) AS source\n                    WHERE NOT EXISTS (\n                        SELECT 1\n                        FROM mytable AS target\n                        WHERE target.quary_scd_id = MD5(CAST(CONCAT(source.id, CAST(source.updated_at AS STRING)) AS STRING))\n                    )"],
+            result.iter().map(|s| s.as_str()).collect::<Vec<&str>>(),
+        );
     }
 }

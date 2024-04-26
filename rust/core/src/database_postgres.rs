@@ -206,7 +206,7 @@ impl SnapshotGenerator for DatabaseQueryGeneratorPostgres {
                     SELECT
                         *,
                         {now} AS quary_valid_from,
-                        NULL AS quary_valid_to,
+                        CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS quary_valid_to,
                         MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS TEXT)) AS TEXT)) AS quary_scd_id
                     FROM ({templated_select}) AS source
                     WHERE NOT EXISTS (
@@ -266,6 +266,4 @@ mod tests {
             "CAST('1970-01-01T00:00:00Z' AS TIMESTAMP WITH TIME ZONE)".to_string()
         );
     }
-
-    // TODO MAKE SURE WE HAVE A TEST for sql generation
 }

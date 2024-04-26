@@ -290,7 +290,8 @@ impl SnapshotGenerator for Box<dyn DatabaseQueryGenerator> {
         strategy: &StrategyType,
         now: &str,
     ) -> Result<String, String> {
-        self.as_ref().generate_snapshot_query(templated_select, unique_key, strategy, now)
+        self.as_ref()
+            .generate_snapshot_query(templated_select, unique_key, strategy, now)
     }
 }
 

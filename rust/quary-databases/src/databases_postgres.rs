@@ -171,7 +171,8 @@ impl DatabaseConnection for Postgres {
             CASE
                 WHEN tc.constraint_type = 'UNIQUE' THEN 'YES'
                 ELSE 'NO'
-            END AS is_unique
+            END AS is_unique,
+            c.data_type
         FROM
             information_schema.columns c
         LEFT JOIN
@@ -204,13 +205,14 @@ impl DatabaseConnection for Postgres {
                 let description: Option<String> = row.get(1);
                 let is_nullable: String = row.get(2);
                 let is_unique: String = row.get(3);
+                let data_type: String = row.get(4);
 
                 ColumnWithDetails {
                     name: row.get(0),
                     description,
+                    data_type: Some(data_type),
                     is_nullable: Some(is_nullable == "YES"),
                     is_unique: Some(is_unique == "YES"),
-                    ..Default::default()
                 }
             })
             .collect();
@@ -501,18 +503,23 @@ mod tests {
 
         let columns = quary_postgres.list_columns("test_table").await.unwrap();
         assert_eq!(
-            columns,
-            vec!["id", "name"]
-                .into_iter()
-                .map(|name| {
-                    ColumnWithDetails {
-                        name: name.to_string(),
-                        is_nullable: Some(true),
-                        is_unique: Some(false),
-                        ..Default::default()
-                    }
-                })
-                .collect::<Vec<ColumnWithDetails>>()
+            vec![
+                ColumnWithDetails {
+                    name: "id".to_string(),
+                    description: None,
+                    data_type: Some("integer".to_string()),
+                    is_nullable: Some(true),
+                    is_unique: Some(false),
+                },
+                ColumnWithDetails {
+                    name: "name".to_string(),
+                    description: None,
+                    data_type: Some("character varying".to_string()),
+                    is_nullable: Some(true),
+                    is_unique: Some(false),
+                }
+            ],
+            columns
         );
 
         let result = quary_postgres
@@ -580,14 +587,14 @@ mod tests {
                 ColumnWithDetails {
                     name: "id".to_string(),
                     description: Some("test comment".to_string()),
-                    data_type: None,
+                    data_type: Some("integer".to_string()),
                     is_nullable: Some(false),
                     is_unique: Some(true),
                 },
                 ColumnWithDetails {
                     name: "name".to_string(),
                     description: None,
-                    data_type: None,
+                    data_type: Some("character varying".to_string()),
                     is_nullable: Some(true),
                     is_unique: Some(false),
                 }
@@ -596,13 +603,14 @@ mod tests {
         let columns = database.list_columns("transform.test_table").await.unwrap();
         assert_eq!(
             columns,
-            vec!["id", "name_transform"]
+            vec![("id", "integer"), ("name_transform", "character varying"),]
                 .into_iter()
-                .map(|name| {
+                .map(|(name, data_type)| {
                     ColumnWithDetails {
                         name: name.to_string(),
                         is_nullable: Some(true),
                         is_unique: Some(false),
+                        data_type: Some(data_type.to_string()),
                         ..Default::default()
                     }
                 })
@@ -727,10 +735,7 @@ models:
         assert!(!tests.is_empty());
 
         for (name, test) in tests.iter() {
-            let results = database
-                .query(test)
-                .await
-                .unwrap();
+            let results = database.query(test).await.unwrap();
 
             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
         }
@@ -876,10 +881,7 @@ models:
         assert!(!tests.is_empty());
 
         for (name, test) in tests.iter() {
-            let results = database
-                .query(test)
-                .await
-                .unwrap();
+            let results = database.query(test).await.unwrap();
 
             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
         }
@@ -997,28 +999,28 @@ models:
                 ColumnWithDetails {
                     name: "\"ID\"".to_string(),
                     description: None,
-                    data_type: None,
+                    data_type: Some("integer".to_string()),
                     is_nullable: Some(true),
                     is_unique: Some(false),
                 },
                 ColumnWithDetails {
                     name: "\"Name\"".to_string(),
                     description: None,
-                    data_type: None,
+                    data_type: Some("character varying".to_string()),
                     is_nullable: Some(true),
                     is_unique: Some(false),
                 },
                 ColumnWithDetails {
                     name: "test".to_string(),
                     description: None,
-                    data_type: None,
+                    data_type: Some("character varying".to_string()),
                     is_nullable: Some(true),
                     is_unique: Some(false),
                 },
                 ColumnWithDetails {
                     name: "testtwo".to_string(),
                     description: None,
-                    data_type: None,
+                    data_type: Some("character varying".to_string()),
                     is_nullable: Some(true),
                     is_unique: Some(false),
                 }
@@ -1176,8 +1178,8 @@ snapshots:
         let datetime_str = "2023-01-01 01:00:00";
 
         // Parse the string into a NaiveDateTime
-        let naive_datetime = NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S")
-            .unwrap();
+        let naive_datetime =
+            NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S").unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc = DateTime::<Utc>::from_utc(naive_datetime, Utc);
@@ -1300,8 +1302,7 @@ snapshots:
 
         // Parse the string into a NaiveDateTime
         let naive_datetime_updated =
-            NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S")
-                .unwrap();
+            NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S").unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc_updated = DateTime::<Utc>::from_utc(naive_datetime_updated, Utc);
@@ -1375,6 +1376,28 @@ snapshots:
                     "3bb5cc6bb5b432df7712d067f57a3780"
                 ],
             ]
+        );
+
+        let columns = database
+            .list_columns("analytics.orders_snapshot")
+            .await
+            .unwrap();
+        assert_eq!(6, columns.len());
+        assert_eq!(
+            Some("timestamp with time zone".to_string()),
+            columns
+                .iter()
+                .find(|c| c.name == "quary_valid_from")
+                .unwrap()
+                .data_type
+        );
+        assert_eq!(
+            Some("timestamp with time zone".to_string()),
+            columns
+                .iter()
+                .find(|c| c.name == "quary_valid_to")
+                .unwrap()
+                .data_type
         );
     }
 }

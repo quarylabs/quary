@@ -206,7 +206,7 @@ impl SnapshotGenerator for DatabaseQueryGeneratorRedshift {
                     SELECT
                         *,
                         {now} AS quary_valid_from,
-                        NULL AS quary_valid_to,
+                        CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS quary_valid_to,
                         MD5(CAST(CONCAT({unique_key}, CAST({updated_at} AS TEXT)) AS TEXT)) AS quary_scd_id
                     FROM ({templated_select}) AS source
                     WHERE NOT EXISTS (

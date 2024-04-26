@@ -144,9 +144,10 @@ impl DatabaseConnection for DuckDB {
         let columns = results
             .rows
             .into_iter()
-            .map(|row| row[1].clone())
-            .map(|row| ColumnWithDetails {
-                name: row,
+            .map(|row| (row[1].clone(), Some(row[2].clone())))
+            .map(|(name, data_type)| ColumnWithDetails {
+                name,
+                data_type,
                 ..Default::default()
             })
             .collect::<Vec<_>>();
@@ -288,6 +289,30 @@ mod tests {
     use std::time::SystemTime;
 
     #[tokio::test]
+    async fn test_list_columns() {
+        let db = DuckDB::new_in_memory(None).unwrap();
+        db.exec("CREATE TABLE test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        let columns = db.list_columns("test_table").await.unwrap();
+        assert_eq!(
+            columns,
+            vec![
+                ColumnWithDetails {
+                    name: "id".to_string(),
+                    data_type: Some("INTEGER".to_string()),
+                    ..Default::default()
+                },
+                ColumnWithDetails {
+                    name: "name".to_string(),
+                    data_type: Some("VARCHAR".to_string()),
+                    ..Default::default()
+                }
+            ]
+        );
+    }
+
+    #[tokio::test]
     async fn test_create_table_without_schema() {
         let db = DuckDB::new_in_memory(None).unwrap();
         db.exec("CREATE TABLE wrong_table (id INTEGER, name VARCHAR(255))")
@@ -341,16 +366,19 @@ mod tests {
 
         let columns = db.list_columns("test_table").await.unwrap();
         assert_eq!(
+            vec![
+                ColumnWithDetails {
+                    name: "id".to_string(),
+                    data_type: Some("INTEGER".to_string()),
+                    ..Default::default()
+                },
+                ColumnWithDetails {
+                    name: "name".to_string(),
+                    data_type: Some("VARCHAR".to_string()),
+                    ..Default::default()
+                }
+            ],
             columns,
-            vec!["id", "name"]
-                .into_iter()
-                .map(|name| {
-                    ColumnWithDetails {
-                        name: name.to_string(),
-                        ..Default::default()
-                    }
-                })
-                .collect::<Vec<ColumnWithDetails>>()
         );
 
         let result = db.query("SELECT * FROM test_table").await.unwrap();
@@ -362,7 +390,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec!["id", "name"]
         );
-        assert_eq!(result.rows, vec![vec!["1", "test"], vec!["2", "rubbish"]]);
+        assert_eq!(vec![vec!["1", "test"], vec!["2", "rubbish"]], result.rows);
     }
 
     #[tokio::test]
@@ -420,16 +448,19 @@ mod tests {
 
         let columns = db.list_columns("test_schema.test_table").await.unwrap();
         assert_eq!(
+            vec![
+                ColumnWithDetails {
+                    name: "id".to_string(),
+                    data_type: Some("INTEGER".to_string()),
+                    ..Default::default()
+                },
+                ColumnWithDetails {
+                    name: "name".to_string(),
+                    data_type: Some("VARCHAR".to_string()),
+                    ..Default::default()
+                }
+            ],
             columns,
-            vec!["id", "name"]
-                .into_iter()
-                .map(|name| {
-                    ColumnWithDetails {
-                        name: name.to_string(),
-                        ..Default::default()
-                    }
-                })
-                .collect::<Vec<ColumnWithDetails>>()
         );
 
         let result = db
@@ -862,8 +893,8 @@ snapshots:
         let datetime_str = "2023-01-01 01:00:00";
 
         // Parse the string into a NaiveDateTime
-        let naive_datetime = NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S")
-            .unwrap();
+        let naive_datetime =
+            NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S").unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc = DateTime::<Utc>::from_utc(naive_datetime, Utc);
@@ -937,7 +968,6 @@ snapshots:
 
         // assert the data has been created correctly in the snapshot table
         let data = database.query("SELECT order_id, status, updated_at, quary_valid_from, quary_valid_to, quary_scd_id FROM analytics.orders_snapshot").await.unwrap();
-
         assert_eq!(
             data.columns
                 .iter()
@@ -953,13 +983,12 @@ snapshots:
             ]
         );
         assert_eq!(
-            data.rows,
             vec![
                 vec![
                     "1",
                     "in_progress",
                     "2023-01-01 00:00:00.000000 UTC",
-                    "2023-01-01T01:00:00Z",
+                    "2023-01-01 01:00:00.000000 UTC",
                     "NULL",
                     "77f50225cf5a52d15fecaa449be2dcc4"
                 ],
@@ -967,11 +996,12 @@ snapshots:
                     "2",
                     "completed",
                     "2023-01-01 00:00:00.000000 UTC",
-                    "2023-01-01T01:00:00Z",
+                    "2023-01-01 01:00:00.000000 UTC",
                     "NULL",
                     "3bb5cc6bb5b432df7712d067f57a3780"
                 ],
-            ]
+            ],
+            data.rows,
         );
 
         database
@@ -983,8 +1013,7 @@ snapshots:
 
         // Parse the string into a NaiveDateTime
         let naive_datetime_updated =
-            NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S")
-                .unwrap();
+            NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S").unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc_updated = DateTime::<Utc>::from_utc(naive_datetime_updated, Utc);
@@ -1028,13 +1057,12 @@ snapshots:
             ]
         );
         assert_eq!(
-            data.rows,
             vec![
                 vec![
                     "1",
                     "in_progress",
                     "2023-01-01 00:00:00.000000 UTC",
-                    "2023-01-01T01:00:00Z",
+                    "2023-01-01 01:00:00.000000 UTC",
                     "2023-01-01 03:00:00.000000 UTC",
                     "77f50225cf5a52d15fecaa449be2dcc4"
                 ],
@@ -1042,7 +1070,7 @@ snapshots:
                     "1",
                     "completed",
                     "2023-01-01 02:00:00.000000 UTC",
-                    "2023-01-01T03:00:00Z",
+                    "2023-01-01 03:00:00.000000 UTC",
                     "NULL",
                     "f5c7798e30814925cd1a61e9e5ef6683"
                 ],
@@ -1050,11 +1078,34 @@ snapshots:
                     "2",
                     "completed",
                     "2023-01-01 00:00:00.000000 UTC",
-                    "2023-01-01T01:00:00Z",
+                    "2023-01-01 01:00:00.000000 UTC",
                     "NULL",
                     "3bb5cc6bb5b432df7712d067f57a3780"
                 ],
-            ]
+            ],
+            data.rows,
+        );
+
+        let columns = database
+            .list_columns("analytics.orders_snapshot")
+            .await
+            .unwrap();
+        assert_eq!(6, columns.len());
+        assert_eq!(
+            Some("TIMESTAMP WITH TIME ZONE".to_string()),
+            columns
+                .iter()
+                .find(|c| c.name == "quary_valid_from")
+                .unwrap()
+                .data_type
+        );
+        assert_eq!(
+            Some("TIMESTAMP WITH TIME ZONE".to_string()),
+            columns
+                .iter()
+                .find(|c| c.name == "quary_valid_to")
+                .unwrap()
+                .data_type
         );
     }
 
@@ -1070,8 +1121,8 @@ snapshots:
         let datetime_str = "2023-01-01 01:00:00";
 
         // Parse the string into a NaiveDateTime
-        let naive_datetime = NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S")
-            .unwrap();
+        let naive_datetime =
+            NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S").unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc = DateTime::<Utc>::from_utc(naive_datetime, Utc);
@@ -1167,7 +1218,7 @@ snapshots:
                     "1",
                     "in_progress",
                     "2023-01-01 00:00:00.000000 UTC",
-                    "2023-01-01T01:00:00Z",
+                    "2023-01-01 01:00:00.000000 UTC",
                     "NULL",
                     "77f50225cf5a52d15fecaa449be2dcc4"
                 ],
@@ -1175,7 +1226,7 @@ snapshots:
                     "2",
                     "completed",
                     "2023-01-01 00:00:00.000000 UTC",
-                    "2023-01-01T01:00:00Z",
+                    "2023-01-01 01:00:00.000000 UTC",
                     "NULL",
                     "3bb5cc6bb5b432df7712d067f57a3780"
                 ],
@@ -1191,8 +1242,7 @@ snapshots:
 
         // Parse the string into a NaiveDateTime
         let naive_datetime_updated =
-            NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S")
-                .unwrap();
+            NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S").unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc_updated = DateTime::<Utc>::from_utc(naive_datetime_updated, Utc);
@@ -1242,7 +1292,7 @@ snapshots:
                     "1",
                     "in_progress",
                     "2023-01-01 00:00:00.000000 UTC",
-                    "2023-01-01T01:00:00Z",
+                    "2023-01-01 01:00:00.000000 UTC",
                     "2023-01-01 03:00:00.000000 UTC",
                     "77f50225cf5a52d15fecaa449be2dcc4"
                 ],
@@ -1250,7 +1300,7 @@ snapshots:
                     "1",
                     "completed",
                     "2023-01-01 02:00:00.000000 UTC",
-                    "2023-01-01T03:00:00Z",
+                    "2023-01-01 03:00:00.000000 UTC",
                     "NULL",
                     "f5c7798e30814925cd1a61e9e5ef6683"
                 ],
@@ -1258,11 +1308,30 @@ snapshots:
                     "2",
                     "completed",
                     "2023-01-01 00:00:00.000000 UTC",
-                    "2023-01-01T01:00:00Z",
+                    "2023-01-01 01:00:00.000000 UTC",
                     "NULL",
                     "3bb5cc6bb5b432df7712d067f57a3780"
                 ],
             ]
+        );
+
+        let columns = database.list_columns("orders_snapshot").await.unwrap();
+        assert_eq!(6, columns.len());
+        assert_eq!(
+            Some("TIMESTAMP WITH TIME ZONE".to_string()),
+            columns
+                .iter()
+                .find(|c| c.name == "quary_valid_from")
+                .unwrap()
+                .data_type
+        );
+        assert_eq!(
+            Some("TIMESTAMP WITH TIME ZONE".to_string()),
+            columns
+                .iter()
+                .find(|c| c.name == "quary_valid_to")
+                .unwrap()
+                .data_type
         );
     }
 }
