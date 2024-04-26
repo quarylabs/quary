@@ -324,15 +324,15 @@ impl DatabaseConnection for Postgres {
         })
     }
 
-    async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
-        Ok(None) // not implemented
-    }
-
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {
         Box::new(DatabaseQueryGeneratorPostgres::new(
             self.schema.clone(),
             None,
         ))
+    }
+
+    async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
+        Ok(None) // not implemented
     }
 }
 

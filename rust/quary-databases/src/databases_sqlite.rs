@@ -149,12 +149,12 @@ impl DatabaseConnection for Sqlite {
         })
     }
 
-    async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
-        Ok(None) // not implemented
-    }
-
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {
         Box::new(DatabaseQueryGeneratorSqlite {})
+    }
+
+    async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
+        Ok(None) // not implemented
     }
 }
 
