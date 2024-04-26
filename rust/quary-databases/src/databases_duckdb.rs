@@ -863,7 +863,7 @@ snapshots:
 
         // Parse the string into a NaiveDateTime
         let naive_datetime = NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S")
-            .expect("Failed to parse datetime string");
+            .unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc = DateTime::<Utc>::from_utc(naive_datetime, Utc);
@@ -984,7 +984,7 @@ snapshots:
         // Parse the string into a NaiveDateTime
         let naive_datetime_updated =
             NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S")
-                .expect("Failed to parse datetime string");
+                .unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc_updated = DateTime::<Utc>::from_utc(naive_datetime_updated, Utc);
@@ -1071,7 +1071,7 @@ snapshots:
 
         // Parse the string into a NaiveDateTime
         let naive_datetime = NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S")
-            .expect("Failed to parse datetime string");
+            .unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc = DateTime::<Utc>::from_utc(naive_datetime, Utc);
@@ -1192,7 +1192,7 @@ snapshots:
         // Parse the string into a NaiveDateTime
         let naive_datetime_updated =
             NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S")
-                .expect("Failed to parse datetime string");
+                .unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc_updated = DateTime::<Utc>::from_utc(naive_datetime_updated, Utc);
