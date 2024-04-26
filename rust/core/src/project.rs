@@ -870,7 +870,7 @@ fn parse_column_tests(
                     path_map,
                     file_path,
                     &model.name,
-                    model_path.as_str(),
+                    &model_path,
                 )?;
                 for (name, test) in tests {
                     safe_adder_map(&mut outs, name, test)?;
@@ -1110,22 +1110,19 @@ pub async fn project_and_fs_to_query_sql(
     model_name: &str,
     overrides: Option<HashMap<String, String>>,
 ) -> Result<(String, (BTreeSet<String>, Vec<Edge>)), String> {
-    enum SourceModelSeed {
-        Source,
-        Seed,
-        Model,
-    }
     // TODO Some really ugly code here. Clean it up.
     match (
         project.sources.get(model_name),
         project.seeds.get(model_name),
+        project.snapshots.get(model_name),
         project.models.get(model_name),
     ) {
-        (Some(_), None, None) => Ok(SourceModelSeed::Source),
-        (None, Some(_), None) => Ok(SourceModelSeed::Seed),
-        (None, None, Some(_)) => Ok(SourceModelSeed::Model),
+        (Some(_), None, None, None) => Ok(AssetType::Source),
+        (None, Some(_), None, None) => Ok(AssetType::Seed),
+        (None, None, Some(_), None) => Ok(AssetType::Snapshot),
+        (None, None, None, Some(_)) => Ok(AssetType::Model),
         _ => Err(format!(
-            "requested {:?} is neither a seed, nor source, nor model",
+            "requested {:?} is neither a seed, nor source, nor model, nor snapshot",
             model_name
         )),
     }?;
@@ -1150,26 +1147,31 @@ pub async fn project_and_fs_to_query_sql(
                 overrides.get(name),
                 project.sources.get(name),
                 project.seeds.get(name),
+                project.snapshots.get(name),
                 project.models.get(name),
             ) {
-                (Some(overriden), None, None, Some(_)) => Ok(NodeWithName {
+                (Some(overriden), None, None, None, Some(_)) => Ok(NodeWithName {
                     name: name.to_string(),
-                    node: ModelOrSeed::Override((name.clone(), overriden.clone())),
+                    asset: AssetData::Override((name.clone(), overriden.clone())),
                 }),
-                (None, Some(source), None, None) => Ok(NodeWithName {
+                (None, Some(source), None, None, None) => Ok(NodeWithName {
                     name: name.to_string(),
-                    node: ModelOrSeed::Source(source.clone()),
+                    asset: AssetData::Source(source.clone()),
                 }),
-                (None, None, Some(seed), None) => Ok(NodeWithName {
+                (None, None, Some(seed), None, None) => Ok(NodeWithName {
                     name: name.to_string(),
-                    node: ModelOrSeed::Seed(seed.clone()),
+                    asset: AssetData::Seed(seed.clone()),
                 }),
-                (None, None, None, Some(model)) => Ok(NodeWithName {
+                (None, None, None, Some(snapshot), None) => Ok(NodeWithName {
                     name: name.to_string(),
-                    node: ModelOrSeed::Model(model.clone()),
+                    asset: AssetData::Snapshot(snapshot.clone()),
+                }),
+                (None, None, None, None, Some(model)) => Ok(NodeWithName {
+                    name: name.to_string(),
+                    asset: AssetData::Model(model.clone()),
                 }),
                 _ => Err(format!(
-                    "model {:?} is neither a seed nor a model nor a source nor a override",
+                    "model {:?} is neither a seed nor a model nor a source nor a override not a snapshot",
                     name
                 )),
             }
@@ -1403,24 +1405,26 @@ async fn convert_to_select_statement(
     let nodes = values
         .iter()
         .map(|node| async move {
-            match &node.node {
-                ModelOrSeed::Override((name, target)) => {
+            match &node.asset {
+                AssetData::Override((name, target)) => {
                     let sql = render_override_select_statement(target);
                     Ok((name.clone(), sql))
                 }
-                ModelOrSeed::Source(source) => {
+                AssetData::Source(source) => {
                     let sql = render_source_select_statement(source);
                     Ok((node.name.clone(), sql))
                 }
-                ModelOrSeed::Seed(seed) => {
+                AssetData::Seed(seed) => {
                     let sql = render_seed_select_statement(database, file_system, seed).await?;
                     Ok((node.name.clone(), sql))
                 }
-                ModelOrSeed::Model(model) => {
+                AssetData::Model(model) => {
                     let sql = render_model_select_statement(database, file_system, model, project)
                         .await?;
                     Ok((node.name.clone(), sql))
                 }
+                // TODO: Implement snapshot select functionality (separate PR)
+                AssetData::Snapshot(_) => Err("Snapshots are not supported yet".to_string()),
             }
         })
         .collect::<Vec<_>>();
@@ -1635,9 +1639,18 @@ pub fn replace_reference_string_found<'a>(
 }
 
 #[derive(Debug, Clone)]
-enum ModelOrSeed {
+enum AssetType {
+    Model,
+    Seed,
+    Source,
+    Snapshot,
+}
+
+#[derive(Debug, Clone)]
+enum AssetData {
     Model(Model),
     Seed(Seed),
+    Snapshot(Snapshot),
     Source(Source),
     Override((String, String)),
 }
@@ -1645,7 +1658,7 @@ enum ModelOrSeed {
 #[derive(Debug, Clone)]
 struct NodeWithName {
     name: String,
-    node: ModelOrSeed,
+    asset: AssetData,
 }
 
 const EXTENSION_CSV: &str = "csv";
