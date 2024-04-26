@@ -372,7 +372,7 @@ mod tests {
             None,
         )
         .await
-        .expect("Failed to instantiate Quary Postgres");
+        .unwrap();
 
         let filesystem = FileSystem {
             files: vec![
@@ -442,7 +442,7 @@ mod tests {
             None,
         )
         .await
-        .expect("Failed to instantiate Quary Postgres");
+        .unwrap();
 
         quary_postgres
             .exec("CREATE TABLE wrong_table (id INTEGER, name VARCHAR(255))")
@@ -553,7 +553,7 @@ mod tests {
             None,
         )
         .await
-        .expect("Failed to instantiate Quary Postgres");
+        .unwrap();
 
         database.exec("CREATE SCHEMA transform").await.unwrap();
         database
@@ -633,7 +633,7 @@ mod tests {
             None,
         )
         .await
-        .expect("Failed to instantiate Quary Postgres");
+        .unwrap();
 
         database.exec("CREATE SCHEMA other_schema").await.unwrap();
         database.exec("CREATE SCHEMA transform").await.unwrap();
@@ -730,7 +730,7 @@ models:
             let results = database
                 .query(test)
                 .await
-                .expect(&format!("Error running query {}", test));
+                .unwrap();
 
             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
         }
@@ -759,7 +759,7 @@ models:
             None,
         )
         .await
-        .expect("Failed to instantiate Quary Postgres");
+        .unwrap();
 
         database.exec("CREATE SCHEMA other_schema").await.unwrap();
         database.exec("CREATE SCHEMA transform").await.unwrap();
@@ -879,7 +879,7 @@ models:
             let results = database
                 .query(test)
                 .await
-                .expect(&format!("Error running query {}", test));
+                .unwrap();
 
             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
         }
@@ -908,7 +908,7 @@ models:
             None,
         )
         .await
-        .expect("Failed to instantiate Quary Postgres");
+        .unwrap();
 
         database.exec("CREATE SCHEMA other_schema").await.unwrap();
         database.exec("CREATE SCHEMA transform").await.unwrap();
@@ -1177,7 +1177,7 @@ snapshots:
 
         // Parse the string into a NaiveDateTime
         let naive_datetime = NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S")
-            .expect("Failed to parse datetime string");
+            .unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc = DateTime::<Utc>::from_utc(naive_datetime, Utc);
@@ -1301,7 +1301,7 @@ snapshots:
         // Parse the string into a NaiveDateTime
         let naive_datetime_updated =
             NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S")
-                .expect("Failed to parse datetime string");
+                .unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc_updated = DateTime::<Utc>::from_utc(naive_datetime_updated, Utc);
