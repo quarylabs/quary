@@ -284,15 +284,15 @@ impl DatabaseConnection for Snowflake {
         };
     }
 
-    async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
-        Ok(None) // not implemented
-    }
-
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {
         Box::new(DatabaseQueryGeneratorSnowflake::new(
             self.database.to_string(),
             self.schema.to_string(),
         ))
+    }
+
+    async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
+        Ok(None) // not implemented
     }
 }
 

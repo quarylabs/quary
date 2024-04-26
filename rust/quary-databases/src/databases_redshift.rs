@@ -86,6 +86,13 @@ impl DatabaseConnection for Redshift {
         self.postgres.query(query).await
     }
 
+    fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {
+        Box::new(DatabaseQueryGeneratorRedshift::new(
+            self.schema.clone(),
+            None,
+        ))
+    }
+
     async fn table_exists(&self, path: &str) -> Result<Option<bool>, String> {
         let parts: Vec<&str> = path.split('.').collect();
         let (schema, table) = match parts.len() {
@@ -99,13 +106,6 @@ impl DatabaseConnection for Redshift {
             ))
             .await?;
         Ok(Some(result.len() > 0))
-    }
-
-    fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {
-        Box::new(DatabaseQueryGeneratorRedshift::new(
-            self.schema.clone(),
-            None,
-        ))
     }
 }
 
