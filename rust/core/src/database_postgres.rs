@@ -173,12 +173,12 @@ impl SnapshotGenerator for DatabaseQueryGeneratorPostgres {
             table_exists, None,
             "table_exists is not necessary for Postgres snapshots."
         );
+        let now = self.get_now();
         let snapshot_query =
-            self.generate_snapshot_query(templated_select, unique_key, strategy)?;
+            self.generate_snapshot_query(templated_select, unique_key, strategy, now.as_str())?;
         match strategy {
             StrategyType::Timestamp(timestamp) => {
                 let updated_at = &timestamp.updated_at;
-                let now = self.get_now();
 
                 let create_table_sql = format!(
                     "CREATE TABLE IF NOT EXISTS {path} AS (
@@ -226,11 +226,11 @@ impl SnapshotGenerator for DatabaseQueryGeneratorPostgres {
         templated_select: &str,
         unique_key: &str,
         strategy: &StrategyType,
+        now: &str,
     ) -> Result<String, String> {
         match strategy {
             StrategyType::Timestamp(timestamp) => {
                 let updated_at = &timestamp.updated_at;
-                let now = self.get_now();
                 Ok(format!(
                     "SELECT
                         ts.*,

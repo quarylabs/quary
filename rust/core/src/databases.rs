@@ -252,11 +252,14 @@ pub trait SnapshotGenerator {
     ///   - The q. references have been replaced with the underlying path of the referenced seed or source
     /// - `unique_key`: The column that uniquely identify each row in the snapshot source table.
     /// - `strategy`: The snapshot strategy to be used (e.g., timestamp)
+    /// - `now`: The current timestamp to be used in the simulated query.
+    /// TODO Find a way to remove the &self parameter
     fn generate_snapshot_query(
         &self,
         _templated_select: &str,
         _unique_key: &str,
         _strategy: &StrategyType,
+        _now: &str,
     ) -> Result<String, String> {
         Err("Database does not support snapshots".to_string())
     }
@@ -285,9 +288,9 @@ impl SnapshotGenerator for Box<dyn DatabaseQueryGenerator> {
         templated_select: &str,
         unique_key: &str,
         strategy: &StrategyType,
+        now: &str,
     ) -> Result<String, String> {
-        self.as_ref()
-            .generate_snapshot_query(templated_select, unique_key, strategy)
+        self.as_ref().generate_snapshot_query(templated_select, unique_key, strategy, now)
     }
 }
 

@@ -142,8 +142,9 @@ impl SnapshotGenerator for DatabaseQueryGeneratorSnowflake {
             table_exists, None,
             "table_exists is not necessary for Snowflake snapshots."
         );
+        let now = "CURRENT_TIMESTAMP()";
         let snapshot_query =
-            self.generate_snapshot_query(templated_select, unique_key, strategy)?;
+            self.generate_snapshot_query(templated_select, unique_key, strategy, now)?;
         match strategy {
             StrategyType::Timestamp(timestamp) => {
                 let updated_at = &timestamp.updated_at;
@@ -191,6 +192,7 @@ impl SnapshotGenerator for DatabaseQueryGeneratorSnowflake {
         templated_select: &str,
         unique_key: &str,
         strategy: &StrategyType,
+        now: &str,
     ) -> Result<String, String> {
         match strategy {
             StrategyType::Timestamp(timestamp) => {
@@ -198,7 +200,7 @@ impl SnapshotGenerator for DatabaseQueryGeneratorSnowflake {
                 Ok(format!(
                     "SELECT
                         *,
-                        CURRENT_TIMESTAMP() AS quary_valid_from,
+                        {now} AS quary_valid_from,
                         NULL AS quary_valid_to,
                         MD5(CONCAT({unique_key}, CAST({updated_at} AS VARCHAR))) AS quary_scd_id
                     FROM ({templated_select})"
