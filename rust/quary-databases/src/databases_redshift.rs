@@ -388,10 +388,7 @@ mod tests {
         assert!(!tests.is_empty());
 
         for (name, test) in tests.iter() {
-            let results = database
-                .query(test)
-                .await
-                .unwrap();
+            let results = database.query(test).await.unwrap();
 
             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
         }
@@ -527,10 +524,7 @@ mod tests {
         assert!(!tests.is_empty());
 
         for (name, test) in tests.iter() {
-            let results = database
-                .query(test)
-                .await
-                .unwrap();
+            let results = database.query(test).await.unwrap();
 
             assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
         }
@@ -660,8 +654,8 @@ mod tests {
         let datetime_str = "2023-01-01 01:00:00";
 
         // Parse the string into a NaiveDateTime
-        let naive_datetime = NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S")
-            .unwrap();
+        let naive_datetime =
+            NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S").unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc = DateTime::<Utc>::from_utc(naive_datetime, Utc);
@@ -785,8 +779,7 @@ mod tests {
 
         // Parse the string into a NaiveDateTime
         let naive_datetime_updated =
-            NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S")
-                .unwrap();
+            NaiveDateTime::parse_from_str(datetime_str_updated, "%Y-%m-%d %H:%M:%S").unwrap();
 
         // Convert NaiveDateTime to DateTime<Utc>
         let datetime_utc_updated = DateTime::<Utc>::from_utc(naive_datetime_updated, Utc);
