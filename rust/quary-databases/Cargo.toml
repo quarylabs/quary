@@ -16,11 +16,15 @@ async-trait = "0.1"
 gcp-bigquery-client = "0.18"
 prost = "0.12"
 google-cloud-auth = { version = "0.14", default-features = false, features = ["external-account", "rustls-tls"] }
-snowflake-api = { path = "../snowflake-api" }
-arrow-array = "51"
-duckdb = { version = "0.10", features = ["bundled"] }
 regex = "1.10.4"
 chrono = "0.4"
+
+duckdb = { version = "0.10", features = ["bundled"] }
+arrow_array_51 = {  package = "arrow-array", version = "51" }
+
+snowflake-api = "0.7.0"
+arrow_array_50 = { package = "arrow-array", version = "50" }
+
 
 [dev-dependencies]
 assert_cmd = "2"
