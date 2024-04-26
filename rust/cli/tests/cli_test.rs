@@ -332,10 +332,9 @@ async fn test_duckdb_snapshots() {
         // Check that quary_valid_from has the same date as the current date
         let current_date = Utc::now().date_naive();
         let quary_valid_from_str = &result.rows[0][4];
-        let quary_valid_from_date = quary_valid_from_str.split_whitespace().next().unwrap();
-        println!("quary_valid_from_date: {}", quary_valid_from_date);
         let quary_valid_from =
-            chrono::NaiveDate::parse_from_str(quary_valid_from_date, "%Y-%m-%dT%H:%M:%SZ").unwrap();
+            chrono::NaiveDate::parse_from_str(quary_valid_from_str, "%Y-%m-%d %H:%M:%S%.6f %Z")
+                .unwrap();
         assert_eq!(current_date, quary_valid_from);
 
         // Update orders.csv data
@@ -378,16 +377,13 @@ async fn test_duckdb_snapshots() {
         assert_eq!(updated_result.rows[1][5], "NULL"); // quary_valid_to should be NULL
 
         // Check that quary_valid_from of the updated row has the same date as the current date
+        // Check that quary_valid_from has the same date as the current date
         let current_date = Utc::now().date_naive();
-        let updated_quary_valid_from_str = &updated_result.rows[1][4];
-        let updated_quary_valid_from_date = updated_quary_valid_from_str
-            .split_whitespace()
-            .next()
-            .unwrap();
-        let updated_quary_valid_from =
-            chrono::NaiveDate::parse_from_str(updated_quary_valid_from_date, "%Y-%m-%dT%H:%M:%SZ")
+        let quary_valid_from_str = &updated_result.rows[1][4];
+        let quary_valid_from =
+            chrono::NaiveDate::parse_from_str(quary_valid_from_str, "%Y-%m-%d %H:%M:%S%.6f %Z")
                 .unwrap();
-        assert_eq!(current_date, updated_quary_valid_from);
+        assert_eq!(current_date, quary_valid_from);
     }
 }
 
