@@ -20,7 +20,6 @@ indicatif = "0.17"
 gcp-bigquery-client = "0.18"
 prost = "0.12"
 google-cloud-auth = { version = "0.14", default-features = false, features = ["external-account", "rustls-tls"] }
-snowflake-api = { path = "../snowflake-api" }
 arrow-array = "51"
 duckdb = { version = "0.10", features = ["bundled"] }
 regex = "1.10.4"
