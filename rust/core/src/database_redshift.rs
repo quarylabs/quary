@@ -236,11 +236,11 @@ impl SnapshotGenerator for DatabaseQueryGeneratorRedshift {
         templated_select: &str,
         unique_key: &str,
         strategy: &StrategyType,
+        now: &str,
     ) -> Result<String, String> {
         match strategy {
             StrategyType::Timestamp(timestamp) => {
                 let updated_at = &timestamp.updated_at;
-                let now = self.get_now();
                 Ok(format!(
                     "SELECT
                         ts.*,
