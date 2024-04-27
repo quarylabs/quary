@@ -1300,7 +1300,7 @@ pub async fn project_and_fs_to_sql_for_snapshots(
     project: &Project,
     file_system: &impl FileSystem,
     database: &impl DatabaseQueryGenerator,
-    database_connection: &Box<dyn DatabaseConnection>,
+    database_connection: &dyn DatabaseConnection,
 ) -> Result<Vec<(String, Vec<String>)>, String> {
     let snapshots_out = project.snapshots.values().map(|snapshot| async move {
         let connection_config = project
@@ -1334,7 +1334,7 @@ async fn generate_snapshot_sql(
     database: &impl DatabaseQueryGenerator,
     file_system: &impl FileSystem,
     snapshot: &Snapshot,
-    database_connection: &Box<dyn DatabaseConnection>,
+    database_connection: &dyn DatabaseConnection,
 ) -> Result<Vec<String>, String> {
     let snapshot_strategy = snapshot
         .strategy

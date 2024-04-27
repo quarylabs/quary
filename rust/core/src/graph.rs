@@ -228,7 +228,7 @@ impl QGraph {
             .edges_directed(node_index, petgraph::Direction::Incoming)
             .collect::<Vec<_>>()
             .iter()
-            .map(|edge| edge.id().clone())
+            .map(|edge| edge.id())
             .collect::<Vec<_>>();
         for edge in edges_collected {
             new_graph.remove_edge(edge);

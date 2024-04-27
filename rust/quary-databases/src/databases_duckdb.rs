@@ -852,7 +852,7 @@ snapshots:
             &project,
             &file_system,
             &DatabaseQueryGeneratorDuckDB::new(target_schema.clone(), None),
-            &database,
+            database.as_ref(),
         )
         .await
         .unwrap();
@@ -957,7 +957,7 @@ snapshots:
             .unwrap();
 
         let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, &database)
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, database.as_ref())
                 .await
                 .unwrap();
         for (_, sql) in snapshots_sql {
@@ -1028,7 +1028,7 @@ snapshots:
             &project,
             &file_system,
             &db_generator_updated,
-            &database,
+            database.as_ref(),
         )
         .await
         .unwrap();
@@ -1185,7 +1185,7 @@ snapshots:
             .unwrap();
 
         let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, &database)
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, database.as_ref())
                 .await
                 .unwrap();
         for (_, sql) in snapshots_sql {
@@ -1257,7 +1257,7 @@ snapshots:
             &project,
             &file_system,
             &db_generator_updated,
-            &database,
+            database.as_ref(),
         )
         .await
         .unwrap();

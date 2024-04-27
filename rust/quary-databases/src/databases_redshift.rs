@@ -105,7 +105,7 @@ impl DatabaseConnection for Redshift {
                 "table_schema = '{schema}' AND table_name = '{table}'"
             ))
             .await?;
-        Ok(Some(result.len() > 0))
+        Ok(Some(!result.is_empty()))
     }
 }
 
@@ -718,7 +718,7 @@ mod tests {
             .unwrap();
 
         let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, &database)
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, database.as_ref())
                 .await
                 .unwrap();
         for (_, sql) in snapshots_sql {
@@ -794,7 +794,7 @@ mod tests {
             &project,
             &file_system,
             &db_generator_updated,
-            &database,
+            database.as_ref(),
         )
         .await
         .unwrap();
