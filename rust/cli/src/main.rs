@@ -473,7 +473,7 @@ async fn main_wrapped() -> Result<(), String> {
         Commands::GenerateSources(_) => {
             let config = get_config_file(&args.project_file)?;
             let database = database_from_config(&config).await?;
-            let sources = generate_sources(&database).await?;
+            let sources = generate_sources(database.as_ref()).await?;
             let project_file = ProjectFile {
                 sources,
                 models: vec![],
@@ -493,7 +493,7 @@ async fn main_wrapped() -> Result<(), String> {
                 &project,
                 &file_system,
                 &query_generator,
-                &database,
+                database.as_ref(),
             )
             .await?;
 
@@ -541,7 +541,7 @@ async fn main_wrapped() -> Result<(), String> {
 }
 
 async fn generate_sources(
-    database: &Box<dyn DatabaseConnection>,
+    database: &dyn DatabaseConnection,
 ) -> Result<Vec<ProjectFileSource>, String> {
     let tables = database.list_tables().await?;
     let views = database.list_views().await?;

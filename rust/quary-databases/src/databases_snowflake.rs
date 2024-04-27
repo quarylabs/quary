@@ -1,4 +1,4 @@
-use arrow_array_50::{array, ArrayRef};
+use arrow_array_50::array;
 use async_trait::async_trait;
 use quary_core::database_snowflake::{
     validate_snowfalke_account_identifier, DatabaseQueryGeneratorSnowflake,

@@ -110,10 +110,10 @@ impl Postgres {
             .map(|row| {
                 let table_schema: String = row
                     .try_get(0)
-                    .map_err(|e| format!("Error getting table schema: {}", e.to_string()))?;
+                    .map_err(|e| format!("Error getting table schema: {}", e))?;
                 let table_name: String = row
                     .try_get(1)
-                    .map_err(|e| format!("Error getting table name: {}", e.to_string()))?;
+                    .map_err(|e| format!("Error getting table name: {}", e))?;
 
                 Ok(TableAddress {
                     name: table_name.clone(),
@@ -254,52 +254,41 @@ impl DatabaseConnection for Postgres {
             let type_name = row.column(i).type_info().name();
             let value: Option<String> = match type_name {
                 "INT4" => {
-                    let value = row.try_get::<Option<i32>, _>(i)?.map(|v| v.to_string());
-                    value
+                    row.try_get::<Option<i32>, _>(i)?.map(|v| v.to_string())
                 }
                 "INT8" => {
-                    let value = row.try_get::<Option<i64>, _>(i)?.map(|v| v.to_string());
-                    value
+                    row.try_get::<Option<i64>, _>(i)?.map(|v| v.to_string())
                 }
                 "FLOAT8" => {
-                    let value = row.try_get::<Option<f64>, _>(i)?.map(|v| v.to_string());
-                    value
+                    row.try_get::<Option<f64>, _>(i)?.map(|v| v.to_string())
                 }
                 "BOOL" => {
-                    let value = row.try_get::<Option<bool>, _>(i)?.map(|v| v.to_string());
-                    value
+                    row.try_get::<Option<bool>, _>(i)?.map(|v| v.to_string())
                 }
                 "TIMESTAMP" => {
-                    let value = row
+                    row
                         .try_get::<Option<chrono::NaiveDateTime>, _>(i)?
-                        .map(|v| v.format("%Y-%m-%dT%H:%M:%S").to_string());
-                    value
+                        .map(|v| v.format("%Y-%m-%dT%H:%M:%S").to_string())
                 }
                 "TIMESTAMPTZ" => {
-                    let value = row
-                        .try_get::<Option<DateTime<Utc>>, _>(i)?
-                        .map(|v| v.to_rfc3339());
-                    value
+                    row.try_get::<Option<DateTime<Utc>>, _>(i)?
+                        .map(|v| v.to_rfc3339())
                 }
                 "TEXT" => {
-                    let value = row.try_get::<Option<String>, _>(i)?;
-                    value
+                    row.try_get::<Option<String>, _>(i)?
                 }
                 "VARCHAR" => {
-                    let value = row.try_get::<Option<String>, _>(i)?;
-                    value
+                   row.try_get::<Option<String>, _>(i)?
                 }
                 "DATE" => {
-                    let value = row
+                    row
                         .try_get::<Option<chrono::NaiveDate>, _>(i)?
-                        .map(|v| v.format("%Y-%m-%d").to_string());
-                    value
+                        .map(|v| v.format("%Y-%m-%d").to_string())
                 }
                 "NUMERIC" => {
-                    let value = row
+                    row
                         .try_get::<Option<BigDecimal>, _>(i)?
-                        .map(|v| v.to_string());
-                    value
+                        .map(|v| v.to_string())
                 }
                 _ => Some(format!("Unsupported type: {}", type_name)),
             };
@@ -1116,7 +1105,7 @@ snapshots:
             &project,
             &file_system,
             &DatabaseQueryGeneratorPostgres::new(schema.to_string(), None),
-            &database,
+            database.as_ref(),
         )
         .await
         .unwrap();
@@ -1242,7 +1231,7 @@ snapshots:
             .unwrap();
 
         let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, &database)
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, database.as_ref())
                 .await
                 .unwrap();
         for (_, sql) in snapshots_sql {
@@ -1317,7 +1306,7 @@ snapshots:
             &project,
             &file_system,
             &db_generator_updated,
-            &database,
+            database.as_ref(),
         )
         .await
         .unwrap();
