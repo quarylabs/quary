@@ -25,7 +25,7 @@ pub fn validate_model_name(name: &str) -> Result<(), String> {
 /// parse_model_schemas_to_views takes in a reader and reads it to a View file
 /// name_replacing_strategy takes in the reference name and replaces it with whatever strategy is necessary.
 pub async fn parse_model_schemas_to_views<F>(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     file_reader: Box<dyn AsyncRead + Send + Unpin>,
     view_name: &str,
     materialization: &Option<String>,
@@ -76,7 +76,7 @@ pub async fn read_normalise_model(
 }
 
 fn return_sql_model_template(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     name: &str,
     materialization: &Option<String>,
     select_statement: &str,

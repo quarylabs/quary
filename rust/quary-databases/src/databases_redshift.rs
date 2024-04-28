@@ -369,12 +369,12 @@ mod tests {
             .collect(),
         };
 
-        let project = parse_project(&file_system, &database.query_generator(), "")
+        let project = parse_project(&file_system, &*database.query_generator(), "")
             .await
             .unwrap();
 
         let tests = return_tests_sql(
-            &database.query_generator(),
+            &*database.query_generator(),
             &project,
             &file_system,
             true,
@@ -484,14 +484,14 @@ mod tests {
             .collect(),
         };
 
-        let project = parse_project(&file_system, &database.query_generator(), "")
+        let project = parse_project(&file_system, &*database.query_generator(), "")
             .await
             .unwrap();
 
         let sqls = project_and_fs_to_sql_for_views(
             &project,
             &file_system,
-            &database.query_generator(),
+            &*database.query_generator(),
             false,
             false,
         )
@@ -510,7 +510,7 @@ mod tests {
         }
 
         let tests = return_tests_sql(
-            &database.query_generator(),
+            &*database.query_generator(),
             &project,
             &file_system,
             false,
@@ -718,7 +718,7 @@ mod tests {
             .unwrap();
 
         let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, database.as_ref())
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, &*database)
                 .await
                 .unwrap();
         for (_, sql) in snapshots_sql {
@@ -794,7 +794,7 @@ mod tests {
             &project,
             &file_system,
             &db_generator_updated,
-            database.as_ref(),
+            &*database,
         )
         .await
         .unwrap();

@@ -567,12 +567,12 @@ HAVING COUNT(*) > 1;",
             .collect(),
         };
 
-        let project = parse_project(&file_system, &database.query_generator(), "")
+        let project = parse_project(&file_system, &*database.query_generator(), "")
             .await
             .unwrap();
 
         let tests = return_tests_sql(
-            &database.query_generator(),
+            &*database.query_generator(),
             &project,
             &file_system,
             true,
@@ -680,12 +680,12 @@ HAVING COUNT(*) > 1;",
             .collect(),
         };
 
-        let project = parse_project(&file_system, &database.query_generator(), "")
+        let project = parse_project(&file_system, &*database.query_generator(), "")
             .await
             .unwrap();
 
         let tests = return_tests_sql(
-            &database.query_generator(),
+            &*database.query_generator(),
             &project,
             &file_system,
             true,
@@ -749,13 +749,13 @@ sources:
             .collect(),
         };
 
-        let project = parse_project(&file_system, &database.query_generator(), "")
+        let project = parse_project(&file_system, &*database.query_generator(), "")
             .await
             .unwrap();
         let sqls = project_and_fs_to_sql_for_views(
             &project,
             &file_system,
-            &database.query_generator(),
+            &*database.query_generator(),
             false,
             false,
         )
@@ -768,7 +768,7 @@ sources:
         }
 
         let tests = return_tests_sql(
-            &database.query_generator(),
+            &*database.query_generator(),
             &project,
             &file_system,
             false,
@@ -852,7 +852,7 @@ snapshots:
             &project,
             &file_system,
             &DatabaseQueryGeneratorDuckDB::new(target_schema.clone(), None),
-            database.as_ref(),
+            &*database,
         )
         .await
         .unwrap();
@@ -957,7 +957,7 @@ snapshots:
             .unwrap();
 
         let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, database.as_ref())
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, &*database)
                 .await
                 .unwrap();
         for (_, sql) in snapshots_sql {
@@ -1028,7 +1028,7 @@ snapshots:
             &project,
             &file_system,
             &db_generator_updated,
-            database.as_ref(),
+            &*database,
         )
         .await
         .unwrap();
@@ -1185,7 +1185,7 @@ snapshots:
             .unwrap();
 
         let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, database.as_ref())
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, &*database)
                 .await
                 .unwrap();
         for (_, sql) in snapshots_sql {
@@ -1257,7 +1257,7 @@ snapshots:
             &project,
             &file_system,
             &db_generator_updated,
-            database.as_ref(),
+            &*database,
         )
         .await
         .unwrap();

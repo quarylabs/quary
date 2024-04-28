@@ -319,12 +319,12 @@ mod tests {
 
         let file_system = Asset {};
         let query_generator = sqlite.query_generator();
-        let project = parse_project(&file_system, &query_generator, "")
+        let project = parse_project(&file_system, &*query_generator, "")
             .await
             .unwrap();
 
         let sqls =
-            project_and_fs_to_sql_for_views(&project, &file_system, &query_generator, false, false)
+            project_and_fs_to_sql_for_views(&project, &file_system, &*query_generator, false, false)
                 .await
                 .unwrap();
 
@@ -351,11 +351,11 @@ mod tests {
 
         let file_system = Asset {};
         let query_generator = sqlite.query_generator();
-        let project = parse_project(&file_system, &query_generator, "")
+        let project = parse_project(&file_system, &*query_generator, "")
             .await
             .unwrap();
 
-        let tests = return_tests_sql(&database, &project, &file_system, true, None, None)
+        let tests = return_tests_sql(&*database, &project, &file_system, true, None, None)
             .await
             .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
@@ -376,12 +376,12 @@ mod tests {
 
         let file_system = Asset {};
         let query_generator = sqlite.query_generator();
-        let project = parse_project(&file_system, &query_generator, "")
+        let project = parse_project(&file_system, &*query_generator, "")
             .await
             .unwrap();
 
         let sqls =
-            project_and_fs_to_sql_for_views(&project, &file_system, &query_generator, false, false)
+            project_and_fs_to_sql_for_views(&project, &file_system, &*query_generator, false, false)
                 .await
                 .unwrap();
 
@@ -415,7 +415,7 @@ mod tests {
         });
 
         let results = run_tests_internal(
-            &query_generator,
+            &*query_generator,
             &file_system,
             &project,
             "",
@@ -454,12 +454,12 @@ mod tests {
 
         let file_system = Asset {};
         let query_generator = sqlite.query_generator();
-        let project = parse_project(&file_system, &query_generator, "")
+        let project = parse_project(&file_system, &*query_generator, "")
             .await
             .unwrap();
 
         let sqls =
-            project_and_fs_to_sql_for_views(&project, &file_system, &query_generator, false, false)
+            project_and_fs_to_sql_for_views(&project, &file_system, &*query_generator, false, false)
                 .await
                 .unwrap();
 
@@ -493,7 +493,7 @@ mod tests {
         });
 
         let results = run_tests_internal(
-            &query_generator,
+            &*query_generator,
             &file_system,
             &project,
             "",
@@ -568,7 +568,7 @@ sources:
             },
         );
 
-        let project = parse_project(&file_system, &sqlite.query_generator(), "")
+        let project = parse_project(&file_system, &*sqlite.query_generator(), "")
             .await
             .unwrap();
 
@@ -593,7 +593,7 @@ sources:
 
         let query_generator = sqlite.query_generator();
         let sqls =
-            project_and_fs_to_sql_for_views(&project, &file_system, &query_generator, false, false)
+            project_and_fs_to_sql_for_views(&project, &file_system, &*query_generator, false, false)
                 .await
                 .unwrap();
 
@@ -664,7 +664,7 @@ sources:
             },
         );
 
-        let project = parse_project(&file_system, &sqlite.query_generator(), "")
+        let project = parse_project(&file_system, &*sqlite.query_generator(), "")
             .await
             .unwrap();
 
@@ -678,7 +678,7 @@ sources:
         // asser that can get and apply each successfully
         for model_name in model_names {
             let (sql, _) = project_and_fs_to_query_sql(
-                &sqlite.query_generator(),
+                &*sqlite.query_generator(),
                 &project,
                 &file_system,
                 model_name,
@@ -731,13 +731,13 @@ models:
             },
         );
 
-        let project = parse_project(&file_system, &sqlite.query_generator(), "")
+        let project = parse_project(&file_system, &*sqlite.query_generator(), "")
             .await
             .unwrap();
 
         // asser that can get and apply each successfully
         let (sql, _) = project_and_fs_to_query_sql(
-            &sqlite.query_generator(),
+            &*sqlite.query_generator(),
             &project,
             &file_system,
             new_model,

@@ -91,7 +91,7 @@ pub fn derive_model_hash(
         }
         hasher.finalize()
     };
-    Ok(HEXLOWER.encode(hash_of_hashes.as_ref()))
+    Ok(HEXLOWER.encode(&*hash_of_hashes))
 }
 
 fn hash_source(source: &Source) -> String {
@@ -139,7 +139,7 @@ pub async fn derive_sha256_file_contents(
 /// and seed inside of the project that is passed in. The returned type is a map from the model
 /// to a tuple of the model hash and sql statements required to create the view.
 pub fn derive_hash_views<'a>(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     project: &'a Project,
     project_graph: &'_ ProjectGraph,
 ) -> Result<BTreeMap<ModelName<'a>, (String, Vec<String>)>, String> {
@@ -206,7 +206,7 @@ pub fn cache_view_name_to_table_name_and_hash(
 
 /// is_cache_full_path returns true if the full path is a cache view name.
 pub fn is_cache_full_path(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     full_path: &str,
 ) -> Result<bool, String> {
     let view_name = database.return_name_from_full_path(full_path)?;

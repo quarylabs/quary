@@ -134,7 +134,7 @@ async fn main_wrapped() -> Result<(), String> {
             let database = database_query_generator_from_config(config)
                 .map_err(|e| format!("Error creating database query generator: {}", e))?;
 
-            let (project, _) = parse_project(&database)
+            let (project, _) = parse_project(&*database)
                 .await
                 .map_err(|e| format!("Error parsing project: {}", e))?;
 
@@ -155,7 +155,7 @@ async fn main_wrapped() -> Result<(), String> {
 
             let database = database_from_config(&config).await?;
             let query_generator = database.query_generator();
-            let (project, file_system) = parse_project(&query_generator).await?;
+            let (project, file_system) = parse_project(&*query_generator).await?;
 
             // If cache table deletes any previous cache views.
             let cache_delete_views_sqls: Vec<(String, String)> = if build_args.cache_views {
@@ -167,7 +167,7 @@ async fn main_wrapped() -> Result<(), String> {
                     .into_iter()
                     .map(|view| {
                         let is_cache =
-                            is_cache_full_path(&database.query_generator(), &view.full_path)?;
+                            is_cache_full_path(&*database.query_generator(), &view.full_path)?;
                         Ok((view, is_cache))
                     })
                     .collect::<Result<Vec<_>, String>>()?;
@@ -192,7 +192,7 @@ async fn main_wrapped() -> Result<(), String> {
             let cache_to_create: Vec<(String, Vec<String>)> = if build_args.cache_views {
                 let project_graph = project_to_graph(project.clone())?;
                 let views =
-                    derive_hash_views(&database.query_generator(), &project, &project_graph)?;
+                    derive_hash_views(&*database.query_generator(), &project, &project_graph)?;
                 Ok::<_, String>(
                     views
                         .into_iter()
@@ -206,7 +206,7 @@ async fn main_wrapped() -> Result<(), String> {
             let sqls = project_and_fs_to_sql_for_views(
                 &project,
                 &file_system,
-                &query_generator,
+                &*query_generator,
                 false,
                 false,
             )
@@ -287,12 +287,12 @@ async fn main_wrapped() -> Result<(), String> {
 
             let database = database_from_config(&config).await?;
             let query_generator = database.query_generator();
-            let (project, file_system) = parse_project(&query_generator).await?;
+            let (project, file_system) = parse_project(&*query_generator).await?;
 
             let limit = if test_args.verbose { None } else { Some(1) };
 
             let tests = return_tests_sql(
-                &database.query_generator(),
+                &*database.query_generator(),
                 &project,
                 &file_system,
                 test_args.full_source,
@@ -336,7 +336,7 @@ async fn main_wrapped() -> Result<(), String> {
             // TODO Need to reintroduce the progressbar
             println!("running tests {}", tests.len());
             return match run_tests_internal(
-                &query_generator,
+                &*query_generator,
                 &file_system,
                 &project,
                 "",
@@ -473,7 +473,7 @@ async fn main_wrapped() -> Result<(), String> {
         Commands::GenerateSources(_) => {
             let config = get_config_file(&args.project_file)?;
             let database = database_from_config(&config).await?;
-            let sources = generate_sources(database.as_ref()).await?;
+            let sources = generate_sources(&*database).await?;
             let project_file = ProjectFile {
                 sources,
                 models: vec![],
@@ -488,12 +488,12 @@ async fn main_wrapped() -> Result<(), String> {
             let config = get_config_file(&args.project_file)?;
             let database = database_from_config(&config).await?;
             let query_generator = database.query_generator();
-            let (project, file_system) = parse_project(&query_generator).await?;
+            let (project, file_system) = parse_project(&*query_generator).await?;
             let snapshots_sql = project_and_fs_to_sql_for_snapshots(
                 &project,
                 &file_system,
-                &query_generator,
-                database.as_ref(),
+                &*query_generator,
+                &*database,
             )
             .await?;
 
@@ -603,7 +603,7 @@ fn address_to_source(address_with_columns: AddressWithColumns) -> ProjectFileSou
 }
 
 async fn parse_project(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
 ) -> Result<(quary_proto::Project, LocalFS), String> {
     let dir = std::env::current_dir().map_err(|e| e.to_string())?;
     let filesystem = LocalFS::new(dir);

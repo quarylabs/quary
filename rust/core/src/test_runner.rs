@@ -62,7 +62,7 @@ pub enum RunTestError {
 /// quickly and not have to wait for an number of results, greater than the limit to be returned. This is useful for
 /// CI environments where we want to run tests quickly and not wait for a large number of results to be returned.
 pub async fn run_tests_internal(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     file_system: &impl FileSystem,
     project: &Project,
     project_root: &str,
@@ -401,7 +401,7 @@ pub async fn run_tests_internal(
 /// quickly and not have to wait for an number of results, greater than the limit to be returned. This is useful for
 /// CI environments where we want to run tests quickly and not wait for a large number of results to be returned.
 pub async fn run_model_tests_internal(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     file_system: &impl FileSystem,
     project: &Project,
     run_statement: RunStatementFunc,

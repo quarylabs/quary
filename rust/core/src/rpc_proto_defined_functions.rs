@@ -198,7 +198,7 @@ pub async fn name_to_raw_model_map_internal(
 }
 
 pub async fn render_schema_internal(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     project: Option<Project>,
     file_system: Option<quary_proto::FileSystem>,
 ) -> Result<String, String> {
@@ -223,7 +223,7 @@ pub async fn render_schema_internal(
 pub async fn return_full_sql_for_new_model(
     file_system: quary_proto::FileSystem,
     project_root: &str,
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     model_sql: &str,
     model_name: &str,
 ) -> Result<(Vec<Edge>, BTreeSet<String>), String> {
