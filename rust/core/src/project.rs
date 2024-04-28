@@ -160,7 +160,7 @@ pub fn return_tests_for_a_particular_model<'a>(
 /// ParseProject parses a whole project into a project object.
 pub async fn parse_project(
     filesystem: &impl FileSystem,
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     project_root: &str,
 ) -> Result<Project, String> {
     let seeds = parse_seeds(filesystem, project_root)
@@ -275,7 +275,7 @@ pub async fn parse_project(
 
 async fn parse_tests(
     filesystem: &impl FileSystem,
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     project_root: &str,
     path_map: &PathMap,
     project_files: &HashMap<String, ProjectFile>,
@@ -373,7 +373,7 @@ async fn parse_sql_tests(
 }
 
 pub fn create_path_map(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     models: Vec<&Model>,
     sources: Vec<&Source>,
     snapshots: Vec<&Snapshot>,
@@ -773,7 +773,7 @@ async fn parse_seeds<'a>(
 pub async fn parse_project_files(
     filesystem: &impl FileSystem,
     project_root: &str,
-    database: &impl DatabaseQueryGenerator, // Map of full path to project file and project file
+    database: &dyn DatabaseQueryGenerator, // Map of full path to project file and project file
 ) -> Result<HashMap<String, ProjectFile>, String> {
     let paths = get_path_bufs(
         filesystem,
@@ -841,7 +841,7 @@ fn parse_sources(
 type PathMap = HashMap<String, String>;
 
 fn parse_column_tests(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     project_files: &HashMap<String, ProjectFile>,
     path_map: &PathMap,
 ) -> Result<HashMap<String, Test>, String> {
@@ -884,7 +884,7 @@ fn parse_column_tests(
 
 /// parse_model_tests_in_project_files returns the tests for both the source and model tests
 fn parse_model_tests_in_project_files(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     project_files: &HashMap<String, ProjectFile>,
 ) -> Result<HashMap<String, Test>, String> {
     let mut m = HashMap::<String, Test>::new();
@@ -1104,7 +1104,7 @@ fn parse_column_tests_for_model_or_source(
 /// Returns a tuple of the sql statement and the (nodes, edges) that were used to create the sql
 /// statement.
 pub async fn project_and_fs_to_query_sql(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     project: &Project,
     file_system: &impl FileSystem,
     model_name: &str,
@@ -1195,7 +1195,7 @@ pub async fn project_and_fs_to_query_sql(
 pub async fn project_and_fs_to_sql_for_views(
     project: &Project,
     file_system: &impl FileSystem,
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     only_models: bool,
     do_not_include_seeds_data: bool,
 ) -> Result<Vec<(String, Vec<String>)>, String> {
@@ -1301,7 +1301,7 @@ pub async fn project_and_fs_to_sql_for_views(
 pub async fn project_and_fs_to_sql_for_snapshots(
     project: &Project,
     file_system: &impl FileSystem,
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     database_connection: &dyn DatabaseConnection,
 ) -> Result<Vec<(String, Vec<String>)>, String> {
     let snapshots_out = project.snapshots.values().map(|snapshot| async move {
@@ -1333,7 +1333,7 @@ pub async fn project_and_fs_to_sql_for_snapshots(
 async fn generate_snapshot_sql(
     connection_config: &ConnectionConfig,
     project: &Project,
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     file_system: &impl FileSystem,
     snapshot: &Snapshot,
     database_connection: &dyn DatabaseConnection,
@@ -1394,7 +1394,7 @@ async fn generate_snapshot_sql(
 ///
 /// array of models is in the shape of [][2]string where the first element is the name of the model and the second element is the sql
 async fn convert_to_select_statement(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     file_system: &impl FileSystem,
     values: &[NodeWithName],
     project: &Project,
@@ -1455,7 +1455,7 @@ async fn convert_to_select_statement(
 }
 
 async fn render_seed_select_statement(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     fs: &impl FileSystem,
     seed: &Seed,
 ) -> Result<String, String> {
@@ -1493,7 +1493,7 @@ async fn render_seed_select_statement(
 }
 
 fn render_seed_select_statement_string(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     headers: Vec<String>,
     values: Vec<Vec<String>>,
 ) -> String {
@@ -1531,7 +1531,7 @@ fn render_override_select_statement(override_target: &str) -> String {
 }
 
 async fn render_model_select_statement(
-    database: &impl DatabaseQueryGenerator,
+    database: &dyn DatabaseQueryGenerator,
     fs: &impl FileSystem,
     model: &Model,
     project: &Project,
@@ -1605,7 +1605,7 @@ pub fn replace_variable_templates_with_variable_defined_in_config(
 
 fn replace_reference_string_found_with_database<'a>(
     sources: &'a HashMap<String, Source>,
-    database: &'a &impl DatabaseQueryGenerator,
+    database: &'a &dyn DatabaseQueryGenerator,
 ) -> Box<dyn Fn(&regex::Captures) -> String + 'a> {
     #[allow(clippy::indexing_slicing)]
     Box::new(move |caps: &regex::Captures| {
@@ -1621,7 +1621,7 @@ fn replace_reference_string_found_with_database<'a>(
 
 pub fn replace_reference_string_found<'a>(
     overrides: &'a HashMap<String, String>,
-    database: &'a &impl DatabaseQueryGenerator,
+    database: &'a &dyn DatabaseQueryGenerator,
 ) -> Box<dyn Fn(&regex::Captures) -> String + 'a> {
     #[allow(clippy::indexing_slicing)]
     Box::new(move |caps: &regex::Captures| {
