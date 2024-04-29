@@ -1,6 +1,6 @@
 [package]
 name = "quary-core"
-version = "0.0.113"
+version = "0.0.114"
 authors = ["Ben King <9087625+benfdking@users.noreply.github.com>"]
 edition = "2021"
 rust-version = "1.77.2"
