@@ -365,13 +365,13 @@ mod tests {
             .collect(),
         };
 
-        let project = parse_project(&filesystem, &*quary_postgres.query_generator(), "")
+        let project = parse_project(&filesystem, &quary_postgres.query_generator(), "")
             .await
             .unwrap();
         let sqls = project_and_fs_to_sql_for_views(
             &project,
             &filesystem,
-            &*quary_postgres.query_generator(),
+            &quary_postgres.query_generator(),
             false,
             false,
         )
@@ -686,12 +686,12 @@ models:
             .collect(),
         };
 
-        let project = parse_project(&file_system, &*database.query_generator(), "")
+        let project = parse_project(&file_system, &database.query_generator(), "")
             .await
             .unwrap();
 
         let tests = return_tests_sql(
-            &*database.query_generator(),
+            &database.query_generator(),
             &project,
             &file_system,
             true,
@@ -811,14 +811,14 @@ models:
             .collect(),
         };
 
-        let project = parse_project(&file_system, &*database.query_generator(), "")
+        let project = parse_project(&file_system, &database.query_generator(), "")
             .await
             .unwrap();
 
         let sqls = project_and_fs_to_sql_for_views(
             &project,
             &file_system,
-            &*database.query_generator(),
+            &database.query_generator(),
             false,
             false,
         )
@@ -837,7 +837,7 @@ models:
         }
 
         let tests = return_tests_sql(
-            &*database.query_generator(),
+            &database.query_generator(),
             &project,
             &file_system,
             false,
@@ -1086,7 +1086,7 @@ snapshots:
             &project,
             &file_system,
             &DatabaseQueryGeneratorPostgres::new(schema.to_string(), None),
-            &*database,
+            database.as_ref(),
         )
         .await
         .unwrap();
@@ -1212,7 +1212,7 @@ snapshots:
             .unwrap();
 
         let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, &*database)
+            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, database.as_ref())
                 .await
                 .unwrap();
         for (_, sql) in snapshots_sql {
@@ -1287,7 +1287,7 @@ snapshots:
             &project,
             &file_system,
             &db_generator_updated,
-            &*database,
+            database.as_ref(),
         )
         .await
         .unwrap();

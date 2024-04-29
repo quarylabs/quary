@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use std::error::Error;
 
 pub async fn parse_table_schema_seeds(
-    database: &dyn DatabaseQueryGenerator,
+    database: &impl DatabaseQueryGenerator,
     table_name: &str,
     reader: Box<dyn AsyncRead + Send + Unpin>,
     do_not_include_data: bool,

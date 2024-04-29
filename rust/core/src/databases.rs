@@ -141,6 +141,85 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
     }
 }
 
+impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
+    fn validate_materialization_type(
+        &self,
+        materialization_type: &Option<String>,
+    ) -> Result<(), String> {
+        self.as_ref()
+            .validate_materialization_type(materialization_type)
+    }
+
+    fn models_drop_query(
+        &self,
+        view_name: &str,
+        materialization_type: &Option<String>,
+    ) -> Result<String, String> {
+        self.as_ref()
+            .models_drop_query(view_name, materialization_type)
+    }
+
+    fn models_create_query(
+        &self,
+        view_name: &str,
+        original_select_statement: &str,
+        materialization_type: &Option<String>,
+    ) -> Result<String, String> {
+        self.as_ref().models_create_query(
+            view_name,
+            original_select_statement,
+            materialization_type,
+        )
+    }
+
+    fn seeds_drop_table_query(&self, table_name: &str) -> String {
+        self.as_ref().seeds_drop_table_query(table_name)
+    }
+
+    fn seeds_create_table_query(&self, table_name: &str, columns: &[String]) -> String {
+        self.as_ref().seeds_create_table_query(table_name, columns)
+    }
+
+    fn seeds_insert_into_table_query(
+        &self,
+        table_name: &str,
+        columns: &[String],
+        values: &[Vec<String>],
+    ) -> String {
+        self.as_ref()
+            .seeds_insert_into_table_query(table_name, columns, values)
+    }
+
+    fn escape_seed_value(&self, seed_value: &str) -> String {
+        self.as_ref().escape_seed_value(seed_value)
+    }
+
+    fn return_full_path_requirement(&self, table_name: &str) -> String {
+        self.as_ref().return_full_path_requirement(table_name)
+    }
+
+    fn return_name_from_full_path<'a>(&self, full_path: &'a str) -> Result<&'a str, String> {
+        self.as_ref().return_name_from_full_path(full_path)
+    }
+
+    fn automatic_cache_sql_create_statement(
+        &self,
+        model: &str,
+        model_cache_name: &str,
+    ) -> Vec<String> {
+        self.as_ref()
+            .automatic_cache_sql_create_statement(model, model_cache_name)
+    }
+
+    fn get_dialect(&self) -> &Dialect {
+        self.as_ref().get_dialect()
+    }
+
+    fn database_name_wrapper(&self, name: &str) -> String {
+        self.as_ref().database_name_wrapper(name)
+    }
+}
+
 pub trait SnapshotGenerator {
     /// GenerateSnapshotSQL generates the SQL statements to create a snapshot of a table.
     ///
@@ -188,6 +267,36 @@ pub trait SnapshotGenerator {
         _now: &str,
     ) -> Result<String, String> {
         Err("Database does not support snapshots".to_string())
+    }
+}
+
+impl SnapshotGenerator for Box<dyn DatabaseQueryGenerator> {
+    fn generate_snapshot_sql(
+        &self,
+        path: &str,
+        templated_select: &str,
+        unique_key: &str,
+        strategy: &StrategyType,
+        table_exists: Option<bool>,
+    ) -> Result<Vec<String>, String> {
+        self.as_ref().generate_snapshot_sql(
+            path,
+            templated_select,
+            unique_key,
+            strategy,
+            table_exists,
+        )
+    }
+
+    fn generate_snapshot_query(
+        &self,
+        templated_select: &str,
+        unique_key: &str,
+        strategy: &StrategyType,
+        now: &str,
+    ) -> Result<String, String> {
+        self.as_ref()
+            .generate_snapshot_query(templated_select, unique_key, strategy, now)
     }
 }
 
