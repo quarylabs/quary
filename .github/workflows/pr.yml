@@ -80,7 +80,7 @@ jobs:
       - name: Install wasm target
         run: rustup target add wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
-      - uses: taiki-e/cache-cargo-install-action@e57d133d3c2bc6196d57ce056266ea53dd4feb6d # ratchet:taiki-e/cache-cargo-install-action@v1
+      - uses: taiki-e/cache-cargo-install-action@5b024fe3a0a2c7f2aaff0e47871acf0d14b07207 # ratchet:taiki-e/cache-cargo-install-action@v1
         with:
           tool: wasm-bindgen-cli
       - name: Set up Homebrew
