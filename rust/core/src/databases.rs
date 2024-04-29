@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use core::panic;
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use quary_proto::TableAddress;
 use sqlinference::dialect::Dialect;
@@ -134,6 +135,11 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
 
     /// database_name_wrapper returns a full path or name wrapped in quotes that work for the specific database
     fn database_name_wrapper(&self, name: &str) -> String;
+
+    /// get_current_timestamp returns the current timestamp (with TZ + hour in database format)
+    fn get_current_timestamp(&self) -> String {
+        panic!("get_current_timestamp not implemented for this database")
+    }
 }
 
 impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
@@ -212,6 +218,10 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
 
     fn database_name_wrapper(&self, name: &str) -> String {
         self.as_ref().database_name_wrapper(name)
+    }
+
+    fn get_current_timestamp(&self) -> String {
+        self.as_ref().get_current_timestamp()
     }
 }
 

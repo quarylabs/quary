@@ -1611,7 +1611,12 @@ async fn render_snapshot_select_statement(
         .strategy_type
         .ok_or("missing snapshot strategy type")?;
 
-    database.generate_snapshot_query(&replaced, &snapshot.unique_key, &snapshot_strategy_type)
+    database.generate_snapshot_query(
+        &replaced,
+        &snapshot.unique_key,
+        &snapshot_strategy_type,
+        &database.get_current_timestamp(),
+    )
 }
 
 pub fn replace_variable_templates_with_variable_defined_in_config(

@@ -253,43 +253,24 @@ impl DatabaseConnection for Postgres {
         fn convert_value_to_string(row: &PgRow, i: usize) -> Result<String, Error> {
             let type_name = row.column(i).type_info().name();
             let value: Option<String> = match type_name {
-                "INT4" => {
-                    row.try_get::<Option<i32>, _>(i)?.map(|v| v.to_string())
-                }
-                "INT8" => {
-                    row.try_get::<Option<i64>, _>(i)?.map(|v| v.to_string())
-                }
-                "FLOAT8" => {
-                    row.try_get::<Option<f64>, _>(i)?.map(|v| v.to_string())
-                }
-                "BOOL" => {
-                    row.try_get::<Option<bool>, _>(i)?.map(|v| v.to_string())
-                }
-                "TIMESTAMP" => {
-                    row
-                        .try_get::<Option<chrono::NaiveDateTime>, _>(i)?
-                        .map(|v| v.format("%Y-%m-%dT%H:%M:%S").to_string())
-                }
-                "TIMESTAMPTZ" => {
-                    row.try_get::<Option<DateTime<Utc>>, _>(i)?
-                        .map(|v| v.to_rfc3339())
-                }
-                "TEXT" => {
-                    row.try_get::<Option<String>, _>(i)?
-                }
-                "VARCHAR" => {
-                   row.try_get::<Option<String>, _>(i)?
-                }
-                "DATE" => {
-                    row
-                        .try_get::<Option<chrono::NaiveDate>, _>(i)?
-                        .map(|v| v.format("%Y-%m-%d").to_string())
-                }
-                "NUMERIC" => {
-                    row
-                        .try_get::<Option<BigDecimal>, _>(i)?
-                        .map(|v| v.to_string())
-                }
+                "INT4" => row.try_get::<Option<i32>, _>(i)?.map(|v| v.to_string()),
+                "INT8" => row.try_get::<Option<i64>, _>(i)?.map(|v| v.to_string()),
+                "FLOAT8" => row.try_get::<Option<f64>, _>(i)?.map(|v| v.to_string()),
+                "BOOL" => row.try_get::<Option<bool>, _>(i)?.map(|v| v.to_string()),
+                "TIMESTAMP" => row
+                    .try_get::<Option<chrono::NaiveDateTime>, _>(i)?
+                    .map(|v| v.format("%Y-%m-%dT%H:%M:%S").to_string()),
+                "TIMESTAMPTZ" => row
+                    .try_get::<Option<DateTime<Utc>>, _>(i)?
+                    .map(|v| v.to_rfc3339()),
+                "TEXT" => row.try_get::<Option<String>, _>(i)?,
+                "VARCHAR" => row.try_get::<Option<String>, _>(i)?,
+                "DATE" => row
+                    .try_get::<Option<chrono::NaiveDate>, _>(i)?
+                    .map(|v| v.format("%Y-%m-%d").to_string()),
+                "NUMERIC" => row
+                    .try_get::<Option<BigDecimal>, _>(i)?
+                    .map(|v| v.to_string()),
                 _ => Some(format!("Unsupported type: {}", type_name)),
             };
             match value {
@@ -1230,10 +1211,14 @@ snapshots:
             .await
             .unwrap();
 
-        let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, database.as_ref())
-                .await
-                .unwrap();
+        let snapshots_sql = project_and_fs_to_sql_for_snapshots(
+            &project,
+            &file_system,
+            &db_generator,
+            database.as_ref(),
+        )
+        .await
+        .unwrap();
         for (_, sql) in snapshots_sql {
             for statement in sql {
                 database.exec(statement.as_str()).await.unwrap()
