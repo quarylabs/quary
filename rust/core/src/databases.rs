@@ -134,6 +134,11 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
 
     /// database_name_wrapper returns a full path or name wrapped in quotes that work for the specific database
     fn database_name_wrapper(&self, name: &str) -> String;
+
+    /// get_current_timestamp returns the current timestamp (with TZ + hour in database format)
+    fn get_current_timestamp(&self) -> Timestamp {
+        panic!("get_current_timestamp not implemented for this database")
+    }
 }
 
 pub trait SnapshotGenerator {
@@ -301,6 +306,9 @@ impl QueryResult {
         Ok(quary_proto::QueryResult { columns: values })
     }
 }
+
+// Timestamp is a type alias for a String that represents a formatted database timestamp.
+pub type Timestamp = String;
 
 #[cfg(test)]
 mod tests {

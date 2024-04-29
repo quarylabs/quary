@@ -1,5 +1,6 @@
 use crate::databases::{
     base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, SnapshotGenerator,
+    Timestamp,
 };
 use chrono::{DateTime, Utc};
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
@@ -23,17 +24,6 @@ impl DatabaseQueryGeneratorDuckDB {
             schema,
             override_now,
         }
-    }
-
-    fn get_now(&self) -> String {
-        let datetime = self
-            .override_now
-            .map(|time| -> DateTime<Utc> { time.into() })
-            .unwrap_or(SystemTime::now().into());
-        format!(
-            "CAST ('{}' AS TIMESTAMP WITH TIME ZONE)",
-            datetime.format("%Y-%m-%dT%H:%M:%SZ")
-        )
     }
 }
 
@@ -90,6 +80,17 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorDuckDB {
     fn database_name_wrapper(&self, name: &str) -> String {
         name.into()
     }
+
+    fn get_current_timestamp(&self) -> Timestamp {
+        let datetime = self
+            .override_now
+            .map(|time| -> DateTime<Utc> { time.into() })
+            .unwrap_or(SystemTime::now().into());
+        format!(
+            "CAST ('{}' AS TIMESTAMP WITH TIME ZONE)",
+            datetime.format("%Y-%m-%dT%H:%M:%SZ")
+        )
+    }
 }
 
 impl SnapshotGenerator for DatabaseQueryGeneratorDuckDB {
@@ -106,7 +107,7 @@ impl SnapshotGenerator for DatabaseQueryGeneratorDuckDB {
             "table_exists is not necessary for DuckDB snapshots."
         );
 
-        let now = self.get_now();
+        let now = self.get_current_timestamp();
         let snapshot_query =
             self.generate_snapshot_query(templated_select, unique_key, strategy, now.as_str())?;
 
@@ -211,12 +212,12 @@ mod tests {
     }
 
     #[test]
-    fn test_get_now() {
+    fn test_get_current_timestamp() {
         let override_now = SystemTime::now();
         let database = DatabaseQueryGeneratorDuckDB::new(None, Some(override_now));
 
         // TODO Improve test
-        let result = database.get_now();
+        let result = database.get_current_timestamp();
         let expected_datetime: DateTime<Utc> = override_now.into();
         let expected_result = format!(
             "CAST ('{}' AS TIMESTAMP WITH TIME ZONE)",

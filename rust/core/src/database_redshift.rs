@@ -1,5 +1,6 @@
 use crate::databases::{
     base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, SnapshotGenerator,
+    Timestamp,
 };
 use chrono::{DateTime, Utc};
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
@@ -20,15 +21,6 @@ impl DatabaseQueryGeneratorRedshift {
             schema,
             override_now,
         }
-    }
-
-    fn get_now(&self) -> String {
-        let datetime = self
-            .override_now
-            .map(|time| -> DateTime<Utc> { time.into() })
-            .unwrap_or(SystemTime::now().into())
-            .format("%Y-%m-%dT%H:%M:%SZ");
-        format!("CAST('{}' AS TIMESTAMP WITH TIME ZONE)", datetime)
     }
 }
 
@@ -158,6 +150,15 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorRedshift {
     fn database_name_wrapper(&self, name: &str) -> String {
         name.to_string()
     }
+
+    fn get_current_timestamp(&self) -> Timestamp {
+        let datetime = self
+            .override_now
+            .map(|time| -> DateTime<Utc> { time.into() })
+            .unwrap_or(SystemTime::now().into())
+            .format("%Y-%m-%dT%H:%M:%SZ");
+        format!("CAST('{}' AS TIMESTAMP WITH TIME ZONE)", datetime)
+    }
 }
 
 impl SnapshotGenerator for DatabaseQueryGeneratorRedshift {
@@ -172,7 +173,7 @@ impl SnapshotGenerator for DatabaseQueryGeneratorRedshift {
         match strategy {
             StrategyType::Timestamp(timestamp) => {
                 let updated_at = &timestamp.updated_at;
-                let now = self.get_now();
+                let now = self.get_current_timestamp();
 
                 // Redshift does not support CREATE TABLE IF NOT EXISTS (w/ AS (...))
                 let create_table_sql = format!(
@@ -256,21 +257,23 @@ impl SnapshotGenerator for DatabaseQueryGeneratorRedshift {
 
 #[cfg(test)]
 mod test {
+    use crate::databases::DatabaseQueryGenerator;
+
     #[test]
-    fn get_now() {
+    fn test_get_current_timestamp() {
         let generator = super::DatabaseQueryGeneratorRedshift::new("schema".to_string(), None);
-        let now = generator.get_now();
+        let now = generator.get_current_timestamp();
 
         assert!(now.starts_with("CAST('20"));
     }
 
     #[test]
-    fn get_now_override() {
+    fn get_current_timestamp_override() {
         let generator = super::DatabaseQueryGeneratorRedshift::new(
             "schema".to_string(),
             Some(std::time::SystemTime::UNIX_EPOCH),
         );
-        let now = generator.get_now();
+        let now = generator.get_current_timestamp();
         assert_eq!(
             now,
             "CAST('1970-01-01T00:00:00Z' AS TIMESTAMP WITH TIME ZONE)".to_string()
