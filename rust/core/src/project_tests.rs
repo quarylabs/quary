@@ -27,7 +27,7 @@ use std::pin::Pin;
 ///
 /// filter_by_model if set to Some(&str) will filter the tests to only return tests related to the model.
 pub async fn return_tests_sql(
-    database: &dyn DatabaseQueryGenerator,
+    database: &(impl DatabaseQueryGenerator + Sync),
     project: &Project,
     fs: &impl FileSystem,
     whether_to_make_test_include_models_to_source: bool,
