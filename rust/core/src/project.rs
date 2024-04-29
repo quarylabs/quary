@@ -1556,7 +1556,7 @@ async fn render_model_select_statement(
     })?;
     let replaced = reference_search.replace_all(
         sql.as_str(),
-        replace_reference_string_found(&HashMap::new(), &database),
+        replace_reference_string_found(&HashMap::new(), database),
     );
     let connection_config = project
         .connection_config
@@ -1593,7 +1593,7 @@ async fn render_snapshot_select_statement(
     })?;
     let replaced = reference_search.replace_all(
         sql.as_str(),
-        replace_reference_string_found(&HashMap::new(), &database),
+        replace_reference_string_found(&HashMap::new(), database),
     );
     let connection_config = project
         .connection_config
@@ -1676,8 +1676,9 @@ fn replace_reference_string_found_with_database<'a>(
 
 pub fn replace_reference_string_found<'a>(
     overrides: &'a HashMap<String, String>,
-    database: &'a &impl DatabaseQueryGenerator,
+    database: &'a (impl DatabaseQueryGenerator + ?Sized),
 ) -> Box<dyn Fn(&regex::Captures) -> String + 'a> {
+    let database = database.clone();
     #[allow(clippy::indexing_slicing)]
     Box::new(move |caps: &regex::Captures| {
         let model = &caps[1];

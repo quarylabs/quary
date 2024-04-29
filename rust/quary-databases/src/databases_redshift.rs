@@ -717,10 +717,14 @@ mod tests {
             .await
             .unwrap();
 
-        let snapshots_sql =
-            project_and_fs_to_sql_for_snapshots(&project, &file_system, &db_generator, database.as_ref())
-                .await
-                .unwrap();
+        let snapshots_sql = project_and_fs_to_sql_for_snapshots(
+            &project,
+            &file_system,
+            &db_generator,
+            database.as_ref(),
+        )
+        .await
+        .unwrap();
         for (_, sql) in snapshots_sql {
             for statement in sql {
                 println!("{}", statement.as_str());
