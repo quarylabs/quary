@@ -156,7 +156,7 @@ pub async fn return_tests_sql(
                             .map_err(|e| format!("failed to return reference search: {}", e))?;
                         let sql = reference_search.clone().replace_all(
                             file.as_str(),
-                            replace_reference_string_found(&sources, &database),
+                            replace_reference_string_found(&sources, database),
                         );
                         Ok(sql.to_string())
                     }
@@ -243,7 +243,7 @@ pub async fn return_tests_sql(
                             .map_err(|e| format!("failed to return reference search: {}", e))?;
                         let sql = reference_search.replace_all(
                             &file,
-                            replace_reference_string_found(&path_map, &database),
+                            replace_reference_string_found(&path_map, database),
                         );
                         Ok((name, sql.to_string()))
                     }
