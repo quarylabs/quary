@@ -838,6 +838,77 @@ mod tests {
         graph.graph.return_sub_graph("test_model").unwrap();
     }
 
+    #[tokio::test]
+    async fn test_return_sub_graph_with_snapshot() {
+        let fs = FileSystem {
+            files: vec![
+                ("quary.yaml", "sqliteInMemory: {}"),
+                (
+                    "models/orders_snapshot_model.sql",
+                    "SELECT * from q.orders_snapshot",
+                ),
+                (
+                    "models/snapshots/orders_snapshot.snapshot.sql",
+                    "SELECT * FROM q.raw_orders",
+                ),
+                (
+                    "models/schema.yaml",
+                    r#"
+                snapshots:
+                - name: orders_snapshot
+                  unique_key: id
+                  strategy:
+                    timestamp:
+                      updated_at: updated_at
+                sources:
+                - name: raw_orders
+                  path: project_id.dataset_id.orders_snapshot
+                "#,
+                ),
+            ]
+            .iter()
+            .map(|(name, content)| {
+                (
+                    name.to_string(),
+                    quary_proto::File {
+                        name: name.to_string(),
+                        contents: Bytes::from(content.to_string()),
+                    },
+                )
+            })
+            .collect(),
+        };
+        let db = DatabaseQueryGeneratorSqlite::default();
+
+        let project = parse_project(&fs, &db, "").await.unwrap();
+
+        let graph = project_to_graph(project).unwrap();
+
+        let subgraph = graph
+            .graph
+            .return_sub_graph("orders_snapshot_model")
+            .unwrap();
+
+        let expected_nodes = vec!["orders_snapshot_model", "orders_snapshot", "raw_orders"];
+        for node in expected_nodes {
+            assert!(subgraph.dictionary.contains_key(node));
+        }
+
+        let expected_edges = vec![
+            ("orders_snapshot", "orders_snapshot_model"),
+            ("raw_orders", "orders_snapshot"),
+        ];
+        let actual_edges: Vec<(String, String)> = subgraph
+            .return_graph_edges()
+            .unwrap()
+            .into_iter()
+            .map(|(from, to)| (from.to_string(), to.to_string()))
+        .collect();
+        for (from, to) in expected_edges {
+            assert!(actual_edges.contains(&(from.to_string(), to.to_string())));
+        }
+    }
+
     #[test]
     fn test_return_upstream_graph() {
         let tests = vec![
