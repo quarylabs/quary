@@ -10,7 +10,7 @@ use petgraph::prelude::EdgeRef;
 use petgraph::visit::{Dfs, Reversed};
 use petgraph::Graph;
 use quary_proto::test::TestType;
-use quary_proto::{Model, Project, Snapshot, Test};
+use quary_proto::{Chart, Model, Project, Snapshot, Test};
 use std::collections::{HashMap, HashSet};
 
 /// Edge represents an edge with (from, to) node names.
@@ -33,6 +33,8 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
         safe_adder_set(&mut taken, name.clone())?;
     }
 
+    // TODO This let mut can be removed when the tests are implemented, it isn't actually used and
+    //   only slows code down with clones
     let mut snapshots: HashMap<String, Snapshot> = HashMap::new();
     for (name, snapshot) in &project.snapshots {
         safe_adder_set(&mut taken, name.clone())?;
@@ -52,6 +54,8 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
         }
     }
 
+    // TODO This let mut can be removed when the tests are implemented, it isn't actually used and
+    //   only slows code down with clones
     let mut models: HashMap<String, Model> = HashMap::new();
     for (name, model) in &project.models {
         safe_adder_set(&mut taken, name.clone())?;
@@ -71,6 +75,8 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
         }
     }
 
+    // TODO This let mut can be removed when the tests are implemented, it isn't actually used and
+    //   only slows code down with clones
     let mut tests: HashMap<String, Test> = HashMap::new();
     for (name, test) in &project.tests {
         match &test.test_type {
@@ -129,6 +135,27 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
                 edges.push((test.model.clone(), name.clone()));
             }
             _ => return Err(format!("unrecognised test type {:?}", test)),
+        }
+    }
+
+    // TODO This let mut can be removed when the tests are implemented, it isn't actually used and
+    //   only slows code down with clones
+    let mut charts: HashMap<String, Chart> = HashMap::new();
+    for (name, chart) in &project.charts {
+        safe_adder_set(&mut taken, name.clone())?;
+        charts.insert(name.clone(), chart.clone());
+    }
+    for (name, chart) in &project.charts {
+        for reference in &chart.references {
+            if !taken.contains(reference) {
+                return Err(format!(
+                    "reference to {} in chart {} does not exist in reference-able objects {}",
+                    reference,
+                    name,
+                    Vec::from_iter(taken).join(", "),
+                ));
+            };
+            edges.push((reference.clone(), chart.name.clone()))
         }
     }
 

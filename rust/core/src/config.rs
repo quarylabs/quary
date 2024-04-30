@@ -11,7 +11,7 @@ pub fn serialize_config_to_yaml(config: &ConnectionConfig) -> Result<String, Str
     serde_yaml::to_string(config).map_err(|e| format!("writing yaml: {}", e))
 }
 
-/// get_config_from_filesystem reads the config file from the filesystem and and returns it if it is
+/// get_config_from_filesystem reads the config file from the filesystem and returns it if it is
 /// present. It looks for the config file in the current working director for the file:
 /// `quary.yaml`. Otherwise it returns an error.
 ///

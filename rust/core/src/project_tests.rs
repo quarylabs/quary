@@ -325,6 +325,7 @@ mod tests {
             sources: Default::default(),
             project_files: Default::default(),
             connection_config: Default::default(),
+            charts: Default::default(),
         };
         let database = DatabaseQueryGeneratorSqlite::default();
 
