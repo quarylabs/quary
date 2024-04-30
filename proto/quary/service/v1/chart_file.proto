@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+import "google/protobuf/struct.proto";
+
+option java_multiple_files = true;
+
+// CharFile is a representation of a chart that can be used to generate a visualization.
+message ChartFile {
+  // name of the chart
+  string name = 1;
+  // description of the cart
+  optional string description = 2;
+  // Tags are used to group different parts of the project together. For example, you could tag all models that are
+  // related to a specific department with the same tag.
+  repeated string tags = 3;
+
+  message AssetReference {
+    string name = 1;
+  }
+
+  // Where the data comes from
+  oneof source {
+    // raw sql that is passed to the database
+    string raw_sql = 4;
+    // sql that is passed to the database with templating through quary
+    string pre_templated_sql = 5;
+    // reference to a pre-existing asset, model, source, seed, snapshot
+    AssetReference reference = 6;
+  }
+
+  // Configuration for the chart that is passed to perspective
+  google.protobuf.Struct config = 7;
+}

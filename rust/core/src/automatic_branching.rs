@@ -955,6 +955,7 @@ sources:
                     },
                 ),
             ]),
+            charts: Default::default(),
             project_files: Default::default(),
             connection_config: Default::default(),
         };

@@ -2588,6 +2588,7 @@ dependencies = [
  "futures",
  "js-sys",
  "once_cell",
+ "pbjson-types",
  "petgraph",
  "prost",
  "quary_proto",

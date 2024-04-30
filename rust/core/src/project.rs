@@ -1,4 +1,5 @@
 use crate::automatic_branching::derive_sha256_file_contents;
+use crate::chart::parse_charts;
 use crate::config::get_config_from_filesystem;
 use crate::databases::{DatabaseConnection, DatabaseQueryGenerator};
 use crate::file_system::{convert_async_read_to_blocking_read, FileSystem};
@@ -20,9 +21,10 @@ use quary_proto::test::TestType::{
     NotNull, Relationship, Sql, Unique,
 };
 use quary_proto::{
-    ConnectionConfig, Model, Project, ProjectFile, ProjectFileColumn, Seed, Snapshot, Source, Test,
-    TestAcceptedValues, TestGreaterThan, TestGreaterThanOrEqual, TestLessThan, TestLessThanOrEqual,
-    TestMultiColumnUnique, TestNotNull, TestRelationship, TestSqlFile, TestUnique,
+    Chart, ConnectionConfig, Model, Project, ProjectFile, ProjectFileColumn, Seed, Snapshot,
+    Source, Test, TestAcceptedValues, TestGreaterThan, TestGreaterThanOrEqual, TestLessThan,
+    TestLessThanOrEqual, TestMultiColumnUnique, TestNotNull, TestRelationship, TestSqlFile,
+    TestUnique,
 };
 use sqlinference::infer_tests::{get_column_with_source, ExtractedSelect};
 use sqlparser::dialect::Dialect;
@@ -169,6 +171,9 @@ pub async fn parse_project(
         .collect::<HashMap<_, _>>();
     let project_files = parse_project_files(filesystem, project_root, database).await?;
     let sources = parse_sources(&project_files).collect::<HashMap<_, _>>();
+    let charts = parse_charts(filesystem, project_root).await?;
+    // TODO Move to direct conversion to hashmaps in charts
+    let charts: HashMap<String, Chart> = charts.into_iter().collect();
 
     // TODO: Think about implementing custom tests
     // let custom_tests = parse_custom_tests(&filesystem, &project_root)?;
@@ -260,6 +265,22 @@ pub async fn parse_project(
         }
     }
 
+    // Check that all references in charts refer to actual models/sources/snapshots
+    for chart in charts.values() {
+        for reference in &chart.references {
+            if !models.contains_key(reference)
+                && !sources.contains_key(reference)
+                && !seeds.contains_key(reference)
+                && !snapshots.contains_key(reference)
+            {
+                return Err(format!(
+                    "chart {:?} has reference to {:?} which is not a model, source or snapshot",
+                    chart, reference
+                ));
+            }
+        }
+    }
+
     let connection_config = get_config_from_filesystem(filesystem, project_root).await?;
 
     Ok(Project {
@@ -270,6 +291,7 @@ pub async fn parse_project(
         tests: tests.into_iter().collect(),
         project_files,
         connection_config: Some(connection_config),
+        charts: Default::default(),
     })
 }
 
@@ -408,7 +430,7 @@ pub fn create_path_map(
 /// - file3.snapshot.sql
 /// The function would return a list of paths to file1.sql and file2.sql if the extension of
 /// interest is 'sql' and the ignore suffix is 'snapshot.sql'.
-async fn get_path_bufs(
+pub(crate) async fn get_path_bufs(
     filesystem: &impl FileSystem,
     project_root: &str,
     folder: &str,
@@ -780,7 +802,7 @@ pub async fn parse_project_files(
         project_root,
         PATH_FOR_MODELS,
         EXTENSION_YAML,
-        None,
+        Some(EXTENSION_CHART_YAML),
     )
     .await?;
 
@@ -1718,6 +1740,7 @@ struct NodeWithName {
 
 const EXTENSION_CSV: &str = "csv";
 const EXTENSION_YAML: &str = "yaml";
+pub(crate) const EXTENSION_CHART_YAML: &str = ".chart.yaml";
 const EXTENSION_SQL: &str = "sql";
 const EXTENSION_SNAPSHOT_SQL: &str = ".snapshot.sql";
 
