@@ -1678,7 +1678,6 @@ pub fn replace_reference_string_found<'a>(
     overrides: &'a HashMap<String, String>,
     database: &'a (impl DatabaseQueryGenerator + ?Sized),
 ) -> Box<dyn Fn(&regex::Captures) -> String + 'a> {
-    let database = database.clone();
     #[allow(clippy::indexing_slicing)]
     Box::new(move |caps: &regex::Captures| {
         let model = &caps[1];
