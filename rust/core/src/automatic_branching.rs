@@ -4,7 +4,7 @@ use crate::graph::{project_to_graph, ProjectGraph};
 use data_encoding::HEXLOWER;
 use futures::AsyncReadExt;
 use petgraph::visit::IntoNodeIdentifiers;
-use quary_proto::{Project, Source};
+use quary_proto::{Project, Snapshot, Source};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, HashMap, HashSet};
 
@@ -67,14 +67,23 @@ pub fn derive_model_hash(
                 project.sources.get(model),
                 project.seeds.get(model),
                 project.models.get(model),
+                project.snapshots.get(model),
             ) {
-                (Some(source), None, None) => Ok((source.name.clone(), hash_source(source))),
-                (None, Some(seed), None) => Ok((seed.name.clone(), seed.file_sha256_hash.clone())),
-                (None, None, Some(model)) => {
+                (Some(source), None, None, None) => Ok((source.name.clone(), hash_source(source))),
+                (None, Some(seed), None, None) => {
+                    Ok((seed.name.clone(), seed.file_sha256_hash.clone()))
+                }
+                (None, None, Some(model), None) => {
                     Ok((model.name.clone(), model.file_sha256_hash.clone()))
                 }
-
-                _ => Err(format!("Model or seed {:?} not found in project", model)),
+                (None, None, None, Some(snapshot)) => {
+                    let snapshot_hash = hash_snapshot(snapshot)?;
+                    Ok((snapshot.name.clone(), snapshot_hash))
+                }
+                _ => Err(format!(
+                    "Model, seed or snapshot {:?} not found in project",
+                    model
+                )),
             }
         })
         .collect::<Result<HashMap<_, _>, String>>()?;
@@ -100,6 +109,32 @@ fn hash_source(source: &Source) -> String {
     hasher.update(source.path.as_bytes());
     let finalised = hasher.finalize();
     HEXLOWER.encode(finalised.as_ref())
+}
+
+/// snapshots need to be hashed by their file definition and yaml config metadata (unique key & strategy)
+fn hash_snapshot(snapshot: &Snapshot) -> Result<String, String> {
+    let mut hasher = Sha256::new();
+    hasher.update(snapshot.file_sha256_hash.as_bytes());
+    hasher.update(snapshot.unique_key.as_bytes());
+
+    let strategy_bytes = match &snapshot.strategy {
+        Some(strategy) => match &strategy.strategy_type {
+            Some(quary_proto::snapshot::snapshot_strategy::StrategyType::Timestamp(ts)) => {
+                ts.updated_at.as_bytes()
+            }
+            None => {
+                return Err("Snapshot strategy type is missing".to_string());
+            }
+        },
+        None => {
+            return Err("Snapshot strategy is missing".to_string());
+        }
+    };
+
+    hasher.update(strategy_bytes);
+
+    let finalised = hasher.finalize();
+    Ok(HEXLOWER.encode(finalised.as_ref()))
 }
 
 /// derive_sha256_file_contents returns the sha256 hash of the file contents.
@@ -147,6 +182,7 @@ pub fn derive_hash_views<'a>(
         .models
         .keys()
         .chain(project.seeds.keys())
+        .chain(project.snapshots.keys())
         .collect::<HashSet<_>>();
     all_models
         .into_iter()
@@ -374,46 +410,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_derive_model_hash_add_model() {
-        let fs = Asset;
-        let hash_0 = get_hash_derive_model_hash(&fs).await;
-        let mut fs = init_to_file_system();
-        fs.files.insert(
-            "models/shifts_summary_2.sql".to_string(),
-            File {
-                name: "models/shifts_summary_2.sql".to_string(),
-                contents: prost::bytes::Bytes::from(
-                    r#"
-                        SELECT
-                            *
-                        FROM
-                            q.shifts_summary
-                    "#
-                    .to_string(),
-                ),
-            },
-        );
-        fs.files.insert(
-            "models/schema_2.yaml".to_string(),
-            File {
-                name: "models/schema_2.yaml".to_string(),
-                contents: prost::bytes::Bytes::from(
-                    r#"
-                        models: 
-                            - name: shifts_summary_2
-                              description: test description for model
-                    "#
-                    .to_string(),
-                ),
-            },
-        );
-
-        let hash_1 = get_hash_derive_model_hash(&fs).await;
-
-        assert_eq!(hash_0, hash_1);
-    }
-
-    #[tokio::test]
     async fn test_derive_model_hash_change_project_file_for_intermediary_model() {
         let fs = Asset;
         let hash_0 = get_hash_derive_model_hash(&fs).await;
@@ -423,15 +419,17 @@ mod tests {
         let reader = convert_async_read_to_blocking_read(reader).await;
 
         let mut staging_schema = deserialize_project_file_from_yaml(reader).unwrap();
-        staging_schema.models.iter_mut().for_each(|model| {
-            if model.name == "stg_employees" {
-                model.columns.push(ProjectFileColumn {
-                    name: "doesnt exist".to_string(),
-                    description: None,
-                    tests: vec![],
-                })
-            }
-        });
+        staging_schema.models.iter_mut().for_each(
+            |model: &mut quary_proto::project_file::Model| {
+                if model.name == "stg_employees" {
+                    model.columns.push(ProjectFileColumn {
+                        name: "doesnt exist".to_string(),
+                        description: None,
+                        tests: vec![],
+                    })
+                }
+            },
+        );
 
         fs.files.insert(
             "models/staging/schema.yaml".to_string(),
@@ -491,6 +489,46 @@ mod tests {
                             *
                         FROM
                             q.stg_employees
+                    "#
+                    .to_string(),
+                ),
+            },
+        );
+
+        let hash_1 = get_hash_derive_model_hash(&fs).await;
+
+        assert_eq!(hash_0, hash_1);
+    }
+
+    #[tokio::test]
+    async fn test_derive_model_hash_add_model() {
+        let fs = Asset;
+        let hash_0 = get_hash_derive_model_hash(&fs).await;
+        let mut fs = init_to_file_system();
+        fs.files.insert(
+            "models/shifts_summary_2.sql".to_string(),
+            File {
+                name: "models/shifts_summary_2.sql".to_string(),
+                contents: prost::bytes::Bytes::from(
+                    r#"
+                        SELECT
+                            *
+                        FROM
+                            q.shifts_summary
+                    "#
+                    .to_string(),
+                ),
+            },
+        );
+        fs.files.insert(
+            "models/schema_2.yaml".to_string(),
+            File {
+                name: "models/schema_2.yaml".to_string(),
+                contents: prost::bytes::Bytes::from(
+                    r#"
+                        models: 
+                            - name: shifts_summary_2
+                              description: test description for model
                     "#
                     .to_string(),
                 ),
@@ -732,6 +770,108 @@ sources:
         let hash_0 = derive_model_hash(&project, &graph, model).unwrap();
         let hash_1 = derive_model_hash(&project, &graph, model).unwrap();
         assert_eq!(hash_0, hash_1);
+    }
+
+    #[tokio::test]
+    async fn test_derive_snapshot_hash() {
+        let database = DatabaseQueryGeneratorSqlite {};
+        const SNAPSHOT_NAME: &str = "employees_snapshot";
+
+        // case: Identical snapshot definition and configuration
+        let mut fs = init_to_file_system();
+        fs.files.insert(
+            "models/employees_snapshot_config.yaml".to_string(),
+            File {
+                name: "models/employees_snapshot_config.yaml".to_string(),
+                contents: prost::bytes::Bytes::from(
+                    r#"
+                    snapshots:
+                    - name: employees_snapshot
+                      unique_key: id
+                      strategy:
+                        timestamp:
+                          updated_at: update_at
+                    "#
+                    .to_string(),
+                ),
+            },
+        );
+        fs.files.insert(
+            "models/employees_snapshot.snapshot.sql".to_string(),
+            File {
+                name: "models/employees_snapshot.snapshot.sql".to_string(),
+                contents: prost::bytes::Bytes::from(
+                    r#"
+                        SELECT
+                            *
+                        FROM
+                            q.raw_employees
+                    "#
+                    .to_string(),
+                ),
+            },
+        );
+
+        let project = parse_project(&fs, &database, "").await.unwrap();
+        let project_graph = project_to_graph(project.clone()).unwrap();
+
+        let hash_1 = derive_model_hash(&project, &project_graph, SNAPSHOT_NAME);
+        let hash_2 = derive_model_hash(&project, &project_graph, SNAPSHOT_NAME);
+        assert_eq!(hash_1, hash_2);
+
+        // case: Change in snapshot definition
+        let path_of_interest = "models/employees_snapshot.snapshot.sql";
+        let mut raw_file = fs.read_file(path_of_interest).await.unwrap();
+        let mut contents = String::new();
+        raw_file.read_to_string(&mut contents).await.unwrap();
+        let contents = contents.replace(' ', "  ");
+        fs.files.insert(
+            path_of_interest.to_string(),
+            File {
+                name: path_of_interest.to_string(),
+                contents: prost::bytes::Bytes::from(contents),
+            },
+        );
+
+        let project = parse_project(&fs, &database, "").await.unwrap();
+        let project_graph = project_to_graph(project.clone()).unwrap();
+
+        let hash_3 = derive_model_hash(&project, &project_graph, SNAPSHOT_NAME);
+        assert_ne!(hash_2, hash_3);
+
+        // case: Change in snapshot configuration
+        fs.files
+            .get_mut("models/employees_snapshot_config.yaml")
+            .unwrap()
+            .contents = prost::bytes::Bytes::from(
+            r#"
+            snapshots:
+            - name: employees_snapshot
+              unique_key: id_changed
+              strategy:
+                timestamp:
+                  updated_at: updated_at_changed
+            "#
+            .to_string(),
+        );
+
+        let project = parse_project(&fs, &database, "").await.unwrap();
+        let project_graph = project_to_graph(project.clone()).unwrap();
+
+        let hash_4 = derive_model_hash(&project, &project_graph, SNAPSHOT_NAME);
+        assert_ne!(hash_3, hash_4);
+
+        // case: Change in upstream source
+        fs.files
+            .get_mut("seeds/raw_employees.csv")
+            .unwrap()
+            .contents = prost::bytes::Bytes::from("".to_string());
+
+        let project = parse_project(&fs, &database, "").await.unwrap();
+        let project_graph = project_to_graph(project.clone()).unwrap();
+
+        let hash_5 = derive_model_hash(&project, &project_graph, SNAPSHOT_NAME);
+        assert_ne!(hash_4, hash_5);
     }
 
     #[tokio::test]
@@ -1031,5 +1171,69 @@ sources:
         let graph = project_to_graph(project.clone()).unwrap();
 
         assert!(derive_hash_views(&database, &project, &graph).is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_derive_hash_views_includes_snapshots() {
+        let fs = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "models/orders_snapshot.snapshot.sql".to_string(),
+                    File {
+                        name: "models/orders_snapshot.snapshot.sql".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            r#"
+                          SELECT * FROM q.raw_orders
+                        "#,
+                        ),
+                    },
+                ),
+                (
+                    "models/schema.yaml".to_string(),
+                    File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            r#"
+                            snapshots:
+                            - name: orders_snapshot
+                              unique_key: id
+                              strategy:
+                                timestamp:
+                                  updated_at: updated_at
+                            sources:
+                            - name: raw_orders
+                              path: project_id.dataset_id.orders_snapshot
+                            "#
+                            .to_string(),
+                        ),
+                    },
+                ),
+                (
+                    "quary.yaml".to_string(),
+                    File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            r#"
+                        sqliteInMemory: {}
+                        "#
+                            .as_bytes(),
+                        ),
+                    },
+                ),
+            ]),
+        };
+        let database = DatabaseQueryGeneratorSqlite {};
+        let project = parse_project(&fs, &database, "").await.unwrap();
+        let graph = project_to_graph(project.clone()).unwrap();
+
+        let hashes = derive_hash_views(&database, &project, &graph).unwrap();
+
+        assert!(hashes.contains_key("orders_snapshot"));
+        let (hash_name, view_data) = hashes["orders_snapshot"].clone();
+        assert_eq!(hash_name, "qqq_orders_snapshot_5a9acb6");
+        assert_eq!(
+            view_data,
+            vec!["DROP VIEW IF EXISTS qqq_orders_snapshot_5a9acb6", "CREATE VIEW qqq_orders_snapshot_5a9acb6 AS SELECT * FROM orders_snapshot"]
+        );
     }
 }
