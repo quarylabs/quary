@@ -1233,7 +1233,10 @@ sources:
         assert_eq!(hash_name, "qqq_orders_snapshot_5a9acb6");
         assert_eq!(
             view_data,
-            vec!["DROP VIEW IF EXISTS qqq_orders_snapshot_5a9acb6", "CREATE VIEW qqq_orders_snapshot_5a9acb6 AS SELECT * FROM orders_snapshot"]
+            vec![
+                "DROP VIEW IF EXISTS qqq_orders_snapshot_5a9acb6",
+                "CREATE VIEW qqq_orders_snapshot_5a9acb6 AS SELECT * FROM orders_snapshot"
+            ]
         );
     }
 }

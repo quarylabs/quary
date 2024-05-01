@@ -100,3 +100,10 @@ jobs:
         run: pip install sqlfluff
       - name: Lint template
         run: make sql_lint_template
+  prettier-yaml-lint:
+    name: Prettier YAML Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v4
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v4
+      - run: make prettier_lint
