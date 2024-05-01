@@ -903,7 +903,7 @@ mod tests {
             .unwrap()
             .into_iter()
             .map(|(from, to)| (from.to_string(), to.to_string()))
-        .collect();
+            .collect();
         for (from, to) in expected_edges {
             assert!(actual_edges.contains(&(from.to_string(), to.to_string())));
         }

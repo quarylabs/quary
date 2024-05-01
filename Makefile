@@ -64,6 +64,16 @@ ratchet_check: ## Checks all the Github workflow versions
 bash_lint: ## Lints all the bash scripts
 	./.hacking/scripts/bash_lint.sh
 
+.PHONY: prettier_fmt
+prettier_fmt: ## Formats all the yaml files
+	npx prettier --write **/*.yaml
+	npx prettier --write **/*.yml
+
+.PHONY: prettier_lint
+prettier_lint: ## Lints all the yaml files
+	npx prettier --check **/*.yaml
+	npx prettier --check **/*.yml
+
 .PHONY: help
 help: ## Display this help screen
 	@grep -E '^[a-z.A-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
