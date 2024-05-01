@@ -6,6 +6,8 @@ use chrono::{DateTime, Utc};
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use sqlinference::dialect::Dialect;
 use std::time::SystemTime;
+#[cfg(target_arch = "wasm32")]
+use js_sys::Date;
 
 #[derive(Debug, Clone)]
 pub struct DatabaseQueryGeneratorRedshift {
@@ -151,6 +153,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorRedshift {
         name.to_string()
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn get_current_timestamp(&self) -> Timestamp {
         let datetime = self
             .override_now
@@ -158,6 +161,16 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorRedshift {
             .unwrap_or(SystemTime::now().into())
             .format("%Y-%m-%dT%H:%M:%SZ");
         format!("CAST('{}' AS TIMESTAMP WITH TIME ZONE)", datetime)
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    fn get_current_timestamp(&self) -> Timestamp {
+        let js_date = Date::new_0();
+        let datetime: DateTime<Utc> = js_date.into();
+        format!(
+            "CAST ('{}' AS TIMESTAMP WITH TIME ZONE)",
+            datetime.format("%Y-%m-%dT%H:%M:%SZ")
+        )
     }
 }
 
