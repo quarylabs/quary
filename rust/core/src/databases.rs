@@ -218,6 +218,10 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
     fn database_name_wrapper(&self, name: &str) -> String {
         self.as_ref().database_name_wrapper(name)
     }
+
+    fn get_current_timestamp(&self) -> String {
+        self.as_ref().get_current_timestamp()
+    }
 }
 
 pub trait SnapshotGenerator {
