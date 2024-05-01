@@ -3,11 +3,11 @@ use crate::databases::{
     Timestamp,
 };
 use chrono::{DateTime, Utc};
+#[cfg(target_arch = "wasm32")]
+use js_sys::Date;
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use sqlinference::dialect::Dialect;
 use std::time::SystemTime;
-#[cfg(target_arch = "wasm32")]
-use js_sys::Date;
 
 #[derive(Debug, Clone)]
 pub struct DatabaseQueryGeneratorPostgres {
