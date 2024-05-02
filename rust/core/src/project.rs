@@ -1172,7 +1172,13 @@ pub async fn project_and_fs_to_query_sql(
                 project.snapshots.get(name),
                 project.models.get(name),
             ) {
+                // model overriden by cache
                 (Some(overriden), None, None, None, Some(_)) => Ok(NodeWithName {
+                    name: name.to_string(),
+                    asset: AssetData::Override((name.clone(), overriden.clone())),
+                }),
+                // snapshot overriden by cache
+                (Some(overriden), None, None, Some(_), None) => Ok(NodeWithName {
                     name: name.to_string(),
                     asset: AssetData::Override((name.clone(), overriden.clone())),
                 }),
