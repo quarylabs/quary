@@ -154,7 +154,10 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
             .override_now
             .map(|time| -> DateTime<Utc> { time.into() })
             .unwrap_or(SystemTime::now().into());
-        format!("CAST('{}' AS TIMESTAMP WITH TIME ZONE)", datetime.format("%Y-%m-%dT%H:%M:%SZ"))
+        format!(
+            "CAST('{}' AS TIMESTAMP WITH TIME ZONE)",
+            datetime.format("%Y-%m-%dT%H:%M:%SZ")
+        )
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -163,7 +166,10 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
             .override_now
             .map(|time| -> DateTime<Utc> { time.into() })
             .unwrap_or(Date::new_0().into());
-        format!("CAST('{}' AS TIMESTAMP WITH TIME ZONE)", datetime.format("%Y-%m-%dT%H:%M:%SZ"))
+        format!(
+            "CAST('{}' AS TIMESTAMP WITH TIME ZONE)",
+            datetime.format("%Y-%m-%dT%H:%M:%SZ")
+        )
     }
 }
 

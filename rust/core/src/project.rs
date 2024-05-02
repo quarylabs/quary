@@ -827,9 +827,10 @@ pub async fn parse_project_files(
             let supported_types = database.supported_materialization_types();
             for model in &project_file.models {
                 if let Some(materialization_type) = &model.materialization {
-                    if !supported_types.iter().any(|supported_type| {
-                        *supported_type == materialization_type
-                    }) {
+                    if !supported_types
+                        .iter()
+                        .any(|supported_type| *supported_type == materialization_type)
+                    {
                         return Err(format!(
                             "unsupported materialization '{}' in supported types {}",
                             materialization_type,
