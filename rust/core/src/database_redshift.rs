@@ -165,8 +165,10 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorRedshift {
 
     #[cfg(target_arch = "wasm32")]
     fn get_current_timestamp(&self) -> Timestamp {
-        let js_date = Date::new_0();
-        let datetime: DateTime<Utc> = js_date.into();
+        let datetime = self
+            .override_now
+            .map(|time| -> DateTime<Utc> { time.into() })
+            .unwrap_or(Date::new_0().into());
         format!(
             "CAST ('{}' AS TIMESTAMP WITH TIME ZONE)",
             datetime.format("%Y-%m-%dT%H:%M:%SZ")
