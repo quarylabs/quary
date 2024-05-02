@@ -1,9 +1,10 @@
+use cargo_toml::{Dependency, Manifest};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use quary_proto::TestRunner;
 
 #[derive(Debug, Parser)]
 #[command(name = "quary")]
-#[command(about = "A tool for managing SQL transformations and tests. For more documentation on these commands, visit: quary.dev/docs", long_about = None, version=env!("CARGO_PKG_VERSION"))]
+#[command(about = "A tool for managing SQL transformations and tests. For more documentation on these commands, visit: quary.dev/docs", long_about = None, version = get_version())]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -139,5 +140,41 @@ pub fn mode_to_test_runner(mode: &TestMode) -> TestRunner {
     match mode {
         TestMode::All => TestRunner::All,
         TestMode::Skip => TestRunner::Skip,
+    }
+}
+
+fn get_version() -> String {
+    let manifest_path = std::env::var("CARGO_MANIFEST_DIR").unwrap() + "/Cargo.toml";
+    let manifest = Manifest::from_path(&manifest_path).unwrap();
+
+    let duckdb_version = manifest
+        .dependencies
+        .get("duckdb")
+        .unwrap();
+
+    let duckdb_version = match duckdb_version {
+        Dependency::Simple(simple) => {
+            simple.to_string()
+        }
+        Dependency::Inherited(_) => {
+            unimplemented!()
+        }
+        Dependency::Detailed(_) => {
+            unimplemented!()
+        }
+    };
+
+    format!("quary version: {}\nDependiencies version\n\tduckdb: {}", env!("CARGO_PKG_VERSION"), duckdb_version)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_version() {
+        let version = get_version();
+        assert!(version.contains("quary: "));
+        assert!(version.contains("duckdb: "));
     }
 }
