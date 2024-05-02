@@ -13,7 +13,7 @@ pub fn serialize_config_to_yaml(config: &ConnectionConfig) -> Result<String, Str
 
 /// get_config_from_filesystem reads the config file from the filesystem and returns it if it is
 /// present. It looks for the config file in the current working director for the file:
-/// `quary.yaml`. Otherwise it returns an error.
+/// `quary.yaml`. Otherwise, it returns an error.
 ///
 /// The path of the config file can be overridden by specifying a path.
 pub async fn get_config_from_filesystem(

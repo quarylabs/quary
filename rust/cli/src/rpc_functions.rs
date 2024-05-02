@@ -41,8 +41,7 @@ async fn list_tables(
         .list_local_tables()
         .await
         .map_err(|e| format!("Failed to list tables: {}", e))?;
-    let response = ListTablesResponse { tables };
-    Ok(response)
+    Ok(ListTablesResponse { tables })
 }
 
 async fn list_views(
@@ -53,8 +52,7 @@ async fn list_views(
         .list_views()
         .await
         .map_err(|e| format!("Failed to list views: {}", e))?;
-    let response = ListViewsResponse { views };
-    Ok(response)
+    Ok(ListViewsResponse { views })
 }
 
 async fn list_columns(
@@ -64,10 +62,11 @@ async fn list_columns(
     let columns = database
         .list_columns(req.table_name.as_str())
         .await
-        .map_err(|e| format!("Failed to list columns: {}", e))?;
-    let columns = columns.into_iter().map(|c| c.name).collect();
-    let response = ListColumnsResponse { columns };
-    Ok(response)
+        .map_err(|e| format!("Failed to list columns: {}", e))?
+        .into_iter()
+        .map(|c| c.name)
+        .collect();
+    Ok(ListColumnsResponse { columns })
 }
 
 async fn execute(
@@ -89,7 +88,6 @@ async fn query(
         .query(&req.query)
         .await
         .map_err(|e| format!("Failed to execute query: {:?}", e))?;
-
     Ok(QueryResponse {
         result: Some(result.to_proto()?),
     })

@@ -3,7 +3,7 @@ use quary_proto::TestRunner;
 
 #[derive(Debug, Parser)]
 #[command(name = "quary")]
-#[command(about = "A tool for managing SQL transformations and tests. For more documentation on these commands, visit: quary.dev/docs", long_about = None, version=env!("CARGO_PKG_VERSION"))]
+#[command(about = "A tool for managing SQL transformations and tests. For more documentation on these commands, visit: quary.dev/docs", long_about = None, version = env!("CARGO_PKG_VERSION"))]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -135,9 +135,11 @@ pub enum TestMode {
     Skip,
 }
 
-pub fn mode_to_test_runner(mode: &TestMode) -> TestRunner {
-    match mode {
-        TestMode::All => TestRunner::All,
-        TestMode::Skip => TestRunner::Skip,
+impl TestMode {
+    pub(crate) fn to_test_runner(&self) -> TestRunner {
+        match self {
+            TestMode::All => TestRunner::All,
+            TestMode::Skip => TestRunner::Skip,
+        }
     }
 }

@@ -116,7 +116,6 @@ pub(crate) async fn parse_charts(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use quary_proto::chart_file;
     use quary_proto::chart_file::AssetReference;
     use std::collections::HashMap;
     use std::io;
@@ -127,9 +126,7 @@ mod tests {
             name: "model_chart".to_string(),
             description: Some("test description for chart".to_string()),
             tags: vec!["tag1".to_string(), "tag2".to_string()],
-            source: Some(chart_file::Source::PreTemplatedSql(
-                "SELECT * FROM table".to_string(),
-            )),
+            source: Some(Source::PreTemplatedSql("SELECT * FROM table".to_string())),
             config: Some(pbjson_types::Struct {
                 fields: HashMap::new(),
             }),

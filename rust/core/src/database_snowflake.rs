@@ -1,5 +1,6 @@
 use crate::databases::{
     base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, SnapshotGenerator,
+    MATERIALIZATION_TYPE_TABLE, MATERIALIZATION_TYPE_VIEW,
 };
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use sqlinference::dialect::Dialect;
@@ -17,22 +18,8 @@ impl DatabaseQueryGeneratorSnowflake {
 }
 
 impl DatabaseQueryGenerator for DatabaseQueryGeneratorSnowflake {
-    fn validate_materialization_type(
-        &self,
-        materialization_type: &Option<String>,
-    ) -> Result<(), String> {
-        match materialization_type {
-            None => Ok(()),
-            Some(materialization_type)
-                if materialization_type == "view" || materialization_type == "table" =>
-            {
-                Ok(())
-            }
-            Some(materialization_type) => Err(format!(
-                "Materialization type {} is not supported. Supported types are 'view' and 'table'.",
-                materialization_type
-            )),
-        }
+    fn supported_materialization_types(&self) -> &'static [&'static str] {
+        &[MATERIALIZATION_TYPE_VIEW, MATERIALIZATION_TYPE_TABLE]
     }
 
     fn models_drop_query(
@@ -44,10 +31,10 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorSnowflake {
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type {
             None => Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string()),
-            Some(materialization_type) if materialization_type == "view" => {
+            Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_VIEW => {
                 Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string())
             }
-            Some(materialization_type) if materialization_type == "table" => {
+            Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_TABLE => {
                 Ok(format!("DROP TABLE IF EXISTS {}", object_name).to_string())
             }
             _ => Err("Unsupported materialization type".to_string()),
@@ -67,11 +54,11 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorSnowflake {
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             )),
-            Some("view") => Ok(format!(
+            Some(MATERIALIZATION_TYPE_VIEW) => Ok(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             )),
-            Some("table") => Ok(format!(
+            Some(MATERIALIZATION_TYPE_TABLE) => Ok(format!(
                 "CREATE TABLE {} AS {}",
                 object_name, original_select_statement
             )),

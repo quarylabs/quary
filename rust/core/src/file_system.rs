@@ -6,6 +6,7 @@ use std::io::Read;
 #[async_trait::async_trait]
 pub trait FileSystem: Sync {
     async fn read_file(&self, path: &str) -> Result<Box<dyn AsyncRead + Send + Unpin>, io::Error>;
+
     async fn list_all_files_recursively(&self, path: &str) -> Result<Vec<String>, String>;
 }
 
