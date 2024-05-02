@@ -20,6 +20,7 @@ message ConnectionConfig {
     ConnectionConfigSnowflake snowflake = 6;
     ConnectionConfigPostgres postgres = 7;
     ConnectionConfigRedshift redshift = 9;
+    ConnectionConfigSupabase supabase = 10;
   }
 
   repeated Var vars = 8;
@@ -60,5 +61,11 @@ message ConnectionConfig {
     string database = 5;
     string schema = 6;
     string warehouse = 7;
+  }
+
+  message ConnectionConfigSupabase {
+    string url = 1;
+    string api_key = 3;
+    string schema = 2;
   }
 }

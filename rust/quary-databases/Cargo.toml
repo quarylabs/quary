@@ -25,6 +25,8 @@ arrow_array_51 = {  package = "arrow-array", version = "51" }
 
 snowflake-api = "0.7.0"
 arrow_array_50 = { package = "arrow-array", version = "50" }
+postgrest = "1.6.0"
+serde_json = "1.0.116"
 
 [dev-dependencies]
 assert_cmd = "2"

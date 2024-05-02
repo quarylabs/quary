@@ -2,6 +2,7 @@ use crate::databases_bigquery::BigQuery;
 use crate::databases_postgres::Postgres;
 use crate::databases_redshift::Redshift;
 use crate::databases_snowflake;
+use crate::databases_supabase::Supabase;
 use quary_core::database_bigquery::DatabaseQueryGeneratorBigQuery;
 use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
 use quary_core::database_postgres::DatabaseQueryGeneratorPostgres;
@@ -11,7 +12,7 @@ use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
 use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator};
 use quary_proto::connection_config::Config::{
     BigQuery as OtherBigQueryConfig, Duckdb, DuckdbInMemory, Postgres as PostgresConfig,
-    Redshift as RedshiftConfig, Snowflake, Sqlite, SqliteInMemory,
+    Redshift as RedshiftConfig, Snowflake, Sqlite, SqliteInMemory, Supabase as SupabaseConfig
 };
 use std::{env, fs};
 
@@ -207,6 +208,14 @@ pub async fn database_from_config(
             )
             .await
             .map_err(|e| e.to_string())?;
+            Ok(Box::new(database))
+        }
+        SupabaseConfig(config) => {
+            let database = Supabase::new(
+                &config.url,
+                &config.api_key,
+                &config.schema,
+            );
             Ok(Box::new(database))
         }
     }

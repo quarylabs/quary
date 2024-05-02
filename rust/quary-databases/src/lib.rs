@@ -5,3 +5,4 @@ mod databases_postgres;
 pub mod databases_redshift;
 mod databases_snowflake;
 mod databases_sqlite;
+pub mod databases_supabase;
