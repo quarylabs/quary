@@ -1,6 +1,7 @@
 use crate::databases::{
-    base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, SnapshotGenerator,
-    Timestamp,
+    base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, MaterializationType,
+    SnapshotGenerator, Timestamp, MATERIALIZATION_TYPE_MATERIALIZED_VIEW,
+    MATERIALIZATION_TYPE_TABLE, MATERIALIZATION_TYPE_VIEW,
 };
 use chrono::{DateTime, Utc};
 #[cfg(target_arch = "wasm32")]
@@ -27,20 +28,12 @@ impl DatabaseQueryGeneratorPostgres {
 }
 
 impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
-    fn validate_materialization_type(
-        &self,
-        materialization_type: &Option<String>,
-    ) -> Result<(), String> {
-        match materialization_type {
-            None => Ok(()),
-            Some(materialization_type) if materialization_type == "view" => Ok(()),
-            Some(materialization_type) if materialization_type == "table" => Ok(()),
-            Some(materialization_type) if materialization_type == "materialized_view" => Ok(()),
-            Some(materialization_type) => Err(format!(
-                "Materialization type {} is not supported. Supported types are 'view', 'table', 'materialized_view'.",
-                materialization_type
-            )),
-        }
+    fn supported_materialization_types(&self) -> &'static [MaterializationType] {
+        &[
+            MATERIALIZATION_TYPE_VIEW,
+            MATERIALIZATION_TYPE_TABLE,
+            MATERIALIZATION_TYPE_MATERIALIZED_VIEW,
+        ]
     }
 
     fn models_drop_query(
@@ -52,13 +45,15 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type {
             None => Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string()),
-            Some(materialization_type) if materialization_type == "view" => {
+            Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_VIEW => {
                 Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string())
             }
-            Some(materialization_type) if materialization_type == "table" => {
+            Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_TABLE => {
                 Ok(format!("DROP TABLE IF EXISTS {}", object_name).to_string())
             }
-            Some(materialization_type) if materialization_type == "materialized_view" => {
+            Some(materialization_type)
+                if materialization_type == MATERIALIZATION_TYPE_MATERIALIZED_VIEW =>
+            {
                 Ok(format!("DROP MATERIALIZED VIEW IF EXISTS {}", object_name).to_string())
             }
             Some(materialization_type) => Err(format!(
@@ -81,15 +76,15 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             )),
-            Some("view") => Ok(format!(
+            Some(MATERIALIZATION_TYPE_VIEW) => Ok(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             )),
-            Some("table") => Ok(format!(
+            Some(MATERIALIZATION_TYPE_TABLE) => Ok(format!(
                 "CREATE TABLE {} AS {}",
                 object_name, original_select_statement
             )),
-            Some("materialized_view") => Ok(format!(
+            Some(MATERIALIZATION_TYPE_MATERIALIZED_VIEW) => Ok(format!(
                 "CREATE MATERIALIZED VIEW {} AS {}",
                 object_name, original_select_statement
             )),

@@ -6,7 +6,7 @@
 #![deny(unused_imports)]
 #![deny(unused_import_braces)]
 
-use crate::commands::{mode_to_test_runner, Cli, Commands, InitType};
+use crate::commands::{Cli, Commands, InitType};
 use crate::file_system::LocalFS;
 use crate::rpc_functions::rpc;
 use clap::Parser;
@@ -308,7 +308,7 @@ async fn main_wrapped() -> Result<(), String> {
                 return Ok(());
             }
 
-            let mode = mode_to_test_runner(&test_args.mode);
+            let mode = test_args.mode.to_test_runner();
             let database = database_from_config(&config)
                 .await
                 .map_err(|e| format!("reading database from config: {:?}", e))?;

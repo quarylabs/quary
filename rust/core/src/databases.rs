@@ -5,19 +5,16 @@ use sqlinference::dialect::Dialect;
 use std::fmt::Debug;
 
 pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
-    /// Validates the materialization flag defined in the model schema.yaml file.
-    fn validate_materialization_type(
-        &self,
-        materialization_type: &Option<String>,
-    ) -> Result<(), String> {
-        match materialization_type {
-            None => Ok(()),
-            Some(materialization_type) if materialization_type == "view" => Ok(()),
-            Some(materialization_type) => Err(format!(
-                "Materialization type {} is not supported. Supported types are 'view'.",
-                materialization_type
-            )),
-        }
+    /// default_materialization_type returns the default materialization type that the database
+    /// implements
+    fn default_materalization_type(&self) -> MaterializationType {
+        MATERIALIZATION_TYPE_VIEW
+    }
+
+    /// supported_materialization_types returns the types of materialization that the database
+    /// supports
+    fn supported_materialization_types(&self) -> &'static [MaterializationType] {
+        &[MATERIALIZATION_TYPE_VIEW]
     }
 
     // For Models section
@@ -32,7 +29,7 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type {
             None => Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string()),
-            Some(materialization_type) if materialization_type == "view" => {
+            Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_VIEW => {
                 Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string())
             }
             _ => Err("Unsupported materialization type".to_string()),
@@ -53,7 +50,7 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             )),
-            Some("view") => Ok(format!(
+            Some(MATERIALIZATION_TYPE_MATERIALIZED_VIEW) => Ok(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             )),
@@ -142,12 +139,12 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
 }
 
 impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
-    fn validate_materialization_type(
-        &self,
-        materialization_type: &Option<String>,
-    ) -> Result<(), String> {
-        self.as_ref()
-            .validate_materialization_type(materialization_type)
+    fn supported_materialization_types(&self) -> &'static [&'static str] {
+        self.as_ref().supported_materialization_types()
+    }
+
+    fn default_materalization_type(&self) -> &'static str {
+        self.as_ref().default_materalization_type()
     }
 
     fn models_drop_query(
@@ -423,10 +420,15 @@ impl QueryResult {
 // Timestamp is a type alias for a String that represents a formatted database timestamp.
 pub type Timestamp = String;
 
+// Materialization Type is a type alias for materializations possible in the databases.
+pub type MaterializationType = &'static str;
+
+pub(crate) const MATERIALIZATION_TYPE_VIEW: MaterializationType = "view";
+pub(crate) const MATERIALIZATION_TYPE_TABLE: MaterializationType = "table";
+pub(crate) const MATERIALIZATION_TYPE_MATERIALIZED_VIEW: MaterializationType = "materialized_view";
+
 #[cfg(test)]
 mod tests {
-    use crate::database_sqlite::DatabaseQueryGeneratorSqlite;
-
     use super::*;
 
     #[test]
@@ -487,29 +489,5 @@ mod tests {
         let proto_result = query_result.to_proto();
 
         assert!(proto_result.is_err());
-    }
-
-    #[test]
-    fn test_validate_materialization_type_success() {
-        let database = Box::new(DatabaseQueryGeneratorSqlite {});
-        let materialization_type = Some("view".to_string());
-        let result = database.validate_materialization_type(&materialization_type);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_validate_materialization_type_undefined() {
-        let database = Box::new(DatabaseQueryGeneratorSqlite {});
-        let materialization_type = None;
-        let result = database.validate_materialization_type(&materialization_type);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_validate_materialization_type_error() {
-        let database = Box::new(DatabaseQueryGeneratorSqlite {});
-        let materialization_type = Some("garbage".to_string());
-        let result = database.validate_materialization_type(&materialization_type);
-        assert!(result.is_err());
     }
 }

@@ -824,8 +824,19 @@ pub async fn parse_project_files(
 
             // Validate each model in the project file
             // TODO:  Move validation out of this function
+            let supported_types = database.supported_materialization_types();
             for model in &project_file.models {
-                database.validate_materialization_type(&model.materialization)?;
+                if let Some(materialization_type) = &model.materialization {
+                    if !supported_types.iter().any(|supported_type| {
+                        *supported_type == materialization_type
+                    }) {
+                        return Err(format!(
+                            "unsupported materialization '{}' in supported types {}",
+                            materialization_type,
+                            supported_types.join(", ")
+                        ));
+                    };
+                }
             }
             Ok((path_str, project_file))
         })
