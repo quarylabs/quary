@@ -47,7 +47,11 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
             None => Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string()),
             Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_VIEW => {
                 println!("don't drop view");
-                Ok(format!("select 1 from pg_matviews where matviewname = '{}'", object_name).to_string())
+                Ok(format!(
+                    "select 1 from pg_matviews where matviewname = '{}'",
+                    object_name
+                )
+                .to_string())
             }
             Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_TABLE => {
                 Ok(format!("DROP TABLE IF EXISTS {}", object_name).to_string())
@@ -56,7 +60,11 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
                 if materialization_type == MATERIALIZATION_TYPE_MATERIALIZED_VIEW =>
             {
                 println!("don't drop materialized view");
-                Ok(format!("select 1 from pg_matviews where matviewname = '{}'", object_name).to_string())
+                Ok(format!(
+                    "select 1 from pg_matviews where matviewname = '{}'",
+                    object_name
+                )
+                .to_string())
             }
             Some(materialization_type) => Err(format!(
                 "Unsupported materialization type: {}",
@@ -97,7 +105,10 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
                     EXECUTE format('CREATE MATERIALIZED VIEW {} AS {}');
                  END IF;
                  END $$;",
-                object_name.split('.').last().unwrap_or(""), object_name, object_name, original_select_statement
+                object_name.split('.').last().unwrap_or(""),
+                object_name,
+                object_name,
+                original_select_statement
             )),
             _ => Err("Unsupported materialization type".to_string()),
         }
