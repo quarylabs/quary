@@ -2521,7 +2521,6 @@ dependencies = [
  "quary-core",
  "quary-databases",
  "quary_proto",
- "regex",
  "serde_yaml",
  "tempfile",
  "tokio",
@@ -2544,20 +2543,17 @@ dependencies = [
  "quary_proto",
  "regex",
  "rust-embed",
- "serde",
  "serde_yaml",
  "sha2",
  "sqlinference",
  "sqlparser",
  "tokio",
- "tokio-util",
 ]
 
 [[package]]
 name = "quary-databases"
 version = "0.0.115"
 dependencies = [
- "arrow-array",
  "assert_cmd",
  "async-trait",
  "chrono",
