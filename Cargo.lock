@@ -921,7 +921,7 @@ checksum = "7e962a19be5cfc3f3bf6dd8f61eb50107f356ad6270fbb3ed41476571db78be5"
 
 [[package]]
 name = "dbt-converter"
-version = "0.0.115"
+version = "0.0.116"
 dependencies = [
  "quary_proto",
  "regex",
@@ -2675,7 +2675,7 @@ dependencies = [
 
 [[package]]
 name = "quary"
-version = "0.0.115"
+version = "0.0.116"
 dependencies = [
  "assert_cmd",
  "async-trait",
@@ -2697,7 +2697,7 @@ dependencies = [
 
 [[package]]
 name = "quary-core"
-version = "0.0.115"
+version = "0.0.116"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2721,7 +2721,7 @@ dependencies = [
 
 [[package]]
 name = "quary-databases"
-version = "0.0.115"
+version = "0.0.116"
 dependencies = [
  "assert_cmd",
  "async-trait",
@@ -3627,7 +3627,7 @@ dependencies = [
 
 [[package]]
 name = "sqlinference"
-version = "0.0.115"
+version = "0.0.116"
 dependencies = [
  "sqlparser",
 ]
