@@ -1,4 +1,3 @@
-use arrow_array_50::array;
 use async_trait::async_trait;
 use quary_core::database_snowflake::{
     validate_snowfalke_account_identifier, DatabaseQueryGeneratorSnowflake,
@@ -12,6 +11,7 @@ use snowflake_api::QueryResult::{Arrow, Json};
 use snowflake_api::SnowflakeApi;
 use std::fmt::Debug;
 use std::sync::Arc;
+use crate::databases_duckdb::convert_array_to_vec_string;
 
 pub struct Snowflake {
     client: SnowflakeApi,
@@ -294,49 +294,6 @@ impl DatabaseConnection for Snowflake {
     async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
         Ok(None) // not implemented
     }
-}
-
-pub fn convert_array_to_vec_string(
-    array: &[Arc<dyn array::Array>],
-) -> Result<Vec<Vec<String>>, String> {
-    let num_rows = array[0].len();
-    let num_columns = array.len();
-    let mut rows = Vec::with_capacity(num_rows);
-    for _ in 0..num_rows {
-        let row = vec!["".to_string(); num_columns];
-        rows.push(row);
-    }
-
-    for i in 0..num_rows {
-        for j in 0..array.len() {
-            let array = &array[j];
-            if let Some(string_array) = array.as_any().downcast_ref::<array::StringArray>() {
-                rows[i][j] = string_array.value(i).to_string();
-            } else if let Some(int32_array) = array.as_any().downcast_ref::<array::Int32Array>() {
-                rows[i][j] = int32_array.value(i).to_string();
-            } else if let Some(int64_array) = array.as_any().downcast_ref::<array::Int64Array>() {
-                rows[i][j] = int64_array.value(i).to_string();
-            } else if let Some(float32_array) = array.as_any().downcast_ref::<array::Float32Array>()
-            {
-                rows[i][j] = float32_array.value(i).to_string();
-            } else if let Some(float64_array) = array.as_any().downcast_ref::<array::Float64Array>()
-            {
-                rows[i][j] = float64_array.value(i).to_string();
-            } else if let Some(boolean_array) = array.as_any().downcast_ref::<array::BooleanArray>()
-            {
-                rows[i][j] = boolean_array.value(i).to_string();
-            } else if let Some(date_array) = array.as_any().downcast_ref::<array::Date64Array>() {
-                rows[i][j] = date_array.value(i).to_string();
-            } else if let Some(date_array) = array.as_any().downcast_ref::<array::Date32Array>() {
-                rows[i][j] = date_array.value(i).to_string();
-            } else {
-                return Err("Unsupported array type".to_string());
-            }
-        }
-    }
-
-    // Example for a specific array type, e.g., StringArray
-    Ok(rows)
 }
 
 #[cfg(test)]
