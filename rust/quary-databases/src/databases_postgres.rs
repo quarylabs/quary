@@ -1,17 +1,19 @@
+use std::collections::HashMap;
+use std::fmt::Debug;
+use std::str::FromStr;
+
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
+use sqlx::postgres::{PgConnectOptions, PgPoolOptions, PgRow};
+use sqlx::types::BigDecimal;
+use sqlx::{Column, Pool, Row};
+use sqlx::{Error, TypeInfo};
+
 use quary_core::database_postgres::DatabaseQueryGeneratorPostgres;
 use quary_core::databases::{
     ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
 };
 use quary_proto::TableAddress;
-use sqlx::postgres::{PgConnectOptions, PgPoolOptions, PgRow};
-use sqlx::types::BigDecimal;
-use sqlx::{Column, Pool, Row};
-use sqlx::{Error, TypeInfo};
-use std::collections::HashMap;
-use std::fmt::Debug;
-use std::str::FromStr;
 
 #[derive(Debug)]
 pub struct Postgres {
@@ -310,24 +312,28 @@ impl DatabaseConnection for Postgres {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::time::SystemTime;
+
     use chrono::{DateTime, NaiveDateTime, Utc};
     use prost::bytes::Bytes;
+    use testcontainers::runners::AsyncRunner;
+    use testcontainers::RunnableImage;
+    use testcontainers_modules::postgres::Postgres as TestcontainersPostgres;
+
     use quary_core::project::{
         parse_project, project_and_fs_to_sql_for_snapshots, project_and_fs_to_sql_for_views,
     };
     use quary_core::project_tests::return_tests_sql;
     use quary_proto::{File, FileSystem};
-    use std::time::SystemTime;
-    use testcontainers::{clients, RunnableImage};
-    use testcontainers_modules::postgres::Postgres as TestcontainersPostgres;
+
+    use super::*;
 
     #[tokio::test]
     async fn run_build_with_project_twice() {
-        let docker = clients::Cli::default();
-        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
-        let pg_container = docker.run(postgres_image);
-        let pg_port = pg_container.get_host_port_ipv4(5432);
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
+            .start()
+            .await;
+        let pg_port = postgres_image.get_host_port_ipv4(5432).await;
 
         let quary_postgres = Postgres::new(
             "localhost",
@@ -393,11 +399,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_postgres_list_tables_and_views() {
-        // Start a PostgreSQL container
-        let docker = clients::Cli::default();
-        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
-        let pg_container = docker.run(postgres_image);
-        let pg_port = pg_container.get_host_port_ipv4(5432);
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
+            .start()
+            .await;
+        let pg_port = postgres_image.get_host_port_ipv4(5432).await;
 
         let quary_postgres = Postgres::new(
             "localhost",
@@ -509,11 +514,10 @@ mod tests {
 
     #[tokio::test]
     async fn list_columns_in_table() {
-        // Start a PostgreSQL container
-        let docker = clients::Cli::default();
-        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
-        let pg_container = docker.run(postgres_image);
-        let pg_port = pg_container.get_host_port_ipv4(5432);
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
+            .start()
+            .await;
+        let pg_port = postgres_image.get_host_port_ipv4(5432).await;
 
         let database = Postgres::new(
             "localhost",
@@ -590,11 +594,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_postgres_foreign_relationship_test_with_schema() {
-        // Start a PostgreSQL container
-        let docker = clients::Cli::default();
-        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
-        let pg_container = docker.run(postgres_image);
-        let pg_port = pg_container.get_host_port_ipv4(5432);
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
+            .start()
+            .await;
+        let pg_port = postgres_image.get_host_port_ipv4(5432).await;
 
         let database = Postgres::new(
             "localhost",
@@ -713,11 +716,10 @@ models:
 
     #[tokio::test]
     async fn test_postgres_foreign_relationship_test_with_materialized_view_table() {
-        // Start a PostgreSQL container
-        let docker = clients::Cli::default();
-        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
-        let pg_container = docker.run(postgres_image);
-        let pg_port = pg_container.get_host_port_ipv4(5432);
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
+            .start()
+            .await;
+        let pg_port = postgres_image.get_host_port_ipv4(5432).await;
 
         let database = Postgres::new(
             "localhost",
@@ -859,11 +861,10 @@ models:
 
     #[tokio::test]
     async fn test_list_tables_outside_the_schema() {
-        // Start a PostgreSQL container
-        let docker = clients::Cli::default();
-        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
-        let pg_container = docker.run(postgres_image);
-        let pg_port = pg_container.get_host_port_ipv4(5432);
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
+            .start()
+            .await;
+        let pg_port = postgres_image.get_host_port_ipv4(5432).await;
 
         let database = Postgres::new(
             "localhost",
@@ -934,10 +935,10 @@ models:
 
     #[tokio::test]
     async fn test_list_columns_with_case_sensitive_columns() {
-        let docker = clients::Cli::default();
-        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
-        let pg_container = docker.run(postgres_image);
-        let pg_port = pg_container.get_host_port_ipv4(5432);
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
+            .start()
+            .await;
+        let pg_port = postgres_image.get_host_port_ipv4(5432).await;
 
         let database = Postgres::new(
             "localhost",
@@ -1000,11 +1001,12 @@ models:
 
     #[tokio::test]
     async fn test_snapshot_with_no_time_override() {
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
+            .start()
+            .await;
+        let pg_port = postgres_image.get_host_port_ipv4(5432).await;
+
         let schema = "analytics";
-        let docker = clients::Cli::default();
-        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
-        let pg_container = docker.run(postgres_image);
-        let pg_port = pg_container.get_host_port_ipv4(5432);
         let database: Box<dyn DatabaseConnection> = Box::new(
             Postgres::new(
                 "localhost",
@@ -1117,12 +1119,12 @@ snapshots:
 
     #[tokio::test]
     async fn test_snapshots_with_schema() {
-        let schema = "analytics";
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
+            .start()
+            .await;
+        let pg_port = postgres_image.get_host_port_ipv4(5432).await;
 
-        let docker = clients::Cli::default();
-        let postgres_image = RunnableImage::from(TestcontainersPostgres::default());
-        let pg_container = docker.run(postgres_image);
-        let pg_port = pg_container.get_host_port_ipv4(5432);
+        let schema = "analytics";
         let database: Box<dyn DatabaseConnection> = Box::new(
             Postgres::new(
                 "localhost",

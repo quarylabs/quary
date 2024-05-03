@@ -26,5 +26,5 @@ snowflake-api = "0.8.0"
 [dev-dependencies]
 assert_cmd = "2"
 tempfile = "3"
-testcontainers = "0.15.0"
-testcontainers-modules = { version = "0.3.7", features = ["postgres", "minio"] }
+testcontainers = "0.16.7"
+testcontainers-modules = { version = "0.4.2", features = ["postgres"] }
