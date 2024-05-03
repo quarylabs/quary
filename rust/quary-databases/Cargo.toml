@@ -21,10 +21,8 @@ regex = "1.10.4"
 chrono = "0.4.38"
 
 duckdb = { version = "0.10.2", features = ["bundled"] }
-arrow_array_51 = {  package = "arrow-array", version = "51" }
-
-snowflake-api = "0.7.0"
-arrow_array_50 = { package = "arrow-array", version = "50" }
+snowflake-api = "0.8.0"
+arrow-array = "51.0.0"
 
 [dev-dependencies]
 assert_cmd = "2"
