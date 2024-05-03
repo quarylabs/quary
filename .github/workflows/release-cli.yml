@@ -1,0 +1,238 @@
+name: Release Workflow
+on:
+  release:
+    types: [published]
+env:
+  CARGO_INCREMENTAL: 0
+jobs:
+  check-versions-match:
+    name: Check versions match
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+      - name: Install jq
+        run: sudo apt-get install jq
+      - name: Check release version matches code
+        run: |
+          RELEASE_VERSION=${{ github.event.release.tag_name }}
+          STRIPPED_VERSION=${RELEASE_VERSION#v}
+          make check_versions_match GITHUB_RELEASE_VERSION=$STRIPPED_VERSION
+  upload-cli-release-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - target: x86_64-unknown-linux-gnu
+            bin: quary
+            name: quary-linux-x86_64-gnu.zip
+            runs-on: ubuntu-latest
+    #          - target: x86_64-pc-windows-gnu
+    #            bin: quary.exe
+    #            name: quary-windows-x86_64-gnu.zip
+    #            runs-on: ubuntu-latest
+    runs-on: ${{ matrix.platform.runs-on }}
+    needs:
+      - check-versions-match
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
+      - name: Set up Rust
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+        if: ${{ !matrix.platform.cross }}
+      - name: Install buf
+        run: BIN="/usr/local/bin" && VERSION="1.31.0" && curl -sSL "https://github.com/bufbuild/buf/releases/download/v${VERSION}/buf-$(uname -s)-$(uname -m)" -o "${BIN}/buf" && chmod +x "${BIN}/buf"
+      - run: make proto
+      - name: Install cross
+        run: cargo install cross
+      - name: Build binary (*nix)
+        shell: bash
+        run: |
+          cross build --locked --release --bin quary --target ${{ matrix.platform.target }}
+      - name: Install zip and dev utilities
+        run: sudo apt-get install zip libssl-dev pkg-config
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+      - name: Package as archive
+        shell: bash
+        run: |
+          cd target/${{ matrix.platform.target }}/release
+          zip -j quary-${{ env.VERSION }}-${{ matrix.platform.name }} ${{ matrix.platform.bin }}
+          mv quary-${{ env.VERSION }}-${{ matrix.platform.name }} ../../../
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
+        with:
+          files: 'quary-*'
+      - name: Upload Release Asset (quary open source repository)
+        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
+        with:
+          files: 'quary-*'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: quarylabs/quary
+          tag_name: ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+  upload-cli-release-linux-aarch:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - target: aarch64-unknown-linux-gnu
+            bin: quary
+            name: quary-linux-aarch64-gnu.zip
+            runs-on: ubicloud-standard-2-arm
+    runs-on: ${{ matrix.platform.runs-on }}
+    needs:
+      - check-versions-match
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
+      - name: Install buf
+        run: BIN="/usr/local/bin" && VERSION="1.31.0" && curl -sSL "https://github.com/bufbuild/buf/releases/download/v${VERSION}/buf-$(uname -s)-$(uname -m)" -o "${BIN}/buf" && chmod +x "${BIN}/buf"
+      - run: make proto
+      - name: Set up Rust
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+        if: ${{ !matrix.platform.cross }}
+      - name: Build binary (*nix)
+        shell: bash
+        run: |
+          cargo build --locked --release --bin quary --target ${{ matrix.platform.target }}
+      - name: Install zip and dev utilities
+        run: sudo apt-get install zip libssl-dev pkg-config
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+      - name: list files in target
+        run: ls -la target/${{ matrix.platform.target }}/release
+      - name: Package as archive
+        shell: bash
+        run: |
+          cd target/${{ matrix.platform.target }}/release
+          zip -j quary-${{ env.VERSION }}-${{ matrix.platform.name }} ${{ matrix.platform.bin }}
+          mv quary-${{ env.VERSION }}-${{ matrix.platform.name }} ../../../
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
+        with:
+          files: 'quary-*'
+      - name: Upload Release Asset (quary open source repository)
+        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
+        with:
+          files: 'quary-*'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: quarylabs/quary
+          tag_name: ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+  upload_cli_release_mac:
+    name: Release CLI
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - target: x86_64-apple-darwin
+            bin: quary
+            name: quary-macos-x86_64-gnu.zip
+          - target: aarch64-apple-darwin
+            bin: quary
+            name: quary-macos-aarch64-gnu.zip
+    runs-on: macos-latest
+    needs:
+      - check-versions-match
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
+      - name: Set up Rust
+        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+        if: ${{ !matrix.platform.cross }}
+      - run: rustup target add x86_64-apple-darwin
+      - name: Install buf
+        run: BIN="/usr/local/bin" && VERSION="1.31.0" && curl -sSL "https://github.com/bufbuild/buf/releases/download/v${VERSION}/buf-$(uname -s)-$(uname -m)" -o "${BIN}/buf" && chmod +x "${BIN}/buf"
+      - run: make proto
+      - name: Install cross
+        run: cargo install cross
+      - name: Install aarch rust target
+        run: rustup target add aarch64-apple-darwin
+      - name: Build binary (*nix)
+        shell: bash
+        run: |
+          cross build --locked --release --bin quary --target ${{ matrix.platform.target }}
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+      - name: Codesign app bundle
+        # Extract the secrets we defined earlier as environment variables
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
+          MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+          MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
+        run: |
+          # Turn our base64-encoded certificate back to a regular .p12 file
+          echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+
+          # We need to create a new keychain, otherwise using the certificate will prompt
+          # with a UI dialog asking for the certificate password, which we can't
+          # use in a headless CI environment
+
+          security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain 
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+
+          # We finally codesign our app bundle, specifying the Hardened runtime option
+          /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime target/${{ matrix.platform.target }}/release/${{ matrix.platform.bin }} -v
+      - name: Package as archive
+        run: |
+          cd target/${{ matrix.platform.target }}/release
+          zip -j quary-${{ env.VERSION }}-${{ matrix.platform.name }} ${{ matrix.platform.bin }}
+          mv quary-${{ env.VERSION }}-${{ matrix.platform.name }} ../../../
+      - name: Notarize app bundle
+        timeout-minutes: 30
+        # Extract the secrets we defined earlier as environment variables
+        env:
+          PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
+          PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
+          PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
+        run: |
+          # Store the notarization credentials so that we can prevent a UI password dialog
+          # from blocking the CI
+          echo "Create keychain profile"
+          xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
+          # We can't notarize an app bundle directly, but we need to compress it as an archive.
+          # Therefore, we create a zip file containing our app bundle, so that we can send it to the
+          # notarization service
+          # Here we send the notarization request to the Apple's Notarization service, waiting for the result.
+          # This typically takes a few seconds inside a CI environment, but it might take more depending on the App
+          # characteristics. Visit the Notarization docs for more information and strategies on how to optimize it if
+          # you're curious
+          echo "Notarize app"
+          xcrun notarytool submit "quary-${{ env.VERSION }}-${{ matrix.platform.name }}" --keychain-profile "notarytool-profile" --wait
+          # Finally, we need to "attach the staple" to our executable, which will allow our app to be
+          # validated by macOS even when an internet connection is not available.
+          # Cannot yet staple binary "Although tickets are created for standalone binaries, it’s not currently possible to staple tickets to them."
+          # https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution/customizing_the_notarization_workflow#3087720
+          # echo "Attach staple"
+          # xcrun stapler staple -v notarization.zip
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
+        with:
+          files: 'quary-*'
+      - name: Upload Release Asset (quary open source repository)
+        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
+        with:
+          files: 'quary-*'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: quarylabs/quary
+          tag_name: ${{ env.VERSION }}
+          draft: false
+          prerelease: false
