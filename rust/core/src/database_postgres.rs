@@ -1,6 +1,6 @@
 use crate::databases::{
-    base_for_seeds_create_table_specifying_text_type, CacheStatus, DatabaseQueryGenerator,
-    MaterializationType, SnapshotGenerator, Timestamp, MATERIALIZATION_TYPE_MATERIALIZED_VIEW,
+    base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, MaterializationType,
+    SnapshotGenerator, Timestamp, MATERIALIZATION_TYPE_MATERIALIZED_VIEW,
     MATERIALIZATION_TYPE_TABLE, MATERIALIZATION_TYPE_VIEW,
 };
 use chrono::{DateTime, Utc};
@@ -40,12 +40,11 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         &self,
         object_name: &str,
         materialization_type: &Option<String>,
-        _: &CacheStatus,
-    ) -> Result<Option<String>, String> {
+    ) -> Result<String, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type {
-            None => Ok(format!("DROP VIEW IF EXISTS {} CASCADE", object_name).to_string()),
+            None => Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string()),
             Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_VIEW => {
                 println!("don't drop view");
                 Ok(format!(
@@ -55,7 +54,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
                 .to_string())
             }
             Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_TABLE => {
-                Ok(format!("DROP TABLE IF EXISTS {} CASCADE", object_name).to_string())
+                Ok(format!("DROP TABLE IF EXISTS {}", object_name).to_string())
             }
             Some(materialization_type)
                 if materialization_type == MATERIALIZATION_TYPE_MATERIALIZED_VIEW =>
@@ -79,20 +78,19 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         object_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
-        _: &CacheStatus,
-    ) -> Result<Option<String>, String> {
+    ) -> Result<String, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type.as_deref() {
-            None => Ok(Some(format!(
+            None => Ok(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             )),
             Some(MATERIALIZATION_TYPE_VIEW) => Ok(format!(
                 "CREATE OR REPLACE VIEW {} AS {}",
                 object_name, original_select_statement
-            ))),
-            Some(MATERIALIZATION_TYPE_TABLE) => Ok(Some(format!(
+            )),
+            Some(MATERIALIZATION_TYPE_TABLE) => Ok(format!(
                 "CREATE TABLE {} AS {}",
                 object_name, original_select_statement
             )),
