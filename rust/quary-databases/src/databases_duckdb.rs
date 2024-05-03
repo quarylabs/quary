@@ -219,7 +219,9 @@ impl DatabaseConnection for DuckDB {
     }
 }
 
-pub(crate) fn convert_array_to_vec_string(array: &[Arc<dyn Array>]) -> Result<Vec<Vec<String>>, String> {
+pub(crate) fn convert_array_to_vec_string(
+    array: &[Arc<dyn Array>],
+) -> Result<Vec<Vec<String>>, String> {
     let num_rows = array[0].len();
     let num_columns = array.len();
     let mut rows = Vec::with_capacity(num_rows);

@@ -1,3 +1,4 @@
+use crate::databases_duckdb::convert_array_to_vec_string;
 use async_trait::async_trait;
 use quary_core::database_snowflake::{
     validate_snowfalke_account_identifier, DatabaseQueryGeneratorSnowflake,
@@ -10,8 +11,6 @@ use regex::Regex;
 use snowflake_api::QueryResult::{Arrow, Json};
 use snowflake_api::SnowflakeApi;
 use std::fmt::Debug;
-use std::sync::Arc;
-use crate::databases_duckdb::convert_array_to_vec_string;
 
 pub struct Snowflake {
     client: SnowflakeApi,
