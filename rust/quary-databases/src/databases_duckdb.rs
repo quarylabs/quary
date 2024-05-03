@@ -228,34 +228,34 @@ fn convert_array_to_vec_string(array: &[Arc<dyn Array>]) -> Result<Vec<Vec<Strin
         rows.push(row);
     }
 
-    for i in 0..num_rows {
-        for j in 0..array.len() {
+    for (i, row) in rows.iter_mut().enumerate() {
+        for (j, value) in row.iter_mut().enumerate() {
             let array = &array[j];
             if let Some(string_array) = array.as_any().downcast_ref::<array::StringArray>() {
-                rows[i][j] = string_array.value(i).to_string();
+                *value = string_array.value(i).to_string();
             } else if let Some(int32_array) = array.as_any().downcast_ref::<array::Int32Array>() {
-                rows[i][j] = int32_array.value(i).to_string();
+                *value = int32_array.value(i).to_string();
             } else if let Some(int64_array) = array.as_any().downcast_ref::<array::Int64Array>() {
-                rows[i][j] = int64_array.value(i).to_string();
+                *value = int64_array.value(i).to_string();
             } else if let Some(float32_array) = array.as_any().downcast_ref::<array::Float32Array>()
             {
-                rows[i][j] = float32_array.value(i).to_string();
+                *value = float32_array.value(i).to_string();
             } else if let Some(float64_array) = array.as_any().downcast_ref::<array::Float64Array>()
             {
-                rows[i][j] = float64_array.value(i).to_string();
+                *value = float64_array.value(i).to_string();
             } else if let Some(boolean_array) = array.as_any().downcast_ref::<array::BooleanArray>()
             {
-                rows[i][j] = boolean_array.value(i).to_string();
+                *value = boolean_array.value(i).to_string();
             } else if let Some(date_array) = array.as_any().downcast_ref::<array::Date64Array>() {
-                rows[i][j] = date_array.value(i).to_string();
+                *value = date_array.value(i).to_string();
             } else if let Some(date_array) = array.as_any().downcast_ref::<array::Date32Array>() {
-                rows[i][j] = date_array.value(i).to_string();
+                *value = date_array.value(i).to_string();
             } else if let Some(timestamp_array) = array
                 .as_any()
                 .downcast_ref::<array::TimestampMicrosecondArray>()
             {
                 if timestamp_array.is_null(i) {
-                    rows[i][j] = "NULL".to_string();
+                    *value = "NULL".to_string();
                 } else {
                     let timestamp_micros = timestamp_array.value(i);
                     let datetime_utc = DateTime::<Utc>::from_timestamp(
@@ -263,7 +263,7 @@ fn convert_array_to_vec_string(array: &[Arc<dyn Array>]) -> Result<Vec<Vec<Strin
                         (timestamp_micros % 1_000_000) as u32 * 1_000,
                     )
                     .ok_or("error converting timestamp to datetime")?;
-                    rows[i][j] = datetime_utc.format("%Y-%m-%d %H:%M:%S%.6f %Z").to_string();
+                    *value = datetime_utc.format("%Y-%m-%d %H:%M:%S%.6f %Z").to_string();
                 }
             } else {
                 let array_type = array.data_type();
