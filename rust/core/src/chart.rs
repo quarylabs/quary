@@ -16,7 +16,14 @@ fn chart_file_to_yaml(chart_file: &ChartFile) -> Result<String, String> {
 }
 
 fn parse_chart_file_to_chart(path: &str, file: ChartFile) -> Result<(String, Chart), String> {
-    let name = file.name;
+    let name: &str = path
+        .split('/').
+        last()
+        .ok_or("Invalid path to determined name")?
+        .split('.')
+        .next()
+        .ok_or("Invalid path")?;
+
     let description = file.description;
     let tags = file.tags;
 
@@ -71,9 +78,9 @@ fn parse_chart_file_to_chart(path: &str, file: ChartFile) -> Result<(String, Cha
     };
 
     Ok((
-        name.clone(),
+        name.to_string(),
         Chart {
-            name,
+            name: name.to_string(),
             description,
             path: path.to_string(),
             tags,
@@ -123,7 +130,6 @@ mod tests {
     #[test]
     fn test_serialize_deserialize_chart_file() {
         let chart_file = ChartFile {
-            name: "model_chart".to_string(),
             description: Some("test description for chart".to_string()),
             tags: vec!["tag1".to_string(), "tag2".to_string()],
             source: Some(Source::PreTemplatedSql("SELECT * FROM table".to_string())),
@@ -134,7 +140,7 @@ mod tests {
 
         let yaml = chart_file_to_yaml(&chart_file).unwrap();
 
-        assert_eq!("name: model_chart\ndescription: test description for chart\ntags:\n- tag1\n- tag2\nconfig: {}\npreTemplatedSql: SELECT * FROM table\n".to_string(), yaml);
+        assert_eq!("description: test description for chart\ntags:\n- tag1\n- tag2\nconfig: {}\npreTemplatedSql: SELECT * FROM table\n".to_string(), yaml);
 
         let deserialized = chart_file_from_yaml(io::Cursor::new(yaml.as_bytes())).unwrap();
 
@@ -144,7 +150,6 @@ mod tests {
     #[test]
     fn parse_chart_file_raw_sql() {
         let chart_file = ChartFile {
-            name: "model_chart".to_string(),
             description: Some("test description for chart".to_string()),
             tags: vec!["tag1".to_string(), "tag2".to_string()],
             source: Some(Source::RawSql("SELECT * FROM table".to_string())),
@@ -156,10 +161,10 @@ mod tests {
         let (name, chart) =
             parse_chart_file_to_chart("models/test_path.chart.yaml", chart_file).unwrap();
 
-        assert_eq!("model_chart", name.as_str());
+        assert_eq!("test_path", name.as_str());
         assert_eq!(
             Chart {
-                name: "model_chart".to_string(),
+                name: "test_path".to_string(),
                 description: Some("test description for chart".to_string()),
                 path: "models/test_path.chart.yaml".to_string(),
                 tags: vec!["tag1".to_string(), "tag2".to_string(),],
@@ -178,7 +183,6 @@ mod tests {
     #[test]
     fn parse_chart_file_templated_sql() {
         let chart_file = ChartFile {
-            name: "model_chart".to_string(),
             description: Some("test description for chart".to_string()),
             tags: vec!["tag1".to_string(), "tag2".to_string()],
             source: Some(Source::PreTemplatedSql(
@@ -192,10 +196,10 @@ mod tests {
         let (name, chart) =
             parse_chart_file_to_chart("models/test_path.chart.yaml", chart_file).unwrap();
 
-        assert_eq!("model_chart", name.as_str());
+        assert_eq!("test_path", name.as_str());
         assert_eq!(
             Chart {
-                name: "model_chart".to_string(),
+                name: "test_path".to_string(),
                 description: Some("test description for chart".to_string()),
                 path: "models/test_path.chart.yaml".to_string(),
                 tags: vec!["tag1".to_string(), "tag2".to_string(),],
@@ -214,7 +218,6 @@ mod tests {
     #[test]
     fn parse_chart_file_raw_reference() {
         let chart_file = ChartFile {
-            name: "model_chart".to_string(),
             description: Some("test description for chart".to_string()),
             tags: vec!["tag1".to_string(), "tag2".to_string()],
             source: Some(Source::Reference(AssetReference {
@@ -226,14 +229,14 @@ mod tests {
         };
 
         let (name, chart) =
-            parse_chart_file_to_chart("models/test_path.chart.yaml", chart_file).unwrap();
+            parse_chart_file_to_chart("models/test_chart.chart.yaml", chart_file).unwrap();
 
-        assert_eq!("model_chart", name.as_str());
+        assert_eq!("test_chart", name.as_str());
         assert_eq!(
             Chart {
-                name: "model_chart".to_string(),
+                name: "test_chart".to_string(),
                 description: Some("test description for chart".to_string()),
-                path: "models/test_path.chart.yaml".to_string(),
+                path: "models/test_chart.chart.yaml".to_string(),
                 tags: vec!["tag1".to_string(), "tag2".to_string(),],
                 config: Some(pbjson_types::Struct {
                     fields: HashMap::new(),
