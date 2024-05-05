@@ -273,6 +273,10 @@ impl DatabaseConnection for Postgres {
                 "NUMERIC" => row
                     .try_get::<Option<BigDecimal>, _>(i)?
                     .map(|v| v.to_string()),
+                "NAME" => row.try_get::<Option<String>, _>(i)?,
+                "OID" => row
+                    .try_get::<Option<sqlx::postgres::types::Oid>, _>(i)?
+                    .map(|v| (v.0).to_string()),
                 _ => Some(format!("Unsupported type: {}", type_name)),
             };
             match value {
