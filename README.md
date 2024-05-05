@@ -1,48 +1,63 @@
 <p align="center">
   <a href="https://quary.dev">
-    <picture>
-      <img src="https://storage.googleapis.com/public_hosted_materials/quary.svg" height="128">
-    </picture>
-    <h1 align="center">quary</h1>
+    <img align="center" src="https://storage.googleapis.com/public_hosted_materials/quary.svg" height="128">
+    <h1 align="center">Quary</h1>
+    <h3 align="center">Business Intelligence for Engineers 🅀</h3>
   </a>
 </p>
+
+<div class="title-block" style="text-align: center;" align="center">
+
+[![Made by Quary](https://img.shields.io/badge/MADE%20BY%20Quary-000000.svg?style=for-the-badge&logo=Quary&labelColor=000)](https://www.quary.dev/)
+[![Slack Community](https://img.shields.io/badge/slack-@quarycommunity-000000.svg?style=for-the-badge&logo=slack&labelColor=000)](https://join.slack.com/t/quarylabs/shared_invite/zt-2dlbfnztw-dMLXJVL38NcbhqRuM5gUcw)
+[![YC](https://img.shields.io/badge/Y%20Combinator-W24-orange?style=for-the-badge&logo=Quary&labelColor=000)](https://www.ycombinator.com/companies/quary)
+[![GitHub Repo stars](https://img.shields.io/github/stars/quarylabs/quary?style=for-the-badge&logo=Quary&labelColor=000)](https://github.com/quarylabs/quary)
+
+</div>
+
+<h2>With Quary, engineers can:</h2>
+
+- 🔌 Connect to their Database
+- 📖 Write SQL queries to transform, organize, and document tables in a database
+- 📊 Create charts, dashboards and reports (in development)
+- 🧪 Test, collaborate & refactor iteratively through version control
+- 🚀 Deploy the organised, documented model back up to the database
+
+View the [documentation](https://www.quary.dev/docs).
+
+## 🗃️ Supported Databases
 <p align="center">
-  <a aria-label="Quary logo" href="https://www.quary.dev/">
-    <img src="https://img.shields.io/badge/MADE%20BY%20Quary-000000.svg?style=for-the-badge&logo=Quary&labelColor=000">
-  </a>
-  <a aria-label="Slack community" target="_blank" href="https://join.slack.com/t/quarylabs/shared_invite/zt-2dlbfnztw-dMLXJVL38NcbhqRuM5gUcw">
-    <img src="https://img.shields.io/badge/slack-@quarycommunity-000000.svg?style=for-the-badge&logo=slack&labelColor=000" alt="Quary Community">
-  </a>
-  <a aria-label="License" href="https://github.com/quarylabs/quary/blob/main/LICENSE">
-    <img alt="" src="https://img.shields.io/npm/l/next.svg?style=for-the-badge&labelColor=000000">
-  </a>
+  <img src="https://img.shields.io/badge/Amazon%20Redshift-527FFF?style=for-the-badge&logo=Amazon%20Redshift&logoColor=white" alt="Amazon Redshift">
+  <img src="https://img.shields.io/badge/Google%20BigQuery-4285F4?style=for-the-badge&logo=Google%20Cloud&logoColor=white" alt="Google BigQuery">
+  <img src="https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Snowflake-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white" alt="Snowflake">
+  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase">
+  <img src="https://img.shields.io/badge/DuckDB-FFF?style=for-the-badge&logo=duckdb&logoColor=black" alt="DuckDB">
+  <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite">
 </p>
 
-![quary_core_image](./assets/diagram.jpg)
+![quary_core_image](./assets/readme_demo.gif)
 
-## What is Quary?
+## 🏗️ Asset Types in Quary
+Define and manage the following asset types as code:
 
-Quary enables teams to design, document, test and deploy data transformations to your SQL data stores. Quary is a SQL
-engine and CLI tool that lets you manage your data transformation projects with ease.
+- **Sources:** Define the external data sources that feed into Quary, such as database tables, flat files, or APIs (with DuckDB).
+- **Models:** Transform raw data from sources into analysis-ready datasets using SQL, this lets engineers split complex queries into atomic components.
+- **Charts:** Create visual representations of your data using SQL.
+- **🚧 Dashboards (WIP):** Combine multiple charts into a single view, allowing engineers to monitor and analyze data in one place.
+- **🚧 Reports (WIP):** Create detailed reports to share insights and findings with your team or stakeholders.
 
-Teams use Quary to transform their raw data tables into actionable and trustworthy insights. Teams do so by layering
-well documented and tested transformations into useful insights ready for consumption. A Quary project is formed of a
-collection of these SQL `SELECT` statements, that build on top of each other.
-
-- Visit [our website](https://www.quary.dev) to learn more
-- Visit [our documentation](https://www.quary.dev/docs) to learn how to use Quary
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Installation
 
-The following Quary repository contains the core Quary library as well as the Quary CLI tool. The Quary CLI tool can be
-installed as following
+Quary is a VSCode Extension (Interface) & Rust-based CLI (Core)
 
-#### Homebrew installation for macOS
+#### Extension
+The VSCode extension can be installed [here](https://marketplace.visualstudio.com/items?itemName=Quary.quary-extension). Note that it depends on the CLI being installed.
 
-Quary can be installed using Homebrew on macOS using the following command:
-
+#### CLI
+#### Homebrew installation
 ```
 brew install quarylabs/quary/quary
 ```
@@ -56,7 +71,6 @@ curl -fsSL https://raw.githubusercontent.com/quarylabs/quary/main/install.sh | b
 ```
 
 #### Other installations
-
 Other builds are available in the [releases page](https://github.com/quarylabs/quary/releases/latest) to download.
 
 ### Usage
@@ -72,12 +86,16 @@ quary build   # build and execute the model views/seeds against target database
 quary test -s   # run defined tests against target database
 ```
 
-Note that you will most likely want to use
-our [Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=Quary.quary-extension) to
-visualise the project.
+<h2>🅀 Community</h2>
+
+[Join our Slack channel](https://join.slack.com/t/quarylabs/shared_invite/zt-2dlbfnztw-dMLXJVL38NcbhqRuM5gUcw), for help, ideas, and discussions.
 
 ## Support
 
 If you run into any problems using Quary, please let us know. We want Quary to be easy-to-use, so if you are getting
 confused, it is our fault, not yours. [Create an issue](https://github.com/quarylabs/quary/issues) and we'll be happy to
 help you out.
+
+### Check out our other projects
+
+[SQRUFF](https://github.com/quarylabs/sqruff), a compact, high-speed SQL linter, engineered with Rust efficiency.
