@@ -1,6 +1,8 @@
 use crate::rpc_helpers::{decode, encode};
 use crate::rpc_proto_scaffolding::{database_query_generator_from_config, JsFileSystem};
+use crate::uint8_reader::Uint8ArrayReader;
 use js_sys::{Function, Promise, Uint8Array};
+use quary_core::chart::chart_file_from_yaml;
 use quary_core::database_snowflake::validate_snowfalke_account_identifier;
 use quary_core::test_runner::{
     run_model_tests_internal, run_tests_internal, RunStatementFunc, RunTestError,
@@ -10,6 +12,16 @@ use quary_proto::TestRunner;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
+
+/// string to chart file parses a chart file in Uint8Array string and returns a Uint8Array chart
+/// file encoded in proto.
+#[wasm_bindgen]
+pub fn parse_chart_file(file: Uint8Array) -> Result<Uint8Array, String> {
+    let reader = Uint8ArrayReader::new(file);
+    let chart_file = chart_file_from_yaml(reader)?;
+
+    encode(chart_file)
+}
 
 /// add_limit_to_select returns a select statement where a LIMIT clause has been added to it.
 #[wasm_bindgen]
