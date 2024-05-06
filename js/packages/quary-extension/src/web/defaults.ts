@@ -1,0 +1,1 @@
+export const DEFAULT_LIMIT_FOR_SELECT = 100

@@ -1,0 +1,11 @@
+.react-flow__controls-button {
+  border: none;
+}
+
+.react-flow__controls-button svg {
+  fill: var(--vscode-editor-foreground);
+}
+
+.react-flow__panel.react-flow__attribution {
+  display: none;
+}

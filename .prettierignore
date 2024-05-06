@@ -1,0 +1,17 @@
+js/packages/*/build
+js/packages/*/coverage
+js/packages/*/.next
+js/packages/*/dist
+js/packages/*/storybook-static
+js/packages/quary-extension/.vscode-test-web
+js/packages/quary-extension/**/**/wasm_exec.js
+js/packages/quary-extension/src/rust_wasm/
+js/packages/quary-extension/src/web/wasm_exec.js
+js/packages/quary-extension/src/ui/
+js/packages/proto/src
+proto/gen
+docs
+sample_project
+pnpm-lock.yaml
+.pnpm-store
+target

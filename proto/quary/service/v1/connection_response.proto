@@ -1,0 +1,157 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+option java_multiple_files = true;
+
+// ------------------
+// BigQuery Responses
+// ------------------
+
+message BigQueryProjectReference {
+  string project_id = 1;
+}
+
+// Project API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/projects/list
+message BigQueryProject {
+  string kind = 1; // The resource type.
+  string id = 2; // An opaque ID of this project.
+  string numeric_id = 3; // The numeric ID of this project.
+  BigQueryProjectReference project_reference = 4; // A unique reference to a project.
+  string friendly_name = 5; // A descriptive name for this project.
+}
+
+// Dataset Reference API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets#DatasetReference
+message BigQueryDatasetReference {
+  string project_id = 1;
+  string dataset_id = 2;
+}
+
+// Dataset API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets/list
+message BigQueryDataset {
+  string kind = 1; // The resource type. This property always returns the value "bigquery#dataset"
+  string id = 2; // The fully-qualified, unique, opaque ID of the dataset.
+  BigQueryDatasetReference dataset_reference = 3; // The dataset reference. Use this property to access specific parts of the dataset's ID, such as project ID or dataset ID.
+  string friendly_name = 4; // An alternate name for the dataset. The friendly name is purely decorative in nature.
+  map<string, string> labels = 5; // The labels associated with this dataset. You can use these to organize and group your datasets.
+  string location = 6; // The geographic location where the dataset resides.
+}
+
+// Table Reference API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#TableReference
+message BigQueryTableReference {
+  string project_id = 1;
+  string dataset_id = 2;
+  string table_id = 3;
+}
+
+// Table API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/list
+message BigQueryTable {
+  string kind = 1; // The resource type.
+  string id = 2; // An opaque ID uniquely identifying the table.
+  BigQueryTableReference table_reference = 3; // A reference uniquely identifying the table.
+  string type = 4; // The type of table. Possible values are: TABLE, VIEW.
+  string creation_time = 5; // The time when this table was created, in milliseconds since the epoch.
+}
+
+// Table Field API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#TableFieldSchema
+message BigQueryTableField {
+  string name = 1; // The field name.
+  string type = 2; // The field data type. Possible values are: STRING, INTEGER, FLOAT, BOOLEAN, TIMESTAMP.
+  string mode = 3; // The field mode. Possible values are: NULLABLE, REQUIRED, REPEATED.
+  repeated BigQueryTableField fields = 4; // Describes the nested schema fields if the type property is set to RECORD.
+  string description = 5; // The field description.
+}
+
+// Table Schema API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#TableSchema
+message BigQueryTableSchema {
+  string name = 1;
+  string type = 2;
+  repeated BigQueryTableField fields = 3; // Describes the fields in a table.
+  string description = 4; // The field description.
+}
+
+// JobReference API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/JobReference
+message BigQueryJobReference {
+  string project_id = 1; // The ID of the project containing this job.
+  string job_id = 2; // The ID of the job.
+  string location = 3; // The geographic location of the job.
+}
+
+// BigQueryError API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/ErrorProto
+message BigQueryError {
+  string reason = 1; // A short error code that summarizes the error.
+  string location = 2; // The location of the error, if applicable.
+  string debug_info = 3; // A human-readable description of the error.
+  string message = 4; // A human-readable description of the error.
+}
+
+// JobStatus API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/JobStatus
+message BigQueryJobStatus {
+  string state = 1; // The state of the job. Possible values include: "PENDING", "RUNNING", "DONE".
+  string error_result = 2; // Final error result of the job. If present, indicates that the job has completed and was unsuccessful.
+  string error_message = 3; // The final error result of the job as a human-readable string.
+}
+
+// Job API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/Job
+message BigQueryJob {
+  string kind = 1; // The resource type.
+  string id = 2; // An opaque ID uniquely identifying the job.
+  string self_link = 3; // A URL that can be used to access this resource again.
+  string user_email = 4; // The email address of the user who ran the job.
+  BigQueryJobReference job_reference = 5; // A reference uniquely identifying the job.
+  BigQueryJobStatus status = 6; // Information about the job, including starting time and ending time of the job.
+}
+
+message BigQueryFieldValue {
+  string f = 1; // Represents the 'f' in a JSON object
+  string v = 2; // Represents the 'v' in a JSON object
+}
+
+message BigQueryTableRow {
+  repeated BigQueryFieldValue f = 1; // Represents a single row as a series of field-value pairs
+}
+
+// BigQueryJobResults API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/getQueryResults
+message BigQueryJobResults {
+  string kind = 1; // The resource type.
+  BigQueryTableSchema schema = 2; // The schema of the results. Present only when the query completes successfully.
+  BigQueryJobReference job_reference = 3; // A reference uniquely identifying the job.
+  string total_rows = 4; // The total number of rows in the complete query result set, which can be more than the number of rows in this single page of results.
+  string page_token = 5; // A token used for paging results.
+  repeated BigQueryTableRow rows = 6; // An object with as many results as can be contained within the maximum permitted reply size. To get any additional rows, you can call GetQueryResults and specify the jobReference returned above.
+  string job_complete = 7; // Whether the query result was fetched from the query cache.
+  repeated BigQueryError errors = 8; // The first errors encountered during the running of the job. The final message includes the number of errors encountered.
+  string cache_hit = 9; // Whether the query result was fetched from the query cache.
+  string num_dml_affected_rows = 10; // The number of rows affected by a DML statement. Present only for DML statements INSERT, UPDATE or DELETE.
+}
+
+// Google Oauth 2.0 token API Documentation: https://developers.google.com/identity/protocols/oauth2/web-server#httprest
+message BigQueryOauthToken {
+  string access_token = 1; // short-lived token
+  string refresh_token = 2;
+  string expiry_time = 3; // absolute time the token expires
+}
+
+message BigQueryOauthTokenRefresh {
+  string access_token = 1; // short-lived token
+  string expiry_time = 2; // absolute time the token expires
+}
+
+// Snowflake SSO
+message SnowflakeOauthProxyRequest {
+  string account_url = 1;
+  string client_id = 2;
+  string client_secret = 3;
+  string role = 4;
+}
+
+message SnowflakeOauthToken {
+  string access_token = 1;
+  string refresh_token = 2;
+  string expiry_time = 3;
+}
+
+message SnowflakeOauthRefreshToken {
+  string access_token = 1;
+  string expiry_time = 3;
+}
