@@ -107,7 +107,7 @@ pub fn make_column_vector(
     actual_columns
         .into_iter()
         .map(|column| {
-            if inferred_columns_map.get(&column).is_some() {
+            if inferred_columns_map.contains(&column) {
                 present_row::Row::PresentInSqlAndDefinitions(Row {
                     title: column.to_string(),
                     ..Default::default()
@@ -120,7 +120,7 @@ pub fn make_column_vector(
             }
         })
         .chain(inferred_columns.into_iter().filter_map(|column| {
-            if actual_columns_map.get(&column).is_none() {
+            if !actual_columns_map.contains(&column) {
                 Some(present_row::Row::MissingInDefinitions(Row {
                     title: column.to_string(),
                     ..Default::default()
