@@ -100,18 +100,13 @@ jobs:
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - name: Install wasm target
-        run: rustup target add wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
-      - uses: taiki-e/cache-cargo-install-action@5b024fe3a0a2c7f2aaff0e47871acf0d14b07207 # ratchet:taiki-e/cache-cargo-install-action@v1
-        with:
-          tool: wasm-bindgen-cli
       - uses: MinoruSekine/setup-scoop@6435f41324fa55988d8ce5b06bae5cafc75fe045 # ratchet:MinoruSekine/setup-scoop@v4
       - name: Install buf
         run: scoop install buf
       - run: make proto
       - name: Check CI scripts
-        run: make rust_build
+        run: cargo build
   sqlfluff-template:
     name: Lint template with SQLFluff
     runs-on: ubuntu-latest
