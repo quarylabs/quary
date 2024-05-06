@@ -29,6 +29,12 @@ sql_lint_template: ## Lint the sql code
 .PHONY: rust_build
 rust_build: ## Builds the rust code
 	cargo build
+	
+.PHONY: rust_build_wasm
+rust_build_wasm: ## Builds the rust wasm code
+	cargo build --target=wasm32-unknown-unknown --release --package="quary-wasm-bindgen"
+	wasm-bindgen --out-dir=js/packages/quary-extension/src/rust_wasm --target=web --omit-default-module-path "target/wasm32-unknown-unknown/release/quary_wasm_bindgen.wasm"
+	wasm-bindgen --out-dir=js/packages/website/public/wasm --target=web --omit-default-module-path "target/wasm32-unknown-unknown/release/quary_wasm_bindgen.wasm"
 
 .PHONY: rust_fmt
 rust_fmt: ## Formats the rust code
@@ -73,6 +79,10 @@ prettier_fmt: ## Formats all the yaml files
 prettier_lint: ## Lints all the yaml files
 	npx prettier --check **/*.yaml
 	npx prettier --check **/*.yml
+
+.PHONY: check_versions_match
+check_versions_match: ## Checks the version of the extension matches the CLI
+	./.hacking/scripts/check_versions_match.sh $(GITHUB_RELEASE_VERSION)
 
 .PHONY: help
 help: ## Display this help screen
