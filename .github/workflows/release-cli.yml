@@ -231,12 +231,12 @@ jobs:
       - run: cargo build --release
       - name: Extract version from tag
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $env:GITHUB_ENV
       - name: Package as archive
         run: |
           cd target/release
-          zip -j quary-${{ env.VERSION }}-windows-x86_64-gnu.zip quary.exe
-          mv quary-${{ env.VERSION }}-windows-x86_64-gnu.zip ../../
+          Compress-Archive -Path quary.exe -DestinationPath "quary-${{ env.VERSION }}-windows-x86_64-gnu.zip"
+          Move-Item -Path "quary-${{ env.VERSION }}-windows-x86_64-gnu.zip" -Destination "../../"
       - name: Upload Release Asset
         uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
         with:
