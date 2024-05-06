@@ -1,7 +1,0 @@
-name: summary
-description: Just charting the summary
-tags:
-  - summary
-source:
-  reference:
-    name: hours_worked_by_month
