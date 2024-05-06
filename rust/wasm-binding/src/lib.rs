@@ -16,4 +16,5 @@ mod rpc_proto_defined_functions;
 mod rpc_proto_scaffolding;
 mod rpc_rust_defined;
 mod rpc_rust_defined_ai;
+mod uint8_reader;
 mod utils;
