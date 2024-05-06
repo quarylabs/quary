@@ -72,13 +72,11 @@ bash_lint: ## Lints all the bash scripts
 
 .PHONY: prettier_fmt
 prettier_fmt: ## Formats all the yaml files
-	npx prettier --write **/*.yaml
-	npx prettier --write **/*.yml
+	npx prettier --write **/*.{yaml,yml}
 
 .PHONY: prettier_lint
 prettier_lint: ## Lints all the yaml files
-	npx prettier --check **/*.yaml
-	npx prettier --check **/*.yml
+	npx prettier --check **/*.{yaml,yml}
 
 .PHONY: check_versions_match
 check_versions_match: ## Checks the version of the extension matches the CLI
