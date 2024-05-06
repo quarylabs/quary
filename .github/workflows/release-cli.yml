@@ -31,6 +31,7 @@ jobs:
     #            name: quary-windows-x86_64-gnu.zip
     #            runs-on: ubuntu-latest
     runs-on: ${{ matrix.platform.runs-on }}
+    continue-on-error: true
     needs:
       - check-versions-match
     steps:
@@ -76,6 +77,7 @@ jobs:
             name: quary-linux-aarch64-gnu.zip
             runs-on: ubicloud-standard-2-arm
     runs-on: ${{ matrix.platform.runs-on }}
+    continue-on-error: true
     needs:
       - check-versions-match
     steps:
@@ -124,6 +126,7 @@ jobs:
             bin: quary
             name: quary-macos-aarch64-gnu.zip
     runs-on: macos-latest
+    continue-on-error: true
     needs:
       - check-versions-match
     steps:
@@ -211,6 +214,7 @@ jobs:
           files: 'quary-*'
   upload_cli_release_windows:
     runs-on: windows-latest
+    continue-on-error: true
     needs:
       - check-versions-match
     steps:
@@ -237,3 +241,60 @@ jobs:
         uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
         with:
           files: 'quary-*'
+  calculate-hash:
+    runs-on: ubuntu-latest
+    needs:
+      - upload-cli-release-linux
+      - upload-cli-release-linux-aarch
+      - upload_cli_release_mac
+      - upload_cli_release_windows
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v4
+      - name: Fetch Release Assets
+        id: fetch-assets
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # ratchet:actions/github-script@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const fs = require('fs');
+
+            const response = await github.rest.repos.listReleaseAssets({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: context.payload.release.id
+            });
+
+            const assets = response.data.map(asset => ({ url: asset.url, name: asset.name }));
+            fs.writeFileSync('assets.json', JSON.stringify(assets));
+
+      - name: Download and Calculate SHA-256 Hashes
+        run: |
+          mkdir -p downloads
+          echo "File Name | SHA-256 Hash" >> SHA256SUMS.txt
+          echo "--------- | ------------" >> SHA256SUMS.txt
+          jq -c '.[]' assets.json | while read -r asset; do
+            url=$(echo $asset | jq -r '.url')
+            name=$(echo $asset | jq -r '.name')
+            curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" -o "downloads/$name" "$url"
+            echo "Calculating SHA-256 for $name"
+            hash=$(sha256sum "downloads/$name" | awk '{print $1}')
+            echo "$name | $hash" >> SHA256SUMS.txt
+          done
+      - name: Update Release Description with SHA-256 Hashes
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # ratchet:actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const sha256sums = fs.readFileSync('SHA256SUMS.txt', 'utf8');
+            const { owner, repo } = context.repo;
+            const release = context.payload.release;
+            const newBody = release.body + '\n\n### SHA-256 Hashes\n' + sha256sums;
+            await github.rest.repos.updateRelease({
+              owner,
+              repo,
+              release_id: release.id,
+              body: newBody
+            });
