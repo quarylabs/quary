@@ -1,0 +1,3 @@
+{
+  "extends": ["@quary/eslint-config-shared"]
+}

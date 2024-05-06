@@ -20,6 +20,85 @@ jobs:
         run: go install github.com/sethvargo/ratchet@latest
       - name: Ratchet Check
         run: make ratchet_check
+  commitlint-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+        with:
+          fetch-depth: '0'
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3
+      - uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # ratchet:pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
+      - name: Install dependencies
+        run: pnpm install --filter "@quary/root"
+      - name: Validate all commits from PR
+        run: pnpx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+  node-check:
+    runs-on: ubicloud-standard-16
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+        with:
+          submodules: 'true'
+      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
+      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
+      - name: Install buf
+        run: BIN="/usr/local/bin" && VERSION="1.31.0" && curl -sSL "https://github.com/bufbuild/buf/releases/download/v${VERSION}/buf-$(uname -s)-$(uname -m)" -o "${BIN}/buf" && chmod +x "${BIN}/buf"
+      - run: make proto
+      - uses: taiki-e/cache-cargo-install-action@5b024fe3a0a2c7f2aaff0e47871acf0d14b07207 # ratchet:taiki-e/cache-cargo-install-action@v1
+        with:
+          tool: wasm-bindgen-cli
+      - name: Build rust wasm
+        run: make rust_build_wasm
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3
+      - name: Install pnpm
+        uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # ratchet:pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Install dependencies
+        run: pnpm install -r
+      - name: Run CI tests
+        run: pnpm run ci
+  bash-scripts-check:
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_DOWNLOAD_BROWSER: true
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+        # Comes from https://github.com/ludeeus/action-shellcheck/blob/master/action.yaml
+      - name: Download shellcheck
+        run: sudo apt-get install -y shellcheck
+      - name: Check shells
+        run: make bash_lint
+  rust-compile:
+    name: Rust Compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@35cdeaf60df48fb1fb7eac25fea4ebde1f72fc46 # ratchet:Homebrew/actions/setup-homebrew@master
+      - name: Install buf
+        run: brew install bufbuild/buf/buf
+      - run: make proto
+      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
+      - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # ratchet:actions-rs/cargo@v1
+        with:
+          command: check
   rust-lint:
     name: Rust Lint
     runs-on: ubuntu-latest
@@ -116,10 +195,27 @@ jobs:
         run: pip install sqlfluff
       - name: Lint template
         run: make sql_lint_template
+  check-versions-match:
+    name: Check versions match
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+      - name: Install jq
+        run: sudo apt-get install jq
+      - run: make check_versions_match
   prettier-yaml-lint:
     name: Prettier YAML Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v4
-      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3
+      - uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # ratchet:pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
+      - name: Install dependencies
+        run: pnpm install --filter "@quary/root"
       - run: make prettier_lint

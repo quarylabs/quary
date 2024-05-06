@@ -1,0 +1,3 @@
+proto/gen linguist-generated=true
+js/packages/proto/src/generated linguist-generated=true
+cargo.lock linguist-generated=true

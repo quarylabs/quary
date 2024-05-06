@@ -1,3 +1,7 @@
+.PHONY: bump_version_patch
+bump_version_patch: ## Bumps the extension version as a patch
+	npm version patch --prefix js/packages/quary-extension
+
 .PHONY: proto
 proto: proto_fmt ## Generate the proto code
 	rm -rf proto/gen
@@ -7,6 +11,9 @@ proto: proto_fmt ## Generate the proto code
 	ln proto/.hacking/Cargo.toml proto/gen/rust/Cargo.toml
 	mv proto/gen/rust/src/quary.service.v1.rs proto/gen/rust/src/lib.rs
 	cargo fmt
+	rm -rf js/packages/proto/src/generated/
+	mkdir -p js/packages/proto/src/generated/
+	cp -a ./proto/gen/ts/. js/packages/proto/src/generated/
 
 .PHONY: proto_breaking
 proto_breaking: ## Check for breaking changes in the proto code
@@ -34,7 +41,6 @@ rust_build: ## Builds the rust code
 rust_build_wasm: ## Builds the rust wasm code
 	cargo build --target=wasm32-unknown-unknown --release --package="quary-wasm-bindgen"
 	wasm-bindgen --out-dir=js/packages/quary-extension/src/rust_wasm --target=web --omit-default-module-path "target/wasm32-unknown-unknown/release/quary_wasm_bindgen.wasm"
-	wasm-bindgen --out-dir=js/packages/website/public/wasm --target=web --omit-default-module-path "target/wasm32-unknown-unknown/release/quary_wasm_bindgen.wasm"
 
 .PHONY: rust_fmt
 rust_fmt: ## Formats the rust code
@@ -49,10 +55,24 @@ rust_test: ## Runs the rust tests
 	cargo nextest run
 
 .PHONY: rust_ci
-rust_ci: rust_test rust_fmt rust_lint rust_build ## Runs the rust ci commands
+rust_ci: rust_test rust_fmt rust_lint rust_build check_versions_match ## Runs the rust ci commands
+
+.PHONY: markdown_lint
+markdown_lint: ## Lints markdown
+	docker run -v $(shell pwd):/workdir ghcr.io/igorshubovych/markdownlint-cli:latest "docs/**/*.md"
+
+.PHONY: markdown_lint_fix
+markdown_lint_fix: ## Fixes markdown lint errors
+	docker run -v $(shell pwd):/workdir ghcr.io/igorshubovych/markdownlint-cli:latest "docs/**/*.md" --fix
 
 .PHONY: ci
 ci: ratchet_check proto rust_ci proto_breaking sql_lint_template ## Runs everything
+	pnpm install
+	pnpm run ci
+
+.PHONY: act
+act: ## Runs act which runs the ci locally
+	act -P ubuntu-latest=catthehacker/ubuntu:act-latest
 
 .PHONY: ratchet_pin
 ratchet_pin: ## Pins all the Github workflow versions
@@ -70,6 +90,10 @@ ratchet_check: ## Checks all the Github workflow versions
 bash_lint: ## Lints all the bash scripts
 	./.hacking/scripts/bash_lint.sh
 
+.PHONY: check_versions_match
+check_versions_match: ## Checks the version of the extension matches the CLI
+	./.hacking/scripts/check_versions_match.sh $(GITHUB_RELEASE_VERSION)
+
 .PHONY: prettier_fmt
 prettier_fmt: ## Formats all the yaml files
 	npx prettier --write **/*.{yaml,yml}
@@ -77,10 +101,6 @@ prettier_fmt: ## Formats all the yaml files
 .PHONY: prettier_lint
 prettier_lint: ## Lints all the yaml files
 	npx prettier --check **/*.{yaml,yml}
-
-.PHONY: check_versions_match
-check_versions_match: ## Checks the version of the extension matches the CLI
-	./.hacking/scripts/check_versions_match.sh $(GITHUB_RELEASE_VERSION)
 
 .PHONY: help
 help: ## Display this help screen

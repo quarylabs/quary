@@ -8,6 +8,9 @@ cargo_version_dbt=$(grep "^version" rust/dbt-converter/Cargo.toml | awk -F '"' '
 cargo_version_sqlinference=$(grep "^version" rust/sqlinference/Cargo.toml | awk -F '"' '{print $2}')
 cargo_version_wasm=$(grep "^version" rust/wasm-binding/Cargo.toml | awk -F '"' '{print $2}')
 
+# Extract version from package.json
+ts_version=$(jq -r '.version' js/packages/quary-extension/package.json)
+
 # Optional GitHub release version passed as an argument
 github_release_version=$1
 
@@ -19,16 +22,16 @@ compare_versions() {
     fi
 }
 
-compare_versions "$cargo_version_cli" "$cargo_version_cli"
-compare_versions "$cargo_version_core" "$cargo_version_cli"
-compare_versions "$cargo_version_databases" "$cargo_version_cli"
-compare_versions "$cargo_version_dbt" "$cargo_version_cli"
-compare_versions "$cargo_version_sqlinference" "$cargo_version_cli"
-compare_versions "$cargo_version_wasm" "$cargo_version_cli"
+compare_versions "$cargo_version_cli" "$ts_version"
+compare_versions "$cargo_version_core" "$ts_version"
+compare_versions "$cargo_version_databases" "$ts_version"
+compare_versions "$cargo_version_dbt" "$ts_version"
+compare_versions "$cargo_version_sqlinference" "$ts_version"
+compare_versions "$cargo_version_wasm" "$ts_version"
 
 # If GitHub release version is provided, compare it as well
 if [ -n "$github_release_version" ]; then
-    compare_versions "$cargo_version_cli" "$github_release_version"
+    compare_versions "$ts_version" "$github_release_version"
 fi
 
 echo "Versions match."
