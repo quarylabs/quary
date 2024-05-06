@@ -7,11 +7,11 @@ use quary_proto::{Chart, ChartFile};
 use std::collections::BTreeSet;
 use std::io::Read;
 
-fn chart_file_from_yaml(yaml: impl Read) -> Result<ChartFile, String> {
+pub fn chart_file_from_yaml(yaml: impl Read) -> Result<ChartFile, String> {
     serde_yaml::from_reader(yaml).map_err(|e| format!("reading yaml: {}", e))
 }
 
-fn chart_file_to_yaml(chart_file: &ChartFile) -> Result<String, String> {
+pub fn chart_file_to_yaml(chart_file: &ChartFile) -> Result<String, String> {
     serde_yaml::to_string(&chart_file).map_err(|e| format!("writing yaml: {}", e))
 }
 
