@@ -1,0 +1,16 @@
+{
+  "name": "@quary/proto",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "rm -rf dist && tsc"
+  },
+  "dependencies": {
+    "@types/node": "^20.12.7",
+    "protobufjs": "^7.2.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

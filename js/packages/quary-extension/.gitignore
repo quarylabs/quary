@@ -1,0 +1,7 @@
+.vscode-test-web
+dist
+typings.d.ts
+*.wasm
+*.vsix
+src/ui
+src/rust_wasm

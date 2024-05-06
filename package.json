@@ -1,0 +1,24 @@
+{
+  "name": "@quary/root",
+  "scripts": {
+    "dev:extension": "pnpm --parallel --filter \"quary-extension*\" dev",
+    "ci": "pnpm fmt && pnpm lint && pnpm build && pnpm test && pnpm build-storybook && pnpm run -r vscode:package",
+    "build": "pnpm -r run build",
+    "build-storybook": "pnpm -r run build-storybook",
+    "build_extension": "pnpm -r --filter \"quary-extension...\" run build && pnpm -r --filter \"quary-extension\" run vscode:package",
+    "test": "CI=true pnpm -r run test",
+    "lint": "prettier --check . && pnpm -r run lint",
+    "fmt": "prettier -w .",
+    "audit": "pnpm audit --recursive --all"
+  },
+  "engines": {
+    "node": ">=20.0.0 <21.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "dependencies": {
+    "@commitlint/cli": "^19.3.0",
+    "@commitlint/config-conventional": "^19.2.2",
+    "prettier": "^3.2.5",
+    "prettier-plugin-tailwindcss": "^0.5.14"
+  }
+}
