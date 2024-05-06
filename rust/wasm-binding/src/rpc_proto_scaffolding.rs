@@ -243,8 +243,7 @@ impl FileSystem for JsFileSystem {
             let result = async move {
                 let file_reader = file_reader.deref().clone();
                 let file_reader = create_file_reader(file_reader);
-                let file_reader = file_reader(path).await;
-                file_reader
+                file_reader(path).await
             }
             .await;
 
@@ -274,8 +273,7 @@ impl FileSystem for JsFileSystem {
             let result = async move {
                 let file_lister = file_lister.deref().clone();
                 let file_lister = create_recursive_files_lister(file_lister);
-                let result = file_lister(path).await;
-                result
+                file_lister(path).await
             }
             .await;
 
