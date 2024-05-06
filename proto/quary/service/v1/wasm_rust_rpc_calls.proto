@@ -1,0 +1,282 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+import "google/protobuf/empty.proto";
+import "quary/service/v1/column_description.proto";
+import "quary/service/v1/connection_config.proto";
+import "quary/service/v1/project.proto";
+import "quary/service/v1/project_dag.proto";
+import "quary/service/v1/project_file.proto";
+import "quary/service/v1/range.proto";
+import "quary/service/v1/table.proto";
+import "quary/service/v1/types.proto";
+
+option java_multiple_files = true;
+
+// RustWithoutDatabaseService is the service that is used and where the database is not used and so not passed in as a
+// parameter in.
+service RustWithoutDatabaseService {
+  // GetProjectConfig returns the config from quary.yaml
+  rpc GetProjectConfig(GetProjectConfigRequest) returns (GetProjectConfigResponse);
+  // InitFiles returns the init files to start off a project.
+  rpc InitFiles(InitFilesRequest) returns (InitFilesResponse);
+  // ListFiles returns the list of files in the project, bar ignored files.
+  rpc IsPathEmpty(IsPathEmptyRequest) returns (IsPathEmptyResponse);
+  // StringifyProjectFile returns the stringified version of the given project file.
+  rpc StringifyProjectFile(StringifyProjectFileRequest) returns (StringifyProjectFileResponse);
+  // GenerateProjectFiles generates the project files after onboarding. This includes the project file, and some other
+  // ancillary files for set up like .gitignore, github actions, and some folders.
+  rpc GenerateProjectFiles(GenerateProjectFilesRequest) returns (GenerateProjectFilesResponse);
+}
+
+// RustServiceWithDatabase is the service that is used and where the database is used and so passed in as a parameter in
+// the rpc calls
+service RustWithDatabaseService {
+  // ListAssets returns a list of model, seeds, sources & snapshots
+  rpc ListAssets(ListAssetsRequest) returns (ListAssetsResponse);
+  // ParseProject returns the project for the given project file.
+  rpc ParseProject(ParseProjectRequest) returns (ParseProjectResponse);
+  // RenderSchema renderSchema returns the sql to create the views for the seeds and the models but without any data
+  rpc RenderSchema(RenderSchemaRequest) returns (RenderSchemaResponse);
+  // ReturnFullSqlForAsset returns the sql to create the view for the given asset. It also returns the dag and the
+  // columns as well as the description for the asset.
+  rpc ReturnFullSqlForAsset(ReturnFullSqlForAssetRequest) returns (ReturnFullSqlForAssetResponse);
+  // ReturnFullProjectDag returns the dag for the full project. Manually Excludes tests from the dag response.
+  rpc ReturnFullProjectDag(ReturnFullProjectDagRequest) returns (ReturnFullProjectDagResponse);
+  // ReturnSQLForSeedsAndModels returns sql to create tables for the seeds and views for the models.
+  rpc ReturnSQLForSeedsAndModels(ReturnSQLForSeedsAndModelsRequest) returns (ReturnSQLForSeedsAndModelsResponse);
+  // GetModelTableDetails returns the details of the model table. It can also return details for a source.
+  //
+  // If there is no schema entry this returns an error.
+  rpc GetModelTable(GetModelTableRequest) returns (GetModelTableResponse);
+  // CreateModelSchemaEntry creates a schema entry for the given model. If the model already has a schema entry this returns nothing.
+  // By default the schema entry is created with the name of the model and no description.
+  // The schema is put inside the file schema.yaml in the same folder as the model's sql definition.
+  rpc CreateModelSchemaEntry(CreateModelSchemaEntryRequest) returns (CreateModelSchemaEntryResponse);
+  // UpdateAssetDescription updates the description for the given model, source or snapshot.
+  // If the model or source cannot be found, UpdateAssetDescription essentially calls CreateModelSchemaEntry and
+  // adds the description to the schema entry.
+  rpc UpdateAssetDescription(UpdateAssetDescriptionRequest) returns (UpdateAssetDescriptionResponse);
+  // AddColumnToModelOrSource adds a column to the given model schema definition. If the column already exists, this
+  // returns nothing.
+  rpc AddColumnToModelOrSource(AddColumnToModelOrSourceRequest) returns (AddColumnToModelOrSourceResponse);
+  // UpdateModelOrSourceColumnDescription sets the description for the given column. If the column, model, source definition doesn't
+  // exist, this calls AddColumnToModelOrSource and then adds the description.
+  rpc UpdateModelOrSourceColumnDescription(UpdateModelOrSourceColumnDescriptionRequest) returns (UpdateModelOrSourceColumnDescriptionResponse);
+  // AddColumnTestToModelOrSourceColumn adds a column test to the given column. If the column test already exists, this
+  // returns nothing. If no entry exists for the column, this creates it.
+  rpc AddColumnTestToModelOrSourceColumn(AddColumnTestToModelOrSourceColumnRequest) returns (AddColumnTestToModelOrSourceColumnResponse);
+  // RemoveColumnTestFromModelOrSourceColumn removes a column test for a given column by finding a matching the full column test.
+  // If the column test does not exist, this returns nothing. If an entry exists for the column, this removes it.
+  rpc RemoveColumnTestFromModelOrSourceColumn(RemoveColumnTestFromModelOrSourceColumnRequest) returns (RemoveColumnTestFromModelOrSourceColumnResponse);
+  // GenerateSourceFiles generates the source files for the given project that have been selected in an import flow.
+  rpc GenerateSourceFiles(GenerateSourceFilesRequest) returns (GenerateSourceFilesResponse);
+  // ReturnDefinitionLocationsForSQL takes in a SQL statement, looks for the models it references and returns location of those
+  // definitions in the file as well as the file path for the definition.
+  rpc ReturnDefinitionLocationsForSQL(ReturnDefinitionLocationsForSQLRequest) returns (ReturnDefinitionLocationsForSQLResponse);
+}
+
+message GetProjectConfigRequest {
+  string project_root = 2;
+}
+
+message GetProjectConfigResponse {
+  ConnectionConfig connection_config = 1;
+}
+
+message InitFilesRequest {}
+
+message InitFilesResponse {}
+
+message IsPathEmptyRequest {
+  string project_root = 2;
+}
+message IsPathEmptyResponse {
+  bool is_empty = 1;
+}
+
+message GenerateProjectFilesRequest {
+  ConnectionConfig connection_config = 1;
+}
+
+message GenerateProjectFilesResponse {}
+
+message StringifyProjectFileRequest {
+  ProjectFile project_file = 1;
+}
+
+message StringifyProjectFileResponse {
+  string stringified_project_file = 1;
+}
+
+message ListAssetsRequest {
+  string project_root = 3;
+}
+
+message ListAssetsResponse {
+  // TODO This asset type should probably be refactored to just use the core types.
+  message Asset {
+    string name = 1;
+    optional string description = 2;
+    repeated string tags = 5;
+    enum AssetType {
+      ASSET_TYPE_UNSPECIFIED = 0;
+      ASSET_TYPE_MODEL = 1;
+      ASSET_TYPE_SEED = 2;
+      ASSET_TYPE_SOURCE = 3;
+      ASSET_TYPE_SNAPSHOT = 4;
+    }
+    AssetType asset_type = 3;
+    string file_path = 4;
+  }
+  repeated Asset assets = 1;
+}
+
+message ParseProjectRequest {
+  string project_root = 3;
+}
+
+message ParseProjectResponse {
+  Project project = 1;
+}
+
+message RenderSchemaRequest {
+  Project project = 1;
+  string project_root = 3;
+}
+
+message RenderSchemaResponse {
+  string schema = 1;
+}
+
+message ReturnSQLForSeedsAndModelsRequest {
+  string project_root = 3;
+  string db_qualifier = 4;
+}
+
+message ReturnSQLForSeedsAndModelsResponse {
+  repeated string sql = 1;
+}
+
+message ReturnFullSqlForAssetRequest {
+  string project_root = 3;
+  string asset_name = 4;
+  // cache_view defines whether or not to use the cached views in the returned sql and dag.
+  oneof cache_view {
+    CacheViewInformation cache_view_information = 5;
+    google.protobuf.Empty do_not_use = 6;
+  }
+}
+
+message ReturnFullProjectDagRequest {
+  string project_root = 2;
+}
+
+message ReturnFullProjectDagResponse {
+  ProjectDag dag = 1;
+}
+
+message CacheViewInformation {
+  repeated string cache_view_paths = 1;
+}
+
+message ReturnFullSqlForAssetResponse {
+  string full_sql = 1;
+  optional string description = 2;
+  ProjectDag dag = 3;
+  repeated ColumnDescription columns = 4;
+}
+
+message GetModelTableRequest {
+  string project_root = 3;
+
+  string model_name = 4;
+}
+
+message GetModelTableResponse {
+  Table table = 2;
+}
+
+message CreateModelSchemaEntryRequest {
+  string project_root = 2;
+
+  string model_name = 3;
+}
+
+message CreateModelSchemaEntryResponse {
+  string path = 1;
+  ProjectFile project_file = 2;
+}
+
+message UpdateAssetDescriptionRequest {
+  string project_root = 2;
+
+  string asset_name = 3;
+  string description = 4;
+}
+
+message UpdateAssetDescriptionResponse {}
+
+message AddColumnToModelOrSourceRequest {
+  string project_root = 2;
+
+  string model_or_source_name = 3;
+  string column_name = 4;
+}
+
+message AddColumnToModelOrSourceResponse {}
+
+message UpdateModelOrSourceColumnDescriptionRequest {
+  string project_root = 2;
+
+  string model_or_source_name = 3;
+  string column_name = 4;
+  optional string description = 5;
+}
+
+message UpdateModelOrSourceColumnDescriptionResponse {}
+
+message AddColumnTestToModelOrSourceColumnRequest {
+  string project_root = 2;
+
+  string model_or_source_name = 3;
+  string column_name = 4;
+  ColumnTest column_test = 5;
+}
+
+message AddColumnTestToModelOrSourceColumnResponse {}
+
+message RemoveColumnTestFromModelOrSourceColumnRequest {
+  string project_root = 2;
+
+  string model_or_source_name = 3;
+  string column_name = 4;
+  ColumnTest column_test = 5;
+}
+
+message RemoveColumnTestFromModelOrSourceColumnResponse {}
+
+message GenerateSourceFilesRequest {
+  string project_root = 2;
+
+  repeated DatabaseSource sources = 3;
+  // folder_path is the path to the folder where the source files will be generated.
+  string folder_path = 4;
+}
+
+message GenerateSourceFilesResponse {}
+
+message ReturnDefinitionLocationsForSQLRequest {
+  string project_root = 2;
+  string sql = 3;
+}
+
+message ReturnDefinitionLocationsForSQLResponse {
+  message Definition {
+    Range range = 1;
+    string target_model = 2;
+    string target_file = 3;
+  }
+  repeated Definition definitions = 1;
+}
