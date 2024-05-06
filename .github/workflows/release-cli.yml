@@ -66,15 +66,6 @@ jobs:
         uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
         with:
           files: 'quary-*'
-      - name: Upload Release Asset (quary open source repository)
-        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
-        with:
-          files: 'quary-*'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: quarylabs/quary
-          tag_name: ${{ env.VERSION }}
-          draft: false
-          prerelease: false
   upload-cli-release-linux-aarch:
     strategy:
       fail-fast: false
@@ -120,15 +111,6 @@ jobs:
         uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
         with:
           files: 'quary-*'
-      - name: Upload Release Asset (quary open source repository)
-        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
-        with:
-          files: 'quary-*'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: quarylabs/quary
-          tag_name: ${{ env.VERSION }}
-          draft: false
-          prerelease: false
   upload_cli_release_mac:
     name: Release CLI
     strategy:
@@ -227,12 +209,3 @@ jobs:
         uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
         with:
           files: 'quary-*'
-      - name: Upload Release Asset (quary open source repository)
-        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
-        with:
-          files: 'quary-*'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: quarylabs/quary
-          tag_name: ${{ env.VERSION }}
-          draft: false
-          prerelease: false
