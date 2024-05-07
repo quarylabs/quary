@@ -5,7 +5,7 @@ import * as vscode from 'vscode'
 const JS_STRING = require('../ui/assets/index.js.txt').default
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const CSS_STRING = require('../ui/assets/index.css.txt').default
-const HTML_STRING = `<!DOCTYPE html>
+export const HTML_STRING = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />

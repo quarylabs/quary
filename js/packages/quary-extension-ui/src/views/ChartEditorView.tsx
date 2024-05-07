@@ -9,18 +9,23 @@ interface Props {
 }
 
 export const ChartEditorView: React.FC<Props> = ({ chart }) => {
-  const { chartViewChangeHandler, chartViewRunQuery } = useCallBackFrontEnd(
-    ['chartViewChangeHandler', 'chartViewRunQuery'],
-    vscode.postMessage,
-  )
+  const { chartViewChangeHandler, chartViewRunQuery, chartViewOpenTextEditor } =
+    useCallBackFrontEnd(
+      [
+        'chartViewChangeHandler',
+        'chartViewRunQuery',
+        'chartViewOpenTextEditor',
+      ],
+      vscode.postMessage,
+    )
+  const [chartFile, setChartFile] = React.useState(chart.chartFile)
 
   return (
     <ChartEditor
       title={chart.title}
       chartResults={chart.results}
       chartFile={
-        chart.chartFile || {
-          name: '',
+        chartFile || {
           tags: [],
           source: {
             $case: 'rawSql',
@@ -29,9 +34,13 @@ export const ChartEditorView: React.FC<Props> = ({ chart }) => {
           config: {},
         }
       }
-      registerChangeChartFile={chartViewChangeHandler}
+      registerChangeChartFile={(chartFile) => {
+        setChartFile(chartFile)
+        chartViewChangeHandler(chartFile)
+      }}
       onClickRunQuery={chartViewRunQuery}
       allAssets={chart.allAssets}
+      onClickEdit={() => chartViewOpenTextEditor(null)}
     />
   )
 }
