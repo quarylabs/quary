@@ -17,7 +17,7 @@ jobs:
           RELEASE_VERSION=${{ github.event.release.tag_name }}
           STRIPPED_VERSION=${RELEASE_VERSION#v}
           make check_versions_match GITHUB_RELEASE_VERSION=$STRIPPED_VERSION
-  upload-cli-release-linux:
+  upload_cli_release_linux:
     strategy:
       fail-fast: false
       matrix:
@@ -62,12 +62,12 @@ jobs:
         run: |
           cd target/${{ matrix.platform.target }}/release
           zip -j quary-${{ env.VERSION }}-${{ matrix.platform.name }} ${{ matrix.platform.bin }}
-          mv quary-${{ env.VERSION }}-${{ matrix.platform.name }} ../../../
+          mv ${{ matrix.platform.name }} ../../../
       - name: Upload Release Asset
         uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
         with:
           files: 'quary-*'
-  upload-cli-release-linux-aarch:
+  upload_cli_release_linux_aarch:
     strategy:
       fail-fast: false
       matrix:
@@ -108,7 +108,7 @@ jobs:
         run: |
           cd target/${{ matrix.platform.target }}/release
           zip -j quary-${{ env.VERSION }}-${{ matrix.platform.name }} ${{ matrix.platform.bin }}
-          mv quary-${{ env.VERSION }}-${{ matrix.platform.name }} ../../../
+          mv ${{ matrix.platform.name }} ../../../
       - name: Upload Release Asset
         uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
         with:
@@ -180,7 +180,7 @@ jobs:
         run: |
           cd target/${{ matrix.platform.target }}/release
           zip -j quary-${{ env.VERSION }}-${{ matrix.platform.name }} ${{ matrix.platform.bin }}
-          mv quary-${{ env.VERSION }}-${{ matrix.platform.name }} ../../../
+          mv ${{ matrix.platform.name }} ../../../
       - name: Notarize app bundle
         timeout-minutes: 30
         # Extract the secrets we defined earlier as environment variables
@@ -235,8 +235,8 @@ jobs:
       - name: Package as archive
         run: |
           cd target/release
-          Compress-Archive -Path quary.exe -DestinationPath "quary-${{ env.VERSION }}-windows-x86_64-gnu.zip"
-          Move-Item -Path "quary-${{ env.VERSION }}-windows-x86_64-gnu.zip" -Destination "../../"
+          Compress-Archive -Path quary.exe -DestinationPath "quary-windows-x86_64-gnu.zip"
+          Move-Item -Path "quary-windows-x86_64-gnu.zip" -Destination "../../"
       - name: Upload Release Asset
         uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
         with:
@@ -244,8 +244,8 @@ jobs:
   calculate-hash:
     runs-on: ubuntu-latest
     needs:
-      - upload-cli-release-linux
-      - upload-cli-release-linux-aarch
+      - upload_cli_release_linux
+      - upload_cli_release_linux_aarch
       - upload_cli_release_mac
       - upload_cli_release_windows
     steps:
