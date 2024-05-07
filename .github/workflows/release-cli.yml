@@ -201,7 +201,7 @@ jobs:
           # characteristics. Visit the Notarization docs for more information and strategies on how to optimize it if
           # you're curious
           echo "Notarize app"
-          xcrun notarytool submit "quary-${{ env.VERSION }}-${{ matrix.platform.name }}" --keychain-profile "notarytool-profile" --wait
+          xcrun notarytool submit "${{ matrix.platform.name }}" --keychain-profile "notarytool-profile" --wait
           # Finally, we need to "attach the staple" to our executable, which will allow our app to be
           # validated by macOS even when an internet connection is not available.
           # Cannot yet staple binary "Although tickets are created for standalone binaries, it’s not currently possible to staple tickets to them."
