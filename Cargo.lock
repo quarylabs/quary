@@ -2694,6 +2694,7 @@ dependencies = [
  "clap",
  "dbt-converter",
  "dotenv",
+ "duckdb",
  "futures",
  "indicatif",
  "prost",
