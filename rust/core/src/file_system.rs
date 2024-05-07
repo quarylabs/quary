@@ -1,8 +1,12 @@
 use futures::io::Cursor;
 use futures::{AsyncRead, AsyncReadExt};
+use mockall::predicate::*;
+use mockall::*;
 use std::io;
 use std::io::Read;
 
+#[allow(clippy::indexing_slicing)]
+#[automock]
 #[async_trait::async_trait]
 pub trait FileSystem: Sync {
     async fn read_file(&self, path: &str) -> Result<Box<dyn AsyncRead + Send + Unpin>, io::Error>;
