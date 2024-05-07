@@ -26,7 +26,7 @@ export const ChartEditor: React.FC<Props> = ({
   title,
 }) => (
   <div className="pt-1">
-    <ChartEditorHeader
+    <WrappedMemoizedChartEditorHeader
       data={chartFile.source}
       allAssets={allAssets}
       disabled={chartResults.type === 'loading'}
@@ -123,3 +123,16 @@ const PerspectiveWithMemo = React.memo(Perspective, (prevProps, nextProps) => {
     prevProps.title === nextProps.title && stringifiedPrev === stringifiedNext
   )
 })
+
+const WrappedMemoizedChartEditorHeader = React.memo(
+  ChartEditorHeader,
+  (prevProps, nextProps) => {
+    if (prevProps.allAssets.length !== nextProps.allAssets.length) {
+      return false
+    }
+    if (prevProps.disabled !== nextProps.disabled) {
+      return false
+    }
+    return true
+  },
+)
