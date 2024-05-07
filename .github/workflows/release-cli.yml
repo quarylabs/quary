@@ -61,7 +61,7 @@ jobs:
         shell: bash
         run: |
           cd target/${{ matrix.platform.target }}/release
-          zip -j quary-${{ env.VERSION }}-${{ matrix.platform.name }} ${{ matrix.platform.bin }}
+          zip -j ${{ matrix.platform.name }} ${{ matrix.platform.bin }}
           mv ${{ matrix.platform.name }} ../../../
       - name: Upload Release Asset
         uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
@@ -107,7 +107,7 @@ jobs:
         shell: bash
         run: |
           cd target/${{ matrix.platform.target }}/release
-          zip -j quary-${{ env.VERSION }}-${{ matrix.platform.name }} ${{ matrix.platform.bin }}
+          zip -j ${{ matrix.platform.name }} ${{ matrix.platform.bin }}
           mv ${{ matrix.platform.name }} ../../../
       - name: Upload Release Asset
         uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # ratchet:softprops/action-gh-release@v2.0.4
@@ -179,7 +179,7 @@ jobs:
       - name: Package as archive
         run: |
           cd target/${{ matrix.platform.target }}/release
-          zip -j quary-${{ env.VERSION }}-${{ matrix.platform.name }} ${{ matrix.platform.bin }}
+          zip -j ${{ matrix.platform.name }} ${{ matrix.platform.bin }}
           mv ${{ matrix.platform.name }} ../../../
       - name: Notarize app bundle
         timeout-minutes: 30
