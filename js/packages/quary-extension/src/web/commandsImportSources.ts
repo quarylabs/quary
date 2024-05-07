@@ -46,11 +46,11 @@ export const importSources =
                 folderPath,
               })
               if (isErr(sourcesGenerated)) {
-                setState({
+                await setState({
                   type: 'importSources',
                   state: {
                     type: 'error',
-                    error: sourcesGenerated.error.message,
+                    error: String(sourcesGenerated.error),
                   },
                 })
                 return
