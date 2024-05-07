@@ -9,7 +9,7 @@ export const Warning: React.FC<React.PropsWithChildren<Props>> = ({
   children,
   title,
 }) => (
-  <div className="bg-vscode-inputValidation-warningBackground rounded-md p-4">
+  <div className="bg-vscode-inputValidation-warningBackground rounded-md p-4 overflow-auto">
     <div className="flex">
       <div className="flex-shrink-0">
         <ExclamationTriangleIcon
