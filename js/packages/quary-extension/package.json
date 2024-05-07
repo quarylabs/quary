@@ -165,7 +165,7 @@
     "package-web": "webpack --config webpack.web.config.js --mode production --devtool hidden-source-map --env STAGE=production",
     "package-node": "webpack --config webpack.node.config.js --mode production --devtool hidden-source-map --env STAGE=production",
     "lint": "eslint src --ext ts",
-    "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ../../../quary/rust/core/src/init"
+    "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ../../../rust/core/src/init"
   },
   "devDependencies": {
     "@quary/eslint-config-shared": "workspace:*",
