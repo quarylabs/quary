@@ -80,7 +80,7 @@ pub struct ConvertDbtArgs {
 
 #[derive(Args, Debug)]
 pub struct InitArgs {
-    #[arg(value_enum, long = "type", short = 't', default_value_t = InitType::Sqlite)]
+    #[arg(value_enum, long = "type", short = 't', default_value_t = InitType::Duckdb)]
     /// Select which sample initialisation to show
     pub mode: InitType,
 }
