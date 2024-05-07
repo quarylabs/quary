@@ -13,7 +13,7 @@ jobs:
   github-actions-ratchet-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v4
+      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # ratchet:actions/setup-go@v4
       - name: Install ratchet
@@ -23,7 +23,7 @@ jobs:
   commitlint-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v3
         with:
           fetch-depth: '0'
       - name: Setup Node
@@ -41,7 +41,7 @@ jobs:
   node-check:
     runs-on: ubicloud-standard-16
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v3
         with:
           submodules: 'true'
       - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
@@ -74,7 +74,7 @@ jobs:
     env:
       PLAYWRIGHT_SKIP_DOWNLOAD_BROWSER: true
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v3
         # Comes from https://github.com/ludeeus/action-shellcheck/blob/master/action.yaml
       - name: Download shellcheck
         run: sudo apt-get install -y shellcheck
@@ -84,7 +84,7 @@ jobs:
     name: Rust Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v4
+      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v4
       - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -103,7 +103,7 @@ jobs:
     name: Rust Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v4
+      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v4
       - name: Install stable toolchain
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
@@ -127,7 +127,7 @@ jobs:
     name: Rust Build Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v4
+      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v4
       - name: Install stable toolchain
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
@@ -143,7 +143,7 @@ jobs:
     name: Lint template with SQLFluff
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v4
+      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v4
       - name: Install SQLFluff
         run: pip install sqlfluff
       - name: Lint template
@@ -152,7 +152,7 @@ jobs:
     name: Check versions match
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
+      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v3
       - name: Install jq
         run: sudo apt-get install jq
       - run: make check_versions_match
@@ -160,7 +160,7 @@ jobs:
     name: Prettier YAML Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v4
+      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v4
       - name: Setup Node
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3
       - uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # ratchet:pnpm/action-setup@v2
