@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { Err, isErr, Ok, Result } from '@shared/result'
+import { Err, isErr, Ok, Result, ResultE } from '@shared/result'
 import { Uri } from 'vscode'
 import {
   RustWithDatabaseServiceClientImpl,
@@ -8,14 +8,17 @@ import {
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
 import { TestResults } from '@quary/proto/quary/service/v1/test_results'
 import { Project } from '@quary/proto/quary/service/v1/project'
+import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import {
   add_limit_to_select,
   clean_up,
   initSync,
+  parse_chart_file,
   rpc_wrapper_with_database,
   rpc_wrapper_without_database,
   run_model_tests,
   run_tests,
+  write_chart_file,
 } from '../rust_wasm/quary_wasm_bindgen'
 import { ServicesFiles } from './servicesFiles'
 
@@ -171,6 +174,24 @@ export const rustWithoutDatabaseWasmServices = (files: ServicesFiles) => {
     stringify_project_file: wrapper(client.StringifyProjectFile),
     add_limit_to_select,
     clean_up,
+    write_chart_file_to_yaml: (data: ChartFile): Result<Uint8Array> => {
+      try {
+        const output = ChartFile.encode(data).finish()
+        const yaml = write_chart_file(output)
+        return Ok(yaml)
+      } catch (e) {
+        return Err(new Error(e as string))
+      }
+    },
+    parse_chart_file: (data: Uint8Array): Result<ChartFile> => {
+      try {
+        const output = parse_chart_file(data)
+        const file = ChartFile.decode(output)
+        return Ok(file)
+      } catch (e) {
+        return Err(new Error(e as string))
+      }
+    },
   }
 }
 
