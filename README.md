@@ -47,7 +47,7 @@ Quary can be installed using Homebrew on macOS using the following command:
 brew install quarylabs/quary/quary
 ```
 
-### Linux/Mac through curl
+#### Linux/Mac through curl
 
 Quary can be installed using curl on Linux/Mac using the following command:
 
