@@ -4,6 +4,13 @@ use quary_proto::TableAddress;
 use sqlinference::dialect::Dialect;
 use std::fmt::Debug;
 
+/// CacheStatus defines whether the cache exists and matches the current model, if so it is possible
+/// to behave differently
+pub enum CacheStatus {
+    CachedAndMatching,
+    NotMatching,
+}
+
 pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
     /// default_materialization_type returns the default materialization type that the database
     /// implements
@@ -24,6 +31,7 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
         &self,
         object_name: &str,
         materialization_type: &Option<String>,
+        _: CacheStatus,
     ) -> Result<String, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
@@ -42,6 +50,7 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
         object_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
+        _: CacheStatus,
     ) -> Result<String, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
@@ -151,9 +160,10 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
         &self,
         view_name: &str,
         materialization_type: &Option<String>,
+        cache_status: CacheStatus,
     ) -> Result<String, String> {
         self.as_ref()
-            .models_drop_query(view_name, materialization_type)
+            .models_drop_query(view_name, materialization_type, cache_status)
     }
 
     fn models_create_query(
@@ -161,11 +171,13 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
         view_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
+        cache_status: CacheStatus,
     ) -> Result<String, String> {
         self.as_ref().models_create_query(
             view_name,
             original_select_statement,
             materialization_type,
+            cache_status,
         )
     }
 

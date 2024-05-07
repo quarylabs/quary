@@ -1,6 +1,6 @@
 use crate::databases::{
-    base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, SnapshotGenerator,
-    MATERIALIZATION_TYPE_TABLE, MATERIALIZATION_TYPE_VIEW,
+    base_for_seeds_create_table_specifying_text_type, CacheStatus, DatabaseQueryGenerator,
+    SnapshotGenerator, MATERIALIZATION_TYPE_TABLE, MATERIALIZATION_TYPE_VIEW,
 };
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use sqlinference::dialect::Dialect;
@@ -26,6 +26,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorSnowflake {
         &self,
         object_name: &str,
         materialization_type: &Option<String>,
+        _: CacheStatus,
     ) -> Result<String, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
@@ -46,6 +47,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorSnowflake {
         object_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
+        _: CacheStatus,
     ) -> Result<String, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
