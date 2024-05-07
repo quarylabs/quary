@@ -8,6 +8,7 @@ const meta: Meta<typeof Card> = {
   argTypes: {
     registerChangeChartFile: { action: 'change chart file' },
     onClickRunQuery: { action: 'run query' },
+    onClickEdit: { action: 'edit' },
   },
 }
 

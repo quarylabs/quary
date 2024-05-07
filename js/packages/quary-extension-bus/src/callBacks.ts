@@ -51,8 +51,9 @@ export type Callbacks = {
     sources: ProjectFileSource[]
     folderPath: string
   }
-  chartViewRunQuery: ChartFile['source']
+  chartViewRunQuery: ChartFile
   chartViewChangeHandler: ChartFile
+  chartViewOpenTextEditor: null
 }
 
 export const useCallBackFrontEnd = <T extends keyof Callbacks>(

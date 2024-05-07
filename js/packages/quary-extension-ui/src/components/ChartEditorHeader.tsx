@@ -1,6 +1,6 @@
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import * as z from 'zod'
-import { PlayIcon } from '@heroicons/react/20/solid'
+import { PencilSquareIcon, PlayIcon } from '@heroicons/react/20/solid'
 import {
   Select,
   SelectContent,
@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select'
-import { Input } from './ui/input'
 import { Button } from './ui/button'
 
 interface Props {
@@ -21,53 +20,67 @@ interface Props {
   // disable the buttons when things are loading
   disabled: boolean
   onClickRunQuery: (source: ChartFile['source']) => void
+  // open text editor
+  onClickEdit: () => void
 }
 
 export const ChartEditorHeader: React.FC<Props> = ({
   data,
   allAssets,
   disabled,
-  // TODO Implemenet this function
   onChangeSource,
   onClickRunQuery,
+  onClickEdit,
 }) => {
   const values = mapChartFileSourceToForm(data)
 
   const SubForm = () => {
     switch (values.type) {
-      case 'rawSql':
-        return (
-          <div className="flex-1">
-            <Input
-              disabled={disabled}
-              value={values.rawSql}
-              onChange={(e) => {
-                onChangeSource({
-                  $case: 'rawSql',
-                  rawSql: e.target.value,
-                })
-              }}
-            />
-          </div>
-        )
-      case 'preTemplatedSql':
-        return (
-          <div className="flex-1">
-            <Input
-              disabled={disabled}
-              onChange={(e) => {
-                onChangeSource({
-                  $case: 'preTemplatedSql',
-                  preTemplatedSql: e.target.value,
-                })
-              }}
-            />
-          </div>
-        )
+      // TODO Implement other cases
+      // case 'rawSql':
+      //   return (
+      //     <div className="flex-1">
+      //       <Input
+      //         disabled={disabled}
+      //         value={values.rawSql}
+      //         onChange={(e) => {
+      //           onChangeSource({
+      //             $case: 'rawSql',
+      //             rawSql: e.target.value,
+      //           })
+      //         }}
+      //       />
+      //     </div>
+      //   )
+      // case 'preTemplatedSql':
+      //   return (
+      //     <div className="flex-1">
+      //       <Input
+      //         disabled={disabled}
+      //         onChange={(e) => {
+      //           onChangeSource({
+      //             $case: 'preTemplatedSql',
+      //             preTemplatedSql: e.target.value,
+      //           })
+      //         }}
+      //       />
+      //     </div>
+      //   )
       case 'reference':
         return (
           <div className="flex-1">
-            <Select defaultValue={values.reference} disabled={disabled}>
+            <Select
+              defaultValue={values.reference}
+              disabled={disabled}
+              onValueChange={(value) => {
+                onChangeSource({
+                  $case: 'reference',
+                  reference: {
+                    name: value,
+                  },
+                })
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select an asset" />
               </SelectTrigger>
@@ -122,8 +135,9 @@ export const ChartEditorHeader: React.FC<Props> = ({
         <SelectContent>
           <SelectGroup>
             <SelectLabel>Type</SelectLabel>
-            <SelectItem value="rawSql">Raw SQL</SelectItem>
-            <SelectItem value="preTemplatedSql">Templated SQL</SelectItem>
+            {/*TODO Implement other types*/}
+            {/*<SelectItem value="rawSql">Raw SQL</SelectItem>*/}
+            {/*<SelectItem value="preTemplatedSql">Templated SQL</SelectItem>*/}
             <SelectItem value="reference">Asset</SelectItem>
           </SelectGroup>
         </SelectContent>
@@ -135,6 +149,9 @@ export const ChartEditorHeader: React.FC<Props> = ({
         onClick={() => onClickRunQuery(mapFormToChartFileSource(values))}
       >
         <PlayIcon className="h-4 w-4" />
+      </Button>
+      <Button size="icon" onClick={onClickEdit}>
+        <PencilSquareIcon className="h-4 w-4" />
       </Button>
     </div>
   )

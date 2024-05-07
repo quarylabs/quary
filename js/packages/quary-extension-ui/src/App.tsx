@@ -16,6 +16,7 @@ import '@/index.css'
 import { ErrorView } from '@/views/ErrorView'
 import { ExecuteSQLView } from '@/views/ExecuteSQL'
 import { ImportSourcesView } from '@/views/ImportSourcesView'
+import { ChartEditorView } from '@/views/ChartEditorView.tsx'
 
 function App() {
   const [view] = useGlobalState()
@@ -108,7 +109,9 @@ function App() {
     case 'executeSQL': {
       return <ExecuteSQLView results={view.results} limit={view.limit} />
     }
-
+    case 'chartEditor': {
+      return <ChartEditorView chart={view.data} />
+    }
     default:
       return <div>Invalid view type {JSON.stringify(view)}</div>
   }
