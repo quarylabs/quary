@@ -1,7 +1,7 @@
 use crate::databases::{
-    base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, SnapshotGenerator,
-    Timestamp, MATERIALIZATION_TYPE_MATERIALIZED_VIEW, MATERIALIZATION_TYPE_TABLE,
-    MATERIALIZATION_TYPE_VIEW,
+    base_for_seeds_create_table_specifying_text_type, CacheStatus, DatabaseQueryGenerator,
+    SnapshotGenerator, Timestamp, MATERIALIZATION_TYPE_MATERIALIZED_VIEW,
+    MATERIALIZATION_TYPE_TABLE, MATERIALIZATION_TYPE_VIEW,
 };
 use chrono::{DateTime, Utc};
 #[cfg(target_arch = "wasm32")]
@@ -40,6 +40,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorRedshift {
         &self,
         object_name: &str,
         materialization_type: &Option<String>,
+        _: CacheStatus,
     ) -> Result<String, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
@@ -68,6 +69,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorRedshift {
         object_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
+        _: CacheStatus,
     ) -> Result<String, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
