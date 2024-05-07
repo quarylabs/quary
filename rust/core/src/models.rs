@@ -1,4 +1,4 @@
-use crate::databases::DatabaseQueryGenerator;
+use crate::databases::{CacheStatus, DatabaseQueryGenerator};
 use crate::project::replace_variable_templates_with_variable_defined_in_config;
 use crate::sql::return_reference_search;
 use futures::AsyncRead;
@@ -81,8 +81,13 @@ fn return_sql_model_template(
     materialization: &Option<String>,
     select_statement: &str,
 ) -> Result<[String; 2], String> {
-    let drop = database.models_drop_query(name, materialization)?;
-    let create = database.models_create_query(name, select_statement, materialization)?;
+    let drop = database.models_drop_query(name, materialization, CacheStatus::NotMatching)?;
+    let create = database.models_create_query(
+        name,
+        select_statement,
+        materialization,
+        CacheStatus::NotMatching,
+    )?;
     Ok([drop, create])
 }
 
