@@ -13458,7 +13458,7 @@ snapshots:
       fs.realpath: 1.0.0
       inflight: 1.0.6
       inherits: 2.0.4
-      minimatch: 5.0.1
+      minimatch: 5.1.6
       once: 1.4.0
 
   global-directory@4.0.1:
