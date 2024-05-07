@@ -66,7 +66,7 @@ Once installed, a sample project can be created and run as follows:
 ```shell
 mkdir example # create an empty project folder
 cd example
-quary init    # initialize DuckDB demo project with sample data 
+quary init    # initialize DuckDB demo project with sample data
 quary compile # validate the project structure and model references without database
 quary build   # build and execute the model views/seeds against target database
 quary test -s   # run defined tests against target database
