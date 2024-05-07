@@ -17,7 +17,7 @@ fn test_cli_in_memory() {
 
     // Define the sequence of command arguments
     let commands = vec![
-        vec!["init"],
+        vec!["init", "-t=sqlite"],
         vec!["compile"],
         vec!["build"],
         vec!["build", "-c"],
@@ -48,7 +48,7 @@ fn test_rust_run_sqlite() {
     Command::cargo_bin(name)
         .unwrap()
         .current_dir(project_dir)
-        .args(vec!["init"])
+        .args(vec!["init", "-t=sqlite"])
         .assert()
         .success();
 
