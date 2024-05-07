@@ -138,15 +138,10 @@ async fn main_wrapped() -> Result<(), String> {
                 .await
                 .map_err(|e| format!("Error parsing project: {}", e))?;
 
-            let model_count = project.models.len();
-            println!("Models processed: {}", model_count);
-
-            let test_count = project.tests.len();
-            println!("Tests processed: {}", test_count);
-
-            let snapshots_count = project.snapshots.len();
-            println!("Snapshots processed: {}", snapshots_count);
-
+            println!("Models processed: {}", project.models.len());
+            println!("Tests processed: {}", project.tests.len());
+            println!("Snapshots processed: {}", project.snapshots.len());
+            println!("Charts processed: {}", project.charts.len());
             println!("Project compiled successfully.");
             Ok(())
         }
