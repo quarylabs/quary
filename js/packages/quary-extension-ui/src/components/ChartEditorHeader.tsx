@@ -1,6 +1,7 @@
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import * as z from 'zod'
 import { PencilSquareIcon, PlayIcon } from '@heroicons/react/20/solid'
+import { useState } from 'react'
 import {
   Select,
   SelectContent,
@@ -11,6 +12,7 @@ import {
   SelectValue,
 } from './ui/select'
 import { Button } from './ui/button'
+import { Input } from '@/components/ui/input.tsx'
 
 interface Props {
   data?: ChartFile['source']
@@ -28,76 +30,15 @@ export const ChartEditorHeader: React.FC<Props> = ({
   data,
   allAssets,
   disabled,
-  onChangeSource,
+  onChangeSource: onChangeSourceProp,
   onClickRunQuery,
   onClickEdit,
 }) => {
-  const values = mapChartFileSourceToForm(data)
-
-  const SubForm = () => {
-    switch (values.type) {
-      // TODO Implement other cases
-      // case 'rawSql':
-      //   return (
-      //     <div className="flex-1">
-      //       <Input
-      //         disabled={disabled}
-      //         value={values.rawSql}
-      //         onChange={(e) => {
-      //           onChangeSource({
-      //             $case: 'rawSql',
-      //             rawSql: e.target.value,
-      //           })
-      //         }}
-      //       />
-      //     </div>
-      //   )
-      // case 'preTemplatedSql':
-      //   return (
-      //     <div className="flex-1">
-      //       <Input
-      //         disabled={disabled}
-      //         onChange={(e) => {
-      //           onChangeSource({
-      //             $case: 'preTemplatedSql',
-      //             preTemplatedSql: e.target.value,
-      //           })
-      //         }}
-      //       />
-      //     </div>
-      //   )
-      case 'reference':
-        return (
-          <div className="flex-1">
-            <Select
-              defaultValue={values.reference}
-              disabled={disabled}
-              onValueChange={(value) => {
-                onChangeSource({
-                  $case: 'reference',
-                  reference: {
-                    name: value,
-                  },
-                })
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select an asset" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Asset</SelectLabel>
-                  {allAssets.map((asset) => (
-                    <SelectItem key={asset} value={asset}>
-                      {asset}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        )
-    }
+  const [state, changeState] = useState(data)
+  const values = mapChartFileSourceToForm(state)
+  const onChangeSource = (source: ChartFile['source']) => {
+    changeState(source)
+    onChangeSourceProp(source)
   }
 
   return (
@@ -136,13 +77,18 @@ export const ChartEditorHeader: React.FC<Props> = ({
           <SelectGroup>
             <SelectLabel>Type</SelectLabel>
             {/*TODO Implement other types*/}
-            {/*<SelectItem value="rawSql">Raw SQL</SelectItem>*/}
+            <SelectItem value="rawSql">Raw SQL</SelectItem>
             {/*<SelectItem value="preTemplatedSql">Templated SQL</SelectItem>*/}
             <SelectItem value="reference">Asset</SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>
-      <SubForm />
+      <SubForm
+        allAssets={allAssets}
+        disabled={disabled}
+        values={values}
+        onChangeSource={onChangeSource}
+      />
       <Button
         disabled={disabled}
         size="icon"
@@ -155,6 +101,84 @@ export const ChartEditorHeader: React.FC<Props> = ({
       </Button>
     </div>
   )
+}
+
+interface SubFormProps {
+  values: FormValues
+  disabled: boolean
+  onChangeSource: (source: ChartFile['source']) => void
+  allAssets: string[]
+}
+
+const SubForm: React.FC<SubFormProps> = ({
+  values,
+  disabled,
+  onChangeSource,
+  allAssets,
+}) => {
+  switch (values.type) {
+    // TODO Implement other cases
+    case 'rawSql':
+      return (
+        <div className="flex-1">
+          <Input
+            disabled={disabled}
+            value={values.rawSql}
+            onChange={(e) => {
+              onChangeSource({
+                $case: 'rawSql' as const,
+                rawSql: e.target.value,
+              })
+            }}
+          />
+        </div>
+      )
+    // case 'preTemplatedSql':
+    //   return (
+    //     <div className="flex-1">
+    //       <Input
+    //         disabled={disabled}
+    //         onChange={(e) => {
+    //           onChangeSource({
+    //             $case: 'preTemplatedSql',
+    //             preTemplatedSql: e.target.value,
+    //           })
+    //         }}
+    //       />
+    //     </div>
+    //   )
+    case 'reference':
+      return (
+        <div className="flex-1">
+          <Select
+            defaultValue={values.reference}
+            disabled={disabled}
+            onValueChange={(value) => {
+              onChangeSource({
+                $case: 'reference',
+                reference: {
+                  name: value,
+                },
+              })
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select an asset" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Asset</SelectLabel>
+                {allAssets.map((asset) => (
+                  <SelectItem key={asset} value={asset}>
+                    {asset}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      )
+  }
 }
 
 const mapChartFileSourceToForm = (source: ChartFile['source']): FormValues => {
