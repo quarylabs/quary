@@ -66,7 +66,7 @@ impl DatabaseConnection for DuckDB {
             .rows
             .into_iter()
             .map(|row| TableAddress {
-                name: row[0].clone(),
+                name: row[1].clone(),
                 full_path: format!("{}.{}", row[0].clone(), row[1].clone()),
             })
             .collect())
@@ -82,7 +82,7 @@ impl DatabaseConnection for DuckDB {
             .rows
             .into_iter()
             .map(|row| TableAddress {
-                name: row[0].clone(),
+                name: row[1].clone(),
                 full_path: format!("{}.{}", row[0].clone(), row[1].clone()),
             })
             .collect())
@@ -1342,6 +1342,54 @@ snapshots:
                 .find(|c| c.name == "quary_valid_to")
                 .unwrap()
                 .data_type
+        );
+    }
+
+    #[tokio::test]
+    async fn test_list_tables() {
+        let db = DuckDB::new_in_memory(Some("test_schema".to_string())).unwrap();
+        db.exec("CREATE TABLE test_schema.table1 (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        db.exec("CREATE TABLE test_schema.table2 (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+    
+        let tables = db.list_tables().await.unwrap();
+        assert_eq!(
+            tables,
+            vec![
+                TableAddress {
+                    name: "table1".to_string(),
+                    full_path: "test_schema.table1".to_string(),
+                },
+                TableAddress {
+                    name: "table2".to_string(),
+                    full_path: "test_schema.table2".to_string(),
+                },
+            ]
+        );
+    }
+
+    #[tokio::test]
+    async fn test_list_views() {
+        let db = DuckDB::new_in_memory(Some("test_schema".to_string())).unwrap();
+        db.exec("CREATE TABLE test_schema.table1 (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        db.exec("CREATE VIEW test_schema.view1 AS SELECT * FROM test_schema.table1")
+            .await
+            .unwrap();
+
+        let views = db.list_views().await.unwrap();
+        assert_eq!(
+            views,
+            vec![
+                TableAddress {
+                    name: "view1".to_string(),
+                    full_path: "test_schema.view1".to_string(),
+                },
+            ]
         );
     }
 }
