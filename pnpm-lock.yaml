@@ -92,8 +92,8 @@ importers:
         specifier: ^4.0.2
         version: 4.0.2(webpack@5.91.0)
       sql.js:
-        specifier: 1.10.2
-        version: 1.10.2
+        specifier: 1.10.3
+        version: 1.10.3
       stream-browserify:
         specifier: ^3.0.0
         version: 3.0.0
@@ -6858,8 +6858,8 @@ packages:
     resolution: {integrity: sha512-L/dqan+Hrt0PpPdCbHcI9bdfOvqaQZR7v5c5SWMJ3bUGQSezK09Mm9q2I3B4iObjaq7FyoldIM+fDSmfzGRXCA==}
     hasBin: true
 
-  sql.js@1.10.2:
-    resolution: {integrity: sha512-jnKFtdHxuVUNgu1vHwFoTjjwfTuVDVqzGpw7H05Zq3YMNMDOpLFyFGvpgTRIQGd/mqcYntuMy7iygYCytD62jQ==}
+  sql.js@1.10.3:
+    resolution: {integrity: sha512-H46aWtQkdyjZwFQgraUruy5h/DyJBbAK3EA/WEMqiqF6PGPfKBSKBj/er3dVyYqVIoYfRf5TFM/loEjtQIrqJg==}
 
   stack-utils@2.0.6:
     resolution: {integrity: sha512-XlkWvfIm6RmsWtNJx+uqtKLS8eqFbxUg0ZzLXqY0caEy9l7hruX8IpiDnjsLavoBgqCCR71TqWO8MaXYheJ3RQ==}
@@ -15767,7 +15767,7 @@ snapshots:
       get-stdin: 8.0.0
       nearley: 2.20.1
 
-  sql.js@1.10.2: {}
+  sql.js@1.10.3: {}
 
   stack-utils@2.0.6:
     dependencies:
