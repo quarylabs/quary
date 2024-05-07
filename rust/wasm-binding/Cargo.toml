@@ -1,6 +1,6 @@
 [package]
 name = "quary-wasm-bindgen"
-version = "0.0.117"
+version = "0.0.118"
 authors = ["Ben King <9087625+benfdking@users.noreply.github.com>"]
 edition = "2021"
 rust-version = "1.78.0"
