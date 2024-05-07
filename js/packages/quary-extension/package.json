@@ -5,7 +5,7 @@
   "description": "",
   "repository": "https://github.com/quarylabs/template",
   "icon": "images/quary-logo.png",
-  "version": "0.0.117",
+  "version": "0.0.118",
   "engines": {
     "vscode": "^1.87.0"
   },
