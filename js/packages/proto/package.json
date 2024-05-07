@@ -7,7 +7,7 @@
     "build": "rm -rf dist && tsc"
   },
   "dependencies": {
-    "@types/node": "^20.12.7",
+    "@types/node": "^20.12.10",
     "protobufjs": "^7.2.6"
   },
   "devDependencies": {
