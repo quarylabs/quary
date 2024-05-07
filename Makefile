@@ -96,11 +96,11 @@ check_versions_match: ## Checks the version of the extension matches the CLI
 
 .PHONY: prettier_fmt
 prettier_fmt: ## Formats all the yaml files
-	npx prettier --write **/*.{yaml,yml}
+	pnpm prettier --write **/*.{yaml,yml}
 
 .PHONY: prettier_lint
 prettier_lint: ## Lints all the yaml files
-	npx prettier --check **/*.{yaml,yml}
+	pnpm prettier --check **/*.{yaml,yml}
 
 .PHONY: help
 help: ## Display this help screen

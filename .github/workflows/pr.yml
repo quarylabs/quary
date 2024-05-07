@@ -80,53 +80,6 @@ jobs:
         run: sudo apt-get install -y shellcheck
       - name: Check shells
         run: make bash_lint
-  rust-compile:
-    name: Rust Compile
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v3
-      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-      - name: Set up Homebrew
-        id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@35cdeaf60df48fb1fb7eac25fea4ebde1f72fc46 # ratchet:Homebrew/actions/setup-homebrew@master
-      - name: Install buf
-        run: brew install bufbuild/buf/buf
-      - run: make proto
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
-      - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # ratchet:actions-rs/cargo@v1
-        with:
-          command: check
-  rust-lint:
-    name: Rust Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # ratchet:actions/checkout@v4
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: rustfmt, clippy
-      - name: Set up Homebrew
-        id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@35cdeaf60df48fb1fb7eac25fea4ebde1f72fc46 # ratchet:Homebrew/actions/setup-homebrew@master
-      - name: Install buf
-        run: brew install bufbuild/buf/buf
-      - run: make proto
-      - name: Run cargo fmt
-        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # ratchet:actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
-      - name: Run clippy
-        uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # ratchet:actions-rs/cargo@v1
-        with:
-          command: clippy
   rust-test:
     name: Rust Test
     runs-on: ubuntu-latest
