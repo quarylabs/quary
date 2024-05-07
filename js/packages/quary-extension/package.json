@@ -165,7 +165,7 @@
     "package-web": "webpack --config webpack.web.config.js --mode production --devtool hidden-source-map --env STAGE=production",
     "package-node": "webpack --config webpack.node.config.js --mode production --devtool hidden-source-map --env STAGE=production",
     "lint": "eslint src --ext ts",
-    "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ../../../quary/rust/core/src/init"
+    "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ../../../rust/core/src/init"
   },
   "devDependencies": {
     "@quary/eslint-config-shared": "workspace:*",
@@ -205,7 +205,7 @@
     "papaparse": "^5.4.1",
     "quary-extension-ui": "workspace:*",
     "raw-loader": "^4.0.2",
-    "sql.js": "1.10.2",
+    "sql.js": "1.10.3",
     "stream-browserify": "^3.0.0",
     "url-loader": "^4.1.1",
     "zod": "^3.23.4"

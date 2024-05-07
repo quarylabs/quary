@@ -1354,7 +1354,7 @@ snapshots:
         db.exec("CREATE TABLE test_schema.table2 (id INTEGER, name VARCHAR(255))")
             .await
             .unwrap();
-    
+
         let tables = db.list_tables().await.unwrap();
         assert_eq!(
             tables,
@@ -1384,12 +1384,10 @@ snapshots:
         let views = db.list_views().await.unwrap();
         assert_eq!(
             views,
-            vec![
-                TableAddress {
-                    name: "view1".to_string(),
-                    full_path: "test_schema.view1".to_string(),
-                },
-            ]
+            vec![TableAddress {
+                name: "view1".to_string(),
+                full_path: "test_schema.view1".to_string(),
+            },]
         );
     }
 }

@@ -187,7 +187,7 @@ export class InMemorySqlite extends Sqlite implements ServicesDatabase {
 
 // TODO - this is a hack to get around the fact that the sql.js library is currently broken
 const locateFile = (file: string) =>
-  `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${file}`
+  `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}`
 
 export class PathBasedSqlite extends Sqlite implements ServicesDatabase {
   private readonly fullPath: Uri
