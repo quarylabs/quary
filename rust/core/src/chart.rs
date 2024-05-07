@@ -11,6 +11,8 @@ pub fn chart_file_from_yaml(yaml: impl Read) -> Result<ChartFile, String> {
     serde_yaml::from_reader(yaml).map_err(|e| format!("reading yaml: {}", e))
 }
 
+// chart_file_to_yaml returns the written string as a yaml where the keys in the google.protobuf.Struct
+// under config are sorted alphabetically
 pub fn chart_file_to_yaml(chart_file: &ChartFile) -> Result<String, String> {
     serde_yaml::to_string(&chart_file).map_err(|e| format!("writing yaml: {}", e))
 }
@@ -134,13 +136,72 @@ mod tests {
             tags: vec!["tag1".to_string(), "tag2".to_string()],
             source: Some(Source::PreTemplatedSql("SELECT * FROM table".to_string())),
             config: Some(pbjson_types::Struct {
-                fields: HashMap::new(),
+                fields: HashMap::from([
+                    (
+                        "a".to_string(),
+                        pbjson_types::Value {
+                            kind: Some(pbjson_types::value::Kind::StringValue("a".to_string())),
+                        },
+                    ),
+                    (
+                        "b".to_string(),
+                        pbjson_types::Value {
+                            kind: Some(pbjson_types::value::Kind::StringValue("b".to_string())),
+                        },
+                    ),
+                    (
+                        "c".to_string(),
+                        pbjson_types::Value {
+                            kind: Some(pbjson_types::value::Kind::StringValue("c".to_string())),
+                        },
+                    ),
+                    (
+                        "d".to_string(),
+                        pbjson_types::Value {
+                            kind: Some(pbjson_types::value::Kind::StringValue("d".to_string())),
+                        },
+                    ),
+                    (
+                        "e".to_string(),
+                        pbjson_types::Value {
+                            kind: Some(pbjson_types::value::Kind::StringValue("e".to_string())),
+                        },
+                    ),
+                    (
+                        "f".to_string(),
+                        pbjson_types::Value {
+                            kind: Some(pbjson_types::value::Kind::StringValue("f".to_string())),
+                        },
+                    ),
+                    (
+                        "g".to_string(),
+                        pbjson_types::Value {
+                            kind: Some(pbjson_types::value::Kind::StringValue("g".to_string())),
+                        },
+                    ),
+                ]),
             }),
         };
 
         let yaml = chart_file_to_yaml(&chart_file).unwrap();
 
-        assert_eq!("description: test description for chart\ntags:\n- tag1\n- tag2\nconfig: {}\npreTemplatedSql: SELECT * FROM table\n".to_string(), yaml);
+        assert_eq!(
+            r#"description: test description for chart
+tags:
+- tag1
+- tag2
+config:
+  a: a
+  b: b
+  c: c
+  d: d
+  e: e
+  f: f
+  g: g
+preTemplatedSql: SELECT * FROM table
+"#,
+            &yaml
+        );
 
         let deserialized = chart_file_from_yaml(io::Cursor::new(yaml.as_bytes())).unwrap();
 
@@ -167,7 +228,7 @@ mod tests {
                 name: "test_path".to_string(),
                 description: Some("test description for chart".to_string()),
                 path: "models/test_path.chart.yaml".to_string(),
-                tags: vec!["tag1".to_string(), "tag2".to_string(),],
+                tags: vec!["tag1".to_string(), "tag2".to_string()],
                 config: Some(pbjson_types::Struct {
                     fields: HashMap::new(),
                 }),
@@ -202,7 +263,7 @@ mod tests {
                 name: "test_path".to_string(),
                 description: Some("test description for chart".to_string()),
                 path: "models/test_path.chart.yaml".to_string(),
-                tags: vec!["tag1".to_string(), "tag2".to_string(),],
+                tags: vec!["tag1".to_string(), "tag2".to_string()],
                 config: Some(pbjson_types::Struct {
                     fields: HashMap::new(),
                 }),
@@ -237,11 +298,11 @@ mod tests {
                 name: "test_chart".to_string(),
                 description: Some("test description for chart".to_string()),
                 path: "models/test_chart.chart.yaml".to_string(),
-                tags: vec!["tag1".to_string(), "tag2".to_string(),],
+                tags: vec!["tag1".to_string(), "tag2".to_string()],
                 config: Some(pbjson_types::Struct {
                     fields: HashMap::new(),
                 }),
-                references: vec!["model_a".to_string(),],
+                references: vec!["model_a".to_string()],
                 source: Some(quary_proto::chart::Source::Reference(
                     quary_proto::chart::AssetReference {
                         name: "model_a".to_string(),
