@@ -1128,15 +1128,20 @@ fn parse_column_tests_for_model_or_source(
         .collect()
 }
 
-/// overrides is a map of model name to the string that the reference should be replaced with if
+/// project_and_fs_to_query_sql returns the sql statement for a model in a project. The model can be
+/// a source, seed, model or snapshot. The dependencies are resolved and the sql statement is
+/// returned.
+///
+/// - `overrides` is a map of model name to the string that the reference should be replaced with if
 /// a model is used that is found in overrides, then the reference will be replaced with a
 /// `SELECT * FROM {found_value}` and any upstream references are dropped.
 ///
 /// For example, if the dependencies are A -> B -> C and overrides is {B: "D"} then the returned
 /// A -> D.
 ///
-/// Returns a tuple of the sql statement and the (nodes, edges) that were used to create the sql
-/// statement.
+/// Returns a tuple of
+/// - the sql statement
+/// - the (nodes, edges) of models and other assets that were used to create the sql statement.
 pub async fn project_and_fs_to_query_sql(
     database: &impl DatabaseQueryGenerator,
     project: &Project,
