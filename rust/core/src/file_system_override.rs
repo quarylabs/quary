@@ -6,13 +6,13 @@ use std::io;
 
 /// Adds overrides to a file system. If a file is requested that has an override, the override is
 /// returned instead of the actual file.
-pub struct OverrideFileSystem {
-    fs: Box<dyn FileSystem>,
+pub struct OverrideFileSystem<'a> {
+    fs: Box<&'a dyn FileSystem>,
     overrides: HashMap<String, String>,
 }
 
-impl OverrideFileSystem {
-    pub fn new(fs: Box<dyn FileSystem>) -> Self {
+impl<'a> OverrideFileSystem<'a> {
+    pub fn new(fs: Box<&'a dyn FileSystem>) -> Self {
         Self {
             fs,
             overrides: HashMap::new(),
@@ -25,7 +25,7 @@ impl OverrideFileSystem {
 }
 
 #[async_trait]
-impl FileSystem for OverrideFileSystem {
+impl FileSystem for OverrideFileSystem<'_> {
     async fn read_file(&self, path: &str) -> Result<Box<dyn AsyncRead + Send + Unpin>, io::Error> {
         if let Some(content) = self.overrides.get(path) {
             let content = content.clone();
@@ -73,7 +73,7 @@ mod tests {
             .with(eq("dir1"))
             .returning(|_| Ok(vec![]));
 
-        let mut ofs = OverrideFileSystem::new(Box::new(fs));
+        let mut ofs = OverrideFileSystem::new(Box::new(&fs));
         ofs.add_override("file1", "override1");
         ofs.add_override("dir1/file3", "override2");
 
