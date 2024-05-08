@@ -9,6 +9,6 @@ edition = "2021"
 prost = { version = "0.12", default-features = false }
 pbjson = "0.6"
 serde = { version = "1.0", default-features = false }
-pbjson-types = "0.6"
+pbjson-types = { version = "0.6", path = "../../../rust/pbjson-types" }
 
 [lib]
