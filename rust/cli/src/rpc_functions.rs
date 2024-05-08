@@ -97,7 +97,7 @@ async fn list_sources(
     _: ListSourcesRequest,
     database: Box<dyn DatabaseConnection>,
 ) -> Result<ListSourcesResponse, String> {
-    let sources = generate_sources(database.as_ref())
+    let sources = generate_sources(database.as_ref(), &None)
         .await
         .map_err(|e| format!("Failed to list sources: {}", e))?;
     Ok(ListSourcesResponse { sources })

@@ -38,10 +38,10 @@ export const importSources =
               }
               const sourcesGenerated = await services.rust.generateSourceFiles({
                 projectRoot: setupValues.value.projectRoot,
-                sources: sources.map((source) => ({
-                  name: source.name,
-                  path: source.path,
-                  columns: source.columns.map((column) => column.name),
+                sources: sources.map(({ name, path, columns }) => ({
+                  name,
+                  path,
+                  columns: columns.map((column) => column.name),
                 })),
                 folderPath,
               })
