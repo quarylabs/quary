@@ -277,7 +277,10 @@ impl DatabaseConnection for Postgres {
                 "OID" => row
                     .try_get::<Option<sqlx::postgres::types::Oid>, _>(i)?
                     .map(|v| (v.0).to_string()),
-                _ => Some(format!("Unsupported type: {}", type_name)),
+                _ => match row.try_get::<Option<String>, _>(i) {
+                    Ok(value) => value,
+                    Err(_) => Some(format!("Unsupported type: {}", type_name)),
+                },
             };
             match value {
                 Some(value) => Ok(value),
