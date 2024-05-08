@@ -46,6 +46,10 @@ service RustWithDatabaseService {
   rpc ReturnFullProjectDag(ReturnFullProjectDagRequest) returns (ReturnFullProjectDagResponse);
   // ReturnSQLForSeedsAndModels returns sql to create tables for the seeds and views for the models.
   rpc ReturnSQLForSeedsAndModels(ReturnSQLForSeedsAndModelsRequest) returns (ReturnSQLForSeedsAndModelsResponse);
+  // ReturnSQLForInjectedModel returns the sql select statement that isn't part of the project yet but you want to
+  // inject into the project to get the sql out for it.
+  // TODO Implement caching
+  rpc ReturnSQLForInjectedModel(ReturnSQLForInjectedModelRequest) returns (ReturnSQLForInjectedModelResponse);
   // GetModelTableDetails returns the details of the model table. It can also return details for a source.
   //
   // If there is no schema entry this returns an error.
@@ -279,4 +283,13 @@ message ReturnDefinitionLocationsForSQLResponse {
     string target_file = 3;
   }
   repeated Definition definitions = 1;
+}
+
+message ReturnSQLForInjectedModelRequest {
+  string project_root = 1;
+  string sql = 2;
+}
+
+message ReturnSQLForInjectedModelResponse {
+  string sql = 1;
 }

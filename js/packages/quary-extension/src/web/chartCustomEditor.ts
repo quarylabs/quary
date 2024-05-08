@@ -372,7 +372,6 @@ export class ChartEditorProvider
             const allAssets = (await this.getAssets()) || [
               chartFile.source.reference.name,
             ]
-
             const sql = await services.rust.return_full_sql_for_asset({
               projectRoot: setupValues.value.projectRoot,
               assetName: chartFile.source.reference.name,
@@ -394,12 +393,55 @@ export class ChartEditorProvider
                 chartFile,
                 results: {
                   type: 'error',
-                  errorMessage: JSON.stringify(returned.error),
+                  errorMessage: JSON.stringify(returned),
                 },
               })
             }
             return this.postSetData(webviewPanel, {
               title: document.uri.fsPath.split('/').pop() || 'Untitled',
+              allAssets,
+              chartFile,
+              results: {
+                type: 'success',
+                queryResult: returned.value,
+              },
+            })
+          }
+          case 'preTemplatedSql': {
+            const setupValues = await setup(services)
+            if (isErr(setupValues)) {
+              return
+            }
+            const allAssets = (await this.getAssets()) || []
+            const sql = await services.rust.returnSQLForInjectedModel({
+              projectRoot: setupValues.value.projectRoot,
+              sql: chartFile.source.preTemplatedSql,
+            })
+            if (isErr(sql)) {
+              return this.postSetData(webviewPanel, {
+                title,
+                allAssets,
+                chartFile,
+                results: {
+                  type: 'error',
+                  errorMessage: JSON.stringify(sql.error),
+                },
+              })
+            }
+            const returned = await services.database.runStatement(sql.value.sql)
+            if (isErr(returned)) {
+              return this.postSetData(webviewPanel, {
+                title,
+                allAssets,
+                chartFile,
+                results: {
+                  type: 'error',
+                  errorMessage: JSON.stringify(returned.error),
+                },
+              })
+            }
+            return this.postSetData(webviewPanel, {
+              title,
               allAssets,
               chartFile,
               results: {
