@@ -470,7 +470,7 @@ async fn main_wrapped() -> Result<(), String> {
         Commands::GenerateSources(_) => {
             let config = get_config_file(&args.project_file)?;
             let database = database_from_config(&config).await?;
-            let sources = generate_sources(database.as_ref()).await?;
+            let sources = generate_sources(database.as_ref(), &Some("raw_")).await?;
             let project_file = ProjectFile {
                 sources,
                 models: vec![],
@@ -539,6 +539,7 @@ async fn main_wrapped() -> Result<(), String> {
 
 async fn generate_sources(
     database: &dyn DatabaseConnection,
+    source_name_prefix: &Option<&str>,
 ) -> Result<Vec<ProjectFileSource>, String> {
     let tables = database.list_tables().await?;
     let views = database.list_views().await?;
@@ -551,7 +552,7 @@ async fn generate_sources(
 
     Ok(tables_with_columns
         .into_iter()
-        .map(address_to_source)
+        .map(|address_with_columns| address_to_source(address_with_columns, source_name_prefix))
         .collect())
 }
 
@@ -560,9 +561,16 @@ struct AddressWithColumns {
     columns: Vec<ColumnWithDetails>,
 }
 
-fn address_to_source(address_with_columns: AddressWithColumns) -> ProjectFileSource {
+fn address_to_source(
+    address_with_columns: AddressWithColumns,
+    source_name_prefix: &Option<&str>,
+) -> ProjectFileSource {
+    let source_name = match source_name_prefix {
+        Some(prefix) => format!("{}{}", prefix, address_with_columns.table.name),
+        None => address_with_columns.table.name,
+    };
     ProjectFileSource {
-        name: format!("raw_{}", address_with_columns.table.name),
+        name: source_name,
         tags: vec![],
         description: None,
         path: address_with_columns.table.full_path,
@@ -651,7 +659,7 @@ mod tests {
                 },
             ],
         };
-        let source = address_to_source(address);
+        let source = address_to_source(address, &Some("raw_"));
 
         assert_eq!(source.name, "raw_table");
         assert_eq!(source.tags.len(), 0);
