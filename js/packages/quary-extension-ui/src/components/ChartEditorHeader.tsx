@@ -1,6 +1,6 @@
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import * as z from 'zod'
-import { PencilSquareIcon, PlayIcon } from '@heroicons/react/20/solid'
+import { PencilSquareIcon, PlayIcon, PlusIcon } from '@heroicons/react/20/solid'
 import React, { useState } from 'react'
 import {
   Select,
@@ -12,6 +12,12 @@ import {
   SelectValue,
 } from './ui/select'
 import { Button } from './ui/button'
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from './ui/tooltip'
 import { Input } from '@/components/ui/input.tsx'
 
 interface Props {
@@ -24,6 +30,8 @@ interface Props {
   onClickRunQuery: (source: ChartFile['source']) => void
   // open text editor
   onClickEdit: () => void
+  // create a model from the sql should open file
+  onClickCreateModel: (sql: string) => void
 }
 
 export const ChartEditorHeader: React.FC<Props> = ({
@@ -32,6 +40,7 @@ export const ChartEditorHeader: React.FC<Props> = ({
   disabled,
   onChangeSource: onChangeSourceProp,
   onClickRunQuery,
+  onClickCreateModel,
   onClickEdit,
 }) => {
   const [state, changeState] = useState(data)
@@ -86,18 +95,25 @@ export const ChartEditorHeader: React.FC<Props> = ({
         allAssets={allAssets}
         disabled={disabled}
         values={values}
-        onChangeSource={changeState}
+        onChangeSource={onChangeSource}
+        onClickCreateModel={onClickCreateModel}
       />
-      <Button
+      <RunQueryButton
         disabled={disabled}
-        size="icon"
         onClick={() => onClickRunQuery(mapFormToChartFileSource(values))}
-      >
-        <PlayIcon className="h-4 w-4" />
-      </Button>
-      <Button size="icon" onClick={onClickEdit}>
-        <PencilSquareIcon className="h-4 w-4" />
-      </Button>
+      />
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <Button size="icon" onClick={onClickEdit} disabled={disabled}>
+              <PencilSquareIcon className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Edit Yaml</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   )
 }
@@ -107,6 +123,7 @@ interface SubFormProps {
   disabled: boolean
   onChangeSource: (source: ChartFile['source']) => void
   allAssets: string[]
+  onClickCreateModel: (sql: string) => void
 }
 
 const SubForm: React.FC<SubFormProps> = ({
@@ -114,9 +131,9 @@ const SubForm: React.FC<SubFormProps> = ({
   disabled,
   onChangeSource,
   allAssets,
+  onClickCreateModel,
 }) => {
   switch (values.type) {
-    // TODO Implement other cases
     case 'rawSql':
       return (
         <div className="flex-1">
@@ -134,7 +151,7 @@ const SubForm: React.FC<SubFormProps> = ({
       )
     case 'preTemplatedSql':
       return (
-        <div className="flex-1">
+        <div className="flex flex-1 flex-row items-center gap-1">
           <Input
             disabled={disabled}
             value={values.preTemplatedSql}
@@ -144,6 +161,10 @@ const SubForm: React.FC<SubFormProps> = ({
                 preTemplatedSql: e.target.value,
               })
             }}
+          />
+          <CreateModelButton
+            onClick={() => onClickCreateModel(values.preTemplatedSql)}
+            disabled={disabled}
           />
         </div>
       )
@@ -245,3 +266,45 @@ const FormSchema = z.union([
 ])
 
 type FormValues = z.infer<typeof FormSchema>
+
+const CreateModelButton = ({
+  onClick,
+  disabled,
+}: {
+  onClick: () => void
+  disabled: boolean
+}) => (
+  <TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger>
+        <Button size="icon" onClick={onClick} disabled={disabled}>
+          <PlusIcon className="h-4 w-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Create Model</p>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+)
+
+const RunQueryButton = ({
+  onClick,
+  disabled,
+}: {
+  onClick: () => void
+  disabled: boolean
+}) => (
+  <TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger>
+        <Button size="icon" onClick={onClick} disabled={disabled}>
+          <PlayIcon className="h-4 w-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Run Query</p>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+)

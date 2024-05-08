@@ -54,6 +54,7 @@ export type Callbacks = {
   chartViewRunQuery: ChartFile
   chartViewChangeHandler: ChartFile
   chartViewOpenTextEditor: null
+  chartViewCreateModel: string
 }
 
 export const useCallBackFrontEnd = <T extends keyof Callbacks>(
