@@ -1,12 +1,52 @@
 use crate::databases::{DatabaseConnection, DatabaseQueryGenerator};
 use crate::file_system::{convert_async_read_to_blocking_read, FileSystem};
+use crate::file_system_override::OverrideFileSystem;
 use crate::graph::{project_to_graph, Edge};
 use crate::models::{parse_model_schemas_to_views, read_normalise_model};
+use crate::project::parse_project;
 use crate::schema_name::DEFAULT_SCHEMA_PREFIX;
 use crate::seeds::parse_table_schema_seeds;
 use crate::sql::return_reference_search;
 use quary_proto::{ConnectionConfig, Model, Project, Seed, Snapshot, Source};
 use std::collections::{BTreeSet, HashMap};
+use std::path::Path;
+use uuid::Uuid;
+
+/// project_and_fs_to_query_sql_for_model_sql wraps project_and_fs_to_query_sql but injects model
+/// string into the fs and project. This is useful for when you want to get the sql for a model
+/// that is not in the project. The model is injected into the project and file system and then
+/// the sql is generated.
+///
+/// For example: SELECT * FROM q.shifts can be injected and the full qualified sql can be returned.
+pub async fn project_and_fs_to_query_sql_for_model_sql(
+    database: &impl DatabaseQueryGenerator,
+    file_system: &impl FileSystem,
+    project_root: &str,
+    model_sql: &str,
+    overrides: Option<HashMap<String, String>>,
+) -> Result<(String, (BTreeSet<String>, Vec<Edge>)), String> {
+    let random_model_name = Uuid::new_v4().to_string();
+    let project_root_path = Path::new(project_root);
+    let full_path = project_root_path
+        .join("models")
+        .join(format!("{}.sql", random_model_name));
+    let random_model_location = full_path
+        .to_str()
+        .ok_or("failed to convert random model location to string")?;
+
+    let mut file_system = OverrideFileSystem::new(Box::new(file_system));
+    file_system.add_override(random_model_location, model_sql);
+
+    let project = parse_project(&file_system, database, project_root).await?;
+    project_and_fs_to_query_sql(
+        database,
+        &project,
+        &file_system,
+        random_model_name.as_str(),
+        overrides,
+    )
+    .await
+}
 
 /// project_and_fs_to_query_sql returns the sql statement for a model in a project. The model can be
 /// a source, seed, model or snapshot. The dependencies are resolved and the sql statement is
@@ -1397,5 +1437,85 @@ sources:
             sql.0,
             "WITH\nraw_employees AS (SELECT column1 AS id,column2 AS first_name,column3 AS last_name FROM (VALUES ('1','John','Doe'),('2','Jane','Doe'),('3','Ashok','Kumar'),('4','Peter','Pan'),('5','Marie','Curie'))),\nraw_shifts AS (SELECT column1 AS employee_id,column2 AS shop_id,column3 AS date,column4 AS shift FROM (VALUES ('1','2','2023-01-01','morning'),('1','2','2023-01-02','morning'),('1','2','2023-01-03','morning'),('1','2','2023-01-04','morning'),('1','2','2023-01-05','morning'),('1','2','2023-01-06','morning'),('1','2','2023-01-07','morning'),('1','2','2023-01-08','morning'),('1','2','2023-01-09','morning'),('1','2','2023-01-10','morning'),('1','2','2023-01-11','morning'),('1','2','2023-01-12','morning'),('1','2','2023-01-13','morning'),('1','2','2023-01-13','afternoon'))),\nshift_hours AS (SELECT 'morning'  AS shift,\n       '08:00:00' AS start_time,\n       '12:00:00' AS end_time\nUNION ALL\nSELECT 'afternoon' AS shift,\n       '12:00:00'  AS start_time,\n       '16:00:00'  AS end_time),\nshift_first AS (WITH\n  min_shifts AS (\n    SELECT\n      employee_id,\n      MIN(shift_start) AS shift_start\n    FROM\n      shifts\n    GROUP BY\n      employee_id\n  )\nSELECT\n  x.employee_id AS employee_id,\n  x.shift_start AS shift_start,\n  x.shift_end AS shift_end\nFROM\n  shifts x\n  INNER JOIN min_shifts y ON y.employee_id = x.employee_id\n  AND y.shift_start = x.shift_start\nGROUP BY\n  x.employee_id,\n  x.shift_start\n),\nshift_last AS (WITH min_shifts AS (SELECT employee_id,\n                           max(shift_start) AS shift_start\n                    FROM shifts\n                    GROUP BY employee_id)\n\nSELECT x.employee_id AS employee_id,\n       x.shift_start AS shift_start,\n       x.shift_end AS shift_end\nFROM shifts x\nINNER JOIN min_shifts y\nON y.employee_id = x.employee_id AND y.shift_start = x.shift_start\nGROUP BY x.employee_id, x.shift_start),\nstg_employees AS (select\n  id as employee_id,\n  first_name,\n  last_name\nfrom\n  raw_employees\n),\nstg_shifts AS (select\n  employee_id,\n  shop_id,\n  date as shift_date,\n  shift\nfrom\n  raw_shifts\n),\nshifts AS (WITH shifts AS (SELECT employee_id,\n                       shift_date,\n                       shift\n                FROM stg_shifts\n                ),\n     shift_details AS (SELECT shift AS shift_name,\n                              start_time,\n                              end_time\n                       FROM shift_hours\n                       )\n\nSELECT s.employee_id AS employee_id,\n       s.shift AS shift,\n       datetime(s.shift_date, sd.start_time) AS shift_start,\n       datetime(s.shift_date, sd.end_time)   AS shift_end\nFROM shifts s\n         INNER JOIN shift_details sd\n                    ON s.shift = sd.shift_name\n)\nSELECT * FROM (WITH total_hours AS (\n    SELECT employee_id,\n           SUM(strftime('%s', shift_end) - strftime('%s', shift_start)) AS total_hours,\n           COUNT(*) AS total_shifts\n    FROM shifts\n    GROUP BY employee_id\n),\n\npercentage_morning_shifts AS (\n    SELECT employee_id,\n           SUM(CASE WHEN shift = 'morning' THEN 1 ELSE 0 END) AS total_morning_shifts,\n          COUNT(*) AS total_shifts\n    FROM shifts\n    GROUP BY employee_id\n)\n\nSELECT e.employee_id,\n       e.first_name,\n       e.last_name,\n       sf.shift_start AS first_shift,\n       sl.shift_start AS last_shift,\n       pms.total_morning_shifts / pms.total_shifts * 100 AS percentage_morning_shifts,\n       th.total_shifts,\n       th.total_hours\nFROM stg_employees e\nLEFT JOIN shift_first sf\n    ON e.employee_id = sf.employee_id\nLEFT JOIN shift_last sl\n    ON e.employee_id = sl.employee_id\nLEFT JOIN total_hours th\n    ON e.employee_id = th.employee_id\nLEFT JOIN percentage_morning_shifts pms\n    ON e.employee_id = pms.employee_id)"
         )
+    }
+
+    // project_and_fs_to_query_sql_for_model_sql is tested by essentially running it with an injected
+    // filesystem and project and checking the output against project_and_fs_to_query_sql for a model
+    #[tokio::test]
+    async fn test_project_and_fs_to_query_sql_for_model_sql() {
+        // shared
+        let model = "SELECT employee_id, shift_date, shift FROM q.raw_shifts";
+        let project_root = "some_random_project_root/nested";
+        let database = DatabaseQueryGeneratorSqlite::default();
+
+        // generating sql
+        let filesystem = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "some_random_project_root/nested/quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "projectquary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "some_random_project_root/nested/models/schema.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "sources: [{name: raw_shifts, path: raw_shifts_real_table}]",
+                        ),
+                    },
+                ),
+            ]),
+        };
+        let (sql, _) = project_and_fs_to_query_sql_for_model_sql(
+            &database,
+            &filesystem,
+            project_root,
+            model,
+            None,
+        )
+        .await
+        .unwrap();
+
+        // generating expected sql
+        let filesystem = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "some_random_project_root/nested/quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "projectquary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "some_random_project_root/nested/models/schema.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "sources: [{name: raw_shifts, path: raw_shifts_real_table}]",
+                        ),
+                    },
+                ),
+                (
+                    "some_random_project_root/nested/models/shifts.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/shifts.sql".to_string(),
+                        contents: prost::bytes::Bytes::from(model.as_bytes()),
+                    },
+                ),
+            ]),
+        };
+        let project = parse_project(&filesystem, &database, project_root)
+            .await
+            .unwrap();
+        let (expected, _) =
+            project_and_fs_to_query_sql(&database, &project, &filesystem, "shifts", None)
+                .await
+                .unwrap();
+
+        assert_eq!(expected, sql);
+        assert_eq!("WITH raw_shifts AS (SELECT * FROM raw_shifts_real_table) SELECT * FROM (SELECT employee_id, shift_date, shift FROM `raw_shifts`) AS alias", sql);
     }
 }
