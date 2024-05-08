@@ -9,19 +9,25 @@ interface Props {
 }
 
 export const ChartEditorView: React.FC<Props> = ({ chart }) => {
-  const { chartViewChangeHandler, chartViewRunQuery, chartViewOpenTextEditor } =
-    useCallBackFrontEnd(
-      [
-        'chartViewChangeHandler',
-        'chartViewRunQuery',
-        'chartViewOpenTextEditor',
-      ],
-      vscode.postMessage,
-    )
+  const {
+    chartViewChangeHandler,
+    chartViewRunQuery,
+    chartViewOpenTextEditor,
+    chartViewCreateModel,
+  } = useCallBackFrontEnd(
+    [
+      'chartViewChangeHandler',
+      'chartViewRunQuery',
+      'chartViewOpenTextEditor',
+      'chartViewCreateModel',
+    ],
+    vscode.postMessage,
+  )
   const [chartFile, setChartFile] = React.useState(chart.chartFile)
 
   return (
     <ChartEditor
+      onCLickCreateModel={chartViewCreateModel}
       title={chart.title}
       chartResults={chart.results}
       chartFile={

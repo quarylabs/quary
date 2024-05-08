@@ -474,6 +474,16 @@ export class ChartEditorProvider
           'default',
         )
       }
+      case 'chartViewCreateModel': {
+        const sql = e.payload as string
+        const doc = await vscode.workspace.openTextDocument({
+          language: 'sql',
+          content: sql,
+        })
+        return vscode.window.showTextDocument(doc, {
+          preview: true,
+        })
+      }
       default: {
         throw new Error(`Error message, received message of type ${e.type}`)
       }
