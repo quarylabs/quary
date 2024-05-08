@@ -133,6 +133,18 @@ const WrappedMemoizedChartEditorHeader = React.memo(
     if (prevProps.disabled !== nextProps.disabled) {
       return false
     }
+    if (prevProps.data?.$case !== nextProps.data?.$case) {
+      if (
+        prevProps.data?.$case === 'rawSql' &&
+        nextProps?.data?.$case === 'rawSql'
+      ) {
+        return true
+      }
+      return (
+        prevProps.data?.$case === 'preTemplatedSql' &&
+        nextProps?.data?.$case === 'preTemplatedSql'
+      )
+    }
     return true
   },
 )
