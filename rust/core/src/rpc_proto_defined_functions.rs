@@ -1,9 +1,7 @@
 use crate::databases::DatabaseQueryGenerator;
 use crate::file_system::FileSystem;
 use crate::inference::{Inference, InferenceTestRunnerAction};
-use crate::project::{
-    project_and_fs_to_query_sql, project_and_fs_to_sql_for_views, PATH_FOR_MODELS,
-};
+use crate::project::PATH_FOR_MODELS;
 use crate::schema_name::DEFAULT_SCHEMA_PREFIX;
 use crate::sql_inference_translator::{map_test_to_sql_inference, map_tests_to_column_tests};
 use futures::AsyncReadExt;
@@ -159,6 +157,7 @@ pub async fn infer_skippable_tests_internal(
     Ok(out_tests)
 }
 
+use crate::project_to_sql::{project_and_fs_to_query_sql, project_and_fs_to_sql_for_views};
 use futures::future::try_join_all;
 
 pub async fn name_to_raw_model_map_internal(

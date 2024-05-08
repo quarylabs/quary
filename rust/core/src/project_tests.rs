@@ -1,8 +1,7 @@
 use crate::databases::DatabaseQueryGenerator;
 use crate::file_system::FileSystem;
-use crate::project::{
-    create_path_map, project_and_fs_to_query_sql, replace_reference_string_found,
-};
+use crate::project::create_path_map;
+use crate::project_to_sql::{project_and_fs_to_query_sql, replace_reference_string_found};
 use crate::schema_name::DEFAULT_SCHEMA_PREFIX;
 use crate::sql::return_reference_search;
 use crate::tests::ToSql;
