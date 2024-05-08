@@ -263,6 +263,15 @@ export interface ReturnDefinitionLocationsForSQLResponse_Definition {
   targetFile: string;
 }
 
+export interface ReturnSQLForInjectedModelRequest {
+  projectRoot: string;
+  sql: string;
+}
+
+export interface ReturnSQLForInjectedModelResponse {
+  sql: string;
+}
+
 function createBaseGetProjectConfigRequest(): GetProjectConfigRequest {
   return { projectRoot: "" };
 }
@@ -3240,6 +3249,145 @@ export const ReturnDefinitionLocationsForSQLResponse_Definition = {
   },
 };
 
+function createBaseReturnSQLForInjectedModelRequest(): ReturnSQLForInjectedModelRequest {
+  return { projectRoot: "", sql: "" };
+}
+
+export const ReturnSQLForInjectedModelRequest = {
+  encode(message: ReturnSQLForInjectedModelRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.projectRoot !== "") {
+      writer.uint32(10).string(message.projectRoot);
+    }
+    if (message.sql !== "") {
+      writer.uint32(18).string(message.sql);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnSQLForInjectedModelRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnSQLForInjectedModelRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.projectRoot = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.sql = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnSQLForInjectedModelRequest {
+    return {
+      projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
+      sql: isSet(object.sql) ? gt.String(object.sql) : "",
+    };
+  },
+
+  toJSON(message: ReturnSQLForInjectedModelRequest): unknown {
+    const obj: any = {};
+    if (message.projectRoot !== "") {
+      obj.projectRoot = message.projectRoot;
+    }
+    if (message.sql !== "") {
+      obj.sql = message.sql;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnSQLForInjectedModelRequest>, I>>(
+    base?: I,
+  ): ReturnSQLForInjectedModelRequest {
+    return ReturnSQLForInjectedModelRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnSQLForInjectedModelRequest>, I>>(
+    object: I,
+  ): ReturnSQLForInjectedModelRequest {
+    const message = createBaseReturnSQLForInjectedModelRequest();
+    message.projectRoot = object.projectRoot ?? "";
+    message.sql = object.sql ?? "";
+    return message;
+  },
+};
+
+function createBaseReturnSQLForInjectedModelResponse(): ReturnSQLForInjectedModelResponse {
+  return { sql: "" };
+}
+
+export const ReturnSQLForInjectedModelResponse = {
+  encode(message: ReturnSQLForInjectedModelResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.sql !== "") {
+      writer.uint32(10).string(message.sql);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnSQLForInjectedModelResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnSQLForInjectedModelResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sql = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnSQLForInjectedModelResponse {
+    return { sql: isSet(object.sql) ? gt.String(object.sql) : "" };
+  },
+
+  toJSON(message: ReturnSQLForInjectedModelResponse): unknown {
+    const obj: any = {};
+    if (message.sql !== "") {
+      obj.sql = message.sql;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnSQLForInjectedModelResponse>, I>>(
+    base?: I,
+  ): ReturnSQLForInjectedModelResponse {
+    return ReturnSQLForInjectedModelResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnSQLForInjectedModelResponse>, I>>(
+    object: I,
+  ): ReturnSQLForInjectedModelResponse {
+    const message = createBaseReturnSQLForInjectedModelResponse();
+    message.sql = object.sql ?? "";
+    return message;
+  },
+};
+
 /**
  * RustWithoutDatabaseService is the service that is used and where the database is not used and so not passed in as a
  * parameter in.
@@ -3325,6 +3473,12 @@ export interface RustWithDatabaseService {
   /** ReturnSQLForSeedsAndModels returns sql to create tables for the seeds and views for the models. */
   ReturnSQLForSeedsAndModels(request: ReturnSQLForSeedsAndModelsRequest): Promise<ReturnSQLForSeedsAndModelsResponse>;
   /**
+   * ReturnSQLForInjectedModel returns the sql select statement that isn't part of the project yet but you want to
+   * inject into the project to get the sql out for it.
+   * TODO Implement caching
+   */
+  ReturnSQLForInjectedModel(request: ReturnSQLForInjectedModelRequest): Promise<ReturnSQLForInjectedModelResponse>;
+  /**
    * GetModelTableDetails returns the details of the model table. It can also return details for a source.
    *
    * If there is no schema entry this returns an error.
@@ -3392,6 +3546,7 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     this.ReturnFullSqlForAsset = this.ReturnFullSqlForAsset.bind(this);
     this.ReturnFullProjectDag = this.ReturnFullProjectDag.bind(this);
     this.ReturnSQLForSeedsAndModels = this.ReturnSQLForSeedsAndModels.bind(this);
+    this.ReturnSQLForInjectedModel = this.ReturnSQLForInjectedModel.bind(this);
     this.GetModelTable = this.GetModelTable.bind(this);
     this.CreateModelSchemaEntry = this.CreateModelSchemaEntry.bind(this);
     this.UpdateAssetDescription = this.UpdateAssetDescription.bind(this);
@@ -3436,6 +3591,12 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     const data = ReturnSQLForSeedsAndModelsRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "ReturnSQLForSeedsAndModels", data);
     return promise.then((data) => ReturnSQLForSeedsAndModelsResponse.decode(_m0.Reader.create(data)));
+  }
+
+  ReturnSQLForInjectedModel(request: ReturnSQLForInjectedModelRequest): Promise<ReturnSQLForInjectedModelResponse> {
+    const data = ReturnSQLForInjectedModelRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ReturnSQLForInjectedModel", data);
+    return promise.then((data) => ReturnSQLForInjectedModelResponse.decode(_m0.Reader.create(data)));
   }
 
   GetModelTable(request: GetModelTableRequest): Promise<GetModelTableResponse> {

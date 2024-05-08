@@ -4,8 +4,8 @@ use crate::rpc_proto_defined_functions::{
     get_project_config, init_files, is_path_empty, list_assets, parse_project,
     remove_column_test_from_model_or_source_column, render_schema,
     return_definition_locations_for_sql, return_full_project_dag, return_full_sql_for_asset,
-    return_sql_for_seeds_and_models, stringify_project_file, update_asset_description,
-    update_model_source_column_description,
+    return_sql_for_injected_model, return_sql_for_seeds_and_models, stringify_project_file,
+    update_asset_description, update_model_source_column_description,
 };
 use crate::rpc_proto_scaffolding::{
     create_file_writer, database_query_generator_from_config, wrapper, wrapper_without_db,
@@ -50,6 +50,7 @@ pub async fn rpc_wrapper_with_database(
         }
         "GenerateSourceFiles" => Ok(wrapper(generate_source_files)),
         "ReturnDefinitionLocationsForSQL" => Ok(wrapper(return_definition_locations_for_sql)),
+        "ReturnSQLForInjectedModel" => Ok(wrapper(return_sql_for_injected_model)),
         _ => Err(format!("Unknown method: {}", method)),
     }?;
 

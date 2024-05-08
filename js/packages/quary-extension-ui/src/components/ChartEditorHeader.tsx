@@ -76,9 +76,8 @@ export const ChartEditorHeader: React.FC<Props> = ({
         <SelectContent>
           <SelectGroup>
             <SelectLabel>Type</SelectLabel>
-            {/*TODO Implement other types*/}
             <SelectItem value="rawSql">Raw SQL</SelectItem>
-            {/*<SelectItem value="preTemplatedSql">Templated SQL</SelectItem>*/}
+            <SelectItem value="preTemplatedSql">Templated SQL</SelectItem>
             <SelectItem value="reference">Asset</SelectItem>
           </SelectGroup>
         </SelectContent>
@@ -133,20 +132,21 @@ const SubForm: React.FC<SubFormProps> = ({
           />
         </div>
       )
-    // case 'preTemplatedSql':
-    //   return (
-    //     <div className="flex-1">
-    //       <Input
-    //         disabled={disabled}
-    //         onChange={(e) => {
-    //           onChangeSource({
-    //             $case: 'preTemplatedSql',
-    //             preTemplatedSql: e.target.value,
-    //           })
-    //         }}
-    //       />
-    //     </div>
-    //   )
+    case 'preTemplatedSql':
+      return (
+        <div className="flex-1">
+          <Input
+            disabled={disabled}
+            value={values.preTemplatedSql}
+            onChange={(e) => {
+              onChangeSource({
+                $case: 'preTemplatedSql',
+                preTemplatedSql: e.target.value,
+              })
+            }}
+          />
+        </div>
+      )
     case 'reference':
       return (
         <div className="flex-1">
