@@ -1,7 +1,7 @@
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import * as z from 'zod'
 import { PencilSquareIcon, PlayIcon } from '@heroicons/react/20/solid'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import {
   Select,
   SelectContent,
@@ -86,7 +86,7 @@ export const ChartEditorHeader: React.FC<Props> = ({
         allAssets={allAssets}
         disabled={disabled}
         values={values}
-        onChangeSource={onChangeSource}
+        onChangeSource={changeState}
       />
       <Button
         disabled={disabled}

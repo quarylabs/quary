@@ -328,6 +328,7 @@ export class ChartEditorProvider
       }
       case 'chartViewRunQuery': {
         const chartFile = e.payload as ChartFile
+        document.makeEdit(chartFile)
         const services = await getServices(this._context)
         switch (chartFile.source?.$case) {
           case 'rawSql': {
