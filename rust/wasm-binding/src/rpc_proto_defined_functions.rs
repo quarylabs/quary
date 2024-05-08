@@ -14,7 +14,10 @@ use quary_core::project::{
     return_tests_for_a_particular_model,
 };
 use quary_core::project_file::serialize_project_file_to_yaml;
-use quary_core::project_to_sql::{project_and_fs_to_query_sql, project_and_fs_to_sql_for_views};
+use quary_core::project_to_sql::{
+    project_and_fs_to_query_sql, project_and_fs_to_query_sql_for_model_sql,
+    project_and_fs_to_sql_for_views,
+};
 use quary_core::rpc_proto_defined_functions::{
     name_to_raw_model_map_internal, render_schema_internal,
 };
@@ -38,7 +41,8 @@ use quary_proto::{
     RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse,
     ReturnDefinitionLocationsForSqlRequest, ReturnDefinitionLocationsForSqlResponse,
     ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest,
-    ReturnFullSqlForAssetResponse, ReturnSqlForSeedsAndModelsRequest,
+    ReturnFullSqlForAssetResponse, ReturnSqlForInjectedModelRequest,
+    ReturnSqlForInjectedModelResponse, ReturnSqlForSeedsAndModelsRequest,
     ReturnSqlForSeedsAndModelsResponse, StringifyProjectFileRequest, StringifyProjectFileResponse,
     Test, UpdateAssetDescriptionRequest, UpdateAssetDescriptionResponse,
     UpdateModelOrSourceColumnDescriptionRequest, UpdateModelOrSourceColumnDescriptionResponse,
@@ -1438,6 +1442,23 @@ pub(crate) async fn return_definition_locations_for_sql(
         .collect();
 
     Ok(ReturnDefinitionLocationsForSqlResponse { definitions })
+}
+
+pub(crate) async fn return_sql_for_injected_model(
+    database: impl DatabaseQueryGenerator,
+    _: Writer,
+    file_system: JsFileSystem,
+    request: ReturnSqlForInjectedModelRequest,
+) -> Result<ReturnSqlForInjectedModelResponse, String> {
+    let (sql, _) = project_and_fs_to_query_sql_for_model_sql(
+        &database,
+        &file_system,
+        &request.project_root,
+        &request.sql,
+        None,
+    )
+    .await?;
+    Ok(ReturnSqlForInjectedModelResponse { sql })
 }
 
 #[cfg(test)]

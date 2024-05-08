@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { Err, isErr, Ok, Result, ResultE } from '@shared/result'
+import { Err, isErr, Ok, Result } from '@shared/result'
 import { Uri } from 'vscode'
 import {
   RustWithDatabaseServiceClientImpl,
@@ -69,6 +69,7 @@ export const rustWithDatabaseWasmServices = (
     getModelTable: wrapper(client.GetModelTable),
     createModelSchemaEntry: wrapper(client.CreateModelSchemaEntry),
     updateAssetDescription: wrapper(client.UpdateAssetDescription),
+    returnSQLForInjectedModel: wrapper(client.ReturnSQLForInjectedModel),
     updateModelSourceColumnDescription: wrapper(
       client.UpdateModelOrSourceColumnDescription,
     ),
