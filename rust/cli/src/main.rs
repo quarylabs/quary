@@ -19,8 +19,10 @@ use quary_core::databases::{ColumnWithDetails, DatabaseConnection, DatabaseQuery
 use quary_core::graph::project_to_graph;
 use quary_core::init::{Asset, DuckDBAsset};
 use quary_core::onboarding::is_empty_bar_hidden_and_sqlite;
-use quary_core::project::{project_and_fs_to_sql_for_snapshots, project_and_fs_to_sql_for_views};
 use quary_core::project_tests::return_tests_sql;
+use quary_core::project_to_sql::{
+    project_and_fs_to_sql_for_snapshots, project_and_fs_to_sql_for_views,
+};
 use quary_core::test_runner::{run_tests_internal, RunStatementFunc, RunTestError};
 use quary_databases::databases_connection::{
     database_from_config, database_query_generator_from_config,

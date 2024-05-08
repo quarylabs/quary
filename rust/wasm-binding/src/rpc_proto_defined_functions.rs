@@ -10,11 +10,11 @@ use quary_core::graph::project_to_graph;
 use quary_core::init::init_to_file_system;
 use quary_core::onboarding::{generate_onboarding_files, is_empty_bar_hidden_and_sqlite};
 use quary_core::project::{
-    build_column_description_map_for_model, parse_project_files, project_and_fs_to_query_sql,
-    project_and_fs_to_sql_for_views, return_defined_description_map,
+    build_column_description_map_for_model, parse_project_files, return_defined_description_map,
     return_tests_for_a_particular_model,
 };
 use quary_core::project_file::serialize_project_file_to_yaml;
+use quary_core::project_to_sql::{project_and_fs_to_query_sql, project_and_fs_to_sql_for_views};
 use quary_core::rpc_proto_defined_functions::{
     name_to_raw_model_map_internal, render_schema_internal,
 };

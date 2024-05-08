@@ -283,10 +283,11 @@ mod tests {
     use super::*;
     use chrono::{DateTime, NaiveDateTime, Utc};
     use prost::bytes::Bytes;
-    use quary_core::project::{
-        parse_project, project_and_fs_to_sql_for_snapshots, project_and_fs_to_sql_for_views,
-    };
+    use quary_core::project::parse_project;
     use quary_core::project_tests::return_tests_sql;
+    use quary_core::project_to_sql::{
+        project_and_fs_to_sql_for_snapshots, project_and_fs_to_sql_for_views,
+    };
     use quary_proto::{File, FileSystem};
     use std::time::SystemTime;
 

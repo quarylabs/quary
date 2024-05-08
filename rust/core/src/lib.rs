@@ -31,6 +31,7 @@ pub mod onboarding;
 pub mod project;
 pub mod project_file;
 pub mod project_tests;
+pub mod project_to_sql;
 pub mod rpc_proto_defined_functions;
 pub mod schema_name;
 mod seeds;
