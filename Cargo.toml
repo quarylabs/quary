@@ -1,5 +1,13 @@
 [workspace]
-members = ["rust/core", "rust/cli", "proto/gen/rust", "rust/sqlinference", "rust/dbt-converter", "rust/wasm-binding"]
+members = [
+    "proto/gen/rust",
+    "rust/cli",
+    "rust/core",
+    "rust/dbt-converter",
+    "rust/pbjson-types",
+    "rust/sqlinference",
+    "rust/wasm-binding"
+]
 resolver = "2"
 
 [workspace.dependencies]
