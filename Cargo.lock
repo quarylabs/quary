@@ -2449,21 +2449,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pbjson-types"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18f596653ba4ac51bdecbb4ef6773bc7f56042dc13927910de1684ad3d32aa12"
-dependencies = [
- "bytes",
- "chrono",
- "pbjson",
- "pbjson-build",
- "prost",
- "prost-build",
- "serde",
-]
-
-[[package]]
 name = "pem"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2770,7 +2755,7 @@ dependencies = [
  "js-sys",
  "mockall",
  "once_cell",
- "pbjson-types 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pbjson-types",
  "petgraph",
  "prost",
  "quary_proto",
@@ -2845,7 +2830,7 @@ name = "quary_proto"
 version = "0.1.0"
 dependencies = [
  "pbjson",
- "pbjson-types 0.6.0",
+ "pbjson-types",
  "prost",
  "serde",
 ]
