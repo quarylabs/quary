@@ -166,10 +166,11 @@ mod tests {
         init_to_file_system, Asset, INIT_FOLDER_NUMBER_OF_TESTS,
         INIT_FOLDER_NUMBER_OF_TESTS_THAT_ARE_RUN, INIT_FOLDER_NUMBER_OF_TESTS_THAT_FAIL,
     };
-    use quary_core::project::{
-        parse_project, project_and_fs_to_query_sql, project_and_fs_to_sql_for_views,
-    };
+    use quary_core::project::parse_project;
     use quary_core::project_tests::return_tests_sql;
+    use quary_core::project_to_sql::{
+        project_and_fs_to_query_sql, project_and_fs_to_sql_for_views,
+    };
     use quary_core::test_runner::{run_tests_internal, RunStatementFunc};
     use quary_proto::passed::Reason;
     use quary_proto::test_result::TestResult;

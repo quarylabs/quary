@@ -324,10 +324,11 @@ mod tests {
     use testcontainers::RunnableImage;
     use testcontainers_modules::postgres::Postgres as TestcontainersPostgres;
 
-    use quary_core::project::{
-        parse_project, project_and_fs_to_sql_for_snapshots, project_and_fs_to_sql_for_views,
-    };
+    use quary_core::project::parse_project;
     use quary_core::project_tests::return_tests_sql;
+    use quary_core::project_to_sql::{
+        project_and_fs_to_sql_for_snapshots, project_and_fs_to_sql_for_views,
+    };
     use quary_proto::{File, FileSystem};
 
     use super::*;

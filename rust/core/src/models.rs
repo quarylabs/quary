@@ -1,5 +1,4 @@
 use crate::databases::{CacheStatus, DatabaseQueryGenerator};
-use crate::project::replace_variable_templates_with_variable_defined_in_config;
 use crate::sql::return_reference_search;
 use futures::AsyncRead;
 use once_cell::sync::Lazy;
@@ -61,6 +60,7 @@ where
     Ok(sql_model_template)
 }
 
+use crate::project_to_sql::replace_variable_templates_with_variable_defined_in_config;
 use futures::AsyncReadExt;
 
 pub async fn read_normalise_model(
