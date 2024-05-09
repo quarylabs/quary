@@ -291,7 +291,7 @@ pub async fn parse_project(
         tests: tests.into_iter().collect(),
         project_files,
         connection_config: Some(connection_config),
-        charts: Default::default(),
+        charts,
     })
 }
 
@@ -1940,6 +1940,7 @@ mod tests {
 
         assert!(!project.models.is_empty());
         assert!(project.models.contains_key("shifts"));
+        assert_eq!(project.charts.len(), 1)
     }
 
     #[tokio::test]
