@@ -243,21 +243,40 @@ const returnWriterFunc =
 
 const returnReaderFunc =
   (files: ServicesFiles) =>
-  async (location: string): Promise<Uint8Array> => {
+  async (
+    location: string,
+  ): Promise<['ok', Uint8Array] | ['error', string] | ['not_found']> => {
     const projectRoot = files.getProjectRoot()
     if (isErr(projectRoot)) {
       throw new Error(`error getting project root: ${projectRoot.error}`)
     }
     if (location.startsWith(projectRoot.value.path)) {
-      const out = Uri.joinPath(
+      const uri = Uri.joinPath(
         projectRoot.value,
         location.substring(projectRoot.value.path.length),
       )
-      return files.readFile(out)
+      return readHelper(files, uri)
     }
     const uri = Uri.joinPath(projectRoot.value, location)
-    return files.readFile(uri)
+    return readHelper(files, uri)
   }
+
+const readHelper = async (
+  files: ServicesFiles,
+  uri: Uri,
+): Promise<['ok', Uint8Array] | ['error', string] | ['not_found']> => {
+  try {
+    const data = await files.readFile(uri)
+    return ['ok', data]
+  } catch (error: unknown) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    if ('code' in error && error.code === 'FileNotFound') {
+      return ['not_found']
+    }
+    return ['error', `${error}`]
+  }
+}
 
 const returnFileLister =
   (files: ServicesFiles) =>
