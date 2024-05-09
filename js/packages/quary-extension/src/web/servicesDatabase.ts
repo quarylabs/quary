@@ -2,7 +2,7 @@ import { Uri } from 'vscode'
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { TableAddress } from '@quary/proto/quary/service/v1/table_address'
-import { Err, Ok, Result } from '@shared/result'
+import { Err, Ok, Result, isErr } from '@shared/result'
 import { DatabaseDependentSettings, SqlLanguage } from '@shared/config'
 import { CLIRPCServiceClientImpl } from '@quary/proto/quary/service/v1/cli_rpc_calls'
 import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
@@ -61,16 +61,24 @@ export const CLIDatabaseService = (terminalExecutor: TerminalExecutor) => {
       data: Uint8Array,
     ): Promise<Uint8Array> {
       const base64Request = Buffer.from(data).toString('base64')
-      const { stdout, stderr } = await terminalExecutor.executeCommand(
+      const { stdout, stderr, code } = await terminalExecutor.executeCommand(
         'quary',
         ['rpc', method, base64Request || '""'],
       )
-      if (stderr) {
-        throw Err(new Error(`RPC call failed: ${stderr}`))
+      switch (code) {
+        case 0: {
+          const decodedResponse = Buffer.from(stdout, 'base64')
+          return decodedResponse
+        }
+        case 127: {
+          throw new Error(
+            'Quary CLI not found/installed, install it here: https://github.com/quarylabs/quary',
+          )
+        }
+        default: {
+          throw new Error(`RPC call failed: ${stderr}`)
+        }
       }
-
-      const decodedResponse = Buffer.from(stdout, 'base64')
-      return decodedResponse
     },
   }
 
@@ -85,6 +93,6 @@ export async function CLIDatabaseServiceWrapper<Req, Res>(
     const response = await f(req)
     return Ok(response)
   } catch (e) {
-    return Err(new Error(`Error: ${e}`))
+    return Err(new Error(`${e}`))
   }
 }
