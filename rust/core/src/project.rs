@@ -29,7 +29,6 @@ use quary_proto::{
 use sqlinference::infer_tests::{get_column_with_source, ExtractedSelect};
 use sqlparser::dialect::Dialect;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
 /// build_column_description_map returns a map of column name in the sql statement to a column
@@ -452,7 +451,7 @@ pub(crate) async fn get_path_bufs(
         .collect::<Vec<PathBuf>>()
         .iter()
         .filter(|path: &&PathBuf| {
-            path.extension() == Some(OsStr::new(extension_of_interest))
+            path.to_string_lossy().ends_with(extension_of_interest)
                 && ignore_suffix.map_or(true, |suffix| !path.to_string_lossy().ends_with(suffix))
         })
         .map(|path| Ok(path.clone()))
@@ -1940,7 +1939,7 @@ mod tests {
 
         assert!(!project.models.is_empty());
         assert!(project.models.contains_key("shifts"));
-        assert_eq!(project.charts.len(), 1)
+        assert_eq!(1, project.charts.len())
     }
 
     #[tokio::test]
