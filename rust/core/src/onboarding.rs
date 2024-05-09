@@ -117,7 +117,7 @@ pub async fn generate_source_files(
             Ok(schema_file)
         }
         Err(io_error) => {
-            if io_error.kind() == std::io::ErrorKind::NotFound {
+            if io_error.kind() == std::io::ErrorKind::NotFound || io_error.kind() == std::io::ErrorKind::Other  {
                 Ok(ProjectFile {
                     models: vec![],
                     sources: vec![],
