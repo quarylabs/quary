@@ -2,7 +2,7 @@
   "name": "@quary/root",
   "scripts": {
     "dev:extension": "pnpm --parallel --filter \"quary-extension*\" dev",
-    "ci": "pnpm fmt && pnpm lint && pnpm build && pnpm test && pnpm build-storybook && pnpm run -r vscode:package",
+    "ci": "pnpm lint && pnpm build && pnpm test && pnpm build-storybook && pnpm run -r vscode:package",
     "build": "pnpm -r run build",
     "build-storybook": "pnpm -r run build-storybook",
     "build_extension": "pnpm -r --filter \"quary-extension...\" run build && pnpm -r --filter \"quary-extension\" run vscode:package",

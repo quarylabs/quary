@@ -257,7 +257,7 @@ export const runDocumentationOnModel = async (
                 if (isErr(rootResult)) {
                   return rootResult
                 }
-                const uriPath= vscode.Uri.joinPath(rootResult.value, filePath);
+                const uriPath = vscode.Uri.joinPath(rootResult.value, filePath)
                 const document =
                   await vscode.workspace.openTextDocument(uriPath)
 
