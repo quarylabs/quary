@@ -35,11 +35,11 @@ sql_lint_template: ## Lint the sql code
 
 .PHONY: rust_build
 rust_build: ## Builds the rust code
-	cargo build
+	cargo build --locked
 	
 .PHONY: rust_build_wasm
 rust_build_wasm: ## Builds the rust wasm code
-	cargo build --target=wasm32-unknown-unknown --release --package="quary-wasm-bindgen"
+	cargo build --locked --target=wasm32-unknown-unknown --release --package="quary-wasm-bindgen"
 	wasm-bindgen --out-dir=js/packages/quary-extension/src/rust_wasm --target=web --omit-default-module-path "target/wasm32-unknown-unknown/release/quary_wasm_bindgen.wasm"
 
 .PHONY: rust_fmt
