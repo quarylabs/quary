@@ -256,7 +256,13 @@ const returnReaderFunc =
       return files.readFile(out)
     }
     const uri = Uri.joinPath(projectRoot.value, location)
-    return files.readFile(uri)
+    try {
+      const out = await files.readFile(uri)
+      return out
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
   }
 
 const returnFileLister =

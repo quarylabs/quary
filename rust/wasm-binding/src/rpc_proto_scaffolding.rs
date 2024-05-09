@@ -1,3 +1,4 @@
+use crate::logging::console_log;
 use crate::rpc_helpers::{decode, encode};
 use futures::channel::oneshot;
 use futures::AsyncRead;
@@ -55,11 +56,11 @@ pub(crate) fn create_file_writer(
 }
 
 pub(crate) type FileReader =
-    Box<dyn Fn(String) -> Pin<Box<dyn Future<Output = Result<Vec<u8>, String>>>>>;
+    Box<dyn Fn(String) -> Pin<Box<dyn Future<Output = Result<Vec<u8>, io::Error>>>>>;
 
 fn create_file_reader(file_reader: Function) -> FileReader {
     let file_reader =
-        move |file_path: String| -> Pin<Box<dyn Future<Output = Result<Vec<u8>, String>>>> {
+        move |file_path: String| -> Pin<Box<dyn Future<Output = Result<Vec<u8>, io::Error>>>> {
             let file_path = JsValue::from_str(&file_path);
             #[allow(clippy::unwrap_used)]
             let promise = file_reader
@@ -73,6 +74,7 @@ fn create_file_reader(file_reader: Function) -> FileReader {
                 let value = promise
                     .await
                     .map_err(|err| format!("Failed to await js function: {:?}", err))?;
+                console_log(&format!("Value: {:?}", value));
                 let uint8_array = value
                     .dyn_into::<Uint8Array>()
                     .map_err(|e| format!("Failed to cast output to Uint8Array {:?}", e))?;
@@ -236,7 +238,7 @@ impl FileSystem for JsFileSystem {
         let file_reader = self.file_reader.clone();
         let path = path.to_string();
 
-        let (sender, receiver) = oneshot::channel::<Result<Vec<u8>, String>>();
+        let (sender, receiver) = oneshot::channel::<Result<Vec<u8>, io::Error>>();
 
         spawn_local(async move {
             // Perform some async computation
@@ -246,20 +248,16 @@ impl FileSystem for JsFileSystem {
                 file_reader(path).await
             }
             .await;
-
             let _ = sender.send(result);
         });
 
-        let file_reader = receiver.await.map_err(|e| {
+        let file_reader = receiver.await?.map_err(|e| {
             io::Error::new(
                 ErrorKind::Other,
                 format!("Failed to receive result: {:?}", e),
             )
         })?;
-        match file_reader {
-            Ok(vec) => Ok(Box::new(futures::io::Cursor::new(vec))),
-            Err(e) => Err(io::Error::new(ErrorKind::Other, e)),
-        }
+        Ok(Box::new(futures::io::Cursor::new(file_reader)))
     }
 
     async fn list_all_files_recursively(&self, path: &str) -> Result<Vec<String>, String> {
