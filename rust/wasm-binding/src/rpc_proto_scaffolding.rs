@@ -1,7 +1,7 @@
 use crate::rpc_helpers::{decode, encode};
 use futures::channel::oneshot;
 use futures::AsyncRead;
-use js_sys::{Array, Function, Promise, Uint8Array};
+use js_sys::{Array, Function, JsString, Promise, Uint8Array};
 use quary_core::databases::DatabaseQueryGenerator;
 use quary_core::file_system::FileSystem;
 use quary_core::{
@@ -55,11 +55,11 @@ pub(crate) fn create_file_writer(
 }
 
 pub(crate) type FileReader =
-    Box<dyn Fn(String) -> Pin<Box<dyn Future<Output = Result<Vec<u8>, String>>>>>;
+    Box<dyn Fn(String) -> Pin<Box<dyn Future<Output = Result<Vec<u8>, io::Error>>>>>;
 
 fn create_file_reader(file_reader: Function) -> FileReader {
     let file_reader =
-        move |file_path: String| -> Pin<Box<dyn Future<Output = Result<Vec<u8>, String>>>> {
+        move |file_path: String| -> Pin<Box<dyn Future<Output = Result<Vec<u8>, io::Error>>>> {
             let file_path = JsValue::from_str(&file_path);
             #[allow(clippy::unwrap_used)]
             let promise = file_reader
@@ -70,13 +70,57 @@ fn create_file_reader(file_reader: Function) -> FileReader {
                 .unwrap();
             let promise = JsFuture::from(promise);
             Box::pin(async move {
-                let value = promise
-                    .await
-                    .map_err(|err| format!("Failed to await js function: {:?}", err))?;
-                let uint8_array = value
-                    .dyn_into::<Uint8Array>()
-                    .map_err(|e| format!("Failed to cast output to Uint8Array {:?}", e))?;
-                Ok(uint8_array.to_vec())
+                let value = promise.await.map_err(|err| {
+                    io::Error::new(
+                        ErrorKind::Other,
+                        format!("Failed to await js function: {:?}", err),
+                    )
+                })?;
+                let array: Array = value.dyn_into().map_err(|e| {
+                    io::Error::new(
+                        ErrorKind::Other,
+                        format!("Failed to cast output to Array {:?}", e),
+                    )
+                })?;
+                let first_parameter: String = array
+                    .at(0)
+                    .dyn_into::<JsString>()
+                    .map_err(|e| {
+                        io::Error::new(
+                            ErrorKind::Other,
+                            format!("Failed to cast output to JsString {:?}", e),
+                        )
+                    })?
+                    .into();
+                match first_parameter.as_str() {
+                    "ok" => {
+                        let uint8_array = array.at(1).dyn_into::<Uint8Array>().map_err(|e| {
+                            io::Error::new(
+                                ErrorKind::Other,
+                                format!("Failed to cast output to Uint8Array {:?}", e),
+                            )
+                        })?;
+                        Ok(uint8_array.to_vec())
+                    }
+                    "error" => {
+                        let error_message: String = array
+                            .at(1)
+                            .dyn_into::<JsString>()
+                            .map_err(|e| {
+                                io::Error::new(
+                                    ErrorKind::Other,
+                                    format!("Failed to cast output to JsString {:?}", e),
+                                )
+                            })?
+                            .into();
+                        Err(io::Error::new(ErrorKind::Other, error_message))
+                    }
+                    "not_found" => Err(io::Error::new(ErrorKind::NotFound, "File not found")),
+                    _ => Err(io::Error::new(
+                        ErrorKind::Other,
+                        format!("Unknown first parameter type {}", first_parameter),
+                    )),
+                }
             })
         };
     Box::new(file_reader)
@@ -236,7 +280,7 @@ impl FileSystem for JsFileSystem {
         let file_reader = self.file_reader.clone();
         let path = path.to_string();
 
-        let (sender, receiver) = oneshot::channel::<Result<Vec<u8>, String>>();
+        let (sender, receiver) = oneshot::channel::<Result<Vec<u8>, io::Error>>();
 
         spawn_local(async move {
             // Perform some async computation
@@ -250,16 +294,22 @@ impl FileSystem for JsFileSystem {
             let _ = sender.send(result);
         });
 
-        let file_reader = receiver.await.map_err(|e| {
-            io::Error::new(
-                ErrorKind::Other,
-                format!("Failed to receive result: {:?}", e),
-            )
-        })?;
-        match file_reader {
-            Ok(vec) => Ok(Box::new(futures::io::Cursor::new(vec))),
-            Err(e) => Err(io::Error::new(ErrorKind::Other, e)),
-        }
+        let vec = receiver
+            .await
+            .map_err(|e| {
+                io::Error::new(
+                    ErrorKind::Other,
+                    format!("Failed to receive result: {:?}", e),
+                )
+            })
+            .map_err(|e| {
+                io::Error::new(
+                    ErrorKind::Other,
+                    format!("Failed to receive result: {:?}", e),
+                )
+            })??;
+
+        Ok(Box::new(futures::io::Cursor::new(vec)))
     }
 
     async fn list_all_files_recursively(&self, path: &str) -> Result<Vec<String>, String> {
