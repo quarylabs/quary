@@ -257,26 +257,7 @@ export const runDocumentationOnModel = async (
                 if (isErr(rootResult)) {
                   return rootResult
                 }
-                let uriPath
-                switch (vscode.env.uiKind) {
-                  case vscode.UIKind.Web: {
-                    // handle minute file path differences between vscode-test-web and github.dev environments
-                    if (__MODE__ === 'development') {
-                      uriPath = vscode.Uri.joinPath(rootResult.value, filePath)
-                    } else {
-                      const basePath = `${rootResult.value.scheme}://${rootResult.value.authority}`
-                      uriPath = vscode.Uri.parse(`${basePath}${filePath}`)
-                    }
-                    break
-                  }
-                  case vscode.UIKind.Desktop: {
-                    uriPath = vscode.Uri.file(filePath)
-                    break
-                  }
-                  default:
-                    uriPath = vscode.Uri.joinPath(rootResult.value, filePath)
-                }
-
+                const uriPath= vscode.Uri.joinPath(rootResult.value, filePath);
                 const document =
                   await vscode.workspace.openTextDocument(uriPath)
 
