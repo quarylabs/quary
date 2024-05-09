@@ -5,6 +5,7 @@ export interface CommandProcessResult {
   stdout: string
   stderr: string
   fullOutput: string
+  code: number
 }
 
 export class TerminalExecutor {
@@ -18,7 +19,7 @@ export class TerminalExecutor {
     command: string,
     args?: string[],
   ): Promise<CommandProcessResult> {
-    return new Promise<CommandProcessResult>((resolve, reject) => {
+    return new Promise<CommandProcessResult>((resolve) => {
       // Get the workspace root path
       const workspaceRoot = vscode.workspace.rootPath
 
@@ -48,11 +49,7 @@ export class TerminalExecutor {
       })
 
       proc.on('close', (code: number) => {
-        if (code === 0) {
-          resolve({ stdout, stderr, fullOutput })
-        } else {
-          reject(new Error(`Command exited with code ${code}`))
-        }
+        resolve({ stdout, stderr, fullOutput, code })
       })
     })
   }
