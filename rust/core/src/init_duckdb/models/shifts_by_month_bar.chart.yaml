@@ -1,0 +1,24 @@
+description: Charting shifts by month
+tags:
+  - monthly
+config:
+  aggregates: {}
+  columns:
+    - total_shifts
+  columns_config: {}
+  expressions: {}
+  filter: []
+  group_by:
+    - shift_month
+  plugin: Y Bar
+  plugin_config: {}
+  settings: true
+  sort:
+    - - shift_month
+      - asc
+  split_by: []
+  theme: Pro Light
+  title: shifts_by_month.chart.yaml
+  version: 2.10.0
+reference:
+  name: shifts_by_month
