@@ -26,6 +26,7 @@
 View the [documentation](https://www.quary.dev/docs).
 
 ## 🗃️ Supported Databases
+
 <p align="center">
   <img src="https://img.shields.io/badge/Amazon%20Redshift-527FFF?style=for-the-badge&logo=Amazon%20Redshift&logoColor=white" alt="Amazon Redshift">
   <img src="https://img.shields.io/badge/Google%20BigQuery-4285F4?style=for-the-badge&logo=Google%20Cloud&logoColor=white" alt="Google BigQuery">
@@ -39,6 +40,7 @@ View the [documentation](https://www.quary.dev/docs).
 ![quary_core_image](./assets/readme_demo.gif)
 
 ## 🏗️ Asset Types in Quary
+
 Define and manage the following asset types as code:
 
 - **Sources:** Define the external data sources that feed into Quary, such as database tables, flat files, or APIs (with DuckDB).
@@ -54,10 +56,13 @@ Define and manage the following asset types as code:
 Quary is a VSCode Extension (Interface) & Rust-based CLI (Core)
 
 #### Extension
+
 The VSCode extension can be installed [here](https://marketplace.visualstudio.com/items?itemName=Quary.quary-extension). Note that it depends on the CLI being installed.
 
 #### CLI
+
 #### Homebrew installation
+
 ```
 brew install quarylabs/quary/quary
 ```
@@ -71,6 +76,7 @@ curl -fsSL https://raw.githubusercontent.com/quarylabs/quary/main/install.sh | b
 ```
 
 #### Other installations
+
 Other builds are available in the [releases page](https://github.com/quarylabs/quary/releases/latest) to download.
 
 ### Usage

@@ -1,6 +1,6 @@
 ---
 name: Feature Request Template
-about: "For feature requests. Please search for existing issues first. Also see CONTRIBUTING."
+about: 'For feature requests. Please search for existing issues first. Also see CONTRIBUTING.'
 ---
 
 ### Please Describe The Problem To Be Solved
@@ -14,4 +14,3 @@ A precise description of your preferred solution
 <!--
 A concise description of your preferred solution
 -->
-
