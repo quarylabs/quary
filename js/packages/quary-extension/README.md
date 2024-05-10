@@ -1,60 +1,107 @@
-# Quary VSCode Extension
+<p align="center">
+  <a href="https://quary.dev">
+    <img align="center" src="https://storage.googleapis.com/public_hosted_materials/quary.svg" height="128">
+    <h1 align="center">Quary</h1>
+    <h3 align="center">Business Intelligence for Engineers 🅀</h3>
+  </a>
+</p>
 
-Quary is a VSCode extension that streamlines data analysis within your editor. It allows you to organize, wrangle, and analyze data with ease, turning VSCode into a powerful data analysis workbench.
+<div class="title-block" style="text-align: center;" align="center">
 
-## Features
+[![Made by Quary](https://img.shields.io/badge/MADE%20BY%20Quary-000000.svg?style=for-the-badge&logo=Quary&labelColor=000)](https://www.quary.dev/)
+[![Slack Community](https://img.shields.io/badge/slack-@quarycommunity-000000.svg?style=for-the-badge&logo=slack&labelColor=000)](https://join.slack.com/t/quarylabs/shared_invite/zt-2dlbfnztw-dMLXJVL38NcbhqRuM5gUcw)
+[![YC](https://img.shields.io/badge/Y%20Combinator-W24-orange?style=for-the-badge&logo=Quary&labelColor=000)](https://www.ycombinator.com/companies/quary)
+[![GitHub Repo stars](https://img.shields.io/github/stars/quarylabs/quary?style=for-the-badge&logo=Quary&labelColor=000)](https://github.com/quarylabs/quary)
 
-- **Seamless Integration**: Work with data right within VSCode.
-- **Project Scaffolding**: Instantly generate a structured data project.
-- **Model Visualization**: Render and visualize data models interactively.
-- **Test Execution**: Run custom tests and validate your data models with built-in test suites.
-- **Integrations**: Push your models and structure directly to a local SQLite database or BigQuery, allowing for collaboration and use by others.
+</div>
 
-## Requirements
+<h2>With Quary, engineers can:</h2>
 
-- VSCode version 1.8 or higher.
+- 🔌 Connect to their Database
+- 📖 Write SQL queries to transform, organize, and document tables in a database
+- 📊 Create charts, dashboards and reports (in development)
+- 🧪 Test, collaborate & refactor iteratively through version control
+- 🚀 Deploy the organised, documented model back up to the database
 
-## Core commands
+View the [documentation](https://www.quary.dev/docs).
 
-- `quary.run`: Configure and run your Quary data project.
-- `quary.runTests`: Execute tests against your data models.
-- `quary.renderModel`: Visualize data models within VSCode.
-  ...
+## 🗃️ Supported Databases
 
-## Known Issues
+<p align="center">
+  <img src="https://img.shields.io/badge/Amazon%20Redshift-527FFF?style=for-the-badge&logo=Amazon%20Redshift&logoColor=white" alt="Amazon Redshift">
+  <img src="https://img.shields.io/badge/Google%20BigQuery-4285F4?style=for-the-badge&logo=Google%20Cloud&logoColor=white" alt="Google BigQuery">
+  <img src="https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Snowflake-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white" alt="Snowflake">
+  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase">
+  <img src="https://img.shields.io/badge/DuckDB-FFF?style=for-the-badge&logo=duckdb&logoColor=black" alt="DuckDB">
+  <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite">
+</p>
 
-There are no known issues at the moment. For any new issues, please report them on our GitHub repository.
+![quary_core_image](./assets/readme_demo.gif)
 
-## Release Notes
+## 🏗️ Asset Types in Quary
 
-- Initial prerelease version.
+Define and manage the following asset types as code:
 
-## Getting Started with Quary
+- **Sources:** Define the external data sources that feed into Quary, such as database tables, flat files, or APIs (with DuckDB).
+- **Models:** Transform raw data from sources into analysis-ready datasets using SQL, this lets engineers split complex queries into atomic components.
+- **Charts:** Create visual representations of your data using SQL.
+- **🚧 Dashboards (WIP):** Combine multiple charts into a single view, allowing engineers to monitor and analyze data in one place.
+- **🚧 Reports (WIP):** Create detailed reports to share insights and findings with your team or stakeholders.
 
-Quary projects consist of seeds, models, tests, sources, and custom tests. Don't be daunted by the terminology; our guide will walk you through each component.
+## 🚀 Getting Started
 
-### Quickstart
+### Installation
 
-1. **Open the Sample Project**: Access our template repository in GitHub's VSCode instance with no account required.
-2. **Install Quary**: Search for `Quary.quary` in the extensions tab and install.
-3. **Run Your Project**: Use `QUARY: Run` from the command palette to start your project against a sqlite database.
+Quary is a VSCode Extension (Interface) & Rust-based CLI (Core)
 
-### Anatomy of a Quary Project
+#### Extension
 
-- `project.yml`: Root configuration file defining tests, models, and seeds.
-- `.quary.config.yaml`: Specifies build configurations and database connections.
-- `seeds/`: Holds initial data from .csv files to populate the database.
-- `models/`: Contains SQL-based data models for project analysis.
+The VSCode extension can be installed [here](https://marketplace.visualstudio.com/items?itemName=Quary.quary-extension). Note that it depends on the CLI being installed.
 
-### Your First Model
+#### CLI
 
-Models are at the heart of Quary, letting you transform raw data into insightful analytics. For example, `shifts_by_month` helps analyze employee shifts over time.
+#### Homebrew installation
 
-```sql
-SELECT
-  employee_id,
-  strftime('%Y-%m', shift_date) AS shift_month,
-  COUNT(*)                     AS total_shifts
-FROM q.stg_shifts
-GROUP BY employee_id, shift_month
 ```
+brew install quarylabs/quary/quary
+```
+
+#### Linux/Mac through curl
+
+Quary can be installed using curl on Linux/Mac using the following command:
+
+```shell
+curl -fsSL https://raw.githubusercontent.com/quarylabs/quary/main/install.sh | bash
+```
+
+#### Other installations
+
+Other builds are available in the [releases page](https://github.com/quarylabs/quary/releases/latest) to download.
+
+### Usage
+
+Once installed, a sample project can be created and run as follows:
+
+```shell
+mkdir example # create an empty project folder
+cd example
+quary init    # initialize DuckDB demo project with sample data
+quary compile # validate the project structure and model references without database
+quary build   # build and execute the model views/seeds against target database
+quary test -s   # run defined tests against target database
+```
+
+<h2>🅀 Community</h2>
+
+[Join our Slack channel](https://join.slack.com/t/quarylabs/shared_invite/zt-2dlbfnztw-dMLXJVL38NcbhqRuM5gUcw), for help, ideas, and discussions.
+
+## Support
+
+If you run into any problems using Quary, please let us know. We want Quary to be easy-to-use, so if you are getting
+confused, it is our fault, not yours. [Create an issue](https://github.com/quarylabs/quary/issues) and we'll be happy to
+help you out.
+
+### Check out our other projects
+
+[SQRUFF](https://github.com/quarylabs/sqruff), a compact, high-speed SQL linter, engineered with Rust efficiency.
