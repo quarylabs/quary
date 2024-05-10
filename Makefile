@@ -66,7 +66,7 @@ markdown_lint_fix: ## Fixes markdown lint errors
 	docker run -v $(shell pwd):/workdir ghcr.io/igorshubovych/markdownlint-cli:latest "docs/**/*.md" --fix
 
 .PHONY: ci
-ci: ratchet_check proto rust_ci proto_breaking sql_lint_template ## Runs everything
+ci: ratchet_check proto rust_ci proto_breaking sql_lint_template check_readme_difference ## Runs everything
 	pnpm install
 	pnpm run ci
 
@@ -101,6 +101,10 @@ prettier_fmt: ## Formats all the yaml files
 .PHONY: prettier_lint
 prettier_lint: ## Lints all the yaml files
 	pnpm prettier --check **/*.{yaml,yml}
+
+.PHONY: check_readme_difference
+check_readme_difference: ## Checks difference of READMEs between route and one in js/packages/quary-extension and errors if difference
+	diff -u js/packages/quary-extension/README.md README.md
 
 .PHONY: help
 help: ## Display this help screen
