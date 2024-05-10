@@ -462,7 +462,9 @@ const DescriptionCell: React.FC<{
             <CheckCircledIcon
               className="h-4 w-4 hover:cursor-pointer"
               onClick={() => {
-                // addDescription(stagedDescriptionText || '')
+                if (addDescription) {
+                  addDescription(stagedDescriptionText || '')
+                }
                 setEditDescriptionMode(false)
               }}
             />
