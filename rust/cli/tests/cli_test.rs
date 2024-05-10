@@ -6,7 +6,9 @@ use quary_databases::databases_duckdb;
 use quary_databases::databases_redshift;
 use std::fs;
 use tempfile::tempdir;
-
+use testcontainers::runners::AsyncRunner;
+use testcontainers::RunnableImage;
+use testcontainers_modules::postgres::Postgres as TestcontainersPostgres;
 #[test]
 fn test_cli_in_memory() {
     let name = "quary";
@@ -567,5 +569,71 @@ async fn test_redshift_snapshots() {
         )
         .unwrap();
         assert_eq!(current_date.date(), updated_quary_valid_from.date());
+    }
+}
+
+/// This test simulates a workflow where a model is built twice in a Postgres database.
+/// In Postgres DROP TABLE IF EXISTS requires a CASCADE if there are view dependencies
+/// Error we are trying to avoid: cannot drop view transform.model_1 because other objects depend on it
+/// replace with materialized_view field in the schame to: view, materialized_view & table to test difference scenarios
+#[tokio::test]
+async fn test_postgres_build_model_twice() {
+    // Setup
+    let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        .start()
+        .await;
+
+    let name = "quary";
+    let temp_dir = tempdir().unwrap();
+    let project_dir = temp_dir.path();
+
+    // create a .env file
+    let env_file_path = project_dir.join(".env");
+    let env_content = format!(
+        "PGHOST=localhost\nPGPORT={}\nPGUSER=postgres\nPGPASSWORD=postgres\nPGDATABASE=postgres",
+        postgres.get_host_port_ipv4(5432).await
+    );
+    fs::write(&env_file_path, env_content).unwrap();
+
+    // Create a model which reference a model
+    let models_dir: std::path::PathBuf = project_dir.join("models");
+    fs::create_dir_all(&models_dir).unwrap();
+    let model_1_file = models_dir.join("model_1.sql");
+    let model_1_content = "SELECT 100 as random_number";
+    let model_2_file = models_dir.join("model_2.sql");
+    let model_2_content = "SELECT * FROM q.model_1";
+    fs::write(&model_1_file, model_1_content).unwrap();
+    fs::write(&model_2_file, model_2_content).unwrap();
+
+    // Create quary.yaml file
+    let quary_yaml_content = "postgres:\n  schema: public";
+    let quary_yaml_path = project_dir.join("quary.yaml");
+    fs::write(&quary_yaml_path, quary_yaml_content).unwrap();
+
+    // Create schema.yaml file
+    let schema_file = models_dir.join("schema.yaml");
+    let schema_content = r#"
+        models:
+        - name: model_1
+          materialization: view
+        - name: model_2
+          materialization: view 
+        "#;
+    fs::write(&schema_file, schema_content).unwrap();
+    {
+        Command::cargo_bin(name)
+            .unwrap()
+            .current_dir(project_dir)
+            .args(vec!["build"])
+            .assert()
+            .success();
+    }
+    {
+        Command::cargo_bin(name)
+            .unwrap()
+            .current_dir(project_dir)
+            .args(vec!["build"])
+            .assert()
+            .success();
     }
 }

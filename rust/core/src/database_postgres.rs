@@ -45,17 +45,17 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type {
-            None => Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string()),
+            None => Ok(format!("DROP VIEW IF EXISTS {} CASCADE", object_name).to_string()),
             Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_VIEW => {
-                Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string())
+                Ok(format!("DROP VIEW IF EXISTS {} CASCADE", object_name).to_string())
             }
             Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_TABLE => {
-                Ok(format!("DROP TABLE IF EXISTS {}", object_name).to_string())
+                Ok(format!("DROP TABLE IF EXISTS {} CASCADE", object_name).to_string())
             }
             Some(materialization_type)
                 if materialization_type == MATERIALIZATION_TYPE_MATERIALIZED_VIEW =>
             {
-                Ok(format!("DROP MATERIALIZED VIEW IF EXISTS {}", object_name).to_string())
+                Ok(format!("DROP MATERIALIZED VIEW IF EXISTS {} CASCADE", object_name).to_string())
             }
             Some(materialization_type) => Err(format!(
                 "Unsupported materialization type: {}",

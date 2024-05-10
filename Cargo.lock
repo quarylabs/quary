@@ -2740,6 +2740,8 @@ dependencies = [
  "quary_proto",
  "serde_yaml",
  "tempfile",
+ "testcontainers",
+ "testcontainers-modules",
  "tokio",
 ]
 
