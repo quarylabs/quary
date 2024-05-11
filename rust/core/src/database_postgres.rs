@@ -47,7 +47,12 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         match materialization_type {
             None => Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string()),
             Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_VIEW => {
-                Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string())
+                println!("don't drop view");
+                Ok(format!(
+                    "select 1 from pg_matviews where matviewname = '{}'",
+                    object_name
+                )
+                .to_string())
             }
             Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_TABLE => {
                 Ok(format!("DROP TABLE IF EXISTS {}", object_name).to_string())
@@ -55,7 +60,12 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
             Some(materialization_type)
                 if materialization_type == MATERIALIZATION_TYPE_MATERIALIZED_VIEW =>
             {
-                Ok(format!("DROP MATERIALIZED VIEW IF EXISTS {}", object_name).to_string())
+                println!("don't drop materialized view");
+                Ok(format!(
+                    "select 1 from pg_matviews where matviewname = '{}'",
+                    object_name
+                )
+                .to_string())
             }
             Some(materialization_type) => Err(format!(
                 "Unsupported materialization type: {}",
@@ -79,7 +89,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
                 object_name, original_select_statement
             )),
             Some(MATERIALIZATION_TYPE_VIEW) => Ok(format!(
-                "CREATE VIEW {} AS {}",
+                "CREATE OR REPLACE VIEW {} AS {}",
                 object_name, original_select_statement
             )),
             Some(MATERIALIZATION_TYPE_TABLE) => Ok(format!(
@@ -87,8 +97,20 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
                 object_name, original_select_statement
             )),
             Some(MATERIALIZATION_TYPE_MATERIALIZED_VIEW) => Ok(format!(
-                "CREATE MATERIALIZED VIEW {} AS {}",
-                object_name, original_select_statement
+                // if view doesn't exist it need to be created, if exists then refreshed
+                "DO $$
+                 BEGIN
+                    IF EXISTS (select 1 from pg_matviews where matviewname = '{}')
+                 THEN
+                    EXECUTE format('REFRESH MATERIALIZED VIEW {}');
+                 ELSE
+                    EXECUTE format('CREATE MATERIALIZED VIEW {} AS {}');
+                 END IF;
+                 END $$;",
+                object_name.split('.').last().unwrap_or(""),
+                object_name,
+                object_name,
+                original_select_statement
             )),
             _ => Err("Unsupported materialization type".to_string()),
         }
