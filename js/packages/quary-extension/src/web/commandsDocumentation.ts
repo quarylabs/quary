@@ -12,7 +12,7 @@ import {
 import { Empty } from '@quary/proto/google/protobuf/empty'
 import { Table } from '@quary/proto/quary/service/v1/table'
 import { rustWithoutDatabaseWasmServices } from './servicesRustWasm'
-import { Services, setup } from './services'
+import { preInitSetup, Services, setup } from './services'
 import { renderingFunction } from './commandsScaffolding'
 import { DEFAULT_LIMIT_FOR_SELECT } from './defaults'
 
@@ -35,10 +35,6 @@ const getModelDetails = async ({
     dag: Dag
   }>
 > => {
-  const details = await setup(services)
-  if (isErr(details)) {
-    return Err(new Error(`error: ${details.error}`))
-  }
   const modelsResponse = await services.rust.list_assets({
     projectRoot,
   })
@@ -280,11 +276,6 @@ export const runDocumentationOnModel = async (
             }
           },
           documentationViewAddToSchema: async () => {
-            const details = await setup(services)
-            if (isErr(details)) {
-              throw new Error('Error setting up documentation')
-            }
-
             const createmodelSchemaEntryResult =
               await services.rust.createModelSchemaEntry({
                 projectRoot,
@@ -299,11 +290,6 @@ export const runDocumentationOnModel = async (
             }
           },
           documentationViewUpdateDescription: async ({ description }) => {
-            const details = await setup(services)
-            if (isErr(details)) {
-              throw new Error('Error setting up documentation')
-            }
-
             const updateDescriptionResult =
               await services.rust.updateAssetDescription({
                 projectRoot,
@@ -322,7 +308,7 @@ export const runDocumentationOnModel = async (
             await documentationViewLoad()
           },
           documentationViewAddColumn: async ({ column }) => {
-            const details = await setup(services)
+            const details = await preInitSetup(services)
             if (isErr(details)) {
               throw new Error('Error setting up documentation')
             }
@@ -343,7 +329,7 @@ export const runDocumentationOnModel = async (
             await documentationViewLoad()
           },
           documentationViewAddColumnTest: async ({ column, columnTest }) => {
-            const details = await setup(services)
+            const details = await preInitSetup(services)
             if (isErr(details)) {
               throw new Error('Error setting up documentation')
             }
@@ -365,7 +351,7 @@ export const runDocumentationOnModel = async (
             await documentationViewLoad()
           },
           documentationViewRemoveColumnTest: async ({ column, columnTest }) => {
-            const details = await setup(services)
+            const details = await preInitSetup(services)
             if (isErr(details)) {
               throw new Error('Error setting up documentation')
             }
@@ -392,7 +378,7 @@ export const runDocumentationOnModel = async (
             column,
             description,
           }) => {
-            const details = await setup(services)
+            const details = await preInitSetup(services)
             if (isErr(details)) {
               throw new Error('Error setting up documentation')
             }

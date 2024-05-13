@@ -294,7 +294,7 @@ export const returnCommands = (
     },
     renderModel: async () => {
       const services = await getServices()
-      const details = await setup(services)
+      const details = await preInitSetup(services)
       if (isErr(details)) {
         return Err(new Error(`error: ${details.error}`))
       }
@@ -437,7 +437,7 @@ export const returnCommands = (
     openSqlDocumentation: async () => {
       const services = await getServices()
 
-      const details = await setup(services)
+      const details = await preInitSetup(services)
       if (isErr(details)) {
         return details
       }
@@ -486,7 +486,7 @@ export const returnCommands = (
     executeSQL: async () => {
       const services = await getServices()
 
-      const details = await setup(services)
+      const details = await preInitSetup(services)
       if (isErr(details)) {
         return Err(new Error(`error: ${details.error}`))
       }
