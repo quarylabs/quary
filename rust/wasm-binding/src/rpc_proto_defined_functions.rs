@@ -11,7 +11,7 @@ use quary_core::init::init_to_file_system;
 use quary_core::onboarding::{generate_onboarding_files, is_empty_bar_hidden_and_sqlite};
 use quary_core::project::{
     build_column_description_map_for_model, parse_project_files, return_defined_description_map,
-    return_tests_for_a_particular_model,
+    return_tests_for_a_particular_model, AssetsToSkip,
 };
 use quary_core::project_file::serialize_project_file_to_yaml;
 use quary_core::project_to_sql::{
@@ -834,8 +834,13 @@ pub(crate) async fn list_assets(
     file_system: JsFileSystem,
     request: ListAssetsRequest,
 ) -> Result<ListAssetsResponse, String> {
-    let project =
-        quary_core::project::parse_project(&file_system, &database, &request.project_root).await?;
+    let project = quary_core::project::parse_project_with_skip(
+        &file_system,
+        &database,
+        &request.project_root,
+        AssetsToSkip { charts: true },
+    )
+    .await?;
 
     let assets = project
         .models
