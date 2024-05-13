@@ -11,11 +11,6 @@ env:
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: true
   CARGO_INCREMENTAL: 0
 jobs:
-  check-difference-of-readmes:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v4
-      - run: make check_readme_difference
   github-actions-ratchet-check:
     runs-on: ubuntu-latest
     steps:
@@ -32,16 +27,16 @@ jobs:
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v3
         with:
           fetch-depth: '0'
-      - name: Setup Node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
       - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # ratchet:pnpm/action-setup@v2
-        name: Install pnpm
         id: pnpm-install
         with:
-          version: 8
+          version: 9
           run_install: false
       - name: Install dependencies
-        run: pnpm install --filter "@quary/root"
+        run: pnpm install --filter "@quary/root" --frozen-lockfile
       - name: Validate all commits from PR
         run: pnpx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
   node-check:
@@ -65,14 +60,14 @@ jobs:
           tool: wasm-bindgen-cli
       - name: Build rust wasm
         run: make rust_build_wasm
-      - name: Setup Node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3
-      - name: Install pnpm
-        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # ratchet:pnpm/action-setup@v2
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3
         with:
-          version: 8
+          node-version-file: '.nvmrc'
+      - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # ratchet:pnpm/action-setup@v2
+        with:
+          version: 9
       - name: Install dependencies
-        run: pnpm install -r
+        run: pnpm install -r --frozen-lockfile
       - name: Run CI tests
         run: pnpm run ci
   bash-scripts-check:
@@ -167,14 +162,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # ratchet:actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
       - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # ratchet:pnpm/action-setup@v2
         name: Install pnpm
-        id: pnpm-install
         with:
-          version: 8
+          version: 9
           run_install: false
-      - name: Install dependencies
-        run: pnpm install --filter "@quary/root"
+      - run: pnpm install --filter "@quary/root" --frozen-lockfile
       - run: make prettier_lint

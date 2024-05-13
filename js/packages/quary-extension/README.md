@@ -1,20 +1,3 @@
-<p align="center">
-  <a href="https://quary.dev">
-    <img align="center" src="https://storage.googleapis.com/public_hosted_materials/quary.svg" height="128">
-    <h1 align="center">Quary</h1>
-    <h3 align="center">Business Intelligence for Engineers 🅀</h3>
-  </a>
-</p>
-
-<div class="title-block" style="text-align: center;" align="center">
-
-[![Made by Quary](https://img.shields.io/badge/MADE%20BY%20Quary-000000.svg?style=for-the-badge&logo=Quary&labelColor=000)](https://www.quary.dev/)
-[![Slack Community](https://img.shields.io/badge/slack-@quarycommunity-000000.svg?style=for-the-badge&logo=slack&labelColor=000)](https://join.slack.com/t/quarylabs/shared_invite/zt-2dlbfnztw-dMLXJVL38NcbhqRuM5gUcw)
-[![YC](https://img.shields.io/badge/Y%20Combinator-W24-orange?style=for-the-badge&logo=Quary&labelColor=000)](https://www.ycombinator.com/companies/quary)
-[![GitHub Repo stars](https://img.shields.io/github/stars/quarylabs/quary?style=for-the-badge&logo=Quary&labelColor=000)](https://github.com/quarylabs/quary)
-
-</div>
-
 <h2>With Quary, engineers can:</h2>
 
 - 🔌 Connect to their Database
