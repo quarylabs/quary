@@ -164,15 +164,41 @@ pub async fn parse_project(
     database: &impl DatabaseQueryGenerator,
     project_root: &str,
 ) -> Result<Project, String> {
+    parse_project_with_skip(
+        filesystem,
+        database,
+        project_root,
+        AssetsToSkip { charts: false },
+    )
+    .await
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct AssetsToSkip {
+    pub charts: bool,
+}
+
+/// parse_project_with_skip parses a project with the ability to skip certain assets.
+pub async fn parse_project_with_skip(
+    filesystem: &impl FileSystem,
+    database: &impl DatabaseQueryGenerator,
+    project_root: &str,
+    to_skip: AssetsToSkip,
+) -> Result<Project, String> {
     let seeds = parse_seeds(filesystem, project_root)
         .await?
         .into_iter()
         .collect::<HashMap<_, _>>();
     let project_files = parse_project_files(filesystem, project_root, database).await?;
     let sources = parse_sources(&project_files).collect::<HashMap<_, _>>();
-    let charts = parse_charts(filesystem, project_root).await?;
-    // TODO Move to direct conversion to hashmaps in charts
-    let charts: HashMap<String, Chart> = charts.into_iter().collect();
+
+    let charts: HashMap<String, Chart> = if !to_skip.charts {
+        let charts = parse_charts(filesystem, project_root).await?;
+        // TODO Move to direct conversion to hashmaps in charts
+        Ok::<_, String>(charts.into_iter().collect())
+    } else {
+        Ok(HashMap::new())
+    }?;
 
     // TODO: Think about implementing custom tests
     // let custom_tests = parse_custom_tests(&filesystem, &project_root)?;
@@ -265,17 +291,19 @@ pub async fn parse_project(
     }
 
     // Check that all references in charts refer to actual models/sources/snapshots
-    for chart in charts.values() {
-        for reference in &chart.references {
-            if !models.contains_key(reference)
-                && !sources.contains_key(reference)
-                && !seeds.contains_key(reference)
-                && !snapshots.contains_key(reference)
-            {
-                return Err(format!(
-                    "chart {:?} has reference to {:?} which is not a model, source or snapshot",
-                    chart, reference
-                ));
+    if !to_skip.charts {
+        for chart in charts.values() {
+            for reference in &chart.references {
+                if !models.contains_key(reference)
+                    && !sources.contains_key(reference)
+                    && !seeds.contains_key(reference)
+                    && !snapshots.contains_key(reference)
+                {
+                    return Err(format!(
+                        "chart {:?} has reference to {:?} which is not a model, source or snapshot",
+                        chart, reference
+                    ));
+                }
             }
         }
     }
@@ -3209,6 +3237,39 @@ models:
             sql.0,
             "WITH\nraw_employees AS (SELECT column1 AS id,column2 AS first_name,column3 AS last_name FROM (VALUES ('1','John','Doe'),('2','Jane','Doe'),('3','Ashok','Kumar'),('4','Peter','Pan'),('5','Marie','Curie'))),\nraw_shifts AS (SELECT column1 AS employee_id,column2 AS shop_id,column3 AS date,column4 AS shift FROM (VALUES ('1','2','2023-01-01','morning'),('1','2','2023-01-02','morning'),('1','2','2023-01-03','morning'),('1','2','2023-01-04','morning'),('1','2','2023-01-05','morning'),('1','2','2023-01-06','morning'),('1','2','2023-01-07','morning'),('1','2','2023-01-08','morning'),('1','2','2023-01-09','morning'),('1','2','2023-01-10','morning'),('1','2','2023-01-11','morning'),('1','2','2023-01-12','morning'),('1','2','2023-01-13','morning'),('1','2','2023-01-13','afternoon'))),\nshift_hours AS (SELECT 'morning'  AS shift,\n       '08:00:00' AS start_time,\n       '12:00:00' AS end_time\nUNION ALL\nSELECT 'afternoon' AS shift,\n       '12:00:00'  AS start_time,\n       '16:00:00'  AS end_time),\nshift_first AS (WITH\n  min_shifts AS (\n    SELECT\n      employee_id,\n      MIN(shift_start) AS shift_start\n    FROM\n      shifts\n    GROUP BY\n      employee_id\n  )\nSELECT\n  x.employee_id AS employee_id,\n  x.shift_start AS shift_start,\n  x.shift_end AS shift_end\nFROM\n  shifts x\n  INNER JOIN min_shifts y ON y.employee_id = x.employee_id\n  AND y.shift_start = x.shift_start\nGROUP BY\n  x.employee_id,\n  x.shift_start\n),\nshift_last AS (WITH min_shifts AS (SELECT employee_id,\n                           max(shift_start) AS shift_start\n                    FROM shifts\n                    GROUP BY employee_id)\n\nSELECT x.employee_id AS employee_id,\n       x.shift_start AS shift_start,\n       x.shift_end AS shift_end\nFROM shifts x\nINNER JOIN min_shifts y\nON y.employee_id = x.employee_id AND y.shift_start = x.shift_start\nGROUP BY x.employee_id, x.shift_start),\nstg_employees AS (select\n  id as employee_id,\n  first_name,\n  last_name\nfrom\n  raw_employees\n),\nstg_shifts AS (select\n  employee_id,\n  shop_id,\n  date as shift_date,\n  shift\nfrom\n  raw_shifts\n),\nshifts AS (WITH shifts AS (SELECT employee_id,\n                       shift_date,\n                       shift\n                FROM stg_shifts\n                ),\n     shift_details AS (SELECT shift AS shift_name,\n                              start_time,\n                              end_time\n                       FROM shift_hours\n                       )\n\nSELECT s.employee_id AS employee_id,\n       s.shift AS shift,\n       datetime(s.shift_date, sd.start_time) AS shift_start,\n       datetime(s.shift_date, sd.end_time)   AS shift_end\nFROM shifts s\n         INNER JOIN shift_details sd\n                    ON s.shift = sd.shift_name\n)\nSELECT * FROM (WITH total_hours AS (\n    SELECT employee_id,\n           SUM(strftime('%s', shift_end) - strftime('%s', shift_start)) AS total_hours,\n           COUNT(*) AS total_shifts\n    FROM shifts\n    GROUP BY employee_id\n),\n\npercentage_morning_shifts AS (\n    SELECT employee_id,\n           SUM(CASE WHEN shift = 'morning' THEN 1 ELSE 0 END) AS total_morning_shifts,\n          COUNT(*) AS total_shifts\n    FROM shifts\n    GROUP BY employee_id\n)\n\nSELECT e.employee_id,\n       e.first_name,\n       e.last_name,\n       sf.shift_start AS first_shift,\n       sl.shift_start AS last_shift,\n       pms.total_morning_shifts / pms.total_shifts * 100 AS percentage_morning_shifts,\n       th.total_shifts,\n       th.total_hours\nFROM stg_employees e\nLEFT JOIN shift_first sf\n    ON e.employee_id = sf.employee_id\nLEFT JOIN shift_last sl\n    ON e.employee_id = sl.employee_id\nLEFT JOIN total_hours th\n    ON e.employee_id = th.employee_id\nLEFT JOIN percentage_morning_shifts pms\n    ON e.employee_id = pms.employee_id)"
         )
+    }
+
+    #[tokio::test]
+    async fn parse_project_ignore_chart() {
+        let file_system = quary_proto::FileSystem {
+            files: vec![
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "models/empty.chart.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/empty.chart.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(""),
+                    },
+                ),
+            ]
+            .into_iter()
+            .collect(),
+        };
+
+        let database = DatabaseQueryGeneratorSqlite::default();
+        let project = parse_project(&file_system, &database, "").await;
+        assert!(project.is_err());
+
+        let project =
+            parse_project_with_skip(&file_system, &database, "", AssetsToSkip { charts: true })
+                .await;
+        assert!(project.is_ok());
     }
 
     // TODO Implement tests

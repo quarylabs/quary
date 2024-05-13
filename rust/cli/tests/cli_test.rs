@@ -693,7 +693,6 @@ async fn test_postgres_run_tests_from_sources() {
     }
 }
 
-
 /// This test simulates a workflow where a test is added to a model and we run quary test (from database).
 #[tokio::test]
 async fn test_postgres_run_tests_from_database_tables() {
