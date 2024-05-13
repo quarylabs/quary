@@ -3,6 +3,7 @@ on:
   release:
     types: [published]
 env:
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: true
   CARGO_INCREMENTAL: 0
 jobs:
   check-versions-match:

@@ -8,6 +8,7 @@ concurrency:
   group: ${{ github.head_ref }}
   cancel-in-progress: true
 env:
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: true
   CARGO_INCREMENTAL: 0
 jobs:
   check-difference-of-readmes:
