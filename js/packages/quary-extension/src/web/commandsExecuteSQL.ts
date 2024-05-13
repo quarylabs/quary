@@ -12,7 +12,7 @@ import {
 import { Empty } from '@quary/proto/google/protobuf/empty'
 import { queryResultToColumnsValues } from '@shared/shared'
 import { rustWithoutDatabaseWasmServices } from './servicesRustWasm'
-import { Services, setup } from './services'
+import { Services } from './services'
 import { renderingFunction } from './commandsScaffolding'
 import { DEFAULT_LIMIT_FOR_SELECT } from './defaults'
 

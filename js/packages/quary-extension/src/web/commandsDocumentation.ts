@@ -12,7 +12,7 @@ import {
 import { Empty } from '@quary/proto/google/protobuf/empty'
 import { Table } from '@quary/proto/quary/service/v1/table'
 import { rustWithoutDatabaseWasmServices } from './servicesRustWasm'
-import { preInitSetup, Services, setup } from './services'
+import { preInitSetup, Services } from './services'
 import { renderingFunction } from './commandsScaffolding'
 import { DEFAULT_LIMIT_FOR_SELECT } from './defaults'
 

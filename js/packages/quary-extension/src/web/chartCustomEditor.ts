@@ -372,7 +372,7 @@ export class ChartEditorProvider
                 type: 'loading',
               },
             })
-            const setupValues = await setup(services)
+            const setupValues = await preInitSetup(services)
             if (isErr(setupValues)) {
               return
             }
@@ -417,7 +417,7 @@ export class ChartEditorProvider
             })
           }
           case 'preTemplatedSql': {
-            const setupValues = await setup(services)
+            const setupValues = await preInitSetup(services)
             if (isErr(setupValues)) {
               return
             }

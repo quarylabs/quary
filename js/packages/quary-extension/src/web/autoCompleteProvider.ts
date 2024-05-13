@@ -2,7 +2,7 @@ import * as vscode from 'vscode'
 import { isErr, Ok } from '@shared/result'
 import { DefinitionProvider, Uri } from 'vscode'
 import { ListAssetsResponse_Asset_AssetType } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
-import { getServices, setup } from './services'
+import { getServices, preInitSetup } from './services'
 
 // SQL Autocomplete Provider
 export const sqlAutocompleteProvider = (
@@ -21,7 +21,7 @@ export const sqlAutocompleteProvider = (
 
     const getAssets = async () => {
       const services = await getServices(context)
-      const details = await setup(services)
+      const details = await preInitSetup(services)
       if (isErr(details)) {
         return details
       }
@@ -81,7 +81,7 @@ export const sqlDefinitionProvider = (
       if (isErr(projectRoot)) {
         return projectRoot
       }
-      const details = await setup(services)
+      const details = await preInitSetup(services)
       if (isErr(details)) {
         return details
       }
