@@ -60,51 +60,42 @@ pub(crate) trait ToSql {
 
 impl ToSql for TestNotNull {
     fn to_sql(&self, limit: Option<usize>) -> String {
-        let limit = limit
-            .map(|limit| format!(" LIMIT {}", limit))
-            .unwrap_or_default();
-        format!(
-            "SELECT * FROM {} AS alias WHERE alias.{} IS NULL{}",
-            self.path, self.column, limit
-        )
+        let sql = format!(
+            "SELECT * FROM {} AS alias WHERE alias.{} IS NULL",
+            self.path, self.column
+        );
+        add_limit(sql, limit)
     }
 }
 
 impl ToSql for TestMultiColumnUnique {
     fn to_sql(&self, limit: Option<usize>) -> String {
-        let limit = limit
-            .map(|limit| format!(" LIMIT {}", limit))
-            .unwrap_or_default();
         let columns = self
             .columns
             .iter()
             .map(|column| format!("alias.{}", column))
             .collect::<Vec<_>>()
             .join(", ");
-        format!(
-            "SELECT {} FROM {} AS alias GROUP BY {} HAVING COUNT(*) > 1{}",
-            columns, self.path, columns, limit
-        )
+        let sql = format!(
+            "SELECT {} FROM {} AS alias GROUP BY {} HAVING COUNT(*) > 1",
+            columns, self.path, columns
+        );
+        add_limit(sql, limit)
     }
 }
 
 impl ToSql for TestUnique {
     fn to_sql(&self, limit: Option<usize>) -> String {
-        let limit = limit
-            .map(|limit| format!(" LIMIT {}", limit))
-            .unwrap_or_default();
-        format!(
-            "SELECT * FROM (SELECT {} FROM {} AS alias WHERE alias.{} IS NOT NULL GROUP BY alias.{} HAVING COUNT(*) > 1) AS alias{}",
-            self.column, self.path, self.column, self.column, limit
-        )
+        let sql = format!(
+            "SELECT * FROM (SELECT {} FROM {} AS alias WHERE alias.{} IS NOT NULL GROUP BY alias.{} HAVING COUNT(*) > 1) AS alias",
+            self.column, self.path, self.column, self.column
+        );
+        add_limit(sql, limit)
     }
 }
 
 impl ToSql for TestRelationship {
     fn to_sql(&self, limit: Option<usize>) -> String {
-        let limit = limit
-            .map(|limit| format!(" LIMIT {}", limit))
-            .unwrap_or_default();
         let trimmed_source_path = self.source_path.trim();
         let trimmed_target_path = self.target_path.trim();
 
@@ -121,80 +112,75 @@ impl ToSql for TestRelationship {
                 trimmed_target_path.to_string()
             };
 
-        format!(
-            "SELECT * FROM {} WHERE {} IS NOT NULL AND {} NOT IN (SELECT {} FROM {}){}",
+        let sql = format!(
+            "SELECT * FROM {} WHERE {} IS NOT NULL AND {} NOT IN (SELECT {} FROM {})",
             with_alias_source_path,
             self.source_column,
             self.source_column,
             self.target_column,
             with_alias_target_path,
-            limit
-        )
+        );
+        add_limit(sql, limit)
     }
 }
 
 impl ToSql for TestAcceptedValues {
     fn to_sql(&self, limit: Option<usize>) -> String {
-        let limit = limit
-            .map(|limit| format!(" LIMIT {}", limit))
-            .unwrap_or_default();
-        format!(
-            "SELECT * FROM {} AS alias WHERE alias.{} IS NOT NULL AND alias.{} NOT IN ({}){}",
+        let sql = format!(
+            "SELECT * FROM {} AS alias WHERE alias.{} IS NOT NULL AND alias.{} NOT IN ({})",
             self.path,
             self.column,
             self.column,
             generate_sql_in_list(self.accepted_values.clone()),
-            limit
-        )
+        );
+        add_limit(sql, limit)
     }
 }
 
 impl ToSql for TestGreaterThanOrEqual {
     fn to_sql(&self, limit: Option<usize>) -> String {
-        let limit = limit
-            .map(|limit| format!(" LIMIT {}", limit))
-            .unwrap_or_default();
-        format!(
-            "SELECT * FROM {} AS alias WHERE alias.{} < {}{}",
-            self.path, self.column, self.value, limit
-        )
+        let sql = format!(
+            "SELECT * FROM {} AS alias WHERE alias.{} < {}",
+            self.path, self.column, self.value
+        );
+        add_limit(sql, limit)
     }
 }
 
 impl ToSql for TestLessThanOrEqual {
     fn to_sql(&self, limit: Option<usize>) -> String {
-        let limit = limit
-            .map(|limit| format!(" LIMIT {}", limit))
-            .unwrap_or_default();
-        format!(
-            "SELECT * FROM {} AS alias WHERE alias.{} > {}{}",
-            self.path, self.column, self.value, limit
-        )
+        let sql = format!(
+            "SELECT * FROM {} AS alias WHERE alias.{} > {}",
+            self.path, self.column, self.value
+        );
+        add_limit(sql, limit)
     }
 }
 
 impl ToSql for TestGreaterThan {
     fn to_sql(&self, limit: Option<usize>) -> String {
-        let limit = limit
-            .map(|limit| format!(" LIMIT {}", limit))
-            .unwrap_or_default();
-        format!(
-            "SELECT * FROM {} AS alias WHERE alias.{} <= {}{}",
-            self.path, self.column, self.value, limit
-        )
+        let sql = format!(
+            "SELECT * FROM {} AS alias WHERE alias.{} <= {}",
+            self.path, self.column, self.value
+        );
+        add_limit(sql, limit)
     }
 }
 
 impl ToSql for TestLessThan {
     fn to_sql(&self, limit: Option<usize>) -> String {
-        let limit = limit
-            .map(|limit| format!(" LIMIT {}", limit))
-            .unwrap_or_default();
-        format!(
-            "SELECT * FROM {} AS alias WHERE alias.{} >= {}{}",
-            self.path, self.column, self.value, limit
-        )
+        let sql = format!(
+            "SELECT * FROM {} AS alias WHERE alias.{} >= {}",
+            self.path, self.column, self.value
+        );
+        add_limit(sql, limit)
     }
+}
+
+fn add_limit(sql: String, limit: Option<usize>) -> String {
+    limit
+        .map(|limit| format!("{} LIMIT {}", sql, limit))
+        .unwrap_or(sql)
 }
 
 fn generate_sql_in_list(values: Vec<String>) -> String {
