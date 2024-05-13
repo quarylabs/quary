@@ -50,7 +50,7 @@
     "tailwindcss": "^3.4.3",
     "tailwindcss-animate": "^1.0.7",
     "vscode-webview": "1.0.1-beta.1",
-    "zod": "^3.23.4"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@quary/eslint-config-shared": "workspace:*",
