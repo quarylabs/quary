@@ -10,7 +10,6 @@ use crate::sql::return_reference_search;
 use quary_proto::{ConnectionConfig, Model, Project, Seed, Snapshot, Source};
 use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
-use uuid::Uuid;
 
 /// project_and_fs_to_query_sql_for_model_sql wraps project_and_fs_to_query_sql but injects model
 /// string into the fs and project. This is useful for when you want to get the sql for a model
@@ -25,7 +24,8 @@ pub async fn project_and_fs_to_query_sql_for_model_sql(
     model_sql: &str,
     overrides: Option<HashMap<String, String>>,
 ) -> Result<(String, (BTreeSet<String>, Vec<Edge>)), String> {
-    let random_model_name = Uuid::new_v4().to_string();
+    // TODO Improve by using a random model name generator but test in wasm and in wasm in node
+    let random_model_name = "0d570d7f-43da-4e9f-aea5-d7c5bdc33080".to_string();
     let project_root_path = Path::new(project_root);
     let full_path = project_root_path
         .join("models")
