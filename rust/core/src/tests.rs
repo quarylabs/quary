@@ -64,7 +64,7 @@ impl ToSql for TestNotNull {
             .map(|limit| format!(" LIMIT {}", limit))
             .unwrap_or_default();
         format!(
-            "SELECT * FROM {} WHERE {} IS NULL{}",
+            "SELECT * FROM {} AS alias WHERE alias.{} IS NULL{}",
             self.path, self.column, limit
         )
     }
@@ -75,9 +75,14 @@ impl ToSql for TestMultiColumnUnique {
         let limit = limit
             .map(|limit| format!(" LIMIT {}", limit))
             .unwrap_or_default();
-        let columns = self.columns.join(", ");
+        let columns = self
+            .columns
+            .iter()
+            .map(|column| format!("alias.{}", column))
+            .collect::<Vec<_>>()
+            .join(", ");
         format!(
-            "SELECT {} FROM {} GROUP BY {} HAVING COUNT(*) > 1{}",
+            "SELECT {} FROM {} AS alias GROUP BY {} HAVING COUNT(*) > 1{}",
             columns, self.path, columns, limit
         )
     }
@@ -89,7 +94,7 @@ impl ToSql for TestUnique {
             .map(|limit| format!(" LIMIT {}", limit))
             .unwrap_or_default();
         format!(
-            "SELECT * FROM (SELECT {} FROM {} WHERE {} IS NOT NULL GROUP BY {} HAVING COUNT(*) > 1){}",
+            "SELECT * FROM (SELECT {} FROM {} AS alias WHERE alias.{} IS NOT NULL GROUP BY alias.{} HAVING COUNT(*) > 1) AS alias{}",
             self.column, self.path, self.column, self.column, limit
         )
     }
@@ -134,7 +139,7 @@ impl ToSql for TestAcceptedValues {
             .map(|limit| format!(" LIMIT {}", limit))
             .unwrap_or_default();
         format!(
-            "SELECT * FROM {} WHERE {} IS NOT NULL AND {} NOT IN ({}){}",
+            "SELECT * FROM {} AS alias WHERE alias.{} IS NOT NULL AND alias.{} NOT IN ({}){}",
             self.path,
             self.column,
             self.column,
@@ -150,7 +155,7 @@ impl ToSql for TestGreaterThanOrEqual {
             .map(|limit| format!(" LIMIT {}", limit))
             .unwrap_or_default();
         format!(
-            "SELECT * FROM {} WHERE {} < {}{}",
+            "SELECT * FROM {} AS alias WHERE alias.{} < {}{}",
             self.path, self.column, self.value, limit
         )
     }
@@ -162,7 +167,7 @@ impl ToSql for TestLessThanOrEqual {
             .map(|limit| format!(" LIMIT {}", limit))
             .unwrap_or_default();
         format!(
-            "SELECT * FROM {} WHERE {} > {}{}",
+            "SELECT * FROM {} AS alias WHERE alias.{} > {}{}",
             self.path, self.column, self.value, limit
         )
     }
@@ -174,7 +179,7 @@ impl ToSql for TestGreaterThan {
             .map(|limit| format!(" LIMIT {}", limit))
             .unwrap_or_default();
         format!(
-            "SELECT * FROM {} WHERE {} <= {}{}",
+            "SELECT * FROM {} AS alias WHERE alias.{} <= {}{}",
             self.path, self.column, self.value, limit
         )
     }
@@ -186,7 +191,7 @@ impl ToSql for TestLessThan {
             .map(|limit| format!(" LIMIT {}", limit))
             .unwrap_or_default();
         format!(
-            "SELECT * FROM {} WHERE {} >= {}{}",
+            "SELECT * FROM {} AS alias WHERE alias.{} >= {}{}",
             self.path, self.column, self.value, limit
         )
     }
@@ -395,7 +400,7 @@ mod tests {
                     column: "id".to_string(),
                 }
                 .to_sql(None),
-                "SELECT * FROM users_123 WHERE id IS NULL",
+                "SELECT * FROM users_123 AS alias WHERE alias.id IS NULL",
             ),
             (
                 TestNotNull {
@@ -405,7 +410,7 @@ mod tests {
                     column: "id".to_string(),
                 }
                 .to_sql(Some(100)),
-                "SELECT * FROM users_123 WHERE id IS NULL LIMIT 100",
+                "SELECT * FROM users_123 AS alias WHERE alias.id IS NULL LIMIT 100",
             ),
             (
                 TestAcceptedValues {
@@ -415,7 +420,7 @@ mod tests {
                     column: "id".to_string(),
                     accepted_values: vec!["1".to_string(), "2".to_string(), "3".to_string()],
                 }.to_sql(None),
-                "SELECT * FROM users_123 WHERE id IS NOT NULL AND id NOT IN ('1','2','3')",
+                "SELECT * FROM users_123 AS alias WHERE alias.id IS NOT NULL AND alias.id NOT IN ('1','2','3')",
             ),
             (
                 TestAcceptedValues {
@@ -425,7 +430,7 @@ mod tests {
                     column: "id".to_string(),
                     accepted_values: vec!["1".to_string(), "2".to_string(), "3".to_string()],
                 }.to_sql(Some(100)),
-                "SELECT * FROM users_123 WHERE id IS NOT NULL AND id NOT IN ('1','2','3') LIMIT 100",
+                "SELECT * FROM users_123 AS alias WHERE alias.id IS NOT NULL AND alias.id NOT IN ('1','2','3') LIMIT 100",
             ),
             (
                 TestUnique {
@@ -434,7 +439,7 @@ mod tests {
                     path: "users_123".to_string(),
                     column: "id".to_string(),
             }.to_sql(None),
-                "SELECT * FROM (SELECT id FROM users_123 WHERE id IS NOT NULL GROUP BY id HAVING COUNT(*) > 1)",
+                "SELECT * FROM (SELECT id FROM users_123 AS alias WHERE alias.id IS NOT NULL GROUP BY alias.id HAVING COUNT(*) > 1) AS alias",
             ),
             (
                 TestUnique {
@@ -443,7 +448,7 @@ mod tests {
                     path: "users_123".to_string(),
                     column: "id".to_string(),
             }.to_sql(Some(100)),
-                "SELECT * FROM (SELECT id FROM users_123 WHERE id IS NOT NULL GROUP BY id HAVING COUNT(*) > 1) LIMIT 100",
+                "SELECT * FROM (SELECT id FROM users_123 AS alias WHERE alias.id IS NOT NULL GROUP BY alias.id HAVING COUNT(*) > 1) AS alias LIMIT 100",
             ),
             (
                 TestLessThanOrEqual {
@@ -453,7 +458,7 @@ mod tests {
                     column: "id".to_string(),
                     value: "100".to_string(),
             }.to_sql(None),
-    "SELECT * FROM users_123 WHERE id > 100",
+    "SELECT * FROM users_123 AS alias WHERE alias.id > 100",
             ),
             (
                 TestLessThanOrEqual {
@@ -463,7 +468,7 @@ mod tests {
                     column: "id".to_string(),
                     value: "100".to_string(),
             }.to_sql(Some(100)),
-    "SELECT * FROM users_123 WHERE id > 100 LIMIT 100",
+    "SELECT * FROM users_123 AS alias WHERE alias.id > 100 LIMIT 100",
             ),
             (
                 TestGreaterThanOrEqual {
@@ -473,7 +478,7 @@ mod tests {
                     column: "id".to_string(),
                     value: "100".to_string(),
                 }.to_sql(None),
-                "SELECT * FROM users_123 WHERE id < 100",
+                "SELECT * FROM users_123 AS alias WHERE alias.id < 100",
             ),
             (
                 TestGreaterThanOrEqual {
@@ -483,7 +488,7 @@ mod tests {
                     column: "id".to_string(),
                     value: "100".to_string(),
                 }.to_sql(Some(100)),
-                "SELECT * FROM users_123 WHERE id < 100 LIMIT 100",
+                "SELECT * FROM users_123 AS alias WHERE alias.id < 100 LIMIT 100",
             ),
             (
                 TestRelationship {

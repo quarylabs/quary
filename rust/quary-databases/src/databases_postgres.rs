@@ -1381,4 +1381,131 @@ snapshots:
                 .data_type
         );
     }
+
+    #[tokio::test]
+    async fn test_tests_with_full_source_tree() {
+        let schema = "analytics";
+
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
+            .start()
+            .await;
+        let pg_port = postgres_image.get_host_port_ipv4(5432).await;
+        let database: Box<dyn DatabaseConnection> = Box::new(
+            Postgres::new(
+                "localhost",
+                Some(pg_port.to_string()),
+                "postgres",
+                "postgres",
+                "postgres",
+                schema,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
+            .await
+            .unwrap(),
+        );
+        database.exec("CREATE SCHEMA analytics").await.unwrap();
+        database.exec("CREATE SCHEMA jaffle_shop").await.unwrap();
+        database.exec("CREATE TABLE jaffle_shop.orders (order_id INTEGER, status VARCHAR(255), updated_at TIMESTAMP)").await.unwrap();
+        database.exec("INSERT INTO jaffle_shop.orders VALUES (1, 'in_progress', '2023-01-01 00:00:00'), (2, 'completed', '2023-01-01 00:00:00')").await.unwrap();
+
+        let file_system = FileSystem {
+            files: vec![
+                ("quary.yaml", "postgres: {schema: analytics}"),
+                ("models/stg_orders.sql", "SELECT * FROM q.raw_orders"),
+                ("models/stg_orders_2.sql", "SELECT * FROM q.raw_orders"),
+                (
+                    "models/schema.yaml",
+                    "
+sources:
+  - name: raw_orders
+    path: jaffle_shop.orders
+models:
+  - name: stg_orders
+    tests:
+      - type: multi_column_unique
+        info:
+          columns: order_id,status
+    columns:
+      - name: order_id
+        tests:
+          - type: unique
+          - type: not_null
+          - type: gte
+            info:
+              column: order_id
+              value: 1
+          - type: gt
+            info:
+              column: order_id
+              value: 0
+          - type: lte
+            info:
+              column: order_id
+              value: \"500\"
+          - type: lt
+            info:
+              column: order_id
+              value: \"501\"
+      - name: status
+        tests:
+          - type: unique
+          - type: not_null
+          - type: accepted_values
+            info:
+              column: status
+              values: in_progress,completed
+  - name: stg_orders_2
+    columns:
+      - name: order_id
+        tests:
+          - type: relationship
+            info:
+              column: order_id
+              model: stg_orders
+",
+                ),
+            ]
+            .iter()
+            .map(|(k, v)| {
+                (
+                    k.to_string(),
+                    File {
+                        name: k.to_string(),
+                        contents: Bytes::from(v.to_string()),
+                    },
+                )
+            })
+            .collect(),
+        };
+
+        let project = parse_project(
+            &file_system,
+            &DatabaseQueryGeneratorPostgres::new(schema.to_string(), None),
+            "",
+        )
+        .await
+        .unwrap();
+
+        let tests = return_tests_sql(
+            &DatabaseQueryGeneratorPostgres::new(schema.to_string(), None),
+            &project,
+            &file_system,
+            true,
+            None,
+            None,
+        )
+        .await
+        .unwrap();
+        assert!(!tests.is_empty());
+
+        for (_, test) in tests.iter() {
+            let results = database.query(test).await.unwrap();
+            assert_eq!(results.rows.len(), 0);
+        }
+    }
 }
