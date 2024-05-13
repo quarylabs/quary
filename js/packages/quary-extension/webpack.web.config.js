@@ -22,7 +22,6 @@ module.exports = (
     target: 'webworker', // extensions run in a webworker context
     entry: {
       extension: './src/web/extension.ts',
-      'test/suite/index': './src/web/test/suite/index.ts',
     },
     output: {
       filename: '[name].js',
@@ -50,6 +49,7 @@ module.exports = (
         crypto: require.resolve('crypto-browserify'),
         request: false,
         buffer: require.resolve('buffer'),
+        vm: require.resolve('vm-browserify'),
       },
     },
     module: {

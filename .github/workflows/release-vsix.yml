@@ -40,14 +40,14 @@ jobs:
       - run: make proto
       - name: Build rust wasm
         run: make rust_build_wasm
-      - name: Setup Node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3
-      - name: Install pnpm
-        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # ratchet:pnpm/action-setup@v2
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3
         with:
-          version: 8
+          node-version-file: '.nvmrc'
+      - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # ratchet:pnpm/action-setup@v2
+        with:
+          version: 9
       - name: Install dependencies
-        run: pnpm install -r
+        run: pnpm install -r --frozen-lockfile
       - name: Build extension
         run: pnpm run build_extension
       - name: Upload Release Asset
