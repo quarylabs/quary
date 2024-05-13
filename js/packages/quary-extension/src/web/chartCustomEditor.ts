@@ -23,6 +23,17 @@ import { ChartDocument } from './chartCustomEditorChartDocument'
  * - A custom web view for a `*.chart.yaml` file.
  * - Implementing save, undo, redo, and revert.
  * - Backup.
+ *
+ * State in the ChartEditorProvider is quite complicated because it has to manage three layers of state:
+ * 1. The state of saved file data
+ * 2. The state of the document in the editor
+ * 3. The state of the webview
+ *
+ * Equally, to the dimension of state, there are different types of state that interact differently with the different layers:
+ * 1. The state of the config part in the file that defines the sort of data
+ * 2. The state of the config part in the file that defines the config of the chart
+ * 3. The state of the loaded data
+ * 4. The state of the assets that have been loaded
  */
 export class ChartEditorProvider
   implements vscode.CustomEditorProvider<ChartDocument>
@@ -187,11 +198,8 @@ export class ChartEditorProvider
     return document.saveAs(destination, cancellation)
   }
 
-  public revertCustomDocument(
-    document: ChartDocument,
-    cancellation: vscode.CancellationToken,
-  ): Thenable<void> {
-    return document.revert(cancellation)
+  public revertCustomDocument(document: ChartDocument): Thenable<void> {
+    return document.revert()
   }
 
   public backupCustomDocument(
@@ -465,6 +473,24 @@ export class ChartEditorProvider
       }
       case 'chartViewChangeHandler': {
         const config = e.payload as ChartFile
+        // On change of the reference source -> Rerender the assets
+        if (document.documentData.source?.$case !== config.source?.$case) {
+          let allAssets = await this.getAssets()
+          allAssets =
+            (allAssets?.length === 0 || allAssets === undefined) &&
+            config.source?.$case === 'reference'
+              ? [config.source.reference.name]
+              : allAssets
+          this.postSetData(webviewPanel, {
+            title,
+            allAssets: allAssets || [],
+            chartFile: config,
+            results: {
+              type: 'not loaded',
+            },
+          })
+          return document.makeEdit(config)
+        }
         return document.makeEdit(config)
       }
       case 'chartViewOpenTextEditor': {
@@ -475,10 +501,10 @@ export class ChartEditorProvider
         )
       }
       case 'chartViewCreateModel': {
-        const sql = e.payload as string
+        const content = e.payload as string
         const doc = await vscode.workspace.openTextDocument({
           language: 'sql',
-          content: sql,
+          content,
         })
         return vscode.window.showTextDocument(doc, {
           preview: true,
