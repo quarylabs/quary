@@ -336,7 +336,7 @@ mod tests {
             results,
             BTreeMap::from([(
                 test_to_name(&test).unwrap(),
-                "SELECT * FROM project_1.dataset_1.test_model WHERE column_a IS NULL".to_string()
+                "SELECT * FROM project_1.dataset_1.test_model AS alias WHERE alias.column_a IS NULL".to_string()
             )])
         );
     }
@@ -395,7 +395,7 @@ models:
             results,
             BTreeMap::from([(
                 "test_intermediary_model_a_not_null".to_string(),
-                "SELECT * FROM (WITH test_seed AS (SELECT column1 AS column_b,column2 AS a FROM (VALUES ('1','1'))) SELECT * FROM (SELECT a FROM `test_seed`) AS alias) WHERE a IS NULL".to_string()
+                "SELECT * FROM (WITH test_seed AS (SELECT column1 AS column_b,column2 AS a FROM (VALUES ('1','1'))) SELECT * FROM (SELECT a FROM `test_seed`) AS alias) AS alias WHERE alias.a IS NULL".to_string()
             )])
         );
     }
@@ -451,7 +451,7 @@ models:
             results,
             BTreeMap::from([(
                 "test_intermediary_model_a_not_null".to_string(),
-                "SELECT * FROM (WITH source_1 AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT a FROM `source_1`) AS alias) WHERE a IS NULL".to_string(),
+                "SELECT * FROM (WITH source_1 AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT a FROM `source_1`) AS alias) AS alias WHERE alias.a IS NULL".to_string(),
             )])
         );
     }
@@ -510,7 +510,7 @@ models:
             results,
             BTreeMap::from([(
                 "test_model_a_a_not_null".to_string(),
-                "SELECT * FROM (WITH test_seed AS (SELECT column1 AS column_b,column2 AS a FROM (VALUES ('1','1'))) SELECT * FROM (SELECT a FROM `test_seed`) AS alias) WHERE a IS NULL".to_string()
+                "SELECT * FROM (WITH test_seed AS (SELECT column1 AS column_b,column2 AS a FROM (VALUES ('1','1'))) SELECT * FROM (SELECT a FROM `test_seed`) AS alias) AS alias WHERE alias.a IS NULL".to_string()
             )])
         );
     }
@@ -566,7 +566,7 @@ models:
             results,
             BTreeMap::from([(
                 "test_model_a_a_not_null".to_string(),
-                "SELECT * FROM (WITH source_1 AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT a FROM `source_1`) AS alias) WHERE a IS NULL".to_string()
+                "SELECT * FROM (WITH source_1 AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT a FROM `source_1`) AS alias) AS alias WHERE alias.a IS NULL".to_string()
             )])
         );
     }
