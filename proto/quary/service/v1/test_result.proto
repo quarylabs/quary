@@ -48,4 +48,5 @@ message Failed {
 
 message FailedRunResults {
   QueryResult query_result = 1;
+  string error = 2;
 }

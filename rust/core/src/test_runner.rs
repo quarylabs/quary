@@ -88,6 +88,7 @@ pub async fn run_tests_internal(
                             test_result: Some(Failed(quary_proto::Failed {
                                 reason: Some(failed::Reason::Ran(FailedRunResults {
                                     query_result: Some(test_result),
+                                    error: Default::default(),
                                 })),
                             })),
                         });
@@ -102,11 +103,16 @@ pub async fn run_tests_internal(
                     }
                 }
                 Err(e) => {
-                    return Err(RunTestError::TestFailedToRun(TestFailedToRun {
+                    results.push(TestResult {
                         test_name,
-                        sql,
-                        error: e,
-                    }))
+                        query: sql.clone(),
+                        test_result: Some(Failed(quary_proto::Failed {
+                            reason: Some(failed::Reason::Ran(FailedRunResults {
+                                query_result: Some(quary_proto::QueryResult { columns: vec![] }),
+                                error: e,
+                            })),
+                        })),
+                    });
                 }
             }
         }
@@ -196,6 +202,7 @@ pub async fn run_tests_internal(
                         Failed(quary_proto::Failed {
                             reason: Some(failed::Reason::Ran(FailedRunResults {
                                 query_result: Some(test_result),
+                                error: Default::default(),
                             })),
                         })
                     } else {
@@ -429,6 +436,7 @@ pub async fn run_model_tests_internal(
                     test_result: Some(Failed(quary_proto::Failed {
                         reason: Some(failed::Reason::Ran(FailedRunResults {
                             query_result: Some(test_result),
+                            error: Default::default(),
                         })),
                     })),
                 });

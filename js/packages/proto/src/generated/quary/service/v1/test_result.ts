@@ -40,6 +40,7 @@ export interface Failed {
 
 export interface FailedRunResults {
   queryResult: QueryResult | undefined;
+  error: string;
 }
 
 function createBaseTestResult(): TestResult {
@@ -577,13 +578,16 @@ export const Failed = {
 };
 
 function createBaseFailedRunResults(): FailedRunResults {
-  return { queryResult: undefined };
+  return { queryResult: undefined, error: "" };
 }
 
 export const FailedRunResults = {
   encode(message: FailedRunResults, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.queryResult !== undefined) {
       QueryResult.encode(message.queryResult, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.error !== "") {
+      writer.uint32(18).string(message.error);
     }
     return writer;
   },
@@ -602,6 +606,13 @@ export const FailedRunResults = {
 
           message.queryResult = QueryResult.decode(reader, reader.uint32());
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -612,13 +623,19 @@ export const FailedRunResults = {
   },
 
   fromJSON(object: any): FailedRunResults {
-    return { queryResult: isSet(object.queryResult) ? QueryResult.fromJSON(object.queryResult) : undefined };
+    return {
+      queryResult: isSet(object.queryResult) ? QueryResult.fromJSON(object.queryResult) : undefined,
+      error: isSet(object.error) ? gt.String(object.error) : "",
+    };
   },
 
   toJSON(message: FailedRunResults): unknown {
     const obj: any = {};
     if (message.queryResult !== undefined) {
       obj.queryResult = QueryResult.toJSON(message.queryResult);
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
     }
     return obj;
   },
@@ -631,6 +648,7 @@ export const FailedRunResults = {
     message.queryResult = (object.queryResult !== undefined && object.queryResult !== null)
       ? QueryResult.fromPartial(object.queryResult)
       : undefined;
+    message.error = object.error ?? "";
     return message;
   },
 };
