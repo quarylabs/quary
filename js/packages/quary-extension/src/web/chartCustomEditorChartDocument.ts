@@ -81,6 +81,7 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
   private set documentData(data: ChartFile) {
     this._edits = [data]
   }
+
   public get documentData(): ChartFile {
     return this._edits.length > 0
       ? this._edits[this._edits.length - 1]
@@ -190,7 +191,7 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
   /**
    * Called by VS Code when the user calls `revert` on a document.
    */
-  async revert(_cancellation: vscode.CancellationToken): Promise<void> {
+  async revert(): Promise<void> {
     const [diskContent, data] = await ChartDocument.readFile(
       this.uri,
       this._services,
