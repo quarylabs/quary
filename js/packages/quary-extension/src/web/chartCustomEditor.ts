@@ -6,11 +6,11 @@ import {
   View,
 } from '@shared/globalViewState'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
-import { isErr } from '@shared/result'
+import { isErr, Ok, Result } from '@shared/result'
 import { ListAssetsResponse_Asset_AssetType } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { disposeAll } from './dispose'
 import { HTML_STRING } from './panels'
-import { getServices, PreInitServices, setup } from './services'
+import { getServices, PreInitServices, preInitSetup, setup } from './services'
 import { WebviewCollection } from './chartCustomEditorWebviewCollection'
 import { ChartDocument } from './chartCustomEditorChartDocument'
 
@@ -258,34 +258,30 @@ export class ChartEditorProvider
     })
   }
 
-  private async getAssets(): Promise<string[] | undefined> {
+  private async getAssets(): Promise<Result<string[]>> {
     let allAssets: string[] = []
-    try {
-      const services = await getServices(this._context)
-      const setupValues = await setup(services)
-      if (isErr(setupValues)) {
-        return undefined
-      }
-      const returned = await services.rust.list_assets({
-        projectRoot: setupValues.value.projectRoot,
-      })
-      if (isErr(returned)) {
-        return undefined
-      }
-      allAssets = returned.value.assets
-        .filter(
-          (asset) =>
-            asset.assetType ===
-              ListAssetsResponse_Asset_AssetType.ASSET_TYPE_MODEL ||
-            asset.assetType ===
-              ListAssetsResponse_Asset_AssetType.ASSET_TYPE_SOURCE,
-        )
-        .map((asset) => asset.name)
-    } catch (e) {
-      return []
+    const services = await getServices(this._context)
+    const setupValues = await preInitSetup(services)
+    if (isErr(setupValues)) {
+      return setupValues
     }
+    const returned = await services.rust.list_assets({
+      projectRoot: setupValues.value.projectRoot,
+    })
+    if (isErr(returned)) {
+      return returned
+    }
+    allAssets = returned.value.assets
+      .filter(
+        (asset) =>
+          asset.assetType ===
+            ListAssetsResponse_Asset_AssetType.ASSET_TYPE_MODEL ||
+          asset.assetType ===
+            ListAssetsResponse_Asset_AssetType.ASSET_TYPE_SOURCE,
+      )
+      .map((asset) => asset.name)
     allAssets = allAssets.sort()
-    return allAssets
+    return Ok(allAssets)
   }
 
   private async onMessage(
@@ -309,19 +305,18 @@ export class ChartEditorProvider
         // const editable = vscode.workspace.fs.isWritableFileSystem(
         //   document.uri.scheme,
         // )
-
-        let allAssets = await this.getAssets()
         const chartFile = document.documentData
-        allAssets =
-          (allAssets?.length === 0 || allAssets === undefined) &&
-          chartFile.source?.$case === 'reference'
+        const allAssetsAttempt = await this.getAssets()
+        const allAssets = isErr(allAssetsAttempt) ? [] : allAssetsAttempt.value
+        const withReferenceName =
+          chartFile.source?.$case === 'reference' && allAssets.length === 0
             ? [chartFile.source.reference.name]
             : allAssets
         const view: View = {
           type: 'chartEditor',
           data: {
             title,
-            allAssets: allAssets || [],
+            allAssets: withReferenceName,
             chartFile,
             results: {
               type: 'not loaded',
@@ -343,7 +338,10 @@ export class ChartEditorProvider
             const returned = await services.database.runStatement(
               chartFile.source.rawSql,
             )
-            const allAssets = (await this.getAssets()) || []
+            const allAssetsAttempt = await this.getAssets()
+            const allAssets = isErr(allAssetsAttempt)
+              ? []
+              : allAssetsAttempt.value
             if (isErr(returned)) {
               return this.postSetData(webviewPanel, {
                 title,
@@ -378,9 +376,10 @@ export class ChartEditorProvider
             if (isErr(setupValues)) {
               return
             }
-            const allAssets = (await this.getAssets()) || [
-              chartFile.source.reference.name,
-            ]
+            const allAssetsAttempt = await this.getAssets()
+            const allAssets = isErr(allAssetsAttempt)
+              ? [chartFile.source.reference.name]
+              : allAssetsAttempt.value
             const sql = await services.rust.return_full_sql_for_asset({
               projectRoot: setupValues.value.projectRoot,
               assetName: chartFile.source.reference.name,
@@ -399,6 +398,7 @@ export class ChartEditorProvider
               return this.postSetData(webviewPanel, {
                 title,
                 allAssets,
+
                 chartFile,
                 results: {
                   type: 'error',
@@ -421,7 +421,10 @@ export class ChartEditorProvider
             if (isErr(setupValues)) {
               return
             }
-            const allAssets = (await this.getAssets()) || []
+            const allAssetsAttempt = await this.getAssets()
+            const allAssets = isErr(allAssetsAttempt)
+              ? []
+              : allAssetsAttempt.value
             const sql = await services.rust.returnSQLForInjectedModel({
               projectRoot: setupValues.value.projectRoot,
               sql: chartFile.source.preTemplatedSql,
@@ -431,6 +434,7 @@ export class ChartEditorProvider
                 title,
                 allAssets,
                 chartFile,
+
                 results: {
                   type: 'error',
                   errorMessage: JSON.stringify(sql.error),
@@ -473,22 +477,33 @@ export class ChartEditorProvider
       }
       case 'chartViewChangeHandler': {
         const config = e.payload as ChartFile
+        if (
+          config.source?.$case === 'reference' &&
+          config.source.reference.name === undefined
+        ) {
+          config.source.reference.name = ''
+        }
+
         // On change of the reference source -> Rerender the assets
-        if (document.documentData.source?.$case !== config.source?.$case) {
-          let allAssets = await this.getAssets()
-          allAssets =
-            (allAssets?.length === 0 || allAssets === undefined) &&
-            config.source?.$case === 'reference'
-              ? [config.source.reference.name]
-              : allAssets
-          this.postSetData(webviewPanel, {
+        if (
+          document.documentData === undefined ||
+          document.documentData.source === undefined ||
+          config.source === undefined ||
+          document.documentData.source.$case !== config.source.$case
+        ) {
+          const allAssetsAttempt = await this.getAssets()
+          const allAssets = isErr(allAssetsAttempt)
+            ? []
+            : allAssetsAttempt.value
+          const payload = {
             title,
-            allAssets: allAssets || [],
+            allAssets,
             chartFile: config,
             results: {
-              type: 'not loaded',
+              type: 'not loaded' as const,
             },
-          })
+          }
+          this.postSetData(webviewPanel, payload)
           return document.makeEdit(config)
         }
         return document.makeEdit(config)
