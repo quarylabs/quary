@@ -2,7 +2,7 @@ import { ExtensionContext, ViewColumn } from 'vscode'
 import { isErr, Ok, Result } from '@shared/result'
 import { useCallBackBackEnd } from '@shared/callBacks'
 import { renderingFunction } from './commandsScaffolding'
-import { Services, setup } from './services'
+import { preInitSetup, Services } from './services'
 
 export const importSources =
   (getServices: () => Promise<Services>, extensionContext: ExtensionContext) =>
@@ -25,7 +25,7 @@ export const importSources =
                 },
               })
               const services = await getServices()
-              const setupValues = await setup(services)
+              const setupValues = await preInitSetup(services)
               if (isErr(setupValues)) {
                 await setState({
                   type: 'importSources',

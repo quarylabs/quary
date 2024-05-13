@@ -35,10 +35,6 @@ const getModelDetails = async ({
     sql: string
   }>
 > => {
-  const details = await setup(services)
-  if (isErr(details)) {
-    return Err(new Error(`error: ${details.error}`))
-  }
   const assetsResponse = await services.rust.list_assets({
     projectRoot,
   })
