@@ -198,17 +198,11 @@ pub async fn name_to_raw_model_map_internal(
 
 pub async fn render_schema_internal(
     database: &impl DatabaseQueryGenerator,
-    project: Option<Project>,
+    project: Project,
     file_system: &impl FileSystem,
 ) -> Result<String, String> {
-    let schema = project_and_fs_to_sql_for_views(
-        &project.ok_or("No project provided")?,
-        file_system,
-        database,
-        false,
-        true,
-    )
-    .await?;
+    let schema =
+        project_and_fs_to_sql_for_views(&project, file_system, database, false, true).await?;
 
     let schema = schema
         .iter()

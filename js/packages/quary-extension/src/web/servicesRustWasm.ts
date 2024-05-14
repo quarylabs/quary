@@ -85,21 +85,13 @@ export const rustWithDatabaseWasmServices = (
     ),
     generateSourceFiles: wrapper(client.GenerateSourceFiles),
     run_test: async (
-      test_runner: 'skip' | 'all',
-      project: Project,
-      run_statement: (statement: string) => Promise<boolean>,
       project_root: string,
+      test_runner: 'skip' | 'all',
+      run_statement: (statement: string) => Promise<boolean>,
     ): Promise<TestResults> => {
-      const projectProto = Project.encode(project).finish()
-      if (projectConfig === undefined) {
-        throw Error(
-          'should not happen, project config shold be defined for tests',
-        )
-      }
       const output = await run_tests(
         test_runner,
         ConnectionConfig.encode(projectConfig).finish(),
-        projectProto,
         fileReader,
         filesLister,
         run_statement,
@@ -108,24 +100,18 @@ export const rustWithDatabaseWasmServices = (
       return TestResults.decode(output)
     },
     run_model_test: async (
-      project: Project,
+      project_root: string,
       run_statement: (statement: string) => Promise<boolean>,
       model_name: string,
       whether_to_include_model_to_source: boolean,
     ): Promise<TestResults> => {
-      const projectProto = Project.encode(project).finish()
-      if (projectConfig === undefined) {
-        throw Error(
-          'should not happen, project config should be defined for tests',
-        )
-      }
       const output = await run_model_tests(
         ConnectionConfig.encode(projectConfig).finish(),
-        projectProto,
         fileReader,
         filesLister,
         run_statement,
         model_name,
+        project_root,
         whether_to_include_model_to_source,
       )
       return TestResults.decode(output)

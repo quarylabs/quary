@@ -126,7 +126,6 @@ export interface ParseProjectResponse {
 }
 
 export interface RenderSchemaRequest {
-  project: Project | undefined;
   projectRoot: string;
 }
 
@@ -141,6 +140,7 @@ export interface ReturnSQLForSeedsAndModelsRequest {
 
 export interface ReturnSQLForSeedsAndModelsResponse {
   sql: string[];
+  project: Project | undefined;
 }
 
 export interface ReturnFullSqlForAssetRequest {
@@ -1166,14 +1166,11 @@ export const ParseProjectResponse = {
 };
 
 function createBaseRenderSchemaRequest(): RenderSchemaRequest {
-  return { project: undefined, projectRoot: "" };
+  return { projectRoot: "" };
 }
 
 export const RenderSchemaRequest = {
   encode(message: RenderSchemaRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.project !== undefined) {
-      Project.encode(message.project, writer.uint32(10).fork()).ldelim();
-    }
     if (message.projectRoot !== "") {
       writer.uint32(26).string(message.projectRoot);
     }
@@ -1187,13 +1184,6 @@ export const RenderSchemaRequest = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.project = Project.decode(reader, reader.uint32());
-          continue;
         case 3:
           if (tag !== 26) {
             break;
@@ -1211,17 +1201,11 @@ export const RenderSchemaRequest = {
   },
 
   fromJSON(object: any): RenderSchemaRequest {
-    return {
-      project: isSet(object.project) ? Project.fromJSON(object.project) : undefined,
-      projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
-    };
+    return { projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "" };
   },
 
   toJSON(message: RenderSchemaRequest): unknown {
     const obj: any = {};
-    if (message.project !== undefined) {
-      obj.project = Project.toJSON(message.project);
-    }
     if (message.projectRoot !== "") {
       obj.projectRoot = message.projectRoot;
     }
@@ -1233,9 +1217,6 @@ export const RenderSchemaRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<RenderSchemaRequest>, I>>(object: I): RenderSchemaRequest {
     const message = createBaseRenderSchemaRequest();
-    message.project = (object.project !== undefined && object.project !== null)
-      ? Project.fromPartial(object.project)
-      : undefined;
     message.projectRoot = object.projectRoot ?? "";
     return message;
   },
@@ -1377,13 +1358,16 @@ export const ReturnSQLForSeedsAndModelsRequest = {
 };
 
 function createBaseReturnSQLForSeedsAndModelsResponse(): ReturnSQLForSeedsAndModelsResponse {
-  return { sql: [] };
+  return { sql: [], project: undefined };
 }
 
 export const ReturnSQLForSeedsAndModelsResponse = {
   encode(message: ReturnSQLForSeedsAndModelsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.sql) {
       writer.uint32(10).string(v!);
+    }
+    if (message.project !== undefined) {
+      Project.encode(message.project, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -1402,6 +1386,13 @@ export const ReturnSQLForSeedsAndModelsResponse = {
 
           message.sql.push(reader.string());
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.project = Project.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1412,13 +1403,19 @@ export const ReturnSQLForSeedsAndModelsResponse = {
   },
 
   fromJSON(object: any): ReturnSQLForSeedsAndModelsResponse {
-    return { sql: gt.Array.isArray(object?.sql) ? object.sql.map((e: any) => gt.String(e)) : [] };
+    return {
+      sql: gt.Array.isArray(object?.sql) ? object.sql.map((e: any) => gt.String(e)) : [],
+      project: isSet(object.project) ? Project.fromJSON(object.project) : undefined,
+    };
   },
 
   toJSON(message: ReturnSQLForSeedsAndModelsResponse): unknown {
     const obj: any = {};
     if (message.sql?.length) {
       obj.sql = message.sql;
+    }
+    if (message.project !== undefined) {
+      obj.project = Project.toJSON(message.project);
     }
     return obj;
   },
@@ -1433,6 +1430,9 @@ export const ReturnSQLForSeedsAndModelsResponse = {
   ): ReturnSQLForSeedsAndModelsResponse {
     const message = createBaseReturnSQLForSeedsAndModelsResponse();
     message.sql = object.sql?.map((e) => e) || [];
+    message.project = (object.project !== undefined && object.project !== null)
+      ? Project.fromPartial(object.project)
+      : undefined;
     return message;
   },
 };
