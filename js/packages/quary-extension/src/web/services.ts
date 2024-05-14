@@ -116,58 +116,19 @@ export const getPreInitServices = async (
   }
 }
 
-interface Setup {
-  project: Project
-  projectRoot: string
-}
-
 type PreInitSetup = {
   projectRoot: string
-}
-
-// ensures a basic file system is set up correctly and parses the project
-export async function setup(services: Services): Promise<Result<Setup>> {
-  const files = await services.fileSystem.listAllFiles()
-  if (isErr(files)) {
-    return Err(new Error(`error listing files: ${files.error}`))
-  }
-
-  const preInitSetupResult = await preInitSetup(services)
-  if (isErr(preInitSetupResult)) {
-    return Err(
-      new Error(`error getting pre-init setup: ${preInitSetupResult.error}`),
-    )
-  }
-
-  const { projectRoot } = preInitSetupResult.value
-
-  const project = await services.rust.parse_project({ projectRoot })
-  if (isErr(project)) {
-    return Err(new Error(`project error: ${project.error}`))
-  }
-  if (project.value.project === undefined) {
-    return Err(new Error('project is undefined'))
-  }
-  return Ok({
-    project: project.value.project,
-    projectRoot,
-  })
 }
 
 // safety checks to ensure basic file system is setup correctly
 export async function preInitSetup(
   services: PreInitServices | Services,
 ): Promise<Result<PreInitSetup>> {
-  const fileSystem = await services.fileSystem.getProtoFileSystem()
-  if (isErr(fileSystem)) {
-    return Err(new Error(`fileSystem error: ${fileSystem.error}`))
-  }
   const projectRoot = await services.fileSystem.getStringProjectRoot()
   if (isErr(projectRoot)) {
     return Err(new Error(`projectRoot error: ${projectRoot.error}`))
   }
   return Ok({
-    fileSystem: fileSystem.value,
     projectRoot: projectRoot.value,
   })
 }

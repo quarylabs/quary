@@ -17,7 +17,6 @@ import {
   getServices,
   preInitSetup,
   Services,
-  setup,
 } from './services'
 import { getTestRunnerType } from './configTestRunner'
 import { testMapper } from './tests'
@@ -41,11 +40,11 @@ export const returnCommands = (
     runTests: async () => {
       //TODO Refactor
       const services = await getServices()
-      const details = await setup(services)
+      const details = await preInitSetup(services)
       if (isErr(details)) {
         return Err(new Error(`error: ${details.error}`))
       }
-      const { project, projectRoot } = details.value
+      const { projectRoot } = details.value
       const testRunnner = await getTestRunnerType(services.storage)
 
       return await renderingFunction({
@@ -67,10 +66,9 @@ export const returnCommands = (
           }
 
           const tests = await services.rust.run_test(
-            mappedTestRunner,
-            project,
-            getRunStatementCommand(services.database),
             projectRoot,
+            mappedTestRunner,
+            getRunStatementCommand(services.database),
           )
 
           const mappedTests = collectResults(tests.results.map(testMapper))
@@ -89,11 +87,11 @@ export const returnCommands = (
     },
     runModelTests: async () => {
       const services = await getServices()
-      const details = await setup(services)
+      const details = await preInitSetup(services)
       if (isErr(details)) {
         return Err(new Error(`error: ${details.error}`))
       }
-      const { project, projectRoot } = details.value
+      const { projectRoot } = details.value
 
       // Get the active text editor
       const activeEditor = vscode.window.activeTextEditor
@@ -131,7 +129,7 @@ export const returnCommands = (
         title: 'Model Test Report',
         fn: async () => {
           const tests = await services.rust.run_model_test(
-            project,
+            projectRoot,
             getRunStatementCommand(services.database),
             asset.name,
             true, // TODO: Add user selection whether to run model tests against database or not
@@ -219,11 +217,11 @@ export const returnCommands = (
     },
     run: async () => {
       const services = await getServices()
-      const details = await setup(services)
+      const details = await preInitSetup(services)
       if (isErr(details)) {
         return Err(Error(`error: ${details.error}`))
       }
-      const { projectRoot, project } = details.value
+      const { projectRoot } = details.value
 
       return await renderingFunction({
         title: 'Project',
@@ -240,16 +238,18 @@ export const returnCommands = (
           if (queries.value.sql.length === 0) {
             return Err(new Error('No queries to run'))
           }
-
           for (const query of queries.value.sql) {
             const result = await services.database.runStatement(query)
             if (isErr(result)) {
               return result
             }
           }
+          if (queries.value.project === undefined) {
+            return Err(new Error('No project found'))
+          }
           return Ok({
             type: 'project',
-            project,
+            project: queries.value.project,
             seedQueries: queries.value.sql,
           })
         },
@@ -354,17 +354,16 @@ export const returnCommands = (
     },
     renderFullSchema: async () => {
       const services = await getServices()
-      const details = await setup(services)
+      const details = await preInitSetup(services)
       if (isErr(details)) {
         return Err(new Error(`error: ${details.error}`))
       }
-      const { project, projectRoot } = details.value
+      const { projectRoot } = details.value
 
       return await renderingFunction({
         title: 'Full Schema',
         fn: async () => {
           const schema = await services.rust.render_schema({
-            project,
             projectRoot,
           })
           if (isErr(schema)) {

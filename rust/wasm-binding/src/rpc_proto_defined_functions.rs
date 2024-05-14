@@ -892,7 +892,11 @@ pub(crate) async fn render_schema(
     file_system: JsFileSystem,
     request: RenderSchemaRequest,
 ) -> Result<RenderSchemaResponse, String> {
-    let schema = render_schema_internal(&database, request.project, &file_system).await?;
+    let project_root = request.project_root;
+    let project =
+        quary_core::project::parse_project(&file_system, &database, &project_root).await?;
+
+    let schema = render_schema_internal(&database, project, &file_system).await?;
     Ok(RenderSchemaResponse { schema })
 }
 
@@ -1011,17 +1015,17 @@ pub(crate) async fn return_sql_for_seeds_and_models(
     // TODO This can be moved out of here
     let project =
         quary_core::project::parse_project(&file_system, &database, &request.project_root).await?;
-
     // TODO Need to make this dynamic
     let sqls =
         project_and_fs_to_sql_for_views(&project, &file_system, &database, false, false).await?;
-
-    let sqls = sqls
+    let sql = sqls
         .iter()
         .flat_map(|(_, s)| s.clone())
         .collect::<Vec<String>>();
-
-    Ok(ReturnSqlForSeedsAndModelsResponse { sql: sqls })
+    Ok(ReturnSqlForSeedsAndModelsResponse {
+        sql,
+        project: Some(project),
+    })
 }
 
 pub(crate) async fn return_full_sql_for_asset(
