@@ -10,7 +10,7 @@ import { isErr, Ok, Result } from '@shared/result'
 import { ListAssetsResponse_Asset_AssetType } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { disposeAll } from './dispose'
 import { HTML_STRING } from './panels'
-import { getServices, PreInitServices, preInitSetup, setup } from './services'
+import { getServices, PreInitServices, preInitSetup } from './services'
 import { WebviewCollection } from './chartCustomEditorWebviewCollection'
 import { ChartDocument } from './chartCustomEditorChartDocument'
 

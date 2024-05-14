@@ -146,7 +146,6 @@ message ParseProjectResponse {
 }
 
 message RenderSchemaRequest {
-  Project project = 1;
   string project_root = 3;
 }
 
@@ -161,6 +160,7 @@ message ReturnSQLForSeedsAndModelsRequest {
 
 message ReturnSQLForSeedsAndModelsResponse {
   repeated string sql = 1;
+  Project project = 2;
 }
 
 message ReturnFullSqlForAssetRequest {

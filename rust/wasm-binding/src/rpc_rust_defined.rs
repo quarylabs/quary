@@ -7,7 +7,6 @@ use quary_core::database_snowflake::validate_snowfalke_account_identifier;
 use quary_core::test_runner::{
     run_model_tests_internal, run_tests_internal, RunStatementFunc, RunTestError,
 };
-use quary_proto::Project;
 use quary_proto::TestRunner;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
@@ -56,21 +55,20 @@ pub fn clean_up(value: &str) -> String {
 pub async fn run_tests(
     test_runner: &str,
     database: Uint8Array,
-    project: Uint8Array,
     file_reader: Function,
     file_lister: Function,
     run_statement: JsValue,
     project_root: &str,
 ) -> Result<Uint8Array, String> {
     let file_system = JsFileSystem::new(file_reader, file_lister);
+    let database = database_query_generator_from_config(database)?;
+    let project = quary_core::project::parse_project(&file_system, &database, project_root).await?;
 
     let test_runner = match test_runner {
         "skip" => TestRunner::Skip,
         "all" => TestRunner::All,
         _ => panic!("Invalid test runner"),
     };
-    let project = decode::<Project>(project)?;
-    let database = database_query_generator_from_config(database)?;
 
     let function: js_sys::Function = run_statement.into();
     let function = Rc::new(function); // Wrap function in a Rc
@@ -136,16 +134,16 @@ pub async fn run_tests(
 #[wasm_bindgen]
 pub async fn run_model_tests(
     database: Uint8Array,
-    project: Uint8Array,
     file_reader: Function,
     file_lister: Function,
     run_statement: JsValue,
     model_name: &str,
+    project_root: &str,
     whether_to_include_model_to_source: bool,
 ) -> Result<Uint8Array, String> {
-    let project = decode::<Project>(project)?;
     let file_system = JsFileSystem::new(file_reader, file_lister);
     let database = database_query_generator_from_config(database)?;
+    let project = quary_core::project::parse_project(&file_system, &database, project_root).await?;
 
     let function: js_sys::Function = run_statement.into();
     let function = Rc::new(function); // Wrap function in a Rc
