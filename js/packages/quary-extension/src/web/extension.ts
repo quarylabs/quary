@@ -46,7 +46,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const isProduction = hostDetails.environment === 'production'
 
   const logger = isProduction
-    ? servicesLoggerSentry(SENTRY_DSN)
+    ? servicesLoggerSentry(SENTRY_DSN, hostDetails.version)
     : servicesLoggerExceptionThrower()
 
   Sentry.setTags(hostDetails)
