@@ -1,6 +1,8 @@
 use crate::databases::{CacheStatus, DatabaseQueryGenerator};
+use crate::project_to_sql::replace_variable_templates_with_variable_defined_in_config;
 use crate::sql::return_reference_search;
 use futures::AsyncRead;
+use futures::AsyncReadExt;
 use once_cell::sync::Lazy;
 use regex::Regex;
 
@@ -17,7 +19,6 @@ pub fn validate_model_name(name: &str) -> Result<(), String> {
             *VALIDATE_CONFIG_SCHEMA_NAME
         ));
     }
-
     Ok(())
 }
 
@@ -31,37 +32,34 @@ pub async fn parse_model_schemas_to_views<F>(
     config_schema_name: &str,
     name_replacing_strategy: F,
     project: &quary_proto::Project,
-) -> Result<[String; 2], String>
+) -> Result<Vec<String>, String>
 where
     F: Fn(&regex::Captures) -> String,
 {
     let original_select_statement = read_normalise_model(file_reader).await?;
 
     let connection_config = match project.connection_config.as_ref() {
-        Some(config) => config,
-        None => return Err("Connection config is required".to_string()),
-    };
-
+        Some(config) => Ok(config),
+        None => Err("Connection config is required".to_string()),
+    }?;
     let vars_replaced_select_statement =
         replace_variable_templates_with_variable_defined_in_config(
             &original_select_statement,
             connection_config,
         )?;
-
     let reference_search =
         return_reference_search(config_schema_name).map_err(|e| e.to_string())?;
-
     let out_select =
         reference_search.replace_all(&vars_replaced_select_statement, name_replacing_strategy);
-
-    let sql_model_template =
-        return_sql_model_template(database, view_name, materialization, &out_select)?;
-
+    let sql_model_template = return_sql_model_template(
+        database,
+        view_name,
+        materialization,
+        &out_select,
+        CacheStatus::NotMatching,
+    )?;
     Ok(sql_model_template)
 }
-
-use crate::project_to_sql::replace_variable_templates_with_variable_defined_in_config;
-use futures::AsyncReadExt;
 
 pub async fn read_normalise_model(
     mut file_reader: Box<dyn AsyncRead + Send + Unpin>,
@@ -71,7 +69,6 @@ pub async fn read_normalise_model(
         .read_to_string(&mut buf)
         .await
         .map_err(|e| e.to_string())?;
-
     Ok(buf.trim().strip_suffix(';').unwrap_or(&buf).to_string())
 }
 
@@ -80,15 +77,19 @@ fn return_sql_model_template(
     name: &str,
     materialization: &Option<String>,
     select_statement: &str,
-) -> Result<[String; 2], String> {
-    let drop = database.models_drop_query(name, materialization, CacheStatus::NotMatching)?;
-    let create = database.models_create_query(
-        name,
-        select_statement,
-        materialization,
-        CacheStatus::NotMatching,
-    )?;
-    Ok([drop, create])
+    cache_status: CacheStatus,
+) -> Result<Vec<String>, String> {
+    let mut vec: Vec<String> = vec![];
+    let drop = database.models_drop_query(name, materialization, &cache_status)?;
+    if let Some(drop) = drop {
+        vec.push(drop);
+    }
+    let create =
+        database.models_create_query(name, select_statement, materialization, &cache_status)?;
+    if let Some(create) = create {
+        vec.push(create);
+    }
+    Ok(vec)
 }
 
 #[cfg(test)]

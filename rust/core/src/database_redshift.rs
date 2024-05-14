@@ -40,22 +40,25 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorRedshift {
         &self,
         object_name: &str,
         materialization_type: &Option<String>,
-        _: CacheStatus,
-    ) -> Result<String, String> {
+        _: &CacheStatus,
+    ) -> Result<Option<String>, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type {
-            None => Ok(format!("DROP VIEW IF EXISTS {}", object_name)),
+            None => Ok(Some(format!("DROP VIEW IF EXISTS {}", object_name))),
             Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_VIEW => {
-                Ok(format!("DROP VIEW IF EXISTS {}", object_name))
+                Ok(Some(format!("DROP VIEW IF EXISTS {}", object_name)))
             }
             Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_TABLE => {
-                Ok(format!("DROP TABLE IF EXISTS {}", object_name))
+                Ok(Some(format!("DROP TABLE IF EXISTS {}", object_name)))
             }
             Some(materialization_type)
                 if materialization_type == MATERIALIZATION_TYPE_MATERIALIZED_VIEW =>
             {
-                Ok(format!("DROP MATERIALIZED VIEW IF EXISTS {}", object_name))
+                Ok(Some(format!(
+                    "DROP MATERIALIZED VIEW IF EXISTS {}",
+                    object_name
+                )))
             }
             Some(materialization_type) => Err(format!(
                 "Unsupported materialization type: {}",
@@ -69,27 +72,27 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorRedshift {
         object_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
-        _: CacheStatus,
-    ) -> Result<String, String> {
+        _: &CacheStatus,
+    ) -> Result<Option<String>, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type.as_deref() {
-            None => Ok(format!(
+            None => Ok(Some(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
-            )),
-            Some(MATERIALIZATION_TYPE_VIEW) => Ok(format!(
+            ))),
+            Some(MATERIALIZATION_TYPE_VIEW) => Ok(Some(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
-            )),
-            Some(MATERIALIZATION_TYPE_TABLE) => Ok(format!(
+            ))),
+            Some(MATERIALIZATION_TYPE_TABLE) => Ok(Some(format!(
                 "CREATE TABLE {} AS {}",
                 object_name, original_select_statement
-            )),
-            Some(MATERIALIZATION_TYPE_MATERIALIZED_VIEW) => Ok(format!(
+            ))),
+            Some(MATERIALIZATION_TYPE_MATERIALIZED_VIEW) => Ok(Some(format!(
                 "CREATE MATERIALIZED VIEW {} AS {}",
                 object_name, original_select_statement
-            )),
+            ))),
             _ => Err("Unsupported materialization type".to_string()),
         }
     }

@@ -40,8 +40,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         &self,
         object_name: &str,
         materialization_type: &Option<String>,
-        _: CacheStatus,
-    ) -> Result<String, String> {
+        _: &CacheStatus,
+    ) -> Result<Option<String>, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type {
@@ -79,20 +79,20 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         object_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
-        _: CacheStatus,
-    ) -> Result<String, String> {
+        _: &CacheStatus,
+    ) -> Result<Option<String>, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type.as_deref() {
-            None => Ok(format!(
+            None => Ok(Some(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             )),
             Some(MATERIALIZATION_TYPE_VIEW) => Ok(format!(
                 "CREATE OR REPLACE VIEW {} AS {}",
                 object_name, original_select_statement
-            )),
-            Some(MATERIALIZATION_TYPE_TABLE) => Ok(format!(
+            ))),
+            Some(MATERIALIZATION_TYPE_TABLE) => Ok(Some(format!(
                 "CREATE TABLE {} AS {}",
                 object_name, original_select_statement
             )),
