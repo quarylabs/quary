@@ -11,6 +11,7 @@
 
 const path = require('path')
 const webpack = require('webpack')
+const packageJson = require('./package.json')
 
 module.exports = (
   /** @type {{ STAGE: 'production' | 'development'; }} */ env,
@@ -74,6 +75,7 @@ module.exports = (
       }),
       new webpack.DefinePlugin({
         __MODE__: JSON.stringify(STAGE),
+        __PACKAGE_VERSION__: JSON.stringify(packageJson.version),
       }),
     ],
     externals: {
