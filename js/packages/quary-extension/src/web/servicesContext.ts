@@ -10,6 +10,7 @@ const HostDetailsSchema = z.object({
   ]),
   environment: z.union([z.literal('development'), z.literal('production')]),
   isNewAppInstall: z.boolean(),
+  version: z.string(),
 })
 
 // extract the inferred type
@@ -29,6 +30,7 @@ export const VSCodeInstanceContext: ServicesCodeInstanceContext = {
       environment: __MODE__,
       // flag set to true if this is the first time the extension is installed
       isNewAppInstall: vscode.env.isNewAppInstall,
+      version: __PACKAGE_VERSION__,
     }
     return HostDetailsSchema.parse(output)
   },

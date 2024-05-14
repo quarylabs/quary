@@ -3,6 +3,7 @@ import * as vscode from 'vscode'
 
 export interface ServicesLogger {
   captureException(error: Error): void
+
   setUser: (user: { id: string; email: string } | null) => void
 }
 
@@ -19,9 +20,13 @@ export const servicesLoggerExceptionThrower = (): ServicesLogger => ({
   },
 })
 
-export const servicesLoggerSentry = (dsn: string): ServicesLogger => {
+export const servicesLoggerSentry = (
+  dsn: string,
+  version: string,
+): ServicesLogger => {
   Sentry.init({
     dsn,
+    release: version,
   })
 
   return {
