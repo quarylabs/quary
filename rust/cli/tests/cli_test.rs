@@ -9,6 +9,7 @@ use tempfile::tempdir;
 use testcontainers::runners::AsyncRunner;
 use testcontainers::RunnableImage;
 use testcontainers_modules::postgres::Postgres as TestcontainersPostgres;
+
 #[test]
 fn test_cli_in_memory() {
     let name = "quary";
@@ -753,5 +754,70 @@ async fn test_postgres_run_tests_from_database_tables() {
             .args(vec!["test"])
             .assert()
             .success();
+    }
+}
+
+/// This test simulates a workflow where a project is built with caches, a model changes and the project is built again incrementally.
+#[tokio::test]
+async fn test_postgres_incremental_build() {
+    // Setup
+    let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        .start()
+        .await;
+
+    let name = "quary";
+    let temp_dir = tempdir().unwrap();
+    let project_dir = temp_dir.path();
+
+    // create a .env file
+    let env_file_path = project_dir.join(".env");
+    let env_content = format!(
+        "PGHOST=localhost\nPGPORT={}\nPGUSER=postgres\nPGPASSWORD=postgres\nPGDATABASE=postgres",
+        postgres.get_host_port_ipv4(5432).await
+    );
+    fs::write(&env_file_path, env_content).unwrap();
+
+    // Create a model which reference a model
+    let models_dir: std::path::PathBuf = project_dir.join("models");
+    fs::create_dir_all(&models_dir).unwrap();
+    let model_1_file = models_dir.join("model_1.sql");
+    let model_1_content = "SELECT 100 as random_number";
+    fs::write(&model_1_file, model_1_content).unwrap();
+
+    // Create quary.yaml file
+    let quary_yaml_content = "postgres:\n  schema: public";
+    let quary_yaml_path = project_dir.join("quary.yaml");
+    fs::write(&quary_yaml_path, quary_yaml_content).unwrap();
+
+    // Create schema.yaml file
+    let schema_file = models_dir.join("schema.yaml");
+    let schema_content = r#"
+            models:
+            - name: model_1
+              columns:
+              - name: random_number
+                description: "This is a random number which should never be null"
+                tests:
+                - type: not_null
+                - type: unique
+            "#;
+    fs::write(&schema_file, schema_content).unwrap();
+    {
+        Command::cargo_bin(name)
+            .unwrap()
+            .current_dir(project_dir)
+            .args(vec!["build", "-c"])
+            .output()
+            .unwrap();
+    }
+
+    {
+        let output = Command::cargo_bin(name)
+            .unwrap()
+            .current_dir(project_dir)
+            .args(vec!["build", "-i"])
+            .output()
+            .unwrap();
+        println!("{:?}", output);
     }
 }

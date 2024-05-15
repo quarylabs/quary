@@ -111,6 +111,9 @@ pub struct BuildArgs {
     #[arg(long = "cache_views", short = 'c', default_value = "false")]
     /// Build the cache views for the extension
     pub cache_views: bool,
+    #[arg(long = "incremental", short = 'i', default_value = "false")]
+    /// Incrementally update only the models or upstream dependencies that have changed
+    pub incremental: bool,
 }
 
 #[derive(Args, Debug)]

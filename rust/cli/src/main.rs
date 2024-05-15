@@ -210,6 +210,60 @@ async fn main_wrapped() -> Result<(), String> {
             )
             .await?;
 
+            let models_to_update = if build_args.incremental {
+                // compute the cached view names in the project
+                let project_graph = project_to_graph(project.clone())?;
+                let project_cache_views =
+                    derive_hash_views(&database.query_generator(), &project, &project_graph)?;
+
+                print!("project_cache_views: {:?}", project_cache_views);
+                // retrieve the existing cache views in the database
+                let existing_views = database
+                    .list_local_views()
+                    .await
+                    .map_err(|e| format!("listing views: {:?}", e))?;
+                let existing_cache_views = existing_views
+                    .into_iter()
+                    .filter_map(|view| {
+                        if is_cache_full_path(&database.query_generator(), &view.full_path)
+                            .unwrap_or(false)
+                        {
+                            Some(view)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<Vec<_>>();
+                print!("existing_cache_views: {:?}", existing_cache_views);
+                print!("all SQLS: {:?}", sqls);
+
+                // return only the SQL for the models that have changed
+                sqls.clone().into_iter()
+                .filter_map(|(model_name, model_sql)| {
+                    print!("Iterating over model name {:?}", model_name);
+            
+                    if let Some((cache_view_name, _)) = project_cache_views.get(model_name.as_str()) {
+                        print!("Found project_cache_view: {:?}", cache_view_name);
+            
+                        let cache_view_exists = existing_cache_views.iter().any(|view| {
+                            view.name == *cache_view_name
+                        });
+            
+                        if cache_view_exists {
+                            print!("Cache view already exists for model {}, skipping", model_name);
+                            None
+                        } else {
+                            Some((model_name, model_sql))
+                        }
+                    } else {
+                        Some((model_name, model_sql))
+                    }
+                })
+                .collect::<Vec<_>>()
+            } else {
+                sqls.clone()
+            };
+
             if build_args.dry_run {
                 if !cache_delete_views_sqls.is_empty() {
                     println!("\n-- Delete cache views\n");
@@ -272,6 +326,16 @@ async fn main_wrapped() -> Result<(), String> {
                     }
                 }
                 pb.finish_with_message("done");
+
+                if build_args.incremental {
+                    let updated_models = models_to_update.len();
+                    let ignored_models = sqls.len() - updated_models;
+
+                    println!(
+                        "✨ {} model(s) updated, {} model(s) ignored (no changes detected)",
+                        updated_models, ignored_models
+                    );
+                }
                 match sqls.len() {
                     0 => println!("No models to build"),
                     1 => println!("Created 1 model in the database"),
@@ -287,6 +351,7 @@ async fn main_wrapped() -> Result<(), String> {
                 Ok(())
             }
         }
+
         Commands::Test(test_args) => {
             let config = get_config_file(&args.project_file)?;
 
