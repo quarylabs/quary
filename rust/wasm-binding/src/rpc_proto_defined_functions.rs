@@ -39,6 +39,7 @@ use quary_proto::{
     ParseProjectRequest, ParseProjectResponse, Project, ProjectDag, ProjectFile, ProjectFileColumn,
     ProjectFileSource, RemoveColumnTestFromModelOrSourceColumnRequest,
     RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse,
+    ReturnDataForDocViewRequest, ReturnDataForDocViewResponse,
     ReturnDefinitionLocationsForSqlRequest, ReturnDefinitionLocationsForSqlResponse,
     ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest,
     ReturnFullSqlForAssetResponse, ReturnSqlForInjectedModelRequest,
@@ -990,22 +991,54 @@ pub(crate) async fn return_sql_for_seeds_and_models(
     })
 }
 
+pub(crate) async fn return_data_for_doc_view(
+    database: impl DatabaseQueryGenerator,
+    _: Writer,
+    file_system: JsFileSystem,
+    request: ReturnDataForDocViewRequest,
+) -> Result<ReturnDataForDocViewResponse, String> {
+    let data = return_full_sql_for_asset_internal(
+        &database,
+        &file_system,
+        ReturnFullSqlForAssetRequest {
+            project_root: request.project_root.clone(),
+            asset_name: request.asset_name.clone(),
+            cache_view_information: request.cache_view_information,
+        },
+    )
+    .await?;
+
+    let project_files = parse_project_files(&file_system, &request.project_root, &database).await?;
+    let is_asset_in_schema_files =
+        find_source_in_project_files(project_files.clone(), &request.asset_name).is_some()
+            || find_model_in_project_files(project_files.clone(), &request.asset_name).is_some()
+            || find_snapshot_in_project_files(project_files, &request.asset_name).is_some();
+
+    Ok(ReturnDataForDocViewResponse {
+        full_sql: data.full_sql,
+        description: data.description,
+        dag: data.dag,
+        columns: data.columns,
+        is_asset_in_schema_files,
+    })
+}
+
 pub(crate) async fn return_full_sql_for_asset(
     database: impl DatabaseQueryGenerator,
     _: Writer,
     file_system: JsFileSystem,
     request: ReturnFullSqlForAssetRequest,
 ) -> Result<ReturnFullSqlForAssetResponse, String> {
-    return_full_sql_for_asset_internal(database, &file_system, request).await
+    return_full_sql_for_asset_internal(&database, &file_system, request).await
 }
 
 async fn return_full_sql_for_asset_internal(
-    database: impl DatabaseQueryGenerator,
+    database: &impl DatabaseQueryGenerator,
     file_system: &impl quary_core::file_system::FileSystem,
     request: ReturnFullSqlForAssetRequest,
 ) -> Result<ReturnFullSqlForAssetResponse, String> {
     let project_root = request.project_root;
-    let project = quary_core::project::parse_project(file_system, &database, &project_root).await?;
+    let project = quary_core::project::parse_project(file_system, database, &project_root).await?;
     let cache_view = request
         .cache_view_information
         .ok_or("No cache view mode provided")?;
@@ -1034,7 +1067,7 @@ async fn return_full_sql_for_asset_internal(
                 project.clone(),
                 file_system,
                 model.name.clone(),
-                &database,
+                database,
                 cache_view,
             )
             .await
@@ -1050,11 +1083,11 @@ async fn return_full_sql_for_source(
     project: Project,
     file_system: &impl quary_core::file_system::FileSystem,
     source_name: String,
-    database: impl DatabaseQueryGenerator,
+    database: &impl DatabaseQueryGenerator,
 ) -> Result<ReturnFullSqlForAssetResponse, String> {
     let (sql, nodes, edges) = {
         let (sql, (nodes, edges)) =
-            project_and_fs_to_query_sql(&database, &project, file_system, &source_name, None)
+            project_and_fs_to_query_sql(database, &project, file_system, &source_name, None)
                 .await?;
         (sql, nodes, edges)
     };
@@ -1223,7 +1256,7 @@ async fn return_full_sql_for_snapshot(
     project: Project,
     file_system: &impl quary_core::file_system::FileSystem,
     snapshot_name: String,
-    database: impl DatabaseQueryGenerator,
+    database: &impl DatabaseQueryGenerator,
     cache_view: CacheViewInformation,
 ) -> Result<ReturnFullSqlForAssetResponse, String> {
     let cache_view = cache_view.cache_view.ok_or("No cache view mode provided")?;
@@ -1233,7 +1266,7 @@ async fn return_full_sql_for_snapshot(
                 let existing_cache_views_name = cache_views
                     .cache_view_paths
                     .iter()
-                    .filter(|view| is_cache_full_path(&database, view).unwrap_or(false))
+                    .filter(|view| is_cache_full_path(database, view).unwrap_or(false))
                     .map(|cache_view_path| database.return_name_from_full_path(cache_view_path))
                     .collect::<Result<Vec<_>, String>>()?
                     .into_iter()
@@ -1259,7 +1292,7 @@ async fn return_full_sql_for_snapshot(
                     .map(|(k, v)| (k, database.return_full_path_requirement(v.as_str())))
                     .collect::<HashMap<_, _>>();
                 let (sql, _) = project_and_fs_to_query_sql(
-                    &database,
+                    database,
                     &project,
                     file_system,
                     &snapshot_name,
@@ -1267,7 +1300,7 @@ async fn return_full_sql_for_snapshot(
                 )
                 .await?;
                 let (_, (nodes, edges)) = project_and_fs_to_query_sql(
-                    &database,
+                    database,
                     &project,
                     file_system,
                     &snapshot_name,
@@ -1286,7 +1319,7 @@ async fn return_full_sql_for_snapshot(
             }
             CacheView::DoNotUse(_) => {
                 let (sql, (nodes, edges)) = project_and_fs_to_query_sql(
-                    &database,
+                    database,
                     &project,
                     file_system,
                     &snapshot_name,
@@ -1876,7 +1909,7 @@ mod tests {
             }),
         };
 
-        let response = return_full_sql_for_asset_internal(database, &file_system, request)
+        let response = return_full_sql_for_asset_internal(&database, &file_system, request)
             .await
             .unwrap();
 
@@ -1956,7 +1989,7 @@ mod tests {
             }),
         };
 
-        let response = return_full_sql_for_asset_internal(database, &file_system, request)
+        let response = return_full_sql_for_asset_internal(&database, &file_system, request)
             .await
             .unwrap();
 

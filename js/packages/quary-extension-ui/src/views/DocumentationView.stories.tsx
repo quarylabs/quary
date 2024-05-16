@@ -146,6 +146,13 @@ export const NoLimit: Story = {
   },
 }
 
+export const HideCreateSchemaButton: Story = {
+  args: {
+    ...Main.args,
+    hideCreateSchemaButton: true,
+  },
+}
+
 export const MoreResultsThanLimit: Story = {
   args: {
     ...Main.args,
