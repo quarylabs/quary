@@ -36,7 +36,7 @@ use quary_proto::{
     GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse,
     GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse,
     IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, Node,
-    ParseProjectRequest, ParseProjectResponse, Project, ProjectDag, ProjectFileColumn,
+    ParseProjectRequest, ParseProjectResponse, Project, ProjectDag, ProjectFile, ProjectFileColumn,
     ProjectFileSource, RemoveColumnTestFromModelOrSourceColumnRequest,
     RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse,
     ReturnDefinitionLocationsForSqlRequest, ReturnDefinitionLocationsForSqlResponse,
@@ -255,15 +255,9 @@ async fn update_asset_description_internal(
     ) {
         (Some(_), None, None) => {
             let project_files = parse_project_files(&file_system, &project_root, &database).await?;
-            let (file_path, project_file) = project_files
-                .iter()
-                .find(|(_, project_file)| {
-                    project_file
-                        .sources
-                        .iter()
-                        .any(|source| source.name == asset_name)
-                })
-                .ok_or(format!("Source {} not found in project files", asset_name))?;
+            let (file_path, project_file) =
+                find_source_in_project_files(project_files, &asset_name)
+                    .ok_or(format!("Source {} not found in project files", asset_name))?;
 
             let mut project_file = project_file.clone();
             project_file.sources = project_file
@@ -323,15 +317,9 @@ async fn update_asset_description_internal(
                 true => {
                     let project_files =
                         parse_project_files(&file_system, &project_root, &database).await?;
-                    let (file_path, project_file) = project_files
-                        .iter()
-                        .find(|(_, project_file)| {
-                            project_file
-                                .models
-                                .iter()
-                                .any(|model| model.name == asset_name)
-                        })
-                        .ok_or(format!("Model {} not found in project files", asset_name))?;
+                    let (file_path, project_file) =
+                        find_model_in_project_files(project_files, &asset_name)
+                            .ok_or(format!("Model {} not found in project files", asset_name))?;
 
                     let mut project_file = project_file.clone();
                     project_file.models = project_file
@@ -355,15 +343,8 @@ async fn update_asset_description_internal(
         }
         (None, None, Some(_)) => {
             let project_files = parse_project_files(&file_system, &project_root, &database).await?;
-            let (file_path, project_file) = project_files
-                .iter()
-                .find(|(_, project_file)| {
-                    project_file
-                        .snapshots
-                        .iter()
-                        .any(|snapshot: &Snapshot| snapshot.name == asset_name)
-                })
-                .ok_or(format!(
+            let (file_path, project_file) =
+                find_snapshot_in_project_files(project_files, &asset_name).ok_or(format!(
                     "Snapshot {} not found in project files",
                     asset_name
                 ))?;
@@ -419,15 +400,9 @@ async fn add_column_to_model_or_source_internal(
     ) {
         (Some(_), None) => {
             let project_files = parse_project_files(file_system, &project_root, database).await?;
-            let (file_path, project_file) = project_files
-                .iter()
-                .find(|(_, project_file)| {
-                    project_file
-                        .sources
-                        .iter()
-                        .any(|source| source.name == model_name)
-                })
-                .ok_or(format!("Source {} not found in project files", model_name))?;
+            let (file_path, project_file) =
+                find_source_in_project_files(project_files, &model_name)
+                    .ok_or(format!("Source {} not found in project files", model_name))?;
 
             let mut project_file = project_file.clone();
             let source = project_file
@@ -450,14 +425,7 @@ async fn add_column_to_model_or_source_internal(
         }
         (None, Some(_)) => {
             let project_files = parse_project_files(file_system, &project_root, database).await?;
-            let (file_path, project_file) = project_files
-                .iter()
-                .find(|(_, project_file)| {
-                    project_file
-                        .models
-                        .iter()
-                        .any(|model| model.name == model_name)
-                })
+            let (file_path, project_file) = find_model_in_project_files(project_files, &model_name)
                 .ok_or(format!("Model {} not found in project files", model_name))?;
 
             let mut project_file = project_file.clone();
@@ -490,14 +458,7 @@ async fn add_column_to_model_or_source_internal(
             .await?;
 
             let project_files = parse_project_files(file_system, &project_root, database).await?;
-            let (file_path, project_file) = project_files
-                .iter()
-                .find(|(_, project_file)| {
-                    project_file
-                        .models
-                        .iter()
-                        .any(|model| model.name == model_name)
-                })
+            let (file_path, project_file) = find_model_in_project_files(project_files, &model_name)
                 .ok_or(format!("Model {} not found in project files", model_name))?;
 
             let mut project_file = project_file.clone();
@@ -553,15 +514,9 @@ pub(crate) async fn update_model_source_column_description(
     ) {
         (Some(_), None) => {
             let project_files = parse_project_files(&file_system, &project_root, &database).await?;
-            let (file_path, project_file) = project_files
-                .iter()
-                .find(|(_, project_file)| {
-                    project_file
-                        .sources
-                        .iter()
-                        .any(|source| source.name == model_name)
-                })
-                .ok_or(format!("Source {} not found in project files", model_name))?;
+            let (file_path, project_file) =
+                find_source_in_project_files(project_files, &model_name)
+                    .ok_or(format!("Source {} not found in project files", model_name))?;
 
             let mut project_file = project_file.clone();
             let source = project_file
@@ -584,14 +539,7 @@ pub(crate) async fn update_model_source_column_description(
         }
         (None, Some(_)) => {
             let project_files = parse_project_files(&file_system, &project_root, &database).await?;
-            let (file_path, project_file) = project_files
-                .iter()
-                .find(|(_, project_file)| {
-                    project_file
-                        .models
-                        .iter()
-                        .any(|model| model.name == model_name)
-                })
+            let (file_path, project_file) = find_model_in_project_files(project_files, &model_name)
                 .ok_or(format!("Model {} not found in project files", model_name))?;
 
             let mut project_file = project_file.clone();
@@ -666,15 +614,9 @@ pub(crate) async fn add_column_test_to_model_or_source_column(
     ) {
         (Some(_), _) => {
             let project_files = parse_project_files(&file_system, &project_root, &database).await?;
-            let (file_path, project_file) = project_files
-                .iter()
-                .find(|(_, project_file)| {
-                    project_file
-                        .sources
-                        .iter()
-                        .any(|source| source.name == model_name)
-                })
-                .ok_or(format!("Source {} not found in project files", model_name))?;
+            let (file_path, project_file) =
+                find_source_in_project_files(project_files, &model_name)
+                    .ok_or(format!("Source {} not found in project files", model_name))?;
 
             let mut project_file = project_file.clone();
             let source = project_file
@@ -736,6 +678,39 @@ pub(crate) async fn add_column_test_to_model_or_source_column(
     Ok(AddColumnTestToModelOrSourceColumnResponse {})
 }
 
+fn find_source_in_project_files(
+    project_files: HashMap<String, ProjectFile>,
+    name: &str,
+) -> Option<(String, ProjectFile)> {
+    project_files.into_iter().find(|(_, project_file)| {
+        project_file
+            .sources
+            .iter()
+            .any(|source| source.name == name)
+    })
+}
+
+fn find_model_in_project_files(
+    project_files: HashMap<String, ProjectFile>,
+    name: &str,
+) -> Option<(String, ProjectFile)> {
+    project_files
+        .into_iter()
+        .find(|(_, project_file)| project_file.models.iter().any(|model| model.name == name))
+}
+
+fn find_snapshot_in_project_files(
+    project_files: HashMap<String, ProjectFile>,
+    name: &str,
+) -> Option<(String, ProjectFile)> {
+    project_files.into_iter().find(|(_, project_file)| {
+        project_file
+            .snapshots
+            .iter()
+            .any(|snapshot| snapshot.name == name)
+    })
+}
+
 pub(crate) async fn remove_column_test_from_model_or_source_column(
     database: impl DatabaseQueryGenerator,
     writer: Writer,
@@ -754,15 +729,9 @@ pub(crate) async fn remove_column_test_from_model_or_source_column(
     ) {
         (Some(_), _) => {
             let project_files = parse_project_files(&file_system, &project_root, &database).await?;
-            let (file_path, project_file) = project_files
-                .iter()
-                .find(|(_, project_file)| {
-                    project_file
-                        .sources
-                        .iter()
-                        .any(|source| source.name == model_name)
-                })
-                .ok_or(format!("Source {} not found in project files", model_name))?;
+            let (file_path, project_file) =
+                find_source_in_project_files(project_files, &model_name)
+                    .ok_or(format!("Source {} not found in project files", model_name))?;
 
             let mut project_file = project_file.clone();
             let source = project_file
@@ -786,14 +755,7 @@ pub(crate) async fn remove_column_test_from_model_or_source_column(
         }
         (_, Some(_)) => {
             let project_files = parse_project_files(&file_system, &project_root, &database).await?;
-            let (file_path, project_file) = project_files
-                .iter()
-                .find(|(_, project_file)| {
-                    project_file
-                        .models
-                        .iter()
-                        .any(|model| model.name == model_name)
-                })
+            let (file_path, project_file) = find_model_in_project_files(project_files, &model_name)
                 .ok_or(format!("Model {} not found in project files", model_name))?;
 
             let mut project_file = project_file.clone();
