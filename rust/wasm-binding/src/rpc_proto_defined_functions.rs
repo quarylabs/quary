@@ -1,4 +1,6 @@
-use crate::rpc_proto_scaffolding::{JsFileSystem, Writer};
+use std::collections::{BTreeSet, HashMap, HashSet};
+use std::path::PathBuf;
+
 use quary_core::automatic_branching::{
     cache_view_name_to_table_name_and_hash,
     given_map_and_hash_map_return_sub_graph_all_cached_for_a_particular_model, is_cache_full_path,
@@ -25,13 +27,13 @@ use quary_core::schema_name::DEFAULT_SCHEMA_PREFIX;
 use quary_core::sql_inference_translator::map_test_to_sql_inference;
 use quary_core::sql_model_finder::sql_model_finder;
 use quary_core::tests::{return_test_for_model_column, ShortTestString};
+use quary_proto::cache_view_information::CacheView;
 use quary_proto::project_file::{Model, Snapshot};
 use quary_proto::return_definition_locations_for_sql_response::Definition;
-use quary_proto::return_full_sql_for_asset_request::CacheView;
 use quary_proto::{
     AddColumnTestToModelOrSourceColumnRequest, AddColumnTestToModelOrSourceColumnResponse,
-    AddColumnToModelOrSourceRequest, AddColumnToModelOrSourceResponse, ColumnDescription,
-    CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse, Edge,
+    AddColumnToModelOrSourceRequest, AddColumnToModelOrSourceResponse, CacheViewInformation,
+    ColumnDescription, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse, Edge,
     GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest,
     GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse,
     GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse,
@@ -49,8 +51,8 @@ use quary_proto::{
 };
 use sqlinference::columns::get_columns_internal;
 use sqlinference::infer_tests::infer_tests;
-use std::collections::{BTreeSet, HashMap, HashSet};
-use std::path::PathBuf;
+
+use crate::rpc_proto_scaffolding::{JsFileSystem, Writer};
 
 pub(crate) async fn is_path_empty(
     _: Writer,
@@ -1006,7 +1008,9 @@ async fn return_full_sql_for_asset_internal(
 ) -> Result<ReturnFullSqlForAssetResponse, String> {
     let project_root = request.project_root;
     let project = quary_core::project::parse_project(file_system, &database, &project_root).await?;
-    let cache_view = request.cache_view.ok_or("No cache view mode provided")?;
+    let cache_view = request
+        .cache_view_information
+        .ok_or("No cache view mode provided")?;
 
     match (
         project.sources.get(&request.asset_name),
@@ -1109,8 +1113,9 @@ async fn return_full_sql_for_model(
     file_system: &impl quary_core::file_system::FileSystem,
     model_name: String,
     database: &impl DatabaseQueryGenerator,
-    cache_view: CacheView,
+    cache_view: CacheViewInformation,
 ) -> Result<ReturnFullSqlForAssetResponse, String> {
+    let cache_view = cache_view.cache_view.ok_or("No cache view mode provided")?;
     let (sql, nodes, edges, cached_models): (String, BTreeSet<_>, Vec<_>, HashSet<String>) =
         match cache_view {
             CacheView::CacheViewInformation(cache_views) => {
@@ -1221,8 +1226,9 @@ async fn return_full_sql_for_snapshot(
     file_system: &impl quary_core::file_system::FileSystem,
     snapshot_name: String,
     database: impl DatabaseQueryGenerator,
-    cache_view: CacheView,
+    cache_view: CacheViewInformation,
 ) -> Result<ReturnFullSqlForAssetResponse, String> {
+    let cache_view = cache_view.cache_view.ok_or("No cache view mode provided")?;
     let (sql, nodes, edges, cached_models): (String, BTreeSet<_>, Vec<_>, HashSet<String>) =
         match cache_view {
             CacheView::CacheViewInformation(cache_views) => {
@@ -1439,7 +1445,7 @@ mod tests {
     use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
     use quary_core::database_redshift::DatabaseQueryGeneratorRedshift;
     use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
-    use quary_proto::{CacheViewInformation, FileSystem};
+    use quary_proto::{CacheViewInformation, CacheViewInformationPaths, FileSystem};
     use std::cell::RefCell;
     use std::collections::HashMap;
     use std::rc::Rc;
@@ -1867,7 +1873,9 @@ mod tests {
         let request = ReturnFullSqlForAssetRequest {
             project_root: "".to_string(),
             asset_name: "orders_snapshot".to_string(),
-            cache_view: Some(CacheView::DoNotUse(Default::default())),
+            cache_view_information: Some(CacheViewInformation {
+                cache_view: Some(CacheView::DoNotUse(Default::default())),
+            }),
         };
 
         let response = return_full_sql_for_asset_internal(database, &file_system, request)
@@ -1943,9 +1951,11 @@ mod tests {
         let request = ReturnFullSqlForAssetRequest {
             project_root: "".to_string(),
             asset_name: "orders_snapshot".to_string(),
-            cache_view: Some(CacheView::CacheViewInformation(CacheViewInformation {
-                cache_view_paths: vec!["schema.qqq_orders_snapshot_e70d19a".to_string()],
-            })),
+            cache_view_information: Some(CacheViewInformation {
+                cache_view: Some(CacheView::CacheViewInformation(CacheViewInformationPaths {
+                    cache_view_paths: vec!["schema.orders_snapshot_1234".to_string()],
+                })),
+            }),
         };
 
         let response = return_full_sql_for_asset_internal(database, &file_system, request)

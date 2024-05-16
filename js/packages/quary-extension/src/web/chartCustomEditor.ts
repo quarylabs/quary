@@ -383,9 +383,11 @@ export class ChartEditorProvider
             const sql = await services.rust.return_full_sql_for_asset({
               projectRoot: setupValues.value.projectRoot,
               assetName: chartFile.source.reference.name,
-              cacheView: {
-                $case: 'doNotUse',
-                doNotUse: {},
+              cacheViewInformation: {
+                cacheView: {
+                  $case: 'doNotUse',
+                  doNotUse: {},
+                },
               },
             })
             if (isErr(sql)) {
