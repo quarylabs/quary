@@ -92,7 +92,16 @@ function App() {
       )
     }
     case 'docsView': {
-      const { results, tags, description, modelName, limit, dag, table } = view
+      const {
+        results,
+        tags,
+        description,
+        modelName,
+        limit,
+        dag,
+        table,
+        isModelInSchema,
+      } = view
       return (
         <DocumentationView
           modelName={modelName}
@@ -102,6 +111,7 @@ function App() {
           tags={tags}
           limit={limit}
           dag={dag}
+          hideCreateSchemaButton={isModelInSchema}
         />
       )
     }

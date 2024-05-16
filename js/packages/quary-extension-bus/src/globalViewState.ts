@@ -4,11 +4,11 @@ import { ProjectDag } from '@quary/proto/quary/service/v1/project_dag'
 import { ListAssetsResponse_Asset } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { Project } from '@quary/proto/quary/service/v1/project'
 import { TestRunner } from '@quary/proto/quary/service/v1/test_runner'
-import { Table } from '@quary/proto/quary/service/v1/table'
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
+import { Table } from '@quary/proto/quary/service/v1/table'
 
 /**
  * The message type that is sent to the webview when the global state is set.
@@ -91,6 +91,7 @@ export type View =
       limit?: number
       dag: Dag
       table: Table | null
+      isModelInSchema: boolean
     }
   | {
       type: 'importSources'

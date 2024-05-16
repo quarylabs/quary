@@ -39,6 +39,11 @@ service RustWithDatabaseService {
   rpc ParseProject(ParseProjectRequest) returns (ParseProjectResponse);
   // RenderSchema renderSchema returns the sql to create the views for the seeds and the models but without any data
   rpc RenderSchema(RenderSchemaRequest) returns (RenderSchemaResponse);
+  // ReturnDataForDocView returns the data for the doc view for the given asset. It also includes the dag and columns
+  // and descriptions as well. At the moment it is a wrapper of ReturnFullSqlForAsset but we are moving towards making
+  // the extension "dumber" and so this will be the only way to get the data for the doc view and more logic will move
+  // WASM.
+  rpc ReturnDataForDocView(ReturnDataForDocViewRequest) returns (ReturnDataForDocViewResponse);
   // ReturnFullSqlForAsset returns the sql to create the view for the given asset. It also returns the dag and the
   // columns as well as the description for the asset.
   rpc ReturnFullSqlForAsset(ReturnFullSqlForAssetRequest) returns (ReturnFullSqlForAssetResponse);
@@ -163,6 +168,29 @@ message ReturnSQLForSeedsAndModelsResponse {
   Project project = 2;
 }
 
+message ReturnFullProjectDagRequest {
+  string project_root = 2;
+}
+
+message ReturnFullProjectDagResponse {
+  ProjectDag dag = 1;
+}
+
+message ReturnDataForDocViewRequest {
+  string project_root = 1;
+  string asset_name = 2;
+  // cache_view defines whether or not to use the cached views in the returned sql and dag.
+  CacheViewInformation cache_view_information = 3;
+}
+
+message ReturnDataForDocViewResponse {
+  string full_sql = 1;
+  optional string description = 2;
+  ProjectDag dag = 3;
+  repeated ColumnDescription columns = 4;
+  bool is_asset_in_schema_files = 5;
+}
+
 message ReturnFullSqlForAssetRequest {
   string project_root = 1;
   string asset_name = 2;
@@ -179,14 +207,6 @@ message CacheViewInformation {
 
 message CacheViewInformationPaths {
   repeated string cache_view_paths = 1;
-}
-
-message ReturnFullProjectDagRequest {
-  string project_root = 1;
-}
-
-message ReturnFullProjectDagResponse {
-  ProjectDag dag = 1;
 }
 
 message ReturnFullSqlForAssetResponse {

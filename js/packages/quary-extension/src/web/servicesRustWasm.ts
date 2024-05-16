@@ -63,6 +63,7 @@ export const rustWithDatabaseWasmServices = (
     parse_project: wrapper(client.ParseProject),
     render_schema: wrapper(client.RenderSchema),
     list_assets: wrapper(client.ListAssets),
+    return_data_for_doc_view: wrapper(client.ReturnDataForDocView),
     return_sql_for_seeds_and_models: wrapper(client.ReturnSQLForSeedsAndModels),
     return_full_sql_for_asset: wrapper(client.ReturnFullSqlForAsset),
     getModelTable: wrapper(client.GetModelTable),

@@ -4,12 +4,7 @@ import { Err, isErr, Ok, Result } from '@shared/result'
 import * as Papa from 'papaparse'
 import { useCallBackBackEnd } from '@shared/callBacks'
 import * as vscode from 'vscode'
-import {
-  CacheViewInformationPaths,
-  ListAssetsResponse_Asset,
-  ReturnFullSqlForAssetRequest,
-} from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
-import { Empty } from '@quary/proto/google/protobuf/empty'
+import { ListAssetsResponse_Asset } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { queryResultToColumnsValues } from '@shared/shared'
 import { rustWithoutDatabaseWasmServices } from './servicesRustWasm'
 import { Services } from './services'
