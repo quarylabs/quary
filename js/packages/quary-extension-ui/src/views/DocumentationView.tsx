@@ -46,6 +46,7 @@ interface Props {
   tags: string[]
   table: Table | null
   results: SqlDocumentationResultsView
+  hideCreateSchemaButton: boolean
 }
 
 export const DocumentationView: React.FC<Props> = ({
@@ -56,6 +57,7 @@ export const DocumentationView: React.FC<Props> = ({
   description: activeDescription,
   tags,
   table,
+  hideCreateSchemaButton,
 }) => {
   const {
     documentationViewRunSqlQuery,
@@ -104,17 +106,19 @@ export const DocumentationView: React.FC<Props> = ({
             </div>
           </PageTitle>
           <div className="flex gap-3">
-            <Button
-              onClick={() => {
-                documentationViewAddToSchema(null)
-              }}
-              variant="default"
-              size="sm"
-              className=" border-dashed"
-            >
-              <PlusCircleIcon className="mr-2 h-4 w-4" />
-              Add to Schema
-            </Button>
+            {!hideCreateSchemaButton && (
+              <Button
+                onClick={() => {
+                  documentationViewAddToSchema(null)
+                }}
+                variant="default"
+                size="sm"
+                className=" border-dashed"
+              >
+                <PlusCircleIcon className="mr-2 h-4 w-4" />
+                Add to Schema
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => {

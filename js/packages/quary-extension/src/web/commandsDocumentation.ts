@@ -34,6 +34,7 @@ const getModelDetails = async ({
     limitedSQL: string
     table: Table | null
     dag: Dag
+    isModelInSchema: boolean
   }>
 > => {
   const modelsResponse = await services.rust.list_assets({
@@ -64,7 +65,24 @@ const getModelDetails = async ({
       ),
     )
   }
+<<<<<<< HEAD
   const fullDetails = await services.rust.return_full_sql_for_asset({
+=======
+  if (services.database.returnDatabaseConfiguration().lookForCacheViews) {
+    const tables = await services.database.listViews()
+    if (isErr(tables)) {
+      return Err(new Error(`Error listing tables: ${tables.error}`))
+    }
+    cacheView = {
+      $case: 'cacheViewInformation',
+      cacheViewInformation: CacheViewInformation.create({
+        cacheViewPaths: tables.value.map((table) => table.fullPath),
+      }),
+    }
+  }
+
+  const fullDetails = await services.rust.return_data_for_doc_view({
+>>>>>>> 57ffd1d (feat: refactor finding whether in project files)
     projectRoot,
     assetName: asset.name,
     cacheViewInformation: cacheViewInformation.value,
@@ -91,6 +109,7 @@ const getModelDetails = async ({
     },
     table,
     model: asset,
+    isModelInSchema: fullDetails.value.isAssetInSchemaFiles,
   })
 }
 
@@ -114,7 +133,8 @@ const extractBaseViewFromModelDetails = async ({
   if (isErr(modelDetails)) {
     return Err(new Error(`error getting model details ${modelDetails.error}`))
   }
-  const { limit, dag, table, model, limitedSQL } = modelDetails.value
+  const { limit, dag, table, model, limitedSQL, isModelInSchema } =
+    modelDetails.value
   const sqlDocumentation: View = {
     type: 'docsView',
     modelName: model.name,
@@ -127,6 +147,7 @@ const extractBaseViewFromModelDetails = async ({
     dag,
     tags: model.tags,
     table,
+    isModelInSchema,
   }
   return Ok({ sqlDocumentation, limitedSQL }) satisfies Result<{
     sqlDocumentation: View

@@ -41,6 +41,7 @@ use quary_proto::{
     ParseProjectRequest, ParseProjectResponse, Project, ProjectDag, ProjectFile, ProjectFileColumn,
     ProjectFileSource, RemoveColumnTestFromModelOrSourceColumnRequest,
     RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse,
+    ReturnDataForDocViewRequest, ReturnDataForDocViewResponse,
     ReturnDefinitionLocationsForSqlRequest, ReturnDefinitionLocationsForSqlResponse,
     ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest,
     ReturnFullSqlForAssetResponse, ReturnSqlForInjectedModelRequest,
@@ -989,6 +990,23 @@ pub(crate) async fn return_sql_for_seeds_and_models(
     Ok(ReturnSqlForSeedsAndModelsResponse {
         sql,
         project: Some(project),
+    })
+}
+
+pub(crate) async fn return_data_for_doc_view(
+    database: impl DatabaseQueryGenerator,
+    _: Writer,
+    file_system: JsFileSystem,
+    request: ReturnDataForDocViewRequest,
+) -> Result<ReturnDataForDocViewResponse, String> {
+    let data = return_full_sql_for_asset_internal(database, &file_system, request).await?;
+
+    Ok(ReturnDataForDocViewResponse {
+        full_sql: data.full_sql,
+        description: data.description,
+        dag: data.dag,
+        columns: data.columns,
+        // is_asset_in_schema_files: false,
     })
 }
 
