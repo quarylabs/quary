@@ -92,12 +92,11 @@ function App() {
       )
     }
     case 'sqlDocumentation': {
-      const { results, tags, documentation, modelName, limit, dag, table } =
-        view
+      const { results, tags, description, modelName, limit, dag, table } = view
       return (
         <DocumentationView
           modelName={modelName}
-          description={documentation || undefined}
+          description={description || undefined}
           results={results}
           table={table}
           tags={tags}
