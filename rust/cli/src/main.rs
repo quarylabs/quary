@@ -32,6 +32,7 @@ use quary_proto::{
     failed, passed, ColumnTest, ConnectionConfig, ProjectFile, ProjectFileColumn,
     ProjectFileSource, TableAddress,
 };
+
 use std::fs;
 use std::fs::File;
 use std::io::Write;
@@ -154,51 +155,43 @@ async fn main_wrapped() -> Result<(), String> {
             let query_generator = database.query_generator();
             let (project, file_system) = parse_project(&query_generator).await?;
 
-            // If cache table deletes any previous cache views.
-            let cache_delete_views_sqls: Vec<(String, String)> = if build_args.cache_views {
-                let views = database
-                    .list_local_views()
-                    .await
-                    .map_err(|e| format!("listing views: {:?}", e))?;
-                let views_with_is_cache = views
-                    .into_iter()
-                    .map(|view| {
-                        let is_cache =
-                            is_cache_full_path(&database.query_generator(), &view.full_path)?;
-                        Ok((view, is_cache))
-                    })
-                    .collect::<Result<Vec<_>, String>>()?;
-
-                let filtered_views = views_with_is_cache
-                    .into_iter()
-                    .filter_map(|(view, is_cache)| if is_cache { Some(view) } else { None })
-                    .collect::<Vec<_>>();
-                let views_with_delete_statements: Vec<(String, String)> = filtered_views
-                    .into_iter()
-                    .map(|view| {
-                        let delete_statement = drop_statement_for_cache_view(&view.full_path)?;
-                        Ok((view.name, delete_statement))
-                    })
-                    .collect::<Result<Vec<(String, String)>, String>>()?;
-
-                Ok::<_, String>(views_with_delete_statements)
-            } else {
-                Ok(vec![])
-            }?;
-
-            let cache_to_create: Vec<(String, Vec<String>)> = if build_args.cache_views {
-                let project_graph = project_to_graph(project.clone())?;
-                let views =
-                    derive_hash_views(&database.query_generator(), &project, &project_graph)?;
-                Ok::<_, String>(
-                    views
+            let (drop_cache_views_sqls, create_cache_views_sqls) = match build_args.cache_views {
+                true => {
+                    // list all views in the target schema
+                    let views = database
+                        .list_local_views()
+                        .await
+                        .map_err(|e| format!("listing views: {:?}", e))?;
+                    // filter out views that are cache views & store the drop statements
+                    let drop_cache_views_sqls = views
                         .into_iter()
-                        .map(|(name, (_, sql))| (name.to_string(), sql))
-                        .collect(),
-                )
-            } else {
-                Ok(vec![])
-            }?;
+                        .filter_map(|view| {
+                            is_cache_full_path(&query_generator, &view.full_path)
+                                .ok()
+                                .and_then(|is_cache| {
+                                    if is_cache {
+                                        drop_statement_for_cache_view(&view.full_path)
+                                            .ok()
+                                            .map(|sql| (view.name, sql))
+                                    } else {
+                                        None
+                                    }
+                                })
+                        })
+                        .collect::<Vec<_>>();
+
+                    // derive cache views to create from the project
+                    let project_graph = project_to_graph(project.clone())?;
+                    let create_cache_views_sqls =
+                        derive_hash_views(&query_generator, &project, &project_graph)?
+                            .into_iter()
+                            .map(|(name, (_, sql))| (name.to_string(), sql))
+                            .collect();
+
+                    (drop_cache_views_sqls, create_cache_views_sqls)
+                }
+                false => (vec![], vec![]),
+            };
 
             let sqls = project_and_fs_to_sql_for_views(
                 &project,
@@ -209,82 +202,170 @@ async fn main_wrapped() -> Result<(), String> {
             )
             .await?;
 
-            if build_args.dry_run {
-                if !cache_delete_views_sqls.is_empty() {
-                    println!("\n-- Delete cache views\n");
-                    for (name, sql) in cache_delete_views_sqls {
-                        println!("-- {}", name);
-                        println!("{};", sql);
-                    }
+            let (models_to_build, models_skipped) = match build_args.incremental {
+                true => {
+                    println!("⚡️ running incremental build");
+                    // compute the cached view names in the project
+                    let project_graph = project_to_graph(project.clone())?;
+                    let project_cache_views =
+                        derive_hash_views(&database.query_generator(), &project, &project_graph)?;
+
+                    // retrieve the existing cache views in the database
+                    let existing_views = database
+                        .list_local_views()
+                        .await
+                        .map_err(|e| format!("listing views: {:?}", e))?;
+                    let existing_cache_views = existing_views
+                        .into_iter()
+                        .filter_map(|view| {
+                            if is_cache_full_path(&database.query_generator(), &view.full_path)
+                                .unwrap_or(false)
+                            {
+                                Some(view)
+                            } else {
+                                None
+                            }
+                        })
+                        .collect::<Vec<_>>();
+
+                    let existing_cache_views_names = existing_cache_views
+                        .iter()
+                        .map(|table_address| table_address.name.clone())
+                        .collect::<Vec<String>>();
+
+                    let (filtered_sqls, models_skipped): (Vec<(String, Vec<String>)>, Vec<String>) =
+                        sqls.into_iter().fold(
+                            (Vec::new(), Vec::new()),
+                            |(mut filtered_sqls, mut models_skipped),
+                             (model_name, sql_commands)| {
+                                match project_cache_views.get(model_name.as_str()) {
+                                    Some((cache_name, _))
+                                        if !existing_cache_views_names.contains(cache_name) =>
+                                    {
+                                        // If the cache view does not exist, build it
+                                        filtered_sqls.push((model_name.clone(), sql_commands));
+                                    }
+                                    Some(_) => {
+                                        // If the cache view exists, skip this model
+                                        models_skipped.push(model_name.clone());
+                                    }
+                                    None => {
+                                        // If there's no cache entry at all, build it
+                                        filtered_sqls.push((model_name.clone(), sql_commands));
+                                    }
+                                }
+                                (filtered_sqls, models_skipped)
+                            },
+                        );
+                    (filtered_sqls, models_skipped)
                 }
-                println!("\n-- Create models\n");
-                for (name, sql) in sqls {
-                    println!("\n-- {name}");
-                    for sql in sql {
-                        println!("{};", sql);
+                false => (sqls.clone(), vec![]),
+            };
+
+            match build_args.dry_run {
+                true => {
+                    println!("--- Dry Run Mode ---");
+                    println!();
+                    println!("=== Models ===");
+                    for (name, sql_vec) in &models_to_build {
+                        println!("Model: {}", name);
+                        for sql in sql_vec {
+                            println!("  {}", sql);
+                        }
+                        println!();
                     }
-                }
-                if !cache_to_create.is_empty() {
-                    println!("\n-- Create cache views\n");
-                    for (name, sql) in &cache_to_create {
-                        println!("-- {}", name);
-                        for sql in sql {
-                            println!("{};", sql);
+
+                    if !drop_cache_views_sqls.is_empty() {
+                        println!("=== Drop Cache Views ===");
+                        for (drop_name, drop_sql) in &drop_cache_views_sqls {
+                            println!("View: {}", drop_name);
+                            println!("  {}", drop_sql);
+                            println!();
                         }
                     }
+
+                    if !create_cache_views_sqls.is_empty() {
+                        println!("=== Create Cache Views ===");
+                        for (create_name, create_sql_vec) in &create_cache_views_sqls {
+                            println!("View: {}", create_name);
+                            for create_sql in create_sql_vec {
+                                println!("  {}", create_sql);
+                            }
+                            println!();
+                        }
+                    }
+
+                    println!("Dry run completed. No changes made to the database.");
+
+                    Ok(())
                 }
-                Ok(())
-            } else {
-                let total_number_of_sql_statements = cache_delete_views_sqls.len()
-                    + sqls.iter().map(|(_, sqls)| sqls.len()).sum::<usize>()
-                    + cache_to_create.len();
-                let pb = ProgressBar::new(total_number_of_sql_statements as u64);
-                pb.set_style(
-                    ProgressStyle::default_bar()
-                        .template("{spinner:.green} {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
-                        .map_err(|e| e.to_string())?
-                        .progress_chars("=>-"),
-                );
-                for (name, sql) in cache_delete_views_sqls {
-                    pb.set_message(format!("Building model: {}", name));
-                    pb.inc(1);
-                    database.exec(sql.as_str()).await.map_err(|e| {
-                        format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
-                    })?
-                }
-                for (name, sql) in &sqls {
-                    for sql in sql {
+                false => {
+                    let total_number_of_sql_statements = drop_cache_views_sqls.len()
+                        + create_cache_views_sqls.len()
+                        + models_to_build
+                            .iter()
+                            .map(|(_, model_to_build_sqls)| model_to_build_sqls.len())
+                            .sum::<usize>();
+
+                    let pb = ProgressBar::new(total_number_of_sql_statements as u64);
+                    pb.set_style(
+                        ProgressStyle::default_bar()
+                            .template("{spinner:.green} {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
+                            .map_err(|e| e.to_string())?
+                            .progress_chars("=>-"),
+                    );
+                    for (name, sql) in drop_cache_views_sqls {
                         pb.set_message(format!("Building model: {}", name));
                         pb.inc(1);
                         database.exec(sql.as_str()).await.map_err(|e| {
                             format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
                         })?
                     }
-                }
-                for (name, sql) in &cache_to_create {
-                    pb.inc(1);
-                    pb.set_message(name.to_string());
-                    for sql in sql {
-                        database.exec(sql.as_str()).await.map_err(|e| {
-                            format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
-                        })?
+                    for (name, sql) in &models_to_build {
+                        for sql in sql {
+                            pb.set_message(format!("Building model: {}", name));
+                            pb.inc(1);
+                            database.exec(sql.as_str()).await.map_err(|e| {
+                                format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
+                            })?
+                        }
                     }
-                }
-                pb.finish_with_message("done");
-                match sqls.len() {
-                    0 => println!("No models to build"),
-                    1 => println!("Created 1 model in the database"),
-                    n => println!("Created {} models in the database", n),
-                }
+                    for (name, sql) in &create_cache_views_sqls {
+                        pb.inc(1);
+                        pb.set_message(name.to_string());
+                        for sql in sql {
+                            database.exec(sql.as_str()).await.map_err(|e| {
+                                format!("executing sql for model '{}': {:?} {:?}", name, sql, e)
+                            })?
+                        }
+                    }
+                    pb.finish_with_message("done");
 
-                if build_args.cache_views {
-                    match cache_to_create.len() {
-                        0 => println!("No cache views to build"),
-                        1 => println!("Created 1 cache view in the database"),
-                        n => println!("Created {} cache views in the database", n),
+                    let models_skipped = if build_args.incremental {
+                        match models_skipped.len() {
+                            0 => "| 0 models skipped".to_string(),
+                            1 => "| 1 model skipped".to_string(),
+                            n => format!("| {} models skipped", n),
+                        }
+                    } else {
+                        "".to_string()
+                    };
+
+                    match models_to_build.len() {
+                        0 => println!("No models to build {}", models_skipped),
+                        1 => println!("Created 1 model in the database {}", models_skipped),
+                        n => println!("Created {} models in the database {}", n, models_skipped),
                     }
+
+                    if build_args.cache_views {
+                        match create_cache_views_sqls.len() {
+                            0 => println!("No cache views to build"),
+                            1 => println!("Created 1 cache view in the database"),
+                            n => println!("Created {} cache views in the database", n),
+                        }
+                    }
+                    Ok(())
                 }
-                Ok(())
             }
         }
         Commands::Test(test_args) => {
