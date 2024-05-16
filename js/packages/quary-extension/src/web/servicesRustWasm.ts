@@ -7,7 +7,6 @@ import {
 } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
 import { TestResults } from '@quary/proto/quary/service/v1/test_results'
-import { Project } from '@quary/proto/quary/service/v1/project'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import {
   add_limit_to_select,
