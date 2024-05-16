@@ -1,7 +1,6 @@
 import * as vscode from 'vscode'
 import { isErr, Result, Ok, Err } from '@shared/result'
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
-import { Project } from '@quary/proto/quary/service/v1/project'
 import { ServicesDatabase } from './servicesDatabase'
 import { ServicesFiles, vsCodeWebFiles } from './servicesFiles'
 import {
