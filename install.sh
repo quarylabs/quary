@@ -6,8 +6,8 @@ readonly GREEN="$(tput setaf 2 2>/dev/null || echo '')"
 readonly CYAN="$(tput setaf 6 2>/dev/null || echo '')"
 readonly NO_COLOR="$(tput sgr0 2>/dev/null || echo '')"
 
-if ! command -v tar >/dev/null 2>&1; then
-    echo "Error: tar is required to install quary."
+if ! command -v unzip >/dev/null 2>&1; then
+    echo "Error: unzip is required to install quary."
     exit 1
 fi
 
@@ -54,7 +54,7 @@ DOWNLOAD_URL=`echo $DOWNLOAD_URL | tr -d '\"'`
 curl -SL $DOWNLOAD_URL -o /tmp/$ASSET_NAME
 
 # Extract the asset
-tar -xzf /tmp/$ASSET_NAME -C /tmp
+unzip -xzf /tmp/$ASSET_NAME -C /tmp
 
 # Set the correct permissions for the binary
 chmod +x /tmp/quary
