@@ -91,7 +91,7 @@ function App() {
         />
       )
     }
-    case 'sqlDocumentation': {
+    case 'docsView': {
       const { results, tags, description, modelName, limit, dag, table } = view
       return (
         <DocumentationView

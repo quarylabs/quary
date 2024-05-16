@@ -82,7 +82,7 @@ export type View =
       projectFile: string
     }
   | {
-      type: 'sqlDocumentation'
+      type: 'docsView'
       modelName: string
       description: string | null
       tags: string[]
