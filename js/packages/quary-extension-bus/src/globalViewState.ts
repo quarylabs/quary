@@ -84,7 +84,7 @@ export type View =
   | {
       type: 'sqlDocumentation'
       modelName: string
-      documentation: string | null
+      description: string | null
       tags: string[]
       language: SqlLanguage
       results: SqlDocumentationResultsView
