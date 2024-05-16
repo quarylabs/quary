@@ -999,7 +999,16 @@ pub(crate) async fn return_data_for_doc_view(
     file_system: JsFileSystem,
     request: ReturnDataForDocViewRequest,
 ) -> Result<ReturnDataForDocViewResponse, String> {
-    let data = return_full_sql_for_asset_internal(database, &file_system, request).await?;
+    let data = return_full_sql_for_asset_internal(
+        database,
+        &file_system,
+        ReturnFullSqlForAssetRequest {
+            project_root: request.project_root,
+            asset_name: request.asset_name,
+            cache_view: request.cache_view,
+        },
+    )
+    .await?;
 
     Ok(ReturnDataForDocViewResponse {
         full_sql: data.full_sql,
