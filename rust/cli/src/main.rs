@@ -226,7 +226,7 @@ async fn main_wrapped() -> Result<(), String> {
                 }
                 if !cache_to_create.is_empty() {
                     println!("\n-- Create cache views\n");
-                    for (name, sql) in cache_to_create {
+                    for (name, sql) in &cache_to_create {
                         println!("-- {}", name);
                         for sql in sql {
                             println!("{};", sql);
@@ -261,7 +261,7 @@ async fn main_wrapped() -> Result<(), String> {
                         })?
                     }
                 }
-                for (name, sql) in cache_to_create {
+                for (name, sql) in &cache_to_create {
                     pb.inc(1);
                     pb.set_message(name.to_string());
                     for sql in sql {
@@ -275,6 +275,14 @@ async fn main_wrapped() -> Result<(), String> {
                     0 => println!("No models to build"),
                     1 => println!("Created 1 model in the database"),
                     n => println!("Created {} models in the database", n),
+                }
+
+                if build_args.cache_views {
+                    match cache_to_create.len() {
+                        0 => println!("No cache views to build"),
+                        1 => println!("Created 1 cache view in the database"),
+                        n => println!("Created {} cache views in the database", n),
+                    }
                 }
                 Ok(())
             }
