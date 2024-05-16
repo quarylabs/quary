@@ -127,7 +127,7 @@ const extractBaseViewFromModelDetails = async ({
   const sqlDocumentation: View = {
     type: 'sqlDocumentation',
     modelName: model.name,
-    documentation: model.description || null,
+    description: model.description || null,
     results: {
       type: 'loading',
     },
