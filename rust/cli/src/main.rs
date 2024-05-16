@@ -199,6 +199,7 @@ async fn main_wrapped() -> Result<(), String> {
             } else {
                 Ok(vec![])
             }?;
+            let cache_to_create_len = cache_to_create.len();
 
             let sqls = project_and_fs_to_sql_for_views(
                 &project,
@@ -275,6 +276,13 @@ async fn main_wrapped() -> Result<(), String> {
                     0 => println!("No models to build"),
                     1 => println!("Created 1 model in the database"),
                     n => println!("Created {} models in the database", n),
+                }
+                if build_args.cache_views {
+                    match cache_to_create_len {
+                        0 => println!("No cache views to build"),
+                        1 => println!("Created 1 cache view in the database"),
+                        n => println!("Created {} cache views in the database", n),
+                    }
                 }
                 Ok(())
             }
