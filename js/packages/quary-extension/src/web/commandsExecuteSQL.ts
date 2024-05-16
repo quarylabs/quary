@@ -15,6 +15,7 @@ import { rustWithoutDatabaseWasmServices } from './servicesRustWasm'
 import { Services } from './services'
 import { renderingFunction } from './commandsScaffolding'
 import { DEFAULT_LIMIT_FOR_SELECT } from './defaults'
+import { cacheViewBuilder } from './cacheViewBuilder'
 
 const getModelDetails = async ({
   services,
@@ -48,32 +49,18 @@ const getModelDetails = async ({
     return Err(new Error(`model could not be found for ${modelName}`))
   }
 
-  let cacheViewInformation: ReturnFullSqlForAssetRequest['cacheViewInformation'] =
-    {
-      cacheView: {
-        $case: 'doNotUse',
-        doNotUse: Empty.create({}),
-      },
-    }
-  if (services.database.returnDatabaseConfiguration().lookForCacheViews) {
-    const tables = await services.database.listViews()
-    if (isErr(tables)) {
-      return Err(new Error(`Error listing tables: ${tables.error}`))
-    }
-    cacheViewInformation = {
-      cacheView: {
-        $case: 'cacheViewInformation',
-        cacheViewInformation: CacheViewInformationPaths.create({
-          cacheViewPaths: tables.value.map((table) => table.fullPath),
-        }),
-      },
-    }
+  const cacheViewInformation = await cacheViewBuilder(services.database)
+  if (isErr(cacheViewInformation)) {
+    return Err(
+      new Error(
+        `Error getting cache view information: ${cacheViewInformation.error}`,
+      ),
+    )
   }
-
   const fullDetails = await services.rust.return_full_sql_for_asset({
     projectRoot,
     assetName: asset.name,
-    cacheViewInformation,
+    cacheViewInformation: cacheViewInformation.value,
   })
 
   if (isErr(fullDetails)) {
