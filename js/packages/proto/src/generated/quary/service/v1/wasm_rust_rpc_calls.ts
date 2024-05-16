@@ -149,6 +149,29 @@ export interface ReturnSQLForSeedsAndModelsResponse {
   project: Project | undefined;
 }
 
+export interface ReturnFullProjectDagRequest {
+  projectRoot: string;
+}
+
+export interface ReturnFullProjectDagResponse {
+  dag: ProjectDag | undefined;
+}
+
+export interface ReturnDataForDocViewRequest {
+  projectRoot: string;
+  assetName: string;
+  /** cache_view defines whether or not to use the cached views in the returned sql and dag. */
+  cacheViewInformation: CacheViewInformation | undefined;
+}
+
+export interface ReturnDataForDocViewResponse {
+  fullSql: string;
+  description?: string | undefined;
+  dag: ProjectDag | undefined;
+  columns: ColumnDescription[];
+  isAssetInSchemaFiles: boolean;
+}
+
 export interface ReturnFullSqlForAssetRequest {
   projectRoot: string;
   assetName: string;
@@ -165,14 +188,6 @@ export interface CacheViewInformation {
 
 export interface CacheViewInformationPaths {
   cacheViewPaths: string[];
-}
-
-export interface ReturnFullProjectDagRequest {
-  projectRoot: string;
-}
-
-export interface ReturnFullProjectDagResponse {
-  dag: ProjectDag | undefined;
 }
 
 export interface ReturnFullSqlForAssetResponse {
@@ -1448,6 +1463,332 @@ export const ReturnSQLForSeedsAndModelsResponse = {
   },
 };
 
+function createBaseReturnFullProjectDagRequest(): ReturnFullProjectDagRequest {
+  return { projectRoot: "" };
+}
+
+export const ReturnFullProjectDagRequest = {
+  encode(message: ReturnFullProjectDagRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.projectRoot !== "") {
+      writer.uint32(18).string(message.projectRoot);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnFullProjectDagRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnFullProjectDagRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.projectRoot = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnFullProjectDagRequest {
+    return { projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "" };
+  },
+
+  toJSON(message: ReturnFullProjectDagRequest): unknown {
+    const obj: any = {};
+    if (message.projectRoot !== "") {
+      obj.projectRoot = message.projectRoot;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnFullProjectDagRequest>, I>>(base?: I): ReturnFullProjectDagRequest {
+    return ReturnFullProjectDagRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnFullProjectDagRequest>, I>>(object: I): ReturnFullProjectDagRequest {
+    const message = createBaseReturnFullProjectDagRequest();
+    message.projectRoot = object.projectRoot ?? "";
+    return message;
+  },
+};
+
+function createBaseReturnFullProjectDagResponse(): ReturnFullProjectDagResponse {
+  return { dag: undefined };
+}
+
+export const ReturnFullProjectDagResponse = {
+  encode(message: ReturnFullProjectDagResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.dag !== undefined) {
+      ProjectDag.encode(message.dag, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnFullProjectDagResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnFullProjectDagResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.dag = ProjectDag.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnFullProjectDagResponse {
+    return { dag: isSet(object.dag) ? ProjectDag.fromJSON(object.dag) : undefined };
+  },
+
+  toJSON(message: ReturnFullProjectDagResponse): unknown {
+    const obj: any = {};
+    if (message.dag !== undefined) {
+      obj.dag = ProjectDag.toJSON(message.dag);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnFullProjectDagResponse>, I>>(base?: I): ReturnFullProjectDagResponse {
+    return ReturnFullProjectDagResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnFullProjectDagResponse>, I>>(object: I): ReturnFullProjectDagResponse {
+    const message = createBaseReturnFullProjectDagResponse();
+    message.dag = (object.dag !== undefined && object.dag !== null) ? ProjectDag.fromPartial(object.dag) : undefined;
+    return message;
+  },
+};
+
+function createBaseReturnDataForDocViewRequest(): ReturnDataForDocViewRequest {
+  return { projectRoot: "", assetName: "", cacheViewInformation: undefined };
+}
+
+export const ReturnDataForDocViewRequest = {
+  encode(message: ReturnDataForDocViewRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.projectRoot !== "") {
+      writer.uint32(10).string(message.projectRoot);
+    }
+    if (message.assetName !== "") {
+      writer.uint32(18).string(message.assetName);
+    }
+    if (message.cacheViewInformation !== undefined) {
+      CacheViewInformation.encode(message.cacheViewInformation, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnDataForDocViewRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnDataForDocViewRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.projectRoot = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.assetName = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.cacheViewInformation = CacheViewInformation.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnDataForDocViewRequest {
+    return {
+      projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
+      assetName: isSet(object.assetName) ? gt.String(object.assetName) : "",
+      cacheViewInformation: isSet(object.cacheViewInformation)
+        ? CacheViewInformation.fromJSON(object.cacheViewInformation)
+        : undefined,
+    };
+  },
+
+  toJSON(message: ReturnDataForDocViewRequest): unknown {
+    const obj: any = {};
+    if (message.projectRoot !== "") {
+      obj.projectRoot = message.projectRoot;
+    }
+    if (message.assetName !== "") {
+      obj.assetName = message.assetName;
+    }
+    if (message.cacheViewInformation !== undefined) {
+      obj.cacheViewInformation = CacheViewInformation.toJSON(message.cacheViewInformation);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnDataForDocViewRequest>, I>>(base?: I): ReturnDataForDocViewRequest {
+    return ReturnDataForDocViewRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnDataForDocViewRequest>, I>>(object: I): ReturnDataForDocViewRequest {
+    const message = createBaseReturnDataForDocViewRequest();
+    message.projectRoot = object.projectRoot ?? "";
+    message.assetName = object.assetName ?? "";
+    message.cacheViewInformation = (object.cacheViewInformation !== undefined && object.cacheViewInformation !== null)
+      ? CacheViewInformation.fromPartial(object.cacheViewInformation)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseReturnDataForDocViewResponse(): ReturnDataForDocViewResponse {
+  return { fullSql: "", description: undefined, dag: undefined, columns: [], isAssetInSchemaFiles: false };
+}
+
+export const ReturnDataForDocViewResponse = {
+  encode(message: ReturnDataForDocViewResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.fullSql !== "") {
+      writer.uint32(10).string(message.fullSql);
+    }
+    if (message.description !== undefined) {
+      writer.uint32(18).string(message.description);
+    }
+    if (message.dag !== undefined) {
+      ProjectDag.encode(message.dag, writer.uint32(26).fork()).ldelim();
+    }
+    for (const v of message.columns) {
+      ColumnDescription.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.isAssetInSchemaFiles !== false) {
+      writer.uint32(40).bool(message.isAssetInSchemaFiles);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnDataForDocViewResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnDataForDocViewResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.fullSql = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.dag = ProjectDag.decode(reader, reader.uint32());
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.columns.push(ColumnDescription.decode(reader, reader.uint32()));
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.isAssetInSchemaFiles = reader.bool();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnDataForDocViewResponse {
+    return {
+      fullSql: isSet(object.fullSql) ? gt.String(object.fullSql) : "",
+      description: isSet(object.description) ? gt.String(object.description) : undefined,
+      dag: isSet(object.dag) ? ProjectDag.fromJSON(object.dag) : undefined,
+      columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => ColumnDescription.fromJSON(e)) : [],
+      isAssetInSchemaFiles: isSet(object.isAssetInSchemaFiles) ? gt.Boolean(object.isAssetInSchemaFiles) : false,
+    };
+  },
+
+  toJSON(message: ReturnDataForDocViewResponse): unknown {
+    const obj: any = {};
+    if (message.fullSql !== "") {
+      obj.fullSql = message.fullSql;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.dag !== undefined) {
+      obj.dag = ProjectDag.toJSON(message.dag);
+    }
+    if (message.columns?.length) {
+      obj.columns = message.columns.map((e) => ColumnDescription.toJSON(e));
+    }
+    if (message.isAssetInSchemaFiles !== false) {
+      obj.isAssetInSchemaFiles = message.isAssetInSchemaFiles;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnDataForDocViewResponse>, I>>(base?: I): ReturnDataForDocViewResponse {
+    return ReturnDataForDocViewResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnDataForDocViewResponse>, I>>(object: I): ReturnDataForDocViewResponse {
+    const message = createBaseReturnDataForDocViewResponse();
+    message.fullSql = object.fullSql ?? "";
+    message.description = object.description ?? undefined;
+    message.dag = (object.dag !== undefined && object.dag !== null) ? ProjectDag.fromPartial(object.dag) : undefined;
+    message.columns = object.columns?.map((e) => ColumnDescription.fromPartial(e)) || [];
+    message.isAssetInSchemaFiles = object.isAssetInSchemaFiles ?? false;
+    return message;
+  },
+};
+
 function createBaseReturnFullSqlForAssetRequest(): ReturnFullSqlForAssetRequest {
   return { projectRoot: "", assetName: "", cacheViewInformation: undefined };
 }
@@ -1698,120 +2039,6 @@ export const CacheViewInformationPaths = {
   fromPartial<I extends Exact<DeepPartial<CacheViewInformationPaths>, I>>(object: I): CacheViewInformationPaths {
     const message = createBaseCacheViewInformationPaths();
     message.cacheViewPaths = object.cacheViewPaths?.map((e) => e) || [];
-    return message;
-  },
-};
-
-function createBaseReturnFullProjectDagRequest(): ReturnFullProjectDagRequest {
-  return { projectRoot: "" };
-}
-
-export const ReturnFullProjectDagRequest = {
-  encode(message: ReturnFullProjectDagRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.projectRoot !== "") {
-      writer.uint32(10).string(message.projectRoot);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnFullProjectDagRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseReturnFullProjectDagRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.projectRoot = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ReturnFullProjectDagRequest {
-    return { projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "" };
-  },
-
-  toJSON(message: ReturnFullProjectDagRequest): unknown {
-    const obj: any = {};
-    if (message.projectRoot !== "") {
-      obj.projectRoot = message.projectRoot;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ReturnFullProjectDagRequest>, I>>(base?: I): ReturnFullProjectDagRequest {
-    return ReturnFullProjectDagRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ReturnFullProjectDagRequest>, I>>(object: I): ReturnFullProjectDagRequest {
-    const message = createBaseReturnFullProjectDagRequest();
-    message.projectRoot = object.projectRoot ?? "";
-    return message;
-  },
-};
-
-function createBaseReturnFullProjectDagResponse(): ReturnFullProjectDagResponse {
-  return { dag: undefined };
-}
-
-export const ReturnFullProjectDagResponse = {
-  encode(message: ReturnFullProjectDagResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.dag !== undefined) {
-      ProjectDag.encode(message.dag, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnFullProjectDagResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseReturnFullProjectDagResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.dag = ProjectDag.decode(reader, reader.uint32());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ReturnFullProjectDagResponse {
-    return { dag: isSet(object.dag) ? ProjectDag.fromJSON(object.dag) : undefined };
-  },
-
-  toJSON(message: ReturnFullProjectDagResponse): unknown {
-    const obj: any = {};
-    if (message.dag !== undefined) {
-      obj.dag = ProjectDag.toJSON(message.dag);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ReturnFullProjectDagResponse>, I>>(base?: I): ReturnFullProjectDagResponse {
-    return ReturnFullProjectDagResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ReturnFullProjectDagResponse>, I>>(object: I): ReturnFullProjectDagResponse {
-    const message = createBaseReturnFullProjectDagResponse();
-    message.dag = (object.dag !== undefined && object.dag !== null) ? ProjectDag.fromPartial(object.dag) : undefined;
     return message;
   },
 };
@@ -3538,6 +3765,13 @@ export interface RustWithDatabaseService {
   /** RenderSchema renderSchema returns the sql to create the views for the seeds and the models but without any data */
   RenderSchema(request: RenderSchemaRequest): Promise<RenderSchemaResponse>;
   /**
+   * ReturnDataForDocView returns the data for the doc view for the given asset. It also includes the dag and columns
+   * and descriptions as well. At the moment it is a wrapper of ReturnFullSqlForAsset but we are moving towards making
+   * the extension "dumber" and so this will be the only way to get the data for the doc view and more logic will move
+   * WASM.
+   */
+  ReturnDataForDocView(request: ReturnDataForDocViewRequest): Promise<ReturnDataForDocViewResponse>;
+  /**
    * ReturnFullSqlForAsset returns the sql to create the view for the given asset. It also returns the dag and the
    * columns as well as the description for the asset.
    */
@@ -3617,6 +3851,7 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     this.ListAssets = this.ListAssets.bind(this);
     this.ParseProject = this.ParseProject.bind(this);
     this.RenderSchema = this.RenderSchema.bind(this);
+    this.ReturnDataForDocView = this.ReturnDataForDocView.bind(this);
     this.ReturnFullSqlForAsset = this.ReturnFullSqlForAsset.bind(this);
     this.ReturnFullProjectDag = this.ReturnFullProjectDag.bind(this);
     this.ReturnSQLForSeedsAndModels = this.ReturnSQLForSeedsAndModels.bind(this);
@@ -3647,6 +3882,12 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     const data = RenderSchemaRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "RenderSchema", data);
     return promise.then((data) => RenderSchemaResponse.decode(_m0.Reader.create(data)));
+  }
+
+  ReturnDataForDocView(request: ReturnDataForDocViewRequest): Promise<ReturnDataForDocViewResponse> {
+    const data = ReturnDataForDocViewRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ReturnDataForDocView", data);
+    return promise.then((data) => ReturnDataForDocViewResponse.decode(_m0.Reader.create(data)));
   }
 
   ReturnFullSqlForAsset(request: ReturnFullSqlForAssetRequest): Promise<ReturnFullSqlForAssetResponse> {

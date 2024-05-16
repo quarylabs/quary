@@ -4,12 +4,7 @@ import { Err, isErr, Ok, Result } from '@shared/result'
 import { Dag, View } from '@shared/globalViewState'
 import { useCallBackBackEnd } from '@shared/callBacks'
 import * as vscode from 'vscode'
-import {
-  CacheViewInformationPaths,
-  ListAssetsResponse_Asset,
-  ReturnFullSqlForAssetRequest,
-} from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
-import { Empty } from '@quary/proto/google/protobuf/empty'
+import { ListAssetsResponse_Asset } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { Table } from '@quary/proto/quary/service/v1/table'
 import { rustWithoutDatabaseWasmServices } from './servicesRustWasm'
 import { preInitSetup, Services } from './services'
@@ -34,6 +29,7 @@ const getModelDetails = async ({
     limitedSQL: string
     table: Table | null
     dag: Dag
+    isModelInSchema: boolean
   }>
 > => {
   const modelsResponse = await services.rust.list_assets({
@@ -64,7 +60,7 @@ const getModelDetails = async ({
       ),
     )
   }
-  const fullDetails = await services.rust.return_full_sql_for_asset({
+  const fullDetails = await services.rust.return_data_for_doc_view({
     projectRoot,
     assetName: asset.name,
     cacheViewInformation: cacheViewInformation.value,
@@ -91,6 +87,7 @@ const getModelDetails = async ({
     },
     table,
     model: asset,
+    isModelInSchema: fullDetails.value.isAssetInSchemaFiles,
   })
 }
 
@@ -114,7 +111,8 @@ const extractBaseViewFromModelDetails = async ({
   if (isErr(modelDetails)) {
     return Err(new Error(`error getting model details ${modelDetails.error}`))
   }
-  const { limit, dag, table, model, limitedSQL } = modelDetails.value
+  const { limit, dag, table, model, limitedSQL, isModelInSchema } =
+    modelDetails.value
   const sqlDocumentation: View = {
     type: 'docsView',
     modelName: model.name,
@@ -127,6 +125,7 @@ const extractBaseViewFromModelDetails = async ({
     dag,
     tags: model.tags,
     table,
+    isModelInSchema,
   }
   return Ok({ sqlDocumentation, limitedSQL }) satisfies Result<{
     sqlDocumentation: View
@@ -279,6 +278,7 @@ export const runDocumentationOnModel = async (
             } else {
               services.notifications.showMessage(`Added ${modelName} to schema`)
             }
+            await documentationViewLoad()
           },
           documentationViewUpdateDescription: async ({ description }) => {
             const updateDescriptionResult =
