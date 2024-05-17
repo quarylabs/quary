@@ -41,20 +41,21 @@ else
 fi
 
 # Retrieve the download URL for the desired asset
-DOWNLOAD_URL=$(curl -sSL $RELEASE_URL | grep -o "browser_download_url.*$ASSET_NAME\"" | cut -d ' ' -f 2)
+DOWNLOAD_URL=$(curl -sSL $RELEASE_URL | grep -o "browser_download_url.*$ASSET_NAME" | cut -d ' ' -f 2)
 
-ASSET_NAME=$(basename $DOWNLOAD_URL)
+ASSET_NAME=$(basename "$DOWNLOAD_URL")
+echo "Downloading $ASSET_NAME..."
 
 # Define the installation directory
 INSTALL_DIR="/usr/local/bin"
 
-DOWNLOAD_URL=`echo $DOWNLOAD_URL | tr -d '\"'`
+DOWNLOAD_URL=$(echo "$DOWNLOAD_URL" | tr -d '\"')
 
 # Download the asset
-curl -SL $DOWNLOAD_URL -o /tmp/$ASSET_NAME
+curl -SL "$DOWNLOAD_URL" -o /tmp/"$ASSET_NAME"
 
 # Extract the asset
-unzip -xzf /tmp/$ASSET_NAME -C /tmp
+unzip /tmp/"$ASSET_NAME" -d /tmp
 
 # Set the correct permissions for the binary
 chmod +x /tmp/quary
@@ -68,7 +69,7 @@ else
 fi
 
 # Clean up temporary files
-rm /tmp/$ASSET_NAME
+rm /tmp/"$ASSET_NAME"
 
 cat << EOF
 ${CYAN}
