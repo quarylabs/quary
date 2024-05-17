@@ -1,0 +1,17 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/FailedRunMessage",
+    "definitions": {
+        "FailedRunMessage": {
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Failed Run Message",
+            "description": "FailedRunMessage is a message that contains a message that can be displayed to the user when a test fails. This shoudl be used when the failure is not due to a query result but due to some other reason for example an incorrect query or a query that is not supported."
+        }
+    }
+}

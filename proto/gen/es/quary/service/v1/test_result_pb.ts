@@ -244,6 +244,12 @@ export class Failed extends Message<Failed> {
      */
     value: InferredChainWithOperation;
     case: "inferredThroughTestsOperation";
+  } | {
+    /**
+     * @generated from field: quary.service.v1.FailedRunMessage failed_run_message = 4;
+     */
+    value: FailedRunMessage;
+    case: "failedRunMessage";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Failed>) {
@@ -257,6 +263,7 @@ export class Failed extends Message<Failed> {
     { no: 1, name: "ran", kind: "message", T: FailedRunResults, oneof: "reason" },
     { no: 2, name: "inferred_from_tests", kind: "message", T: InferredChain, oneof: "reason" },
     { no: 3, name: "inferred_through_tests_operation", kind: "message", T: InferredChainWithOperation, oneof: "reason" },
+    { no: 4, name: "failed_run_message", kind: "message", T: FailedRunMessage, oneof: "reason" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Failed {
@@ -310,6 +317,48 @@ export class FailedRunResults extends Message<FailedRunResults> {
 
   static equals(a: FailedRunResults | PlainMessage<FailedRunResults> | undefined, b: FailedRunResults | PlainMessage<FailedRunResults> | undefined): boolean {
     return proto3.util.equals(FailedRunResults, a, b);
+  }
+}
+
+/**
+ * FailedRunMessage is a message that contains a message that can be displayed
+ * to the user when a test fails. This shoudl be used when the failure is not
+ * due to a query result but due to some other reason for example an incorrect
+ * query or a query that is not supported.
+ *
+ * @generated from message quary.service.v1.FailedRunMessage
+ */
+export class FailedRunMessage extends Message<FailedRunMessage> {
+  /**
+   * @generated from field: string message = 1;
+   */
+  message = "";
+
+  constructor(data?: PartialMessage<FailedRunMessage>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.FailedRunMessage";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FailedRunMessage {
+    return new FailedRunMessage().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FailedRunMessage {
+    return new FailedRunMessage().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FailedRunMessage {
+    return new FailedRunMessage().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: FailedRunMessage | PlainMessage<FailedRunMessage> | undefined, b: FailedRunMessage | PlainMessage<FailedRunMessage> | undefined): boolean {
+    return proto3.util.equals(FailedRunMessage, a, b);
   }
 }
 

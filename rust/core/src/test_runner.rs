@@ -14,11 +14,25 @@ use std::future::Future;
 use std::pin::Pin;
 
 /// RunStatementFunc is a function that takes a SQL statement and returns a future that resolves
-/// to a result. If the result, contains some returned values, then the test has failed. If the
-/// result is None, then the test has passed.
-pub type RunStatementFunc = Box<
-    dyn Fn(&str) -> Pin<Box<dyn Future<Output = Result<Option<quary_proto::QueryResult>, String>>>>,
->;
+/// to a result. The result is a RunReturnResult. The RunReturnResult is an enum that contains
+/// the following:
+/// - Passed: The test has passed and the QueryResult is empty
+/// - QueryResult: The test has failed and the QueryResult contains the result of the query
+/// - Error: The test has failed and the Error contains the error message
+///
+/// The result is wrappped in a Result type that contains either the RunReturnResult or an error
+/// message. The error message should be a string that describes the error that occurred.
+/// The sorts of errors it returns are not error with the query but rather an error with the
+/// running of the query.
+pub type RunStatementFunc =
+    Box<dyn Fn(&str) -> Pin<Box<dyn Future<Output = Result<RunReturnResult, String>>>>>;
+
+pub enum RunReturnResult {
+    Passed,
+    // QueryResult is a failed state where the test returned a result
+    QueryResult(quary_proto::QueryResult),
+    Error(String),
+}
 
 fn recursive_search_for_test(
     whether_to_skip: &HashMap<String, Inference>,
@@ -74,24 +88,14 @@ pub async fn run_tests_internal(
 ) -> Result<TestResults, RunTestError> {
     async fn run_test_all(
         tests_name_to_sql: BTreeMap<String, String>,
-        run_statement: RunStatementFunc,
+        run_statement_all: RunStatementFunc,
     ) -> Result<TestResults, RunTestError> {
         let mut results = Vec::new();
         for (test_name, sql) in tests_name_to_sql {
-            let test_result = run_statement(sql.as_str()).await;
+            let test_result = run_statement_all(sql.as_str()).await;
             match test_result {
-                Ok(test_result) => {
-                    if let Some(test_result) = test_result {
-                        results.push(TestResult {
-                            test_name,
-                            query: sql.clone(),
-                            test_result: Some(Failed(quary_proto::Failed {
-                                reason: Some(failed::Reason::Ran(FailedRunResults {
-                                    query_result: Some(test_result),
-                                })),
-                            })),
-                        });
-                    } else {
+                Ok(test_result) => match test_result {
+                    RunReturnResult::Passed => {
                         results.push(TestResult {
                             test_name,
                             query: sql.clone(),
@@ -100,7 +104,29 @@ pub async fn run_tests_internal(
                             })),
                         });
                     }
-                }
+                    RunReturnResult::QueryResult(query_result) => {
+                        results.push(TestResult {
+                            test_name,
+                            query: sql.clone(),
+                            test_result: Some(Failed(quary_proto::Failed {
+                                reason: Some(failed::Reason::Ran(FailedRunResults {
+                                    query_result: Some(query_result),
+                                })),
+                            })),
+                        });
+                    }
+                    RunReturnResult::Error(error) => {
+                        results.push(TestResult {
+                            test_name,
+                            query: sql.clone(),
+                            test_result: Some(Failed(quary_proto::Failed {
+                                reason: Some(failed::Reason::FailedRunMessage(
+                                    quary_proto::FailedRunMessage { message: error },
+                                )),
+                            })),
+                        });
+                    }
+                },
                 Err(e) => {
                     return Err(RunTestError::TestFailedToRun(TestFailedToRun {
                         test_name,
@@ -187,22 +213,30 @@ pub async fn run_tests_internal(
                     error: e,
                 })
             })?;
+            let test_result = match test_result {
+                RunReturnResult::Passed => Passed(quary_proto::Passed {
+                    reason: Some(passed::Reason::Ran(Default::default())),
+                }),
+                RunReturnResult::QueryResult(result) => Failed(quary_proto::Failed {
+                    reason: Some(failed::Reason::Ran(FailedRunResults {
+                        query_result: Some(result),
+                    })),
+                }),
+                RunReturnResult::Error(error) => {
+                    return Err(RunTestError::TestFailedToRun(TestFailedToRun {
+                        test_name: test_name.clone(),
+                        sql: sql.clone(),
+                        error,
+                    }))
+                }
+            };
+
             results.insert(
                 test_name,
                 TestResult {
                     test_name: test_name.clone(),
                     query: sql.clone(),
-                    test_result: Some(if let Some(test_result) = test_result {
-                        Failed(quary_proto::Failed {
-                            reason: Some(failed::Reason::Ran(FailedRunResults {
-                                query_result: Some(test_result),
-                            })),
-                        })
-                    } else {
-                        Passed(quary_proto::Passed {
-                            reason: Some(passed::Reason::Ran(Default::default())),
-                        })
-                    }),
+                    test_result: Some(test_result),
                 },
             );
         }
@@ -422,24 +456,38 @@ pub async fn run_model_tests_internal(
                     error: e,
                 })
             })?;
-            if let Some(test_result) = test_result {
-                results.push(TestResult {
-                    test_name,
-                    query: sql.clone(),
-                    test_result: Some(Failed(quary_proto::Failed {
-                        reason: Some(failed::Reason::Ran(FailedRunResults {
-                            query_result: Some(test_result),
+            match test_result {
+                RunReturnResult::Passed => {
+                    results.push(TestResult {
+                        test_name,
+                        query: sql.clone(),
+                        test_result: Some(Passed(quary_proto::Passed {
+                            reason: Some(passed::Reason::Ran(Default::default())),
                         })),
-                    })),
-                });
-            } else {
-                results.push(TestResult {
-                    test_name,
-                    query: sql.clone(),
-                    test_result: Some(Passed(quary_proto::Passed {
-                        reason: Some(passed::Reason::Ran(Default::default())),
-                    })),
-                });
+                    });
+                }
+                RunReturnResult::QueryResult(result) => {
+                    results.push(TestResult {
+                        test_name,
+                        query: sql.clone(),
+                        test_result: Some(Failed(quary_proto::Failed {
+                            reason: Some(failed::Reason::Ran(FailedRunResults {
+                                query_result: Some(result),
+                            })),
+                        })),
+                    });
+                }
+                RunReturnResult::Error(error) => {
+                    results.push(TestResult {
+                        test_name,
+                        query: sql.clone(),
+                        test_result: Some(Failed(quary_proto::Failed {
+                            reason: Some(failed::Reason::FailedRunMessage(
+                                quary_proto::FailedRunMessage { message: error },
+                            )),
+                        })),
+                    });
+                }
             }
         }
         Ok(TestResults { results })

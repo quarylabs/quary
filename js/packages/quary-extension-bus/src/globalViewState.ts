@@ -220,8 +220,12 @@ export type TestStatus =
       type: 'pass'
     }
   | {
-      type: 'fail'
+      type: 'fail_with_result'
       // TODO Add lines that failed
+    }
+  | {
+      type: 'fail_with_message'
+      message: string
     }
   | {
       type: 'pass_inferred'
