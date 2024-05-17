@@ -30,6 +30,7 @@ import { executeSQLOnModel } from './commandsExecuteSQL'
 import { onboarding } from './commandsOnboarding'
 import { importSources } from './commandsImportSources'
 import { ServicesDatabase } from './servicesDatabase'
+import { createTestRunner } from './servicesRustWasm'
 
 export const returnCommands = (
   getServices: () => Promise<Services>,
@@ -69,10 +70,11 @@ export const returnCommands = (
             })
           }
 
+          const runner = createTestRunner(services.database)
           const tests = await services.rust.run_test(
             projectRoot,
             mappedTestRunner,
-            getRunStatementCommand(services.database),
+            runner,
           )
 
           const mappedTests = collectResults(tests.results.map(testMapper))
@@ -131,9 +133,10 @@ export const returnCommands = (
       return await renderingFunction({
         title: 'Model Test Report',
         fn: async () => {
+          const runner = createTestRunner(services.database)
           const tests = await services.rust.run_model_test(
             projectRoot,
-            getRunStatementCommand(services.database),
+            runner,
             asset.name,
             true, // TODO: Add user selection whether to run model tests against database or not
           )
@@ -603,17 +606,4 @@ function extractModelNameFromFilePath(filePath: string): Result<string> {
   const modelName = fileName.replace('.sql', '').replace('.snapshot', '')
 
   return Ok(modelName)
-}
-
-function getRunStatementCommand(database: ServicesDatabase) {
-  return async (s: string): Promise<boolean> => {
-    const result = await database.runStatement(s)
-    if (isErr(result)) {
-      throw Error(`error running statement ${s}: ${result.error}`)
-    }
-    if (result.value.columns.length === 0) {
-      return true
-    }
-    return result.value.columns[0].values.length === 0
-  }
 }

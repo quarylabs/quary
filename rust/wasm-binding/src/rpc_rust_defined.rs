@@ -5,7 +5,7 @@ use js_sys::{Function, Promise, Uint8Array};
 use quary_core::chart::{chart_file_from_yaml, chart_file_to_yaml};
 use quary_core::database_snowflake::validate_snowfalke_account_identifier;
 use quary_core::test_runner::{
-    run_model_tests_internal, run_tests_internal, RunStatementFunc, RunTestError,
+    run_model_tests_internal, run_tests_internal, RunReturnResult, RunStatementFunc, RunTestError,
 };
 use quary_proto::TestRunner;
 use std::rc::Rc;
@@ -143,7 +143,7 @@ fn create_run_statement_func(function: Rc<Function>) -> RunStatementFunc {
         let sql = sql.to_owned(); // Convert &str to String
         let function = function.clone(); // Clone the Rc<Function>
         Box::pin(async move {
-            let result = function.call1(&JsValue::NULL, &JsValue::from_str(&sql)); // Use &sql which is now a &String
+            let result = function.call1(&JsValue::NULL, &JsValue::from_str(sql.as_str()));
             match result {
                 Ok(js_value) => {
                     let promise: Result<Promise, _> = js_value.dyn_into();
@@ -154,14 +154,54 @@ fn create_run_statement_func(function: Rc<Function>) -> RunStatementFunc {
                                 format!("Failed to await js function to : {:?}", err)
                             })?;
 
-                            let bool = js_value.as_bool();
-                            match bool {
-                                Some(bool) => {
-                                    Ok(if bool { None } else { Some(Default::default()) })
+                            let array: js_sys::Array = js_value.try_into().map_err(|err| {
+                                format!("Failed to map js value to array: {:?}", err)
+                            })?;
+                            let length = array.length();
+                            if length != 2 {
+                                return Err(format!(
+                                    "Expected array of length 2, got length {}",
+                                    length
+                                ));
+                            }
+
+                            let js_value = array.get(0);
+                            let js_string: String = js_value.try_into().map_err(|err| {
+                                format!("Failed to map js value to string: {:?}", err)
+                            })?;
+
+                            match js_string.as_str() {
+                                "success_call" => {
+                                    let js_value = array.get(1);
+                                    let uint_8_array: Uint8Array =
+                                        js_value.try_into().map_err(|err| {
+                                            format!(
+                                                "Failed to map js value to Uint8Array: {:?}",
+                                                err
+                                            )
+                                        })?;
+                                    let result: quary_proto::QueryResult = decode(uint_8_array)?;
+                                    match result.columns.get(0) {
+                                        Some(column) => {
+                                            if column.values.is_empty() {
+                                                Ok(RunReturnResult::Passed)
+                                            } else {
+                                                Ok(RunReturnResult::QueryResult(result))
+                                            }
+                                        }
+                                        None => Ok(RunReturnResult::Passed),
+                                    }
                                 }
-                                None => Err(format!(
-                                    "Failed to map js value to boolean: {:?}",
-                                    js_value
+                                "error_call" => {
+                                    let js_value = array.get(1);
+                                    let js_string: String = js_value.try_into().map_err(|err| {
+                                        format!("Failed to map js value to string: {:?}", err)
+                                    })?;
+                                    Ok(RunReturnResult::Error(js_string))
+                                }
+                                _ => Err(format!(
+                                    "Failed to map js value to string: {:?}",
+                                    js_string
                                 )),
                             }
                         }

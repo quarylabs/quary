@@ -29,7 +29,7 @@ export const testMapper = (test: TestResult): Result<Test> => {
           return Ok({
             query,
             testName,
-            status: { type: 'fail' },
+            status: { type: 'fail_with_result' },
           })
         }
         case 'inferredFromTests': {
@@ -55,6 +55,16 @@ export const testMapper = (test: TestResult): Result<Test> => {
                   '➡️',
                 )}`,
               ],
+            },
+          })
+        }
+        case 'failedRunMessage': {
+          return Ok({
+            query,
+            testName,
+            status: {
+              type: 'fail_with_message',
+              message: reason.failedRunMessage.message,
             },
           })
         }

@@ -41,11 +41,22 @@ export interface Failed {
     | { $case: "ran"; ran: FailedRunResults }
     | { $case: "inferredFromTests"; inferredFromTests: InferredChain }
     | { $case: "inferredThroughTestsOperation"; inferredThroughTestsOperation: InferredChainWithOperation }
+    | { $case: "failedRunMessage"; failedRunMessage: FailedRunMessage }
     | undefined;
 }
 
 export interface FailedRunResults {
   queryResult: QueryResult | undefined;
+}
+
+/**
+ * FailedRunMessage is a message that contains a message that can be displayed
+ * to the user when a test fails. This shoudl be used when the failure is not
+ * due to a query result but due to some other reason for example an incorrect
+ * query or a query that is not supported.
+ */
+export interface FailedRunMessage {
+  message: string;
 }
 
 function createBaseTestResult(): TestResult {
@@ -470,6 +481,9 @@ export const Failed = {
         InferredChainWithOperation.encode(message.reason.inferredThroughTestsOperation, writer.uint32(26).fork())
           .ldelim();
         break;
+      case "failedRunMessage":
+        FailedRunMessage.encode(message.reason.failedRunMessage, writer.uint32(34).fork()).ldelim();
+        break;
     }
     return writer;
   },
@@ -508,6 +522,16 @@ export const Failed = {
             inferredThroughTestsOperation: InferredChainWithOperation.decode(reader, reader.uint32()),
           };
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.reason = {
+            $case: "failedRunMessage",
+            failedRunMessage: FailedRunMessage.decode(reader, reader.uint32()),
+          };
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -528,6 +552,8 @@ export const Failed = {
           $case: "inferredThroughTestsOperation",
           inferredThroughTestsOperation: InferredChainWithOperation.fromJSON(object.inferredThroughTestsOperation),
         }
+        : isSet(object.failedRunMessage)
+        ? { $case: "failedRunMessage", failedRunMessage: FailedRunMessage.fromJSON(object.failedRunMessage) }
         : undefined,
     };
   },
@@ -544,6 +570,9 @@ export const Failed = {
       obj.inferredThroughTestsOperation = InferredChainWithOperation.toJSON(
         message.reason.inferredThroughTestsOperation,
       );
+    }
+    if (message.reason?.$case === "failedRunMessage") {
+      obj.failedRunMessage = FailedRunMessage.toJSON(message.reason.failedRunMessage);
     }
     return obj;
   },
@@ -576,6 +605,16 @@ export const Failed = {
         inferredThroughTestsOperation: InferredChainWithOperation.fromPartial(
           object.reason.inferredThroughTestsOperation,
         ),
+      };
+    }
+    if (
+      object.reason?.$case === "failedRunMessage" &&
+      object.reason?.failedRunMessage !== undefined &&
+      object.reason?.failedRunMessage !== null
+    ) {
+      message.reason = {
+        $case: "failedRunMessage",
+        failedRunMessage: FailedRunMessage.fromPartial(object.reason.failedRunMessage),
       };
     }
     return message;
@@ -637,6 +676,63 @@ export const FailedRunResults = {
     message.queryResult = (object.queryResult !== undefined && object.queryResult !== null)
       ? QueryResult.fromPartial(object.queryResult)
       : undefined;
+    return message;
+  },
+};
+
+function createBaseFailedRunMessage(): FailedRunMessage {
+  return { message: "" };
+}
+
+export const FailedRunMessage = {
+  encode(message: FailedRunMessage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.message !== "") {
+      writer.uint32(10).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): FailedRunMessage {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFailedRunMessage();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FailedRunMessage {
+    return { message: isSet(object.message) ? gt.String(object.message) : "" };
+  },
+
+  toJSON(message: FailedRunMessage): unknown {
+    const obj: any = {};
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FailedRunMessage>, I>>(base?: I): FailedRunMessage {
+    return FailedRunMessage.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FailedRunMessage>, I>>(object: I): FailedRunMessage {
+    const message = createBaseFailedRunMessage();
+    message.message = object.message ?? "";
     return message;
   },
 };

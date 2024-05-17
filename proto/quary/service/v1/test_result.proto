@@ -43,9 +43,18 @@ message Failed {
     FailedRunResults ran = 1;
     InferredChain inferred_from_tests = 2;
     InferredChainWithOperation inferred_through_tests_operation = 3;
+    FailedRunMessage failed_run_message = 4;
   }
 }
 
 message FailedRunResults {
   QueryResult query_result = 1;
+}
+
+// FailedRunMessage is a message that contains a message that can be displayed
+// to the user when a test fails. This shoudl be used when the failure is not
+// due to a query result but due to some other reason for example an incorrect
+// query or a query that is not supported.
+message FailedRunMessage {
+  string message = 1;
 }

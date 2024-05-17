@@ -171,7 +171,7 @@ mod tests {
     use quary_core::project_to_sql::{
         project_and_fs_to_query_sql, project_and_fs_to_sql_for_views,
     };
-    use quary_core::test_runner::{run_tests_internal, RunStatementFunc};
+    use quary_core::test_runner::{run_tests_internal, RunReturnResult, RunStatementFunc};
     use quary_proto::passed::Reason;
     use quary_proto::test_result::TestResult;
     use quary_proto::{File, TestRunner};
@@ -404,10 +404,10 @@ mod tests {
                 match result {
                     Ok(outs) => {
                         if outs.rows.is_empty() {
-                            Ok(None)
+                            Ok(RunReturnResult::Passed)
                         } else {
                             let proto = outs.to_proto()?;
-                            Ok(Some(proto))
+                            Ok(RunReturnResult::QueryResult(proto))
                         }
                     }
                     Err(error) => Err(format!("Error in query: \n{:?}\n{}", error, sql)),
@@ -482,10 +482,10 @@ mod tests {
                 match result {
                     Ok(outs) => {
                         if outs.rows.is_empty() {
-                            Ok(None)
+                            Ok(RunReturnResult::Passed)
                         } else {
                             let proto = outs.to_proto()?;
-                            Ok(Some(proto))
+                            Ok(RunReturnResult::QueryResult(proto))
                         }
                     }
                     Err(error) => Err(format!("Error in query: {:?}", error)),

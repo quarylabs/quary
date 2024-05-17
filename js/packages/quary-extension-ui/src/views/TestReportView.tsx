@@ -13,26 +13,42 @@ export const TestReportView: React.FC<Props> = ({ tests, testRunner }) => {
   const table =
     testRunner === TestRunner.TEST_RUNNER_ALL ? (
       <Table
-        headers={['Pass/Fail', 'Test Name', 'Query']}
-        rows={tests.sort(failureFirst).map(({ testName, status, query }) => {
-          const [pass] = testStatusToVisual(status)
-          return [pass, testName, <TestVisual key={testName} code={query} />]
-        })}
-      />
-    ) : (
-      <Table
-        headers={['Pass/Fail', 'Reason', 'Test Name', 'Query']}
+        headers={['Pass/Fail', 'Test Name', 'Reason', 'Query']}
         rows={tests.sort(failureFirst).map(({ testName, status, query }) => {
           const [pass, reason] = testStatusToVisual(status)
           return [
             pass,
-            reason,
             testName,
+            <p key={testName} className="whitespace-nowrap">
+              {reason}
+            </p>,
+            <TestVisual key={testName} code={query} />,
+          ]
+        })}
+      />
+    ) : (
+      <Table
+        headers={['Pass/Fail', 'Test Name', 'Reason', 'Query']}
+        rows={tests.sort(failureFirst).map(({ testName, status, query }) => {
+          const [pass, reason] = testStatusToVisual(status)
+          return [
+            pass,
+            testName,
+            <p key={testName} className="whitespace-nowrap">
+              {reason}
+            </p>,
             <TestVisual key={testName} code={query} />,
           ]
         })}
       />
     )
+
+  const numberOfFailedTests = tests.filter(
+    ({ status }) =>
+      status.type === 'fail_with_result' ||
+      status.type === 'fail_inferred' ||
+      status.type === 'fail_with_message',
+  ).length
 
   return (
     <div>
@@ -40,20 +56,11 @@ export const TestReportView: React.FC<Props> = ({ tests, testRunner }) => {
         <PageTitle>Test Report</PageTitle>
       </div>
       <div>
-        {tests.filter(
-          ({ status }) =>
-            status.type === 'fail' || status.type === 'fail_inferred',
-        ).length === 0 ? (
+        {numberOfFailedTests === 0 ? (
           <div className="pt-2 text-green-500">All tests passed</div>
         ) : (
           <div className="pt-2 text-red-500">
-            {
-              tests.filter(
-                ({ status }) =>
-                  status.type === 'fail' || status.type === 'fail_inferred',
-              ).length
-            }{' '}
-            tests failed
+            {numberOfFailedTests} tests failed
           </div>
         )}
       </div>
@@ -112,8 +119,10 @@ const getPart2 = (status: TestStatus): string => {
   switch (status.type) {
     case 'pass':
       return 'Ran Test'
-    case 'fail':
+    case 'fail_with_result':
       return 'Ran Test'
+    case 'fail_with_message':
+      return status.message
     case 'pass_inferred':
       return `inferred from ${status.sourceTest.join(' ➡️ ')}`
     case 'fail_inferred':
@@ -130,7 +139,9 @@ const failureFirst = (a: Test, b: Test): number => {
     (a.status.type === 'pass' ||
       a.status.type === 'pass_inferred' ||
       a.status.type === 'pass_inferred_from_logic') &&
-    (b.status.type === 'fail' || b.status.type === 'fail_inferred')
+    (b.status.type === 'fail_with_result' ||
+      b.status.type === 'fail_with_message' ||
+      b.status.type === 'fail_inferred')
   ) {
     return -1
   }
