@@ -1,9 +1,8 @@
 import { Meta, StoryObj } from '@storybook/react'
 import { sampleQueryResult } from '../lib/sampleData'
-import { Card } from './Card'
 import { ChartEditor } from './ChartEditor'
 
-const meta: Meta<typeof Card> = {
+const meta: Meta<typeof ChartEditor> = {
   component: ChartEditor,
   argTypes: {
     registerChangeChartFile: { action: 'change chart file' },
@@ -29,7 +28,7 @@ const assetReference = {
 }
 const success = {
   type: 'success',
-  queryResults: sampleQueryResult,
+  queryResult: sampleQueryResult,
 }
 const loading = {
   type: 'loading',

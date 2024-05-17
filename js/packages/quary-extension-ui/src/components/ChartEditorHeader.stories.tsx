@@ -1,13 +1,13 @@
 import { Meta, StoryObj } from '@storybook/react'
 import * as React from 'react'
-import { Card } from './Card'
 import { ChartEditorHeader } from './ChartEditorHeader'
 
-const meta: Meta<typeof Card> = {
+const meta: Meta<typeof ChartEditorHeader> = {
   component: ChartEditorHeader,
   argTypes: {
-    registerChangeChartFile: { action: 'change source ' },
+    onChangeSource: { action: 'change source ' },
     onClickRunQuery: { action: 'run query' },
+    onClickCreateModel: { action: 'create model' },
     onClickEdit: { action: 'edit' },
   },
 }
