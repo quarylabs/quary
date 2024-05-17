@@ -164,25 +164,29 @@ message ReturnSQLForSeedsAndModelsResponse {
 }
 
 message ReturnFullSqlForAssetRequest {
-  string project_root = 3;
-  string asset_name = 4;
+  string project_root = 1;
+  string asset_name = 2;
   // cache_view defines whether or not to use the cached views in the returned sql and dag.
+  CacheViewInformation cache_view_information = 3;
+}
+
+message CacheViewInformation {
   oneof cache_view {
-    CacheViewInformation cache_view_information = 5;
-    google.protobuf.Empty do_not_use = 6;
+    CacheViewInformationPaths cache_view_information = 1;
+    google.protobuf.Empty do_not_use = 2;
   }
 }
 
+message CacheViewInformationPaths {
+  repeated string cache_view_paths = 1;
+}
+
 message ReturnFullProjectDagRequest {
-  string project_root = 2;
+  string project_root = 1;
 }
 
 message ReturnFullProjectDagResponse {
   ProjectDag dag = 1;
-}
-
-message CacheViewInformation {
-  repeated string cache_view_paths = 1;
 }
 
 message ReturnFullSqlForAssetResponse {

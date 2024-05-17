@@ -5,7 +5,7 @@ import { Dag, View } from '@shared/globalViewState'
 import { useCallBackBackEnd } from '@shared/callBacks'
 import * as vscode from 'vscode'
 import {
-  CacheViewInformation,
+  CacheViewInformationPaths,
   ListAssetsResponse_Asset,
   ReturnFullSqlForAssetRequest,
 } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
@@ -55,27 +55,32 @@ const getModelDetails = async ({
   const table = !isErr(modelTableDetails)
     ? modelTableDetails.value.table ?? null
     : null
-  let cacheView: ReturnFullSqlForAssetRequest['cacheView'] = {
-    $case: 'doNotUse',
-    doNotUse: Empty.create({}),
-  }
+  let cacheViewInformation: ReturnFullSqlForAssetRequest['cacheViewInformation'] =
+    {
+      cacheView: {
+        $case: 'doNotUse',
+        doNotUse: Empty.create({}),
+      },
+    }
   if (services.database.returnDatabaseConfiguration().lookForCacheViews) {
     const tables = await services.database.listViews()
     if (isErr(tables)) {
       return Err(new Error(`Error listing tables: ${tables.error}`))
     }
-    cacheView = {
-      $case: 'cacheViewInformation',
-      cacheViewInformation: CacheViewInformation.create({
-        cacheViewPaths: tables.value.map((table) => table.fullPath),
-      }),
+    cacheViewInformation = {
+      cacheView: {
+        $case: 'cacheViewInformation',
+        cacheViewInformation: CacheViewInformationPaths.create({
+          cacheViewPaths: tables.value.map((table) => table.fullPath),
+        }),
+      },
     }
   }
 
   const fullDetails = await services.rust.return_full_sql_for_asset({
     projectRoot,
     assetName: asset.name,
-    cacheView,
+    cacheViewInformation,
   })
 
   if (isErr(fullDetails)) {
