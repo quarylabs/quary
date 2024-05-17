@@ -37,11 +37,26 @@
                 "inferred_through_tests_operation": {
                     "$ref": "#/definitions/quary.service.v1.InferredChainWithOperation",
                     "additionalProperties": true
+                },
+                "failed_run_message": {
+                    "$ref": "#/definitions/quary.service.v1.FailedRunMessage",
+                    "additionalProperties": true
                 }
             },
             "additionalProperties": true,
             "type": "object",
             "title": "Failed"
+        },
+        "quary.service.v1.FailedRunMessage": {
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Failed Run Message",
+            "description": "FailedRunMessage is a message that contains a message that can be displayed to the user when a test fails. This shoudl be used when the failure is not due to a query result but due to some other reason for example an incorrect query or a query that is not supported."
         },
         "quary.service.v1.FailedRunResults": {
             "properties": {

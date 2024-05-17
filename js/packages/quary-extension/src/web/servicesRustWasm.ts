@@ -20,6 +20,7 @@ import {
   write_chart_file,
 } from '../rust_wasm/quary_wasm_bindgen'
 import { ServicesFiles } from './servicesFiles'
+import { ServicesDatabase } from './servicesDatabase'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const wasm = require('../rust_wasm/quary_wasm_bindgen_bg.wasm')
@@ -87,7 +88,7 @@ export const rustWithDatabaseWasmServices = (
     run_test: async (
       project_root: string,
       test_runner: 'skip' | 'all',
-      run_statement: (statement: string) => Promise<boolean>,
+      run_statement: TestRunner,
     ): Promise<TestResults> => {
       const output = await run_tests(
         test_runner,
@@ -101,7 +102,7 @@ export const rustWithDatabaseWasmServices = (
     },
     run_model_test: async (
       project_root: string,
-      run_statement: (statement: string) => Promise<boolean>,
+      run_statement: TestRunner,
       model_name: string,
       whether_to_include_model_to_source: boolean,
     ): Promise<TestResults> => {
@@ -118,6 +119,40 @@ export const rustWithDatabaseWasmServices = (
     },
   }
 }
+
+/**
+ * This function runs tests on the given statement. If the statement is
+ * successful, then the function returns ['success_call'] and true/false depending on
+ * whether the QueryResult returned is empty or not. If the statement is not successful,
+ * then the function returns ['error_call'] and the error message.
+ **/
+export type TestRunner = (
+  statement: string,
+) => Promise<['success_call', boolean] | ['error_call', string]>
+
+export const createTestRunner =
+  (database: ServicesDatabase): TestRunner =>
+  async (statement: string) => {
+    try {
+      const query = await database.runStatement(statement)
+      if (isErr(query)) {
+        return ['error_call', query.error.message]
+      }
+      const columns = query.value.columns
+      if (columns.length === 0) {
+        return ['success_call', true]
+      }
+      if (columns[0].values.length === 0) {
+        return ['success_call', true]
+      }
+      return ['success_call', false]
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        return ['error_call', e.toString()]
+      }
+      return ['error_call', `${e}`]
+    }
+  }
 
 const wrapper = function <Req, Res>(
   fn: (request: Req) => Promise<Res>,

@@ -23,7 +23,9 @@ use quary_core::project_tests::return_tests_sql;
 use quary_core::project_to_sql::{
     project_and_fs_to_sql_for_snapshots, project_and_fs_to_sql_for_views,
 };
-use quary_core::test_runner::{run_tests_internal, RunStatementFunc, RunTestError};
+use quary_core::test_runner::{
+    run_tests_internal, RunReturnResult, RunStatementFunc, RunTestError,
+};
 use quary_databases::databases_connection::{
     database_from_config, database_query_generator_from_config,
 };
@@ -328,10 +330,10 @@ async fn main_wrapped() -> Result<(), String> {
                     let result = database.query(&sql).await;
                     match result {
                         Ok(outs) => Ok(if outs.rows.is_empty() {
-                            None
+                            RunReturnResult::Passed
                         } else {
                             let proto = outs.to_proto()?;
-                            Some(proto)
+                            RunReturnResult::QueryResult(proto)
                         }),
                         Err(error) => Err(format!("Error running query: {:?}", error)),
                     }
@@ -390,6 +392,7 @@ async fn main_wrapped() -> Result<(), String> {
                                         failed::Reason::InferredFromTests(_) => true,
                                         failed::Reason::InferredThroughTestsOperation(_) => true,
                                         failed::Reason::Ran(_) => false,
+                                        failed::Reason::FailedRunMessage(_) => false,
                                     },
                                     None => false,
                                 },
@@ -423,6 +426,12 @@ async fn main_wrapped() -> Result<(), String> {
                                 if let Some(TestResult::Failed(reason)) = &test.test_result {
                                     if let Some(reason) = &reason.reason {
                                         match reason {
+                                            failed::Reason::FailedRunMessage(message) => {
+                                                println!(
+                                                    "    failed run message: {}",
+                                                    message.message
+                                                )
+                                            }
                                             failed::Reason::InferredFromTests(_) => {
                                                 println!("    inferred from tests")
                                             }
