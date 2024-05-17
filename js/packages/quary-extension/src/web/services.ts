@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { isErr, Result, Ok, Err } from '@shared/result'
+import { isErr, Result, Ok } from '@shared/result'
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
 import { ServicesDatabase } from './servicesDatabase'
 import { ServicesFiles, vsCodeWebFiles } from './servicesFiles'
@@ -125,7 +125,7 @@ export async function preInitSetup(
 ): Promise<Result<PreInitSetup>> {
   const projectRoot = await services.fileSystem.getStringProjectRoot()
   if (isErr(projectRoot)) {
-    return Err(new Error(`projectRoot error: ${projectRoot.error}`))
+    return projectRoot
   }
   return Ok({
     projectRoot: projectRoot.value,

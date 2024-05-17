@@ -13,6 +13,7 @@ import {
 import { Table } from '@quary/proto/quary/service/v1/table.ts'
 import { ColumnTest } from '@quary/proto/quary/service/v1/project_file.ts'
 import { useCallBackFrontEnd } from '@shared/callBacks.ts'
+import { codeToString } from '@shared/result.ts'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -257,8 +258,8 @@ const Results: React.FC<{
   switch (results.type) {
     case 'error': {
       return (
-        <Warning title="Error">
-          <p>{results.error}</p>
+        <Warning title={`${codeToString(results.error.code)} Error`}>
+          <p>{results.error.message}</p>
         </Warning>
       )
     }

@@ -1,4 +1,11 @@
-import { Err, isErr, Ok, Result, collectResults } from '@shared/result'
+import {
+  Err,
+  isErr,
+  Ok,
+  Result,
+  collectResults,
+  ErrorCodes,
+} from '@shared/result'
 import * as vscode from 'vscode'
 import { DatabaseDependentSettings, SqlLanguage } from '@shared/config'
 import {
@@ -41,7 +48,7 @@ abstract class SnowflakeBase {
     return makeSnowflakeRequest(accessToken.value, this.accountUrl, body)
   }
 
-  protected async getAccessToken() {
+  protected async getAccessToken(): Promise<Result<string>> {
     const session = await vscode.authentication.getSession(
       'quarySnowflake',
       [this.accountUrl, this.clientId, this.clientSecret, this.role],
@@ -50,7 +57,10 @@ abstract class SnowflakeBase {
       },
     )
     if (!session) {
-      return Err(new Error('Unable to authenticate with Snowflake.'))
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: 'Unable to authenticate with Snowflake.',
+      })
     }
     return Ok(session.accessToken)
   }
@@ -174,7 +184,7 @@ abstract class SnowflakeBase {
     const flattened = results.flat(3)
     const out = collectResults(flattened)
     if (isErr(out)) {
-      return out
+      return Err(out.error[0])
     }
     return out
   }

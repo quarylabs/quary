@@ -5,8 +5,9 @@ import {
   Result,
   Ok,
   Err,
-  getErrorDetails,
   collectResults,
+  ErrorCodes,
+  isQuaryError,
 } from '@shared/result'
 import { ExtensionContext, QuickPickItem } from 'vscode'
 import type { Analytics } from '@june-so/analytics-node'
@@ -33,7 +34,7 @@ import { ServicesDatabase } from './servicesDatabase'
 export const returnCommands = (
   getServices: () => Promise<Services>,
   extensionContext: ExtensionContext,
-) =>
+): Record<string, () => Promise<Result<undefined>>> =>
   ({
     onboarding: onboarding(extensionContext),
     importSources: importSources(getServices, extensionContext),
@@ -42,7 +43,7 @@ export const returnCommands = (
       const services = await getServices()
       const details = await preInitSetup(services)
       if (isErr(details)) {
-        return Err(new Error(`error: ${details.error}`))
+        return details
       }
       const { projectRoot } = details.value
       const testRunnner = await getTestRunnerType(services.storage)
@@ -62,7 +63,10 @@ export const returnCommands = (
             }
           }
           if (mappedTestRunner === undefined) {
-            return Err(new Error(`unknown test runner ${testRunnner}`))
+            return Err({
+              code: ErrorCodes.INTERNAL,
+              message: `unknown test runner ${testRunnner}`,
+            })
           }
 
           const tests = await services.rust.run_test(
@@ -73,7 +77,7 @@ export const returnCommands = (
 
           const mappedTests = collectResults(tests.results.map(testMapper))
           if (isErr(mappedTests)) {
-            return mappedTests
+            return Err(mappedTests.error[0])
           }
 
           return Ok({
@@ -89,7 +93,7 @@ export const returnCommands = (
       const services = await getServices()
       const details = await preInitSetup(services)
       if (isErr(details)) {
-        return Err(new Error(`error: ${details.error}`))
+        return details
       }
       const { projectRoot } = details.value
 
@@ -112,17 +116,16 @@ export const returnCommands = (
         projectRoot,
       })
       if (isErr(assets)) {
-        return Err(new Error(`Error getting models: ${assets.error}`))
+        return assets
       }
       const asset = assets.value.assets.find(
         (asset) => asset.name === activeFileName,
       )
       if (!asset) {
-        return Err(
-          new Error(
-            `Active file is not a model: ${JSON.stringify(activeFileName)}`,
-          ),
-        )
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: 'Active file is not a model',
+        })
       }
 
       return await renderingFunction({
@@ -134,12 +137,10 @@ export const returnCommands = (
             asset.name,
             true, // TODO: Add user selection whether to run model tests against database or not
           )
-
           const mappedTests = collectResults(tests.results.map(testMapper))
           if (isErr(mappedTests)) {
-            return mappedTests
+            return Err(mappedTests.error[0])
           }
-
           return Ok({
             type: 'tests',
             tests: mappedTests.value,
@@ -219,7 +220,7 @@ export const returnCommands = (
       const services = await getServices()
       const details = await preInitSetup(services)
       if (isErr(details)) {
-        return Err(Error(`error: ${details.error}`))
+        return details
       }
       const { projectRoot } = details.value
 
@@ -236,7 +237,10 @@ export const returnCommands = (
 
           // TODO Need to show this error to people
           if (queries.value.sql.length === 0) {
-            return Err(new Error('No queries to run'))
+            return Err({
+              code: ErrorCodes.INVALID_ARGUMENT,
+              message: 'No queries found',
+            })
           }
           for (const query of queries.value.sql) {
             const result = await services.database.runStatement(query)
@@ -245,7 +249,10 @@ export const returnCommands = (
             }
           }
           if (queries.value.project === undefined) {
-            return Err(new Error('No project found'))
+            return Err({
+              code: ErrorCodes.INTERNAL,
+              message: 'project is undefined in queries',
+            })
           }
           return Ok({
             type: 'project',
@@ -296,14 +303,14 @@ export const returnCommands = (
       const services = await getServices()
       const details = await preInitSetup(services)
       if (isErr(details)) {
-        return Err(new Error(`error: ${details.error}`))
+        return details
       }
       const { projectRoot } = details.value
       const assets = await services.rust.list_assets({
         projectRoot,
       })
       if (isErr(assets)) {
-        return Err(new Error(`Error getting models: ${assets.error}`))
+        return assets
       }
       const quickPicks: QuickPickItem[] = assets.value.assets.map((asset) => {
         let description
@@ -356,7 +363,7 @@ export const returnCommands = (
       const services = await getServices()
       const details = await preInitSetup(services)
       if (isErr(details)) {
-        return Err(new Error(`error: ${details.error}`))
+        return details
       }
       const { projectRoot } = details.value
 
@@ -460,18 +467,17 @@ export const returnCommands = (
         projectRoot,
       })
       if (isErr(assets)) {
-        return Err(new Error(`Error getting models: ${assets.error}`))
+        return assets
       }
 
       const asset = assets.value.assets.find(
         (asset) => asset.name === activeFileName.value,
       )
       if (!asset) {
-        return Err(
-          new Error(
-            `Active file is not a model: ${JSON.stringify(activeFileName)}`,
-          ),
-        )
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: `Active file is not a model: ${JSON.stringify(activeFileName)}`,
+        })
       }
       const preInitServices = await getPreInitServices(extensionContext)
       return runDocumentationOnModel(
@@ -484,10 +490,9 @@ export const returnCommands = (
     },
     executeSQL: async () => {
       const services = await getServices()
-
       const details = await preInitSetup(services)
       if (isErr(details)) {
-        return Err(new Error(`error: ${details.error}`))
+        return details
       }
       const { projectRoot } = details.value
 
@@ -509,19 +514,19 @@ export const returnCommands = (
         projectRoot,
       })
       if (isErr(assets)) {
-        return Err(new Error(`Error getting models: ${assets.error}`))
+        return assets
       }
 
       const asset = assets.value.assets.find(
         (asset) => asset.name === activeFileName.value,
       )
       if (!asset) {
-        return Err(
-          new Error(
-            `Active file is not a model: ${JSON.stringify(activeFileName)}`,
-          ),
-        )
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: `Active file is not a model: ${JSON.stringify(activeFileName)}`,
+        })
       }
+
       const preInitServices = await getPreInitServices(extensionContext)
       return executeSQLOnModel(
         asset.name,
@@ -549,15 +554,12 @@ export const returnCommandsWithLogs = (
   analytics: Analytics,
 ): Array<[string, () => Promise<void>]> => {
   const commands = returnCommands(() => getServices(context), context)
-  // eslint-disable-next-line no-console
-  console.info(`isProduction: ${isProduction}`) // temporarily logging
   return Object.entries(commands).map(([name, command]) => [
     name,
     async () => {
       try {
         // eslint-disable-next-line no-console
         console.info(`starting command: ${name}`)
-
         if (isProduction) {
           analytics.track({
             anonymousId: vscode.env.machineId,
@@ -569,23 +571,19 @@ export const returnCommandsWithLogs = (
         }
         const result = await command()
         if (isErr(result)) {
-          await renderingFunction({
-            title: 'Error',
-            fn: async () =>
-              Ok({
-                type: 'error',
-                error: getErrorDetails(result),
-              }),
-            extensionContext: context,
-          })
           logger.captureException(result.error)
-          return
         }
 
         // eslint-disable-next-line no-console
         console.info(`finished command: ${name}`)
       } catch (e) {
-        logger.captureException(e as Error)
+        if (isQuaryError(e)) {
+          return logger.captureException(e)
+        }
+        return logger.captureException({
+          code: ErrorCodes.UNKNOWN,
+          message: `Unknown error: ${e}`,
+        })
       }
     },
   ])
@@ -596,7 +594,10 @@ function extractModelNameFromFilePath(filePath: string): Result<string> {
   const fileName = pathSegments.pop()
 
   if (!fileName) {
-    return Err(new Error('No file name found in the path'))
+    return Err({
+      code: ErrorCodes.INTERNAL,
+      message: `No file name found in the path: ${filePath}`,
+    })
   }
 
   const modelName = fileName.replace('.sql', '').replace('.snapshot', '')

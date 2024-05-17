@@ -11,7 +11,7 @@ import {
   env,
   ProgressLocation,
 } from 'vscode'
-import { Err, isErr, Ok, Result } from '@shared/result'
+import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import {
   SnowflakeOauthProxyRequest,
   SnowflakeOauthRefreshToken,
@@ -232,15 +232,18 @@ export class AuthenticationProviderSnowflake
     })
 
     if (!response.ok) {
-      return Err(new Error(`Failed to refresh token: ${response.statusText}`))
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: `Failed to refresh token: ${response.statusText}`,
+      })
     }
 
     const { serializedTokens } = await response.json()
-
     if (!serializedTokens) {
-      return Err(
-        new Error('Invalid response received from the token refresh endpoint'),
-      )
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: 'Invalid response received from the token refresh endpoint',
+      })
     }
 
     const buffer = Buffer.from(serializedTokens, 'base64')
@@ -272,7 +275,10 @@ export class AuthenticationProviderSnowflake
       body,
     })
     if (!response.ok) {
-      return Err(new Error(`Failed to fetch user info: ${response.statusText}`))
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: `Failed to fetch user info: ${response.statusText}`,
+      })
     }
     const responseData = await response.json()
     const [user, role] = responseData.data[0]
@@ -282,7 +288,10 @@ export class AuthenticationProviderSnowflake
   private async promptForToken(title: string): Promise<Result<string>> {
     const input = await window.showInputBox({ title })
     if (!input) {
-      return Err(new Error('Token was not provided'))
+      return Err({
+        code: ErrorCodes.INVALID_ARGUMENT,
+        message: 'Token was not provided',
+      })
     }
     return Ok(input)
   }

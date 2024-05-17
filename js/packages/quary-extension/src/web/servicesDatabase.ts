@@ -2,7 +2,7 @@ import { Uri } from 'vscode'
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { TableAddress } from '@quary/proto/quary/service/v1/table_address'
-import { Err, Ok, Result } from '@shared/result'
+import { Err, ErrorCodes, Ok, Result } from '@shared/result'
 import { DatabaseDependentSettings, SqlLanguage } from '@shared/config'
 import { CLIRPCServiceClientImpl } from '@quary/proto/quary/service/v1/cli_rpc_calls'
 import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
@@ -93,6 +93,9 @@ export async function CLIDatabaseServiceWrapper<Req, Res>(
     const response = await f(req)
     return Ok(response)
   } catch (e) {
-    return Err(new Error(`${e}`))
+    return Err({
+      code: ErrorCodes.INTERNAL,
+      message: `Failed to execute CLI RPC call: ${e}`,
+    })
   }
 }

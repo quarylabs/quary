@@ -1,4 +1,4 @@
-import { Err, isErr, Ok, Result } from './result'
+import { Err, ErrorCodes, isErr, Ok, Result } from './result'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { columnsValuesToQueryResult } from './shared'
 
@@ -24,16 +24,29 @@ export async function makeSnowflakeRequest<T>(
 
     if (!response.ok) {
       const error = await response.json()
-      return Err(
-        new Error(`HTTP error: ${response.status}\nDetails: ${error.message}`),
-      )
+      switch (response.status) {
+        case 400:
+          return Err({
+            code: ErrorCodes.INVALID_ARGUMENT,
+            message: `Invalid argument in call to Snowflake API, ${JSON.stringify(error)}`,
+          })
+        default: {
+          return Err({
+            code: ErrorCodes.UNKNOWN,
+            message: `HTTP error: ${response.status}\nDetails: ${error.message}`,
+          })
+        }
+      }
     }
     const jsonResponse = await response.json()
     return Ok(jsonResponse as T)
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error occurred'
-    return Err(new Error(`Failed to make Snowflake request: ${errorMessage}`))
+    return Err({
+      code: ErrorCodes.UNKNOWN,
+      message: `Failed to make Snowflake request: ${errorMessage}`,
+    })
   }
 }
 

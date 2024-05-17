@@ -5,7 +5,14 @@ import {
   FileSystem,
   FileSystemError,
 } from 'vscode'
-import { Err, isErr, Ok, Result, ResultE, collectResults } from '@shared/result'
+import {
+  Err,
+  isErr,
+  Ok,
+  Result,
+  collectResults,
+  ErrorCodes,
+} from '@shared/result'
 import {
   FileSystem as ProtoFileSystem,
   File,
@@ -16,7 +23,7 @@ export interface ServicesFiles {
   listAllFiles: () => Promise<Result<Array<Uri>>>
   readFile: (filePath: Uri) => Promise<Uint8Array>
   readFileBuffer: (filePath: Uri) => Promise<Result<Uint8Array | undefined>>
-  doesDirectoryExist: (uri: Uri) => Promise<ResultE<boolean, Error>>
+  doesDirectoryExist: (uri: Uri) => Promise<Result<boolean>>
   createDirectory: (uri: Uri) => Promise<void>
 
   writeFile(uri: Uri, content: Uint8Array): Promise<void>
@@ -68,9 +75,10 @@ export const vsCodeWebFiles = (
             return Ok(undefined)
           }
         }
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        return Err(error)
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: `error reading file: ${error}`,
+        })
       }
     },
     doesDirectoryExist: async (uri) => {
@@ -83,9 +91,10 @@ export const vsCodeWebFiles = (
             return Ok(false)
           }
         }
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        return Err(error)
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: `error checking if directory exists: ${error}`,
+        })
       }
     },
     createDirectory: async (uri) => await fileSystem.createDirectory(uri),
@@ -123,16 +132,27 @@ const getWorkspaceFolder = (
   workspacesFolders: readonly WorkspaceFolder[] | undefined,
 ): Result<WorkspaceFolder> => {
   if (workspacesFolders === undefined) {
-    return Err(new Error('expect workSpaceFolders not to be undefined'))
+    return Err({
+      code: ErrorCodes.INVALID_ARGUMENT,
+      message:
+        'No workspace folders found. Please open a folder in the editor.',
+    })
   }
-  if (workspacesFolders.length !== 1) {
-    return Err(
-      new Error(
-        `expect workSpaceFolders to have length 1, not ${workspacesFolders.length}`,
-      ),
-    )
+  switch (workspacesFolders.length) {
+    case 0:
+      return Err({
+        code: ErrorCodes.INVALID_ARGUMENT,
+        message:
+          'No workspace folders found. Please open a folder in the editor.',
+      })
+    case 1:
+      return Ok(workspacesFolders[0])
+    default:
+      return Err({
+        code: ErrorCodes.INVALID_ARGUMENT,
+        message: `Too many workspaces open, expect 1, not ${workspacesFolders.length}`,
+      })
   }
-  return Ok(workspacesFolders[0])
 }
 
 /**
@@ -156,7 +176,10 @@ const getAllFilesRecursively = async (
           return Ok([Uri.joinPath(root, path)])
         }
         default: {
-          return Err(new Error(`unknown file type ${fileType}`))
+          return Err({
+            code: ErrorCodes.INTERNAL,
+            message: `unknown file type: ${fileType}`,
+          })
         }
       }
     }),
@@ -164,7 +187,10 @@ const getAllFilesRecursively = async (
   const files = await Promise.all(promises)
   const results = collectResults(files)
   if (isErr(results)) {
-    return results
+    return Err({
+      code: ErrorCodes.INTERNAL,
+      message: `error collecting results: ${results.error}`,
+    })
   }
   return Ok(results.value.flat())
 }

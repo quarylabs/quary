@@ -40,10 +40,10 @@ const SENTRY_DSN =
 const JUNE_ANALYTICS = '9PbCtSiPLLggvaE5'
 
 export async function activate(context: vscode.ExtensionContext) {
-  console.info(`starting extension activation w/ UIKind: ${vscode.env.uiKind}`)
-
   const hostDetails = await VSCodeInstanceContext.getHostDetails()
   const isProduction = hostDetails.environment === 'production'
+
+  console.info(`starting extension activation with details: ${hostDetails}`)
 
   const logger = isProduction
     ? servicesLoggerSentry(SENTRY_DSN, hostDetails.version)

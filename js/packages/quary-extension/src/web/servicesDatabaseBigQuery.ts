@@ -1,4 +1,4 @@
-import { Err, isErr, Ok, Result } from '@shared/result'
+import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import * as vscode from 'vscode'
 import { DatabaseDependentSettings, SqlLanguage } from '@shared/config'
 import {
@@ -32,7 +32,7 @@ abstract class BigQueryBase {
     return makeBigQueryRequest(accessToken.value, url, method, body)
   }
 
-  protected async getAccessToken() {
+  protected async getAccessToken(): Promise<Result<string>> {
     const session = await vscode.authentication.getSession(
       'quaryBigQuery',
       [],
@@ -41,7 +41,10 @@ abstract class BigQueryBase {
       },
     )
     if (!session) {
-      return Err(new Error('Unable to authenticate with BigQuery.'))
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: 'Failed to get BigQuery session',
+      })
     }
     return Ok(session.accessToken)
   }
@@ -99,9 +102,16 @@ abstract class BigQueryBase {
         }, []),
       )
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error occurred'
-      return Err(new Error(`Failed to parse BigQuery tables: ${errorMessage}`))
+      if (error instanceof Error) {
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: `Failed to parse BigQuery tables: ${error.message}`,
+        })
+      }
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: 'Failed to parse BigQuery tables ${error}',
+      })
     }
   }
 
@@ -135,7 +145,10 @@ abstract class BigQueryBase {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error occurred'
-      return Err(new Error(`Failed to parse BigQuery views: ${errorMessage}`))
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: `Failed to parse BigQuery views: ${errorMessage}`,
+      })
     }
   }
 
@@ -160,7 +173,7 @@ abstract class BigQueryBase {
   }
 
   // This function only lists Tables in a BigQuery account - Datasets and Projects without tables will not be returned.
-  async listSources() {
+  async listSources(): Promise<Result<ProjectFileSource[]>> {
     const resolveExternalProjects = await this.listProjects()
     if (isErr(resolveExternalProjects)) {
       return Err(resolveExternalProjects.error)
@@ -228,10 +241,10 @@ abstract class BigQueryBase {
       await Promise.all(projectPromises)
       return Ok(results)
     } catch (error) {
-      if (error instanceof Error) {
-        return Err(error)
-      }
-      throw error
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: `Failed to list BigQuery sources: ${error}`,
+      })
     }
   }
 }
