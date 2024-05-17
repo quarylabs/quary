@@ -27,7 +27,7 @@ export const ChartEditorView: React.FC<Props> = ({ chart }) => {
 
   return (
     <ChartEditor
-      onCLickCreateModel={chartViewCreateModel}
+      onClickCreateModel={chartViewCreateModel}
       title={chart.title}
       chartResults={chart.results}
       chartFile={

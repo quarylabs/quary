@@ -13,7 +13,7 @@ interface Props {
   allAssets: string[]
   onClickEdit: () => void
   onClickRunQuery: (chartFile: ChartFile) => void
-  onCLickCreateModel: (sql: string) => void
+  onClickCreateModel: (sql: string) => void
   registerChangeChartFile: (config: ChartFile) => void
 }
 
@@ -25,7 +25,7 @@ export const ChartEditor: React.FC<Props> = ({
   onClickEdit,
   registerChangeChartFile,
   title,
-  onCLickCreateModel,
+  onClickCreateModel,
 }) => (
   <div className="pt-1">
     <WrappedMemoizedChartEditorHeader
@@ -33,7 +33,7 @@ export const ChartEditor: React.FC<Props> = ({
       allAssets={allAssets}
       disabled={chartResults.type === 'loading'}
       onClickEdit={onClickEdit}
-      onClickCreateModel={onCLickCreateModel}
+      onClickCreateModel={onClickCreateModel}
       onClickRunQuery={(source) => {
         onClickRunQuery({
           ...chartFile,
