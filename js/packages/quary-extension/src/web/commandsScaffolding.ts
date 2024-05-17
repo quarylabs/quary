@@ -1,6 +1,6 @@
 import { View } from '@shared/globalViewState'
 import { ExtensionContext, WebviewPanel, ViewColumn } from 'vscode'
-import { getErrorDetails, isErr, Ok, Result } from '@shared/result'
+import { isErr, Ok, Result } from '@shared/result'
 import { createWebViewPanel } from './panels'
 import { useGlobalState } from './webviewState'
 
@@ -28,7 +28,7 @@ export const renderingFunction = async ({
   if (isErr(result)) {
     await setState({
       type: 'error',
-      error: getErrorDetails(result),
+      error: result.error,
     })
     return result
   }

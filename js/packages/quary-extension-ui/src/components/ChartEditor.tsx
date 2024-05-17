@@ -74,13 +74,7 @@ const RenderedPerspective = ({
       return <LoadingView />
     }
     case 'error': {
-      return (
-        <ErrorView
-          error={{
-            message: chartResults.errorMessage,
-          }}
-        />
-      )
+      return <ErrorView error={chartResults.error} />
     }
     case 'not loaded': {
       return <div>Not yet loaded data </div>

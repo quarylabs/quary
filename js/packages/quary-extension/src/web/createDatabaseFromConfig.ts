@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { Err, isErr, Ok, Result } from '@shared/result'
+import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
 import { ServicesDatabase } from './servicesDatabase'
 import { InMemorySqlite, PathBasedSqlite } from './servicesDatabaseSqlite'
@@ -32,7 +32,10 @@ export const databaseFromConfig = async (
   config: ConnectionConfig,
 ): Promise<Result<ServicesDatabase>> => {
   if (config.config === undefined) {
-    return Err(new Error('No config provided.'))
+    return Err({
+      code: ErrorCodes.INTERNAL,
+      message: `No config provided`,
+    })
   }
   switch (config.config.$case) {
     case 'sqliteInMemory': {
@@ -50,7 +53,10 @@ export const databaseFromConfig = async (
           return Ok(sqliteInMemory)
         }
         default: {
-          return Err(new Error(`Unknown UIKind: ${vscode.env.uiKind}`))
+          return Err({
+            code: ErrorCodes.INVALID_ARGUMENT,
+            message: 'Postgres is not supported in the web extension',
+          })
         }
       }
     }
@@ -86,7 +92,10 @@ export const databaseFromConfig = async (
           return Ok(duckDB)
         }
         default: {
-          return Err(new Error(`Unknown UIKind: ${vscode.env.uiKind}`))
+          return Err({
+            code: ErrorCodes.INTERNAL,
+            message: `Unknown UIKind: ${vscode.env.uiKind}`,
+          })
         }
       }
     }
@@ -113,14 +122,20 @@ export const databaseFromConfig = async (
           return Ok(duckDB)
         }
         default: {
-          return Err(new Error(`Unknown UIKind: ${vscode.env.uiKind}`))
+          return Err({
+            code: ErrorCodes.INTERNAL,
+            message: `Unknown UIKind: ${vscode.env.uiKind}`,
+          })
         }
       }
     }
     case 'duckdb': {
       switch (vscode.env.uiKind) {
         case vscode.UIKind.Web: {
-          return Err(new Error('DuckDB is not supported in the web app'))
+          return Err({
+            code: ErrorCodes.INVALID_ARGUMENT,
+            message: 'DuckDb is not supported in the web extension',
+          })
         }
         case vscode.UIKind.Desktop: {
           const { path, schema } = config.config.duckdb
@@ -132,13 +147,19 @@ export const databaseFromConfig = async (
           return Ok(duckDB)
         }
         default:
-          return Err(new Error(`Unknown UIKind: ${vscode.env.uiKind}`))
+          return Err({
+            code: ErrorCodes.INTERNAL,
+            message: `Unknown UIKind: ${vscode.env.uiKind}`,
+          })
       }
     }
     case 'postgres': {
       switch (vscode.env.uiKind) {
         case vscode.UIKind.Web: {
-          return Err(new Error('Postgres is not supported in the web app'))
+          return Err({
+            code: ErrorCodes.INVALID_ARGUMENT,
+            message: 'Postgres is not supported in the web extension',
+          })
         }
         case vscode.UIKind.Desktop: {
           const { schema } = config.config.postgres
@@ -149,13 +170,19 @@ export const databaseFromConfig = async (
           return Ok(postgres)
         }
         default:
-          return Err(new Error(`Unknown UIKind: ${vscode.env.uiKind}`))
+          return Err({
+            code: ErrorCodes.INTERNAL,
+            message: `Unknown UIKind: ${vscode.env.uiKind}`,
+          })
       }
     }
     case 'redshift': {
       switch (vscode.env.uiKind) {
         case vscode.UIKind.Web: {
-          return Err(new Error('Redshift is not supported in the web app'))
+          return Err({
+            code: ErrorCodes.INVALID_ARGUMENT,
+            message: 'Redshift is not supported in the web extension',
+          })
         }
         case vscode.UIKind.Desktop: {
           const { schema } = config.config.redshift
@@ -166,11 +193,17 @@ export const databaseFromConfig = async (
           return Ok(redshift)
         }
         default:
-          return Err(new Error(`Unknown UIKind: ${vscode.env.uiKind}`))
+          return Err({
+            code: ErrorCodes.INTERNAL,
+            message: `Unknown UIKind: ${vscode.env.uiKind}`,
+          })
       }
     }
     default:
-      return Err(new Error(`Unknown config: ${JSON.stringify(config)}`))
+      return Err({
+        code: ErrorCodes.INVALID_ARGUMENT,
+        message: `Invalid configured database: ${config.config}`,
+      })
   }
 }
 

@@ -1,4 +1,4 @@
-import { Err, isErr, Ok, Result } from '@shared/result'
+import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import { DatabaseDependentSettings, SqlLanguage } from '@shared/config'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { CLIRPCServiceClientImpl } from '@quary/proto/quary/service/v1/cli_rpc_calls'
@@ -34,7 +34,10 @@ abstract class ServicesDatabaseSqliteBase
       return response
     }
     if (!response.value.result) {
-      return Err(new Error('Empty query result'))
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: 'Unexpected empty query result',
+      })
     }
     return Ok(response.value.result)
   }

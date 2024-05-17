@@ -3,16 +3,16 @@ import {
   CacheViewInformationPaths,
 } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { Empty } from '@quary/proto/google/protobuf/empty'
-import { Err, isErr, Ok, ResultE } from '@shared/result'
+import { isErr, Ok, Result } from '@shared/result'
 import { ServicesDatabase } from './servicesDatabase'
 
 export const cacheViewBuilder = async (
   database: ServicesDatabase,
-): Promise<ResultE<CacheViewInformation, string>> => {
+): Promise<Result<CacheViewInformation>> => {
   if (database.returnDatabaseConfiguration().lookForCacheViews) {
     const tables = await database.listViews()
     if (isErr(tables)) {
-      return Err(`Error listing tables: ${tables.error}`)
+      return tables
     }
     return Ok({
       cacheView: {

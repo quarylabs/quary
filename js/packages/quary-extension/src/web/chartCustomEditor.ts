@@ -6,7 +6,7 @@ import {
   View,
 } from '@shared/globalViewState'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
-import { isErr, Ok, Result } from '@shared/result'
+import { ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import { ListAssetsResponse_Asset_AssetType } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { disposeAll } from './dispose'
 import { HTML_STRING } from './panels'
@@ -349,7 +349,7 @@ export class ChartEditorProvider
                 chartFile,
                 results: {
                   type: 'error',
-                  errorMessage: JSON.stringify(returned.error),
+                  error: returned.error,
                 },
               })
             }
@@ -404,7 +404,7 @@ export class ChartEditorProvider
                 chartFile,
                 results: {
                   type: 'error',
-                  errorMessage: JSON.stringify(returned),
+                  error: returned.error,
                 },
               })
             }
@@ -436,10 +436,9 @@ export class ChartEditorProvider
                 title,
                 allAssets,
                 chartFile,
-
                 results: {
                   type: 'error',
-                  errorMessage: JSON.stringify(sql.error),
+                  error: sql.error,
                 },
               })
             }
@@ -451,7 +450,7 @@ export class ChartEditorProvider
                 chartFile,
                 results: {
                   type: 'error',
-                  errorMessage: JSON.stringify(returned.error),
+                  error: returned.error,
                 },
               })
             }
@@ -472,7 +471,10 @@ export class ChartEditorProvider
               chartFile,
               results: {
                 type: 'error',
-                errorMessage: 'Unknown source type',
+                error: {
+                  code: ErrorCodes.INTERNAL,
+                  message: 'Unexpected source type',
+                },
               },
             })
         }

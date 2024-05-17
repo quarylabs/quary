@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { ExtensionContext } from 'vscode'
-import { Err, isErr, Ok, Result } from '@shared/result'
+import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import { Dag, View } from '@shared/globalViewState'
 import { useCallBackBackEnd } from '@shared/callBacks'
 import * as vscode from 'vscode'
@@ -36,13 +36,15 @@ const getModelDetails = async ({
     projectRoot,
   })
   if (isErr(modelsResponse)) {
-    return Err(new Error(`Error getting models: ${modelsResponse.error}`))
+    return modelsResponse
   }
   const assets = modelsResponse.value.assets
-
   const asset = assets.find((asset) => asset.name === modelName)
   if (asset === undefined) {
-    return Err(new Error(`model could not be found for ${modelName}`))
+    return Err({
+      code: ErrorCodes.NOT_FOUND,
+      message: `Model ${modelName} not found`,
+    })
   }
 
   const modelTableDetails = await services.rust.getModelTable({
@@ -54,11 +56,7 @@ const getModelDetails = async ({
     : null
   const cacheViewInformation = await cacheViewBuilder(services.database)
   if (isErr(cacheViewInformation)) {
-    return Err(
-      new Error(
-        `Error getting cache view information: ${cacheViewInformation.error}`,
-      ),
-    )
+    return cacheViewInformation
   }
   const fullDetails = await services.rust.return_data_for_doc_view({
     projectRoot,
@@ -66,12 +64,15 @@ const getModelDetails = async ({
     cacheViewInformation: cacheViewInformation.value,
   })
   if (isErr(fullDetails)) {
-    return Err(new Error(`Error getting full details: ${fullDetails.error}`))
+    return fullDetails
   }
 
   const { fullSql, dag } = fullDetails.value
   if (dag === undefined) {
-    return Err(new Error('dag is undefined'))
+    return Err({
+      code: ErrorCodes.INTERNAL,
+      message: `unexpected undefined dag for ${modelName}`,
+    })
   }
 
   const limit = DEFAULT_LIMIT_FOR_SELECT
@@ -109,7 +110,7 @@ const extractBaseViewFromModelDetails = async ({
     rustServices,
   })
   if (isErr(modelDetails)) {
-    return Err(new Error(`error getting model details ${modelDetails.error}`))
+    return modelDetails
   }
   const { limit, dag, table, model, limitedSQL, isModelInSchema } =
     modelDetails.value
@@ -143,7 +144,7 @@ export const runDocumentationOnModel = async (
   await renderingFunction({
     title: `Model: ${modelName}`,
     fn: async (setState, panel, extensionContext) => {
-      const documentationViewLoad = async () => {
+      const documentationViewLoad = async (): Promise<void> => {
         const extracted = await extractBaseViewFromModelDetails({
           services,
           projectRoot,
@@ -151,7 +152,11 @@ export const runDocumentationOnModel = async (
           rustServices,
         })
         if (isErr(extracted)) {
-          throw new Error(`error getting model details ${extracted.error}`)
+          await setState({
+            type: 'error',
+            error: extracted.error,
+          })
+          return
         }
         const { sqlDocumentation, limitedSQL } = extracted.value
         if (
@@ -163,7 +168,7 @@ export const runDocumentationOnModel = async (
               ...sqlDocumentation,
               results: {
                 type: 'error',
-                error: results.error.message,
+                error: results.error,
               },
             })
           } else {
@@ -184,7 +189,6 @@ export const runDocumentationOnModel = async (
           })
         }
       }
-
       useCallBackBackEnd(
         [
           'documentationViewLoad',
@@ -223,7 +227,7 @@ export const runDocumentationOnModel = async (
                 ...sqlDocumentation,
                 results: {
                   type: 'error',
-                  error: results.error.message,
+                  error: results.error,
                 },
               })
               return
@@ -253,11 +257,10 @@ export const runDocumentationOnModel = async (
                 )
                 return Ok(null)
               } catch (error) {
-                return Err(
-                  new Error(
-                    error instanceof Error ? error.message : 'unknown error',
-                  ),
-                )
+                return Err({
+                  code: ErrorCodes.INTERNAL,
+                  message: `unexpected error in opening documentation view ${error}`,
+                })
               }
             }
             const openFileResult = await openFile()
@@ -394,7 +397,6 @@ export const runDocumentationOnModel = async (
         panel,
         extensionContext,
       )
-
       const extracted = await extractBaseViewFromModelDetails({
         services,
         projectRoot,
@@ -402,10 +404,9 @@ export const runDocumentationOnModel = async (
         rustServices,
       })
       if (isErr(extracted)) {
-        return Err(new Error(`error getting model details ${extracted.error}`))
+        return extracted
       }
       const { sqlDocumentation, limitedSQL } = extracted.value
-
       if (services.database.returnDatabaseConfiguration().runQueriesByDefault) {
         const results = await services.database.runStatement(limitedSQL)
         if (isErr(results)) {
@@ -413,7 +414,7 @@ export const runDocumentationOnModel = async (
             ...sqlDocumentation,
             results: {
               type: 'error',
-              error: results.error.message,
+              error: results.error,
             },
           })
         }

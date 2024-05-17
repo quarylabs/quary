@@ -1,4 +1,4 @@
-import { Err, isErr, Ok, Result } from '@shared/result'
+import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import * as duckdb from '@duckdb/duckdb-wasm'
 import { DatabaseDependentSettings, SqlLanguage } from '@shared/config'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
@@ -104,9 +104,15 @@ abstract class Base {
       return Ok(columnsValuesToQueryResult({ columns, values }))
     } catch (e: unknown) {
       if (e instanceof Error) {
-        return Err(e)
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: e.message,
+        })
       }
-      return Err(new Error(`Unknown error: ${JSON.stringify(e)}`))
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: `Unknown error: ${e}`,
+      })
     }
   }
 

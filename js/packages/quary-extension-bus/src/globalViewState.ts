@@ -1,4 +1,3 @@
-import { DetailedError } from './result'
 import { SqlLanguage } from './config'
 import { ProjectDag } from '@quary/proto/quary/service/v1/project_dag'
 import { ListAssetsResponse_Asset } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
@@ -9,6 +8,7 @@ import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import { Table } from '@quary/proto/quary/service/v1/table'
+import { QuaryError } from './result'
 
 /**
  * The message type that is sent to the webview when the global state is set.
@@ -30,7 +30,7 @@ export type View =
     }
   | {
       type: 'error'
-      error: DetailedError
+      error: QuaryError
     }
   | {
       type: 'onboarding'
@@ -121,7 +121,7 @@ export type ChartEditorData = {
       }
     | {
         type: 'error'
-        errorMessage: string
+        error: QuaryError
       }
     | {
         type: 'success'
@@ -139,7 +139,7 @@ export type SqlDocumentationResultsView =
     }
   | {
       type: 'error'
-      error: string
+      error: QuaryError
     }
   | {
       type: 'loading'
