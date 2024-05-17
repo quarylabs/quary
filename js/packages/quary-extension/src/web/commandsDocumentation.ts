@@ -65,24 +65,7 @@ const getModelDetails = async ({
       ),
     )
   }
-<<<<<<< HEAD
   const fullDetails = await services.rust.return_full_sql_for_asset({
-=======
-  if (services.database.returnDatabaseConfiguration().lookForCacheViews) {
-    const tables = await services.database.listViews()
-    if (isErr(tables)) {
-      return Err(new Error(`Error listing tables: ${tables.error}`))
-    }
-    cacheView = {
-      $case: 'cacheViewInformation',
-      cacheViewInformation: CacheViewInformation.create({
-        cacheViewPaths: tables.value.map((table) => table.fullPath),
-      }),
-    }
-  }
-
-  const fullDetails = await services.rust.return_data_for_doc_view({
->>>>>>> 57ffd1d (feat: refactor finding whether in project files)
     projectRoot,
     assetName: asset.name,
     cacheViewInformation: cacheViewInformation.value,

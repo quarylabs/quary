@@ -1010,6 +1010,11 @@ pub(crate) async fn return_data_for_doc_view(
     )
     .await?;
 
+    let project_files = parse_project_files(file_system, request.project_root, database).await?;
+    let is_asset_in_schema_file = p
+
+
+
     Ok(ReturnDataForDocViewResponse {
         full_sql: data.full_sql,
         description: data.description,
