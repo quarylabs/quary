@@ -1,8 +1,8 @@
-import { DetailedError } from '@shared/result'
+import { ErrorCodes, QuaryError, codeToString } from '@shared/result'
 import { Warning } from '@/components/Warning'
 
 interface Props {
-  error: DetailedError
+  error: QuaryError
 }
 
 export const ErrorView: React.FC<Props> = ({ error }) => {
@@ -10,27 +10,22 @@ export const ErrorView: React.FC<Props> = ({ error }) => {
     title: string
     message: string
   } => {
-    if (error.details) {
-      switch (error.details.type) {
-        case 'modelReferenceNotFound': {
-          return {
-            title: 'Model reference not found',
-            message: error.details.message,
-          }
+    switch (error.code) {
+      case ErrorCodes.INVALID_ARGUMENT: {
+        return {
+          title: 'Invalid Argument Error',
+          message: error.message,
         }
-        default: {
-          return {
-            title: 'Error',
-            message: 'An unknonw error occured.',
-          }
+      }
+      default: {
+        return {
+          title: codeToString(error.code),
+          message: error.message,
         }
       }
     }
-    return {
-      title: 'Error',
-      message: error.message,
-    }
   }
+
   const alertContent = getAlertContent()
   return (
     <div className="pt-5">

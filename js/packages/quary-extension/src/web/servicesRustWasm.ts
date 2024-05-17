@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { Err, isErr, Ok, Result } from '@shared/result'
+import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import { Uri } from 'vscode'
 import {
   RustWithDatabaseServiceClientImpl,
@@ -125,8 +125,17 @@ const wrapper = function <Req, Res>(
   return async (request: Req): Promise<Result<Res>> => {
     try {
       return Ok(await fn(request))
-    } catch (e) {
-      return Err(e as Error)
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: e.toString(),
+        })
+      }
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: `${e}`,
+      })
     }
   }
 }
@@ -167,7 +176,10 @@ export const rustWithoutDatabaseWasmServices = (files: ServicesFiles) => {
         const yaml = write_chart_file(output)
         return Ok(yaml)
       } catch (e) {
-        return Err(new Error(e as string))
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: JSON.stringify(e),
+        })
       }
     },
     parse_chart_file: (data: Uint8Array): Result<ChartFile> => {
@@ -175,8 +187,17 @@ export const rustWithoutDatabaseWasmServices = (files: ServicesFiles) => {
         const output = parse_chart_file(data)
         const file = ChartFile.decode(output)
         return Ok(file)
-      } catch (e) {
-        return Err(new Error(e as string))
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          return Err({
+            code: ErrorCodes.INTERNAL,
+            message: e.toString(),
+          })
+        }
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: JSON.stringify(e),
+        })
       }
     },
   }

@@ -3,6 +3,7 @@ import { PlayIcon, ClipboardDocumentListIcon } from '@heroicons/react/20/solid'
 import { DownloadIcon } from '@radix-ui/react-icons'
 import { useCallBackFrontEnd } from '@shared/callBacks'
 import { SqlDocumentationResultsView } from '@shared/globalViewState'
+import { codeToString } from '@shared/result.ts'
 import {
   Tooltip,
   TooltipContent,
@@ -180,7 +181,9 @@ const Results: React.FC<Props> = ({ results, limit }) => {
     case 'error': {
       return (
         <Warning title="Error">
-          <p>{results.error}</p>
+          <p>
+            {codeToString(results.error.code)}: {results.error.message}
+          </p>
         </Warning>
       )
     }

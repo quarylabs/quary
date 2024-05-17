@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { ExtensionContext } from 'vscode'
-import { Err, isErr, Ok, Result } from '@shared/result'
+import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import * as Papa from 'papaparse'
 import { useCallBackBackEnd } from '@shared/callBacks'
 import * as vscode from 'vscode'
@@ -35,22 +35,21 @@ const getModelDetails = async ({
     projectRoot,
   })
   if (isErr(assetsResponse)) {
-    return Err(new Error(`Error getting models: ${assetsResponse.error}`))
+    return assetsResponse
   }
   const assets = assetsResponse.value.assets
 
   const asset = assets.find((asset) => asset.name === modelName)
   if (asset === undefined) {
-    return Err(new Error(`model could not be found for ${modelName}`))
+    return Err({
+      code: ErrorCodes.INTERNAL,
+      message: `Model ${modelName} not found`,
+    })
   }
 
   const cacheViewInformation = await cacheViewBuilder(services.database)
   if (isErr(cacheViewInformation)) {
-    return Err(
-      new Error(
-        `Error getting cache view information: ${cacheViewInformation.error}`,
-      ),
-    )
+    return cacheViewInformation
   }
   const fullDetails = await services.rust.return_full_sql_for_asset({
     projectRoot,
@@ -59,7 +58,7 @@ const getModelDetails = async ({
   })
 
   if (isErr(fullDetails)) {
-    return Err(new Error(`Error getting full details: ${fullDetails.error}`))
+    return fullDetails
   }
 
   const { fullSql } = fullDetails.value
@@ -107,7 +106,7 @@ export const executeSQLOnModel = async (
             type: 'executeSQL',
             results: {
               type: 'error',
-              error: `Error getting model details: ${modelDetails.error.message}`,
+              error: modelDetails.error,
             },
           })
         }
@@ -118,7 +117,7 @@ export const executeSQLOnModel = async (
             type: 'executeSQL',
             results: {
               type: 'error',
-              error: `Error fetching data: ${results.error.message}`,
+              error: results.error,
             },
           })
         }

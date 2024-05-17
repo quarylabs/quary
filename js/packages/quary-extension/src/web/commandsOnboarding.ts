@@ -1,4 +1,4 @@
-import { Err, isErr, Ok, Result } from '@shared/result'
+import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import { useCallBackBackEnd } from '@shared/callBacks'
 import {
   DatabaseOnboardingOptions,
@@ -76,11 +76,7 @@ export const onboarding = (extensionContext: ExtensionContext) => async () => {
 
                   const listProjectsResult = await bq.listProjects()
                   if (isErr(listProjectsResult)) {
-                    return Err(
-                      new Error(
-                        `Error fetching projects: ${listProjectsResult.error}`,
-                      ),
-                    )
+                    return listProjectsResult
                   }
 
                   // TODO: decouple vendor-specific logic elsewhere
@@ -133,11 +129,7 @@ export const onboarding = (extensionContext: ExtensionContext) => async () => {
                   const projectRoot =
                     preInitServices.fileSystem.getProjectRoot()
                   if (isErr(projectRoot)) {
-                    return Err(
-                      new Error(
-                        `Error getting project root: ${projectRoot.error}`,
-                      ),
-                    )
+                    return projectRoot
                   }
                   const dbPath = Uri.joinPath(projectRoot.value, path)
                   const relativePath = Uri.parse(path)
@@ -149,7 +141,7 @@ export const onboarding = (extensionContext: ExtensionContext) => async () => {
                   )
                   const sources = await db.listSources()
                   if (isErr(sources)) {
-                    return Err(new Error(`Error listing sources: ${sources}`))
+                    return sources
                   }
                   return Ok({
                     type: 'listSourcesSuccess',
@@ -169,24 +161,14 @@ export const onboarding = (extensionContext: ExtensionContext) => async () => {
                 }
                 case DatabaseOnboardingOptions.Snowflake: {
                   const snowflake = new SnowflakeHeadless(payload)
-
                   const listSourcesResult = await snowflake.listSources()
                   if (isErr(listSourcesResult)) {
-                    return Err(
-                      new Error(
-                        `Error listing sources: ${listSourcesResult.error}`,
-                      ),
-                    )
+                    return listSourcesResult
                   }
-
                   const listDatabasesAndSchemasResult =
                     await snowflake.listDatabasesAndSchemas()
                   if (isErr(listDatabasesAndSchemasResult)) {
-                    return Err(
-                      new Error(
-                        `Error listing database and schemas: ${listDatabasesAndSchemasResult.error}`,
-                      ),
-                    )
+                    return listDatabasesAndSchemasResult
                   }
                   return Ok({
                     type: 'listSourcesSuccess',
@@ -198,7 +180,10 @@ export const onboarding = (extensionContext: ExtensionContext) => async () => {
                   })
                 }
                 default: {
-                  return Err(new Error('Invalid database selected'))
+                  return Err({
+                    code: ErrorCodes.INVALID_ARGUMENT,
+                    message: 'Invalid database selected',
+                  })
                 }
               }
             }
@@ -227,17 +212,13 @@ export const onboarding = (extensionContext: ExtensionContext) => async () => {
             > => {
               const root = services.fileSystem.getProjectRoot()
               if (isErr(root)) {
-                return Err(
-                  new Error(`Error getting project root: ${root.error}`),
-                )
+                return root
               }
               const projectFiles = await services.rust.generate_project_files({
                 connectionConfig: payload,
               })
               if (isErr(projectFiles)) {
-                return Err(
-                  new Error(`Error generating project: ${projectFiles.error}`),
-                )
+                return projectFiles
               }
               return Ok(undefined)
             }

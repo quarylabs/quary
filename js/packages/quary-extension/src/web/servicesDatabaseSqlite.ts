@@ -1,5 +1,5 @@
 import * as sql from 'sql.js'
-import { Err, isErr, Ok, Result } from '@shared/result'
+import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import { DatabaseDependentSettings, SqlLanguage } from '@shared/config'
 import { Uri } from 'vscode'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
@@ -44,7 +44,16 @@ abstract class Sqlite implements SourcesLister {
       await this.postHook()
       return Ok(result)
     } catch (e) {
-      return Err(new Error(`error calling '${command}': ${e}`))
+      if (e instanceof Error) {
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: e.message,
+        })
+      }
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: `Unrecognised error ${e}`,
+      })
     }
   }
 

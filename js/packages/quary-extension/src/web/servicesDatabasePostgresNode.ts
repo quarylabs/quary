@@ -1,4 +1,4 @@
-import { Err, Ok, Result, isErr } from '@shared/result'
+import { Err, Ok, Result, isErr, ErrorCodes } from '@shared/result'
 import { DatabaseDependentSettings, SqlLanguage } from '@shared/config'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { CLIRPCServiceClientImpl } from '@quary/proto/quary/service/v1/cli_rpc_calls'
@@ -38,7 +38,10 @@ export class ServicesDatabasePostgresNode implements ServicesDatabase {
       return response
     }
     if (!response.value.result) {
-      return Err(new Error('Empty query result'))
+      return Err({
+        code: ErrorCodes.INTERNAL,
+        message: 'unexpected empty result from query',
+      })
     }
     return Ok(response.value.result)
   }
