@@ -140,28 +140,55 @@ pub async fn return_tests_sql(
                                 test.file_path, name, err
                             )
                         })?;
-                        let mut sources = project
+
+                        let mut overrides = project
                             .sources
                             .iter()
-                            .map(|(name, source)| (name.clone(), source.path.clone()))
+                            .map(|(name, source)| {
+                                (
+                                    name.clone(),
+                                    format!("SELECT * FROM {}", source.path.clone()),
+                                )
+                            })
                             .collect::<HashMap<_, _>>();
-                        for name in test
-                            .references
-                            .iter()
-                            .filter(|&name| !project.sources.contains_key(name))
-                        {
-                            let (sql, _) =
-                                project_and_fs_to_query_sql(database, project, fs, name, None)
-                                    .await?;
-                            sources.insert(name.clone(), format!("({})", sql));
+                        for name in project.models.keys() {
+                            if !project.sources.contains_key(name) {
+                                let (sql, _) =
+                                    project_and_fs_to_query_sql(database, project, fs, name, None)
+                                        .await?;
+                                overrides.insert(name.clone(), sql);
+                            }
                         }
-                        let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
-                            .map_err(|e| format!("failed to return reference search: {}", e))?;
-                        let sql = reference_search.clone().replace_all(
-                            file.as_str(),
-                            replace_reference_string_found(&sources, database),
-                        );
-                        Ok(sql.to_string())
+                        match &test.references[..] {
+                            [] => Ok(file.to_string()),
+                            _ => {
+                                let joined_selects = overrides
+                                    .iter()
+                                    .map(|(name, sql)| {
+                                        format!("SELECT * FROM ({}) AS {}", sql, name)
+                                    })
+                                    .collect::<Vec<_>>()
+                                    .join(", ");
+                                let reference_search = return_reference_search(
+                                    DEFAULT_SCHEMA_PREFIX,
+                                )
+                                .map_err(|e| format!("failed to return reference search: {}", e))?;
+                                let path_map = test
+                                    .references
+                                    .iter()
+                                    .cloned()
+                                    .map(|name| (name.clone(), name.clone()))
+                                    .collect();
+                                let sql = reference_search.replace_all(
+                                    &file,
+                                    replace_reference_string_found(&path_map, database),
+                                );
+                                Ok(format!(
+                                    "WITH {} SELECT * FROM ({}) AS alias",
+                                    joined_selects, sql
+                                ))
+                            }
+                        }
                     }
                 }?;
                 Ok((name.to_string(), sql))
