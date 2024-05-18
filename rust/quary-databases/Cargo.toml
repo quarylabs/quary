@@ -16,7 +16,7 @@ sqlx = { version = "0.7.4", features = ["runtime-tokio-rustls", "sqlite", "postg
 async-trait = "0.1.80"
 gcp-bigquery-client = "0.18.0"
 google-cloud-auth = { version = "0.14.0", default-features = false, features = ["external-account", "rustls-tls"] }
-prost = "0.12.4"
+prost = "0.12.6"
 regex = "1.10.4"
 chrono = "0.4.38"
 
@@ -27,4 +27,4 @@ snowflake-api = "0.8.0"
 assert_cmd = "2"
 tempfile = "3"
 testcontainers = "0.16.7"
-testcontainers-modules = { version = "0.4.2", features = ["postgres"] }
+testcontainers-modules = { version = "0.4.3", features = ["postgres"] }

@@ -15,7 +15,7 @@ quary_proto = { path = "../../proto/gen/rust" }
 tokio = { version = "1", features = ["full"] }
 async-trait = "0.1.80"
 indicatif = "0.17"
-prost = "0.12.4"
+prost = "0.12.6"
 futures = "0.3.30"
 base64 = "0.22.1"
 dotenv = "0.15"
@@ -26,4 +26,4 @@ chrono = "0.4.38"
 assert_cmd = "2"
 tempfile = "3"
 testcontainers = "0.16.7"
-testcontainers-modules = { version = "0.4.2", features = ["postgres"] }
+testcontainers-modules = { version = "0.4.3", features = ["postgres"] }
