@@ -16,33 +16,75 @@ pub(crate) fn convert_array_to_vec_string(
     for (i, row) in rows.iter_mut().enumerate() {
         for (j, value) in row.iter_mut().enumerate() {
             let array = &array[j];
-            if let Some(string_array) = array.as_any().downcast_ref::<array::StringArray>() {
-                *value = string_array.value(i).to_string();
-            } else if let Some(int32_array) = array.as_any().downcast_ref::<array::Int32Array>() {
-                *value = int32_array.value(i).to_string();
-            } else if let Some(int64_array) = array.as_any().downcast_ref::<array::Int64Array>() {
-                *value = int64_array.value(i).to_string();
-            } else if let Some(float32_array) = array.as_any().downcast_ref::<array::Float32Array>()
+            if let Some(array) = array.as_any().downcast_ref::<array::StringArray>() {
+                if array.is_null(i) {
+                    *value = "NULL".to_string();
+                } else {
+                    *value = array.value(i).to_string();
+                }
+            } else if let Some(array) = array.as_any().downcast_ref::<array::Int32Array>() {
+                if array.is_null(i) {
+                    *value = "NULL".to_string();
+                } else {
+                    *value = array.value(i).to_string();
+                }
+            } else if let Some(array) = array.as_any().downcast_ref::<array::Int64Array>() {
+                if array.is_null(i) {
+                    *value = "NULL".to_string();
+                } else {
+                    *value = array.value(i).to_string();
+                }
+            } else if let Some(array) = array.as_any().downcast_ref::<array::Float32Array>()
             {
-                *value = float32_array.value(i).to_string();
-            } else if let Some(float64_array) = array.as_any().downcast_ref::<array::Float64Array>()
+                if array.is_null(i) {
+                    *value = "NULL".to_string();
+                } else {
+                    *value = array.value(i).to_string();
+                }
+            } else if let Some(array) = array.as_any().downcast_ref::<array::Float64Array>()
             {
-                *value = float64_array.value(i).to_string();
-            } else if let Some(boolean_array) = array.as_any().downcast_ref::<array::BooleanArray>()
+                if array.is_null(i) {
+                    *value = "NULL".to_string();
+                } else {
+                    *value = array.value(i).to_string();
+                }
+            } else if let Some(array) = array.as_any().downcast_ref::<array::BooleanArray>()
             {
-                *value = boolean_array.value(i).to_string();
-            } else if let Some(date_array) = array.as_any().downcast_ref::<array::Date64Array>() {
-                *value = date_array.value(i).to_string();
-            } else if let Some(date_array) = array.as_any().downcast_ref::<array::Date32Array>() {
-                *value = date_array.value(i).to_string();
-            } else if let Some(timestamp_array) = array
+                if array.is_null(i) {
+                    *value = "NULL".to_string();
+                } else {
+                    *value = array.value(i).to_string();
+                }
+            } else if let Some(array) = array.as_any().downcast_ref::<array::Date64Array>() {
+                if array.is_null(i) {
+                    *value = "NULL".to_string();
+                } else {
+                    let date = array.value(i);
+                    let datetime_utc = DateTime::<Utc>::from_utc(
+                        chrono::NaiveDateTime::from_timestamp(date / 1000, 0),
+                        Utc,
+                    );
+                    *value = datetime_utc.to_rfc3339();
+                }
+            } else if let Some(array) = array.as_any().downcast_ref::<array::Date32Array>() {
+                if array.is_null(i) {
+                    *value = "NULL".to_string();
+                } else {
+                    let date = array.value(i);
+                    let datetime_utc = DateTime::<Utc>::from_utc(
+                        chrono::NaiveDateTime::from_timestamp(date as i64 * 24 * 60 * 60, 0),
+                        Utc,
+                    );
+                    *value = datetime_utc.to_rfc3339();
+                }
+            } else if let Some(array) = array
                 .as_any()
                 .downcast_ref::<array::TimestampMicrosecondArray>()
             {
-                if timestamp_array.is_null(i) {
+                if array.is_null(i) {
                     *value = "NULL".to_string();
                 } else {
-                    let timestamp_micros = timestamp_array.value(i);
+                    let timestamp_micros = array.value(i);
                     let datetime_utc = DateTime::<Utc>::from_timestamp(
                         timestamp_micros / 1_000_000,
                         (timestamp_micros % 1_000_000) as u32 * 1_000,
