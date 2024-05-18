@@ -1,4 +1,4 @@
-use crate::databases_duckdb::convert_array_to_vec_string;
+use crate::database_arrow_helper::convert_array_to_vec_string;
 use async_trait::async_trait;
 use quary_core::database_snowflake::{
     validate_snowfalke_account_identifier, DatabaseQueryGeneratorSnowflake,

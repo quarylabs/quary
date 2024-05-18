@@ -1,3 +1,4 @@
+mod database_arrow_helper;
 mod databases_bigquery;
 pub mod databases_connection;
 pub mod databases_duckdb;
