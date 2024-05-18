@@ -177,7 +177,7 @@
     "@types/webpack-env": "^1.18.5",
     "@typescript-eslint/eslint-plugin": "^7.9.0",
     "@typescript-eslint/parser": "^7.9.0",
-    "@vscode/test-web": "^0.0.53",
+    "@vscode/test-web": "^0.0.54",
     "@vscode/vsce": "^2.26.1",
     "assert": "^2.1.0",
     "concurrently": "^8.2.2",
@@ -198,7 +198,7 @@
   "dependencies": {
     "@duckdb/duckdb-wasm": "1.28.0",
     "@june-so/analytics-node": "^8.0.0",
-    "@sentry/browser": "^7.116.0",
+    "@sentry/browser": "^8.2.1",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",
     "file-loader": "^6.2.0",
