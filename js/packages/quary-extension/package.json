@@ -7,7 +7,7 @@
   "icon": "images/quary-logo.png",
   "version": "0.1.2",
   "engines": {
-    "vscode": "^1.87.0"
+    "vscode": "^1.89.0"
   },
   "categories": [
     "Other"
@@ -173,19 +173,19 @@
     "@types/mocha": "^10.0.6",
     "@types/papaparse": "^5.3.14",
     "@types/sql.js": "^1.4.9",
-    "@types/vscode": "^1.87.0",
-    "@types/webpack-env": "^1.18.4",
-    "@typescript-eslint/eslint-plugin": "^7.7.1",
-    "@typescript-eslint/parser": "^7.7.1",
+    "@types/vscode": "^1.89.0",
+    "@types/webpack-env": "^1.18.5",
+    "@typescript-eslint/eslint-plugin": "^7.9.0",
+    "@typescript-eslint/parser": "^7.9.0",
     "@vscode/test-web": "^0.0.53",
-    "@vscode/vsce": "^2.26.0",
+    "@vscode/vsce": "^2.26.1",
     "assert": "^2.1.0",
     "concurrently": "^8.2.2",
     "eslint": "^8.57.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-react": "^7.34.1",
-    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-storybook": "^0.8.0",
     "mocha": "^10.4.0",
     "process": "^0.11.10",
@@ -198,7 +198,7 @@
   "dependencies": {
     "@duckdb/duckdb-wasm": "1.28.0",
     "@june-so/analytics-node": "^8.0.0",
-    "@sentry/browser": "^7.112.1",
+    "@sentry/browser": "^7.116.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",
     "file-loader": "^6.2.0",
@@ -209,6 +209,6 @@
     "stream-browserify": "^3.0.0",
     "url-loader": "^4.1.1",
     "vm-browserify": "^1.1.2",
-    "zod": "^3.23.4"
+    "zod": "^3.23.8"
   }
 }
