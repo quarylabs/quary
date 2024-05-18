@@ -23,9 +23,6 @@ jobs:
           target: wasm32-unknown-unknown
           override: true
           components: rustfmt, clippy
-      - name: Install buf
-        run: BIN="/usr/local/bin" && VERSION="1.31.0" && curl -sSL "https://github.com/bufbuild/buf/releases/download/v${VERSION}/buf-$(uname -s)-$(uname -m)" -o "${BIN}/buf" && chmod +x "${BIN}/buf"
-      - run: make proto
       - name: Run cargo fmt
         uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # ratchet:actions-rs/cargo@v1
         with:

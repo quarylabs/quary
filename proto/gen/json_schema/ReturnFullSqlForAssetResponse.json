@@ -1,0 +1,94 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ReturnFullSqlForAssetResponse",
+    "definitions": {
+        "ReturnFullSqlForAssetResponse": {
+            "properties": {
+                "full_sql": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dag": {
+                    "$ref": "#/definitions/quary.service.v1.ProjectDag",
+                    "additionalProperties": true
+                },
+                "columns": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ColumnDescription"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Return Full Sql For Asset Response"
+        },
+        "quary.service.v1.ColumnDescription": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "tests": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Column Description"
+        },
+        "quary.service.v1.Edge": {
+            "properties": {
+                "to": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Edge"
+        },
+        "quary.service.v1.Node": {
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "is_cached": {
+                    "type": "boolean"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Node"
+        },
+        "quary.service.v1.ProjectDag": {
+            "properties": {
+                "nodes": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.Node"
+                    },
+                    "type": "array"
+                },
+                "edges": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.Edge"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Project Dag",
+            "description": "DirectedAcyclicGraph represents a directed acyclic graph that is used to visualize the project dependencies in a project."
+        }
+    }
+}

@@ -1,0 +1,52 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ReturnFullSqlForAssetRequest",
+    "definitions": {
+        "ReturnFullSqlForAssetRequest": {
+            "properties": {
+                "project_root": {
+                    "type": "string"
+                },
+                "asset_name": {
+                    "type": "string"
+                },
+                "cache_view_information": {
+                    "$ref": "#/definitions/quary.service.v1.CacheViewInformation",
+                    "additionalProperties": true,
+                    "description": "cache_view defines whether or not to use the cached views in the returned sql and dag."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Return Full Sql For Asset Request"
+        },
+        "quary.service.v1.CacheViewInformation": {
+            "properties": {
+                "cache_view_information": {
+                    "$ref": "#/definitions/quary.service.v1.CacheViewInformationPaths",
+                    "additionalProperties": true
+                },
+                "do_not_use": {
+                    "additionalProperties": true,
+                    "type": "object"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Cache View Information"
+        },
+        "quary.service.v1.CacheViewInformationPaths": {
+            "properties": {
+                "cache_view_paths": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Cache View Information Paths"
+        }
+    }
+}

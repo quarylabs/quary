@@ -1,0 +1,26 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/BigQueryJobStatus",
+    "definitions": {
+        "BigQueryJobStatus": {
+            "properties": {
+                "state": {
+                    "type": "string",
+                    "description": "The state of the job. Possible values include: \"PENDING\", \"RUNNING\", \"DONE\"."
+                },
+                "error_result": {
+                    "type": "string",
+                    "description": "Final error result of the job. If present, indicates that the job has completed and was unsuccessful."
+                },
+                "error_message": {
+                    "type": "string",
+                    "description": "The final error result of the job as a human-readable string."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Job Status",
+            "description": "JobStatus API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/JobStatus"
+        }
+    }
+}

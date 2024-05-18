@@ -1,0 +1,46 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/BigQueryProject",
+    "definitions": {
+        "BigQueryProject": {
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "description": "The resource type."
+                },
+                "id": {
+                    "type": "string",
+                    "description": "An opaque ID of this project."
+                },
+                "numeric_id": {
+                    "type": "string",
+                    "description": "The numeric ID of this project."
+                },
+                "project_reference": {
+                    "$ref": "#/definitions/quary.service.v1.BigQueryProjectReference",
+                    "additionalProperties": true,
+                    "description": "A unique reference to a project."
+                },
+                "friendly_name": {
+                    "type": "string",
+                    "description": "A descriptive name for this project."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Project",
+            "description": "Project API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/projects/list"
+        },
+        "quary.service.v1.BigQueryProjectReference": {
+            "properties": {
+                "project_id": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "------------------\n BigQuery Responses\n ------------------",
+            "description": "------------------ BigQuery Responses ------------------"
+        }
+    }
+}

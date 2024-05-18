@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ReturnDefinitionLocationsForSQLRequest",
+    "definitions": {
+        "ReturnDefinitionLocationsForSQLRequest": {
+            "properties": {
+                "project_root": {
+                    "type": "string"
+                },
+                "sql": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Return Definition Locations For SQL Request"
+        }
+    }
+}

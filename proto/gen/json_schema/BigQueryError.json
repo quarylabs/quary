@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/BigQueryError",
+    "definitions": {
+        "BigQueryError": {
+            "properties": {
+                "reason": {
+                    "type": "string",
+                    "description": "A short error code that summarizes the error."
+                },
+                "location": {
+                    "type": "string",
+                    "description": "The location of the error, if applicable."
+                },
+                "debug_info": {
+                    "type": "string",
+                    "description": "A human-readable description of the error."
+                },
+                "message": {
+                    "type": "string",
+                    "description": "A human-readable description of the error."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Error",
+            "description": "BigQueryError API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/ErrorProto"
+        }
+    }
+}

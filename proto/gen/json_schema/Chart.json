@@ -1,0 +1,68 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/Chart",
+    "definitions": {
+        "Chart": {
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Name of the chart"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Description of the cart"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together. For example, you could tag all models that are related to a specific department with the same tag."
+                },
+                "path": {
+                    "type": "string",
+                    "description": "Path of the file"
+                },
+                "raw_sql": {
+                    "type": "string",
+                    "description": "raw sql that is passed to the database"
+                },
+                "pre_templated_sql": {
+                    "type": "string",
+                    "description": "sql that is passed to the database with templating through quary"
+                },
+                "reference": {
+                    "$ref": "#/definitions/quary.service.v1.Chart.AssetReference",
+                    "additionalProperties": true,
+                    "description": "reference to a pre-existing asset, model, source, seed, snapshot"
+                },
+                "config": {
+                    "additionalProperties": true,
+                    "type": "object",
+                    "description": "Configuration for the chart that is passed to perspective"
+                },
+                "references": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "References that this chart has, these can be models/sources/seeds/snapshots"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Chart",
+            "description": "Parsed chart that is in a project"
+        },
+        "quary.service.v1.Chart.AssetReference": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Asset Reference"
+        }
+    }
+}

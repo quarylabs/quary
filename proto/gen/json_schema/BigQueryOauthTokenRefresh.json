@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/BigQueryOauthTokenRefresh",
+    "definitions": {
+        "BigQueryOauthTokenRefresh": {
+            "properties": {
+                "access_token": {
+                    "type": "string",
+                    "description": "short-lived token"
+                },
+                "expiry_time": {
+                    "type": "string",
+                    "description": "absolute time the token expires"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Oauth Token Refresh"
+        }
+    }
+}

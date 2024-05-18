@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ListAssetsRequest",
+    "definitions": {
+        "ListAssetsRequest": {
+            "properties": {
+                "project_root": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "List Assets Request"
+        }
+    }
+}

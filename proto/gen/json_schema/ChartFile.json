@@ -1,0 +1,53 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ChartFile",
+    "definitions": {
+        "ChartFile": {
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "description": "description of the cart"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together. For example, you could tag all models that are related to a specific department with the same tag."
+                },
+                "raw_sql": {
+                    "type": "string",
+                    "description": "raw sql that is passed to the database"
+                },
+                "pre_templated_sql": {
+                    "type": "string",
+                    "description": "sql that is passed to the database with templating through quary"
+                },
+                "reference": {
+                    "$ref": "#/definitions/quary.service.v1.ChartFile.AssetReference",
+                    "additionalProperties": true,
+                    "description": "reference to a pre-existing asset, model, source, seed, snapshot"
+                },
+                "config": {
+                    "additionalProperties": true,
+                    "type": "object",
+                    "description": "Configuration for the chart that is passed to perspective"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Chart File",
+            "description": "CharFile is a representation of a chart that can be used to generate a visualization."
+        },
+        "quary.service.v1.ChartFile.AssetReference": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Asset Reference"
+        }
+    }
+}

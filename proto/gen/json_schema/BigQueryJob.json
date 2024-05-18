@@ -1,0 +1,80 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/BigQueryJob",
+    "definitions": {
+        "BigQueryJob": {
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "description": "The resource type."
+                },
+                "id": {
+                    "type": "string",
+                    "description": "An opaque ID uniquely identifying the job."
+                },
+                "self_link": {
+                    "type": "string",
+                    "description": "A URL that can be used to access this resource again."
+                },
+                "user_email": {
+                    "type": "string",
+                    "description": "The email address of the user who ran the job."
+                },
+                "job_reference": {
+                    "$ref": "#/definitions/quary.service.v1.BigQueryJobReference",
+                    "additionalProperties": true,
+                    "description": "A reference uniquely identifying the job."
+                },
+                "status": {
+                    "$ref": "#/definitions/quary.service.v1.BigQueryJobStatus",
+                    "additionalProperties": true,
+                    "description": "Information about the job, including starting time and ending time of the job."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Job",
+            "description": "Job API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/Job"
+        },
+        "quary.service.v1.BigQueryJobReference": {
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "description": "The ID of the project containing this job."
+                },
+                "job_id": {
+                    "type": "string",
+                    "description": "The ID of the job."
+                },
+                "location": {
+                    "type": "string",
+                    "description": "The geographic location of the job."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Job Reference",
+            "description": "JobReference API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/JobReference"
+        },
+        "quary.service.v1.BigQueryJobStatus": {
+            "properties": {
+                "state": {
+                    "type": "string",
+                    "description": "The state of the job. Possible values include: \"PENDING\", \"RUNNING\", \"DONE\"."
+                },
+                "error_result": {
+                    "type": "string",
+                    "description": "Final error result of the job. If present, indicates that the job has completed and was unsuccessful."
+                },
+                "error_message": {
+                    "type": "string",
+                    "description": "The final error result of the job as a human-readable string."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Job Status",
+            "description": "JobStatus API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/JobStatus"
+        }
+    }
+}

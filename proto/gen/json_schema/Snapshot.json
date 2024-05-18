@@ -1,0 +1,67 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/Snapshot",
+    "definitions": {
+        "Snapshot": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together."
+                },
+                "file_path": {
+                    "type": "string"
+                },
+                "file_sha256_hash": {
+                    "type": "string"
+                },
+                "unique_key": {
+                    "type": "string"
+                },
+                "strategy": {
+                    "$ref": "#/definitions/quary.service.v1.Snapshot.SnapshotStrategy",
+                    "additionalProperties": true
+                },
+                "references": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "References to other seeds/sources that are used in the snapshot. These are unique keys and sorted alphabetically."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Snapshot"
+        },
+        "quary.service.v1.Snapshot.SnapshotStrategy": {
+            "properties": {
+                "timestamp": {
+                    "$ref": "#/definitions/quary.service.v1.Snapshot.SnapshotStrategy.TimestampStrategy",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Snapshot Strategy"
+        },
+        "quary.service.v1.Snapshot.SnapshotStrategy.TimestampStrategy": {
+            "properties": {
+                "updated_at": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Timestamp Strategy"
+        }
+    }
+}

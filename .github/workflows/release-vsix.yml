@@ -35,9 +35,6 @@ jobs:
       - uses: taiki-e/cache-cargo-install-action@5b024fe3a0a2c7f2aaff0e47871acf0d14b07207 # ratchet:taiki-e/cache-cargo-install-action@v1
         with:
           tool: wasm-bindgen-cli
-      - name: Install buf
-        run: BIN="/usr/local/bin" && VERSION="1.31.0" && curl -sSL "https://github.com/bufbuild/buf/releases/download/v${VERSION}/buf-$(uname -s)-$(uname -m)" -o "${BIN}/buf" && chmod +x "${BIN}/buf"
-      - run: make proto
       - name: Build rust wasm
         run: make rust_build_wasm
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # ratchet:actions/setup-node@v3

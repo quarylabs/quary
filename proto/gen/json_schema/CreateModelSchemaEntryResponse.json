@@ -1,0 +1,217 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/CreateModelSchemaEntryResponse",
+    "definitions": {
+        "CreateModelSchemaEntryResponse": {
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "project_file": {
+                    "$ref": "#/definitions/quary.service.v1.ProjectFile",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Create Model Schema Entry Response"
+        },
+        "quary.service.v1.ColumnTest": {
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "info": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "type": "object"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Column Test"
+        },
+        "quary.service.v1.ModelTest": {
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "info": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "type": "object"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Model Test"
+        },
+        "quary.service.v1.ProjectFile": {
+            "properties": {
+                "sources": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFileSource"
+                    },
+                    "type": "array"
+                },
+                "models": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Model"
+                    },
+                    "type": "array"
+                },
+                "snapshots": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFile.Snapshot"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Project File"
+        },
+        "quary.service.v1.ProjectFile.Model": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together. For example, you could tag all models that are related to a specific department with the same tag."
+                },
+                "description": {
+                    "type": "string"
+                },
+                "materialization": {
+                    "type": "string",
+                    "description": "The materialization of the model, available types are specified by each database."
+                },
+                "tests": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ModelTest"
+                    },
+                    "type": "array"
+                },
+                "columns": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFileColumn"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Model"
+        },
+        "quary.service.v1.ProjectFile.Snapshot": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together. For example, you could tag all models that are related to a specific department with the same tag."
+                },
+                "description": {
+                    "type": "string"
+                },
+                "unique_key": {
+                    "type": "string"
+                },
+                "strategy": {
+                    "$ref": "#/definitions/quary.service.v1.ProjectFile.SnapshotStrategy",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Snapshot"
+        },
+        "quary.service.v1.ProjectFile.SnapshotStrategy": {
+            "properties": {
+                "timestamp": {
+                    "$ref": "#/definitions/quary.service.v1.ProjectFile.TimestampStrategy",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Snapshot Strategy"
+        },
+        "quary.service.v1.ProjectFile.TimestampStrategy": {
+            "properties": {
+                "updated_at": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Timestamp Strategy"
+        },
+        "quary.service.v1.ProjectFileColumn": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "tests": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ColumnTest"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Project File Column",
+            "description": "Standard types are: - not_null - unique - 'relationship' which takes into data (model and field)"
+        },
+        "quary.service.v1.ProjectFileSource": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together. For example, you could tag all sources that are related to a specific department with the same tag."
+                },
+                "description": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string",
+                    "description": "The full path of the source table in the database. This is used to reference the table itself. For example: - 'public.users' for where the schema is 'public' and the table is 'users' - 'project_id_123.dataset_id_123.table_id_123' for a BigQuery table"
+                },
+                "tests": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ModelTest"
+                    },
+                    "type": "array"
+                },
+                "columns": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ProjectFileColumn"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Project File Source"
+        }
+    }
+}
