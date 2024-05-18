@@ -57,7 +57,7 @@ pub async fn run_tests(
     database: Uint8Array,
     file_reader: Function,
     file_lister: Function,
-    run_statement: JsValue,
+    run_statement: Function,
     project_root: &str,
 ) -> Result<Uint8Array, String> {
     let file_system = JsFileSystem::new(file_reader, file_lister);
@@ -70,41 +70,8 @@ pub async fn run_tests(
         _ => panic!("Invalid test runner"),
     };
 
-    let function: js_sys::Function = run_statement.into();
-    let function = Rc::new(function); // Wrap function in a Rc
-    let func: RunStatementFunc = Box::new(move |sql: &str| {
-        let sql = sql.to_owned(); // Convert &str to String
-        let function = function.clone(); // Clone the Rc<Function>
-        Box::pin(async move {
-            let result = function.call1(&JsValue::NULL, &JsValue::from_str(&sql)); // Use &sql which is now a &String
-            match result {
-                Ok(js_value) => {
-                    let promise: Result<Promise, _> = js_value.dyn_into();
-                    match promise {
-                        Ok(promise) => {
-                            let js_future = JsFuture::from(promise);
-                            let js_value = js_future.await.map_err(|err| {
-                                format!("Failed to await js function to : {:?}", err)
-                            })?;
-
-                            let bool = js_value.as_bool();
-                            match bool {
-                                Some(bool) => {
-                                    Ok(if bool { None } else { Some(Default::default()) })
-                                }
-                                None => Err(format!(
-                                    "Failed to map js value to boolean: {:?}",
-                                    js_value
-                                )),
-                            }
-                        }
-                        Err(err) => Err(format!("Failed to map promise: {:?}", err)),
-                    }
-                }
-                Err(err) => Err(format!("Failed to call function: {:?}", err)),
-            }
-        })
-    });
+    let function = Rc::new(run_statement);
+    let func = create_run_statement_func(function);
 
     let test_results = run_tests_internal(
         &database,
@@ -136,7 +103,7 @@ pub async fn run_model_tests(
     database: Uint8Array,
     file_reader: Function,
     file_lister: Function,
-    run_statement: JsValue,
+    run_statement: Function,
     model_name: &str,
     project_root: &str,
     whether_to_include_model_to_source: bool,
@@ -145,8 +112,33 @@ pub async fn run_model_tests(
     let database = database_query_generator_from_config(database)?;
     let project = quary_core::project::parse_project(&file_system, &database, project_root).await?;
 
-    let function: js_sys::Function = run_statement.into();
-    let function = Rc::new(function); // Wrap function in a Rc
+    let function = Rc::new(run_statement);
+    let func = create_run_statement_func(function);
+
+    let test_results = run_model_tests_internal(
+        &database,
+        &file_system,
+        &project,
+        func,
+        whether_to_include_model_to_source,
+        Some(1),
+        model_name,
+    )
+    .await
+    .map_err(|err| match err {
+        RunTestError::TestFailedToRun(test) => {
+            format!(
+                "Test '{}' failed to run: {}, ran sql '{}'",
+                test.test_name, test.error, test.sql
+            )
+        }
+        RunTestError::Other(s) => s,
+    })?;
+
+    encode(test_results)
+}
+
+fn create_run_statement_func(function: Rc<Function>) -> RunStatementFunc {
     let func: RunStatementFunc = Box::new(move |sql: &str| {
         let sql = sql.to_owned(); // Convert &str to String
         let function = function.clone(); // Clone the Rc<Function>
@@ -180,28 +172,7 @@ pub async fn run_model_tests(
             }
         })
     });
-
-    let test_results = run_model_tests_internal(
-        &database,
-        &file_system,
-        &project,
-        func,
-        whether_to_include_model_to_source,
-        Some(1),
-        model_name,
-    )
-    .await
-    .map_err(|err| match err {
-        RunTestError::TestFailedToRun(test) => {
-            format!(
-                "Test '{}' failed to run: {}, ran sql '{}'",
-                test.test_name, test.error, test.sql
-            )
-        }
-        RunTestError::Other(s) => s,
-    })?;
-
-    encode(test_results)
+    func
 }
 
 #[wasm_bindgen]
