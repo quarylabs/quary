@@ -145,7 +145,11 @@ pub async fn return_tests_sql(
                             .iter()
                             .map(|(name, source)| (name.clone(), source.path.clone()))
                             .collect::<HashMap<_, _>>();
-                        for name in project.models.keys() {
+                        for name in test
+                            .references
+                            .iter()
+                            .filter(|&name| !project.sources.contains_key(name))
+                        {
                             let (sql, _) =
                                 project_and_fs_to_query_sql(database, project, fs, name, None)
                                     .await?;
