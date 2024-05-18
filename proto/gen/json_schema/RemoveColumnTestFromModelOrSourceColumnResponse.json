@@ -1,0 +1,11 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/RemoveColumnTestFromModelOrSourceColumnResponse",
+    "definitions": {
+        "RemoveColumnTestFromModelOrSourceColumnResponse": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Remove Column Test From Model Or Source Column Response"
+        }
+    }
+}

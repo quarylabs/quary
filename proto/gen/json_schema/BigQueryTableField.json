@@ -1,0 +1,37 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/BigQueryTableField",
+    "definitions": {
+        "BigQueryTableField": {
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The field name."
+                },
+                "type": {
+                    "type": "string",
+                    "description": "The field data type. Possible values are: STRING, INTEGER, FLOAT, BOOLEAN, TIMESTAMP."
+                },
+                "mode": {
+                    "type": "string",
+                    "description": "The field mode. Possible values are: NULLABLE, REQUIRED, REPEATED."
+                },
+                "fields": {
+                    "items": {
+                        "$ref": "#/definitions/BigQueryTableField"
+                    },
+                    "type": "array",
+                    "description": "Describes the nested schema fields if the type property is set to RECORD."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "The field description."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Table Field",
+            "description": "Table Field API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#TableFieldSchema"
+        }
+    }
+}

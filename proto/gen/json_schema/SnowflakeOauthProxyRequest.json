@@ -1,0 +1,26 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/SnowflakeOauthProxyRequest",
+    "definitions": {
+        "SnowflakeOauthProxyRequest": {
+            "properties": {
+                "account_url": {
+                    "type": "string"
+                },
+                "client_id": {
+                    "type": "string"
+                },
+                "client_secret": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Snowflake Oauth Proxy Request",
+            "description": "Snowflake SSO"
+        }
+    }
+}

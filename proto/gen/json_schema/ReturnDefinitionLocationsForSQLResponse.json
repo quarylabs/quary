@@ -1,0 +1,66 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ReturnDefinitionLocationsForSQLResponse",
+    "definitions": {
+        "ReturnDefinitionLocationsForSQLResponse": {
+            "properties": {
+                "definitions": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ReturnDefinitionLocationsForSQLResponse.Definition"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Return Definition Locations For SQL Response"
+        },
+        "quary.service.v1.Position": {
+            "properties": {
+                "line": {
+                    "type": "integer"
+                },
+                "character": {
+                    "type": "integer"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Position",
+            "description": "Position is a simple representation of a line and character position in a file."
+        },
+        "quary.service.v1.Range": {
+            "properties": {
+                "start": {
+                    "$ref": "#/definitions/quary.service.v1.Position",
+                    "additionalProperties": true
+                },
+                "end": {
+                    "$ref": "#/definitions/quary.service.v1.Position",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Range",
+            "description": "Range represents a range of positions in a file."
+        },
+        "quary.service.v1.ReturnDefinitionLocationsForSQLResponse.Definition": {
+            "properties": {
+                "range": {
+                    "$ref": "#/definitions/quary.service.v1.Range",
+                    "additionalProperties": true
+                },
+                "target_model": {
+                    "type": "string"
+                },
+                "target_file": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Definition"
+        }
+    }
+}

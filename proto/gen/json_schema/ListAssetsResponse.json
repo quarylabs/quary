@@ -1,0 +1,65 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ListAssetsResponse",
+    "definitions": {
+        "ListAssetsResponse": {
+            "properties": {
+                "assets": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.ListAssetsResponse.Asset"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "List Assets Response"
+        },
+        "quary.service.v1.ListAssetsResponse.Asset": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "asset_type": {
+                    "enum": [
+                        "ASSET_TYPE_UNSPECIFIED",
+                        0,
+                        "ASSET_TYPE_MODEL",
+                        1,
+                        "ASSET_TYPE_SEED",
+                        2,
+                        "ASSET_TYPE_SOURCE",
+                        3,
+                        "ASSET_TYPE_SNAPSHOT",
+                        4
+                    ],
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "title": "Asset Type"
+                },
+                "file_path": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Asset",
+            "description": "TODO This asset type should probably be refactored to just use the core types."
+        }
+    }
+}

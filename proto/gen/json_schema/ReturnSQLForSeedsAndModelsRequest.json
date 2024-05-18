@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ReturnSQLForSeedsAndModelsRequest",
+    "definitions": {
+        "ReturnSQLForSeedsAndModelsRequest": {
+            "properties": {
+                "project_root": {
+                    "type": "string"
+                },
+                "db_qualifier": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Return SQL For Seeds And Models Request"
+        }
+    }
+}

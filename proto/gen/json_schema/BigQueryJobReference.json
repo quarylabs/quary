@@ -1,0 +1,26 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/BigQueryJobReference",
+    "definitions": {
+        "BigQueryJobReference": {
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "description": "The ID of the project containing this job."
+                },
+                "job_id": {
+                    "type": "string",
+                    "description": "The ID of the job."
+                },
+                "location": {
+                    "type": "string",
+                    "description": "The geographic location of the job."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Job Reference",
+            "description": "JobReference API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/JobReference"
+        }
+    }
+}

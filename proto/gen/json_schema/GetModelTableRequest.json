@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/GetModelTableRequest",
+    "definitions": {
+        "GetModelTableRequest": {
+            "properties": {
+                "project_root": {
+                    "type": "string"
+                },
+                "model_name": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Get Model Table Request"
+        }
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/BigQueryFieldValue",
+    "definitions": {
+        "BigQueryFieldValue": {
+            "properties": {
+                "f": {
+                    "type": "string",
+                    "description": "Represents the 'f' in a JSON object"
+                },
+                "v": {
+                    "type": "string",
+                    "description": "Represents the 'v' in a JSON object"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Field Value"
+        }
+    }
+}

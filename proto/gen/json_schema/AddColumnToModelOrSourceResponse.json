@@ -1,0 +1,11 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/AddColumnToModelOrSourceResponse",
+    "definitions": {
+        "AddColumnToModelOrSourceResponse": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Add Column To Model Or Source Response"
+        }
+    }
+}

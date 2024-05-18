@@ -1,0 +1,56 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/BigQueryDataset",
+    "definitions": {
+        "BigQueryDataset": {
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "description": "The resource type. This property always returns the value \"bigquery#dataset\""
+                },
+                "id": {
+                    "type": "string",
+                    "description": "The fully-qualified, unique, opaque ID of the dataset."
+                },
+                "dataset_reference": {
+                    "$ref": "#/definitions/quary.service.v1.BigQueryDatasetReference",
+                    "additionalProperties": true,
+                    "description": "The dataset reference. Use this property to access specific parts of the dataset's ID, such as project ID or dataset ID."
+                },
+                "friendly_name": {
+                    "type": "string",
+                    "description": "An alternate name for the dataset. The friendly name is purely decorative in nature."
+                },
+                "labels": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "type": "object",
+                    "description": "The labels associated with this dataset. You can use these to organize and group your datasets."
+                },
+                "location": {
+                    "type": "string",
+                    "description": "The geographic location where the dataset resides."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Dataset",
+            "description": "Dataset API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets/list"
+        },
+        "quary.service.v1.BigQueryDatasetReference": {
+            "properties": {
+                "project_id": {
+                    "type": "string"
+                },
+                "dataset_id": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Dataset Reference",
+            "description": "Dataset Reference API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets#DatasetReference"
+        }
+    }
+}

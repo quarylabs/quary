@@ -1,0 +1,191 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/BigQueryJobResults",
+    "definitions": {
+        "BigQueryJobResults": {
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "description": "The resource type."
+                },
+                "schema": {
+                    "$ref": "#/definitions/quary.service.v1.BigQueryTableSchema",
+                    "additionalProperties": true,
+                    "description": "The schema of the results. Present only when the query completes successfully."
+                },
+                "job_reference": {
+                    "$ref": "#/definitions/quary.service.v1.BigQueryJobReference",
+                    "additionalProperties": true,
+                    "description": "A reference uniquely identifying the job."
+                },
+                "total_rows": {
+                    "type": "string",
+                    "description": "The total number of rows in the complete query result set, which can be more than the number of rows in this single page of results."
+                },
+                "page_token": {
+                    "type": "string",
+                    "description": "A token used for paging results."
+                },
+                "rows": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.BigQueryTableRow"
+                    },
+                    "type": "array",
+                    "description": "An object with as many results as can be contained within the maximum permitted reply size. To get any additional rows, you can call GetQueryResults and specify the jobReference returned above."
+                },
+                "job_complete": {
+                    "type": "string",
+                    "description": "Whether the query result was fetched from the query cache."
+                },
+                "errors": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.BigQueryError"
+                    },
+                    "type": "array",
+                    "description": "The first errors encountered during the running of the job. The final message includes the number of errors encountered."
+                },
+                "cache_hit": {
+                    "type": "string",
+                    "description": "Whether the query result was fetched from the query cache."
+                },
+                "num_dml_affected_rows": {
+                    "type": "string",
+                    "description": "The number of rows affected by a DML statement. Present only for DML statements INSERT, UPDATE or DELETE."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Job Results",
+            "description": "BigQueryJobResults API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/getQueryResults"
+        },
+        "quary.service.v1.BigQueryError": {
+            "properties": {
+                "reason": {
+                    "type": "string",
+                    "description": "A short error code that summarizes the error."
+                },
+                "location": {
+                    "type": "string",
+                    "description": "The location of the error, if applicable."
+                },
+                "debug_info": {
+                    "type": "string",
+                    "description": "A human-readable description of the error."
+                },
+                "message": {
+                    "type": "string",
+                    "description": "A human-readable description of the error."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Error",
+            "description": "BigQueryError API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/ErrorProto"
+        },
+        "quary.service.v1.BigQueryFieldValue": {
+            "properties": {
+                "f": {
+                    "type": "string",
+                    "description": "Represents the 'f' in a JSON object"
+                },
+                "v": {
+                    "type": "string",
+                    "description": "Represents the 'v' in a JSON object"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Field Value"
+        },
+        "quary.service.v1.BigQueryJobReference": {
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "description": "The ID of the project containing this job."
+                },
+                "job_id": {
+                    "type": "string",
+                    "description": "The ID of the job."
+                },
+                "location": {
+                    "type": "string",
+                    "description": "The geographic location of the job."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Job Reference",
+            "description": "JobReference API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/JobReference"
+        },
+        "quary.service.v1.BigQueryTableField": {
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The field name."
+                },
+                "type": {
+                    "type": "string",
+                    "description": "The field data type. Possible values are: STRING, INTEGER, FLOAT, BOOLEAN, TIMESTAMP."
+                },
+                "mode": {
+                    "type": "string",
+                    "description": "The field mode. Possible values are: NULLABLE, REQUIRED, REPEATED."
+                },
+                "fields": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.BigQueryTableField"
+                    },
+                    "type": "array",
+                    "description": "Describes the nested schema fields if the type property is set to RECORD."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "The field description."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Table Field",
+            "description": "Table Field API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#TableFieldSchema"
+        },
+        "quary.service.v1.BigQueryTableRow": {
+            "properties": {
+                "f": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.BigQueryFieldValue"
+                    },
+                    "type": "array",
+                    "description": "Represents a single row as a series of field-value pairs"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Table Row"
+        },
+        "quary.service.v1.BigQueryTableSchema": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "fields": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.BigQueryTableField"
+                    },
+                    "type": "array",
+                    "description": "Describes the fields in a table."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "The field description."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Table Schema",
+            "description": "Table Schema API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#TableSchema"
+        }
+    }
+}
