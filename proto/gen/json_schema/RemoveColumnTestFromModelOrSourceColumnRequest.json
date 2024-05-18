@@ -1,0 +1,42 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/RemoveColumnTestFromModelOrSourceColumnRequest",
+    "definitions": {
+        "RemoveColumnTestFromModelOrSourceColumnRequest": {
+            "properties": {
+                "project_root": {
+                    "type": "string"
+                },
+                "model_or_source_name": {
+                    "type": "string"
+                },
+                "column_name": {
+                    "type": "string"
+                },
+                "column_test": {
+                    "$ref": "#/definitions/quary.service.v1.ColumnTest",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Remove Column Test From Model Or Source Column Request"
+        },
+        "quary.service.v1.ColumnTest": {
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "info": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "type": "object"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Column Test"
+        }
+    }
+}

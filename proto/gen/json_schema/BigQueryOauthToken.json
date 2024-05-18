@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/BigQueryOauthToken",
+    "definitions": {
+        "BigQueryOauthToken": {
+            "properties": {
+                "access_token": {
+                    "type": "string",
+                    "description": "short-lived token"
+                },
+                "refresh_token": {
+                    "type": "string"
+                },
+                "expiry_time": {
+                    "type": "string",
+                    "description": "absolute time the token expires"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Oauth Token",
+            "description": "Google Oauth 2.0 token API Documentation: https://developers.google.com/identity/protocols/oauth2/web-server#httprest"
+        }
+    }
+}

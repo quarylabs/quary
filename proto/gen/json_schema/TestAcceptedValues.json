@@ -1,0 +1,31 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/TestAcceptedValues",
+    "definitions": {
+        "TestAcceptedValues": {
+            "properties": {
+                "file_path": {
+                    "type": "string"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "column": {
+                    "type": "string"
+                },
+                "accepted_values": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Test Accepted Values"
+        }
+    }
+}

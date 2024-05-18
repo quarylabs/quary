@@ -1,0 +1,11 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/UpdateAssetDescriptionResponse",
+    "definitions": {
+        "UpdateAssetDescriptionResponse": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Update Asset Description Response"
+        }
+    }
+}

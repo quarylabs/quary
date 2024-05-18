@@ -1,0 +1,52 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/BigQueryTable",
+    "definitions": {
+        "BigQueryTable": {
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "description": "The resource type."
+                },
+                "id": {
+                    "type": "string",
+                    "description": "An opaque ID uniquely identifying the table."
+                },
+                "table_reference": {
+                    "$ref": "#/definitions/quary.service.v1.BigQueryTableReference",
+                    "additionalProperties": true,
+                    "description": "A reference uniquely identifying the table."
+                },
+                "type": {
+                    "type": "string",
+                    "description": "The type of table. Possible values are: TABLE, VIEW."
+                },
+                "creation_time": {
+                    "type": "string",
+                    "description": "The time when this table was created, in milliseconds since the epoch."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Table",
+            "description": "Table API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/list"
+        },
+        "quary.service.v1.BigQueryTableReference": {
+            "properties": {
+                "project_id": {
+                    "type": "string"
+                },
+                "dataset_id": {
+                    "type": "string"
+                },
+                "table_id": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Big Query Table Reference",
+            "description": "Table Reference API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#TableReference"
+        }
+    }
+}

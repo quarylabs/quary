@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ReturnSQLForInjectedModelResponse",
+    "definitions": {
+        "ReturnSQLForInjectedModelResponse": {
+            "properties": {
+                "sql": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Return SQL For Injected Model Response"
+        }
+    }
+}

@@ -1,0 +1,98 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/Failed",
+    "definitions": {
+        "Failed": {
+            "properties": {
+                "ran": {
+                    "$ref": "#/definitions/quary.service.v1.FailedRunResults",
+                    "additionalProperties": true
+                },
+                "inferred_from_tests": {
+                    "$ref": "#/definitions/quary.service.v1.InferredChain",
+                    "additionalProperties": true
+                },
+                "inferred_through_tests_operation": {
+                    "$ref": "#/definitions/quary.service.v1.InferredChainWithOperation",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Failed"
+        },
+        "quary.service.v1.FailedRunResults": {
+            "properties": {
+                "query_result": {
+                    "$ref": "#/definitions/quary.service.v1.QueryResult",
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Failed Run Results"
+        },
+        "quary.service.v1.InferredChain": {
+            "properties": {
+                "inferred_chain": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Inferred Chain"
+        },
+        "quary.service.v1.InferredChainWithOperation": {
+            "properties": {
+                "inferred_chain": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "operation": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Inferred Chain With Operation"
+        },
+        "quary.service.v1.QueryResult": {
+            "properties": {
+                "columns": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.QueryResultColumn"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Query Result",
+            "description": "QueryResult is the result of a ran query."
+        },
+        "quary.service.v1.QueryResultColumn": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "values": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Query Result Column"
+        }
+    }
+}

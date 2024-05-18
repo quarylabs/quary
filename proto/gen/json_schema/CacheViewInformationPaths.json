@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/CacheViewInformationPaths",
+    "definitions": {
+        "CacheViewInformationPaths": {
+            "properties": {
+                "cache_view_paths": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Cache View Information Paths"
+        }
+    }
+}
