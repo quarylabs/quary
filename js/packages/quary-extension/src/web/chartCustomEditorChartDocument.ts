@@ -1,5 +1,6 @@
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import * as vscode from 'vscode'
+import { isEqual } from 'lodash'
 import { isErr } from '@shared/result'
 import { Chart } from '@quary/proto/quary/service/v1/chart'
 import { Disposable } from './dispose'
@@ -139,10 +140,27 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
    * This fires an event to notify VS Code that the document has been edited.
    */
   makeEdit(edit: Edit) {
-    if (
-      this._edits.length === 0 ||
-      this._edits[this._edits.length - 1] !== edit
-    ) {
+    const currentDocumentState =
+      this._edits.length === 0
+        ? this.documentData
+        : this._edits[this._edits.length - 1]
+
+    // Create a copy of the edit object without the settings property
+    const editCopy = { ...edit }
+    delete editCopy?.config?.settings
+
+    // Create a copy of the current state object without the settings property
+    const currentStateCopy = { ...currentDocumentState }
+    delete currentStateCopy?.config?.settings
+
+    const normalizedEditCopy = JSON.parse(JSON.stringify(editCopy))
+    const normalizedCurrentStateCopy = JSON.parse(
+      JSON.stringify(currentStateCopy),
+    )
+
+    const isTheSame = isEqual(normalizedEditCopy, normalizedCurrentStateCopy)
+
+    if (!isTheSame) {
       this._edits.push(edit)
       this._onDidChange.fire({
         undo: async () => {

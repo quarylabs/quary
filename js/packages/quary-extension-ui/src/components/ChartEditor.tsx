@@ -5,6 +5,8 @@ import { LoadingView } from '../views/LoadingView'
 import { ErrorView } from '../views/ErrorView'
 import { ChartEditorHeader } from './ChartEditorHeader'
 import { Perspective } from './Perspective'
+import { Card, CardHeader } from './ui/card'
+import { Badge } from './ui/badge'
 
 interface Props {
   title: string
@@ -27,27 +29,29 @@ export const ChartEditor: React.FC<Props> = ({
   title,
   onClickCreateModel,
 }) => (
-  <div className="pt-1">
-    <WrappedMemoizedChartEditorHeader
-      data={chartFile.source}
-      allAssets={allAssets}
-      disabled={chartResults.type === 'loading'}
-      onClickEdit={onClickEdit}
-      onClickCreateModel={onClickCreateModel}
-      onClickRunQuery={(source) => {
-        onClickRunQuery({
-          ...chartFile,
-          source,
-        })
-      }}
-      onChangeSource={(source) => {
-        registerChangeChartFile({
-          ...chartFile,
-          source,
-        })
-      }}
-    />
-    <div className="pt-1">
+  <Card>
+    <CardHeader>
+      <WrappedMemoizedChartEditorHeader
+        data={chartFile.source}
+        allAssets={allAssets}
+        disabled={chartResults.type === 'loading'}
+        onClickEdit={onClickEdit}
+        onClickCreateModel={onClickCreateModel}
+        onClickRunQuery={(source) => {
+          onClickRunQuery({
+            ...chartFile,
+            source,
+          })
+        }}
+        onChangeSource={(source) => {
+          registerChangeChartFile({
+            ...chartFile,
+            source,
+          })
+        }}
+      />
+    </CardHeader>
+    <div className="py-3">
       <RenderedPerspective
         chartFile={chartFile}
         chartResults={chartResults}
@@ -55,7 +59,7 @@ export const ChartEditor: React.FC<Props> = ({
         registerChangeChartFile={registerChangeChartFile}
       />
     </div>
-  </div>
+  </Card>
 )
 
 const RenderedPerspective = ({
@@ -77,7 +81,11 @@ const RenderedPerspective = ({
       return <ErrorView error={chartResults.error} />
     }
     case 'not loaded': {
-      return <div>Not yet loaded data </div>
+      return (
+        <div className="align-center flex justify-center">
+          <Badge> Data not loaded</Badge>
+        </div>
+      )
     }
     case 'success': {
       if (chartFile.config === undefined) {

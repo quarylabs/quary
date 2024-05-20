@@ -1,4 +1,5 @@
 import { Meta, StoryObj } from '@storybook/react'
+import { ErrorCodes } from '@shared/result'
 import { sampleQueryResult } from '../lib/sampleData'
 import { ChartEditor } from './ChartEditor'
 
@@ -51,7 +52,10 @@ export const ErrorRawSql: Story = {
     ...SuccessRawSql.args,
     chartResults: {
       type: 'error',
-      error: 'Error message',
+      error: {
+        code: ErrorCodes.INTERNAL,
+        message: 'Unexpected source type',
+      },
     },
   },
 }

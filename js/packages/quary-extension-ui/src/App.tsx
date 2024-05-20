@@ -119,7 +119,7 @@ function App() {
       return <ExecuteSQLView results={view.results} limit={view.limit} />
     }
     case 'chartEditor': {
-      return <ChartEditorView chart={view.data} />
+      return <ChartEditorView data={view.data} />
     }
     default:
       return <div>Invalid view type {JSON.stringify(view)}</div>

@@ -82,6 +82,9 @@ importers:
       file-loader:
         specifier: ^6.2.0
         version: 6.2.0(webpack@5.91.0(webpack-cli@5.1.4))
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       papaparse:
         specifier: ^5.4.1
         version: 5.4.1
@@ -113,6 +116,9 @@ importers:
       '@types/assert':
         specifier: ^1.5.10
         version: 1.5.10
+      '@types/lodash':
+        specifier: ^4.17.4
+        version: 4.17.4
       '@types/mocha':
         specifier: ^10.0.6
         version: 10.0.6
@@ -2791,6 +2797,9 @@ packages:
 
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
+
+  '@types/lodash@4.17.4':
+    resolution: {integrity: sha512-wYCP26ZLxaT3R39kiN2+HcJ4kTd3U1waI/cY7ivWYqFP6pW3ZNpvi6Wd6PHZx7T/t8z0vlkXMg3QYLa7DZ/IJQ==}
 
   '@types/lodash@4.17.4':
     resolution: {integrity: sha512-wYCP26ZLxaT3R39kiN2+HcJ4kTd3U1waI/cY7ivWYqFP6pW3ZNpvi6Wd6PHZx7T/t8z0vlkXMg3QYLa7DZ/IJQ==}
@@ -10963,6 +10972,8 @@ snapshots:
   '@types/json-schema@7.0.15': {}
 
   '@types/json5@0.0.29': {}
+
+  '@types/lodash@4.17.4': {}
 
   '@types/lodash@4.17.4': {}
 
