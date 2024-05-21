@@ -82,6 +82,9 @@ importers:
       file-loader:
         specifier: ^6.2.0
         version: 6.2.0(webpack@5.91.0(webpack-cli@5.1.4))
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       papaparse:
         specifier: ^5.4.1
         version: 5.4.1
@@ -116,6 +119,9 @@ importers:
       '@types/jest':
         specifier: ^29.5.12
         version: 29.5.12
+      '@types/lodash':
+        specifier: ^4.17.4
+        version: 4.17.4
       '@types/mocha':
         specifier: ^10.0.6
         version: 10.0.6
