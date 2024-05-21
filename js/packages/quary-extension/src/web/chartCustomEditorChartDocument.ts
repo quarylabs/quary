@@ -1,5 +1,6 @@
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import * as vscode from 'vscode'
+import { cloneDeep, isEqual } from 'lodash'
 import { isErr } from '@shared/result'
 import { Chart } from '@quary/proto/quary/service/v1/chart'
 import { Disposable } from './dispose'
@@ -50,8 +51,8 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
   }
 
   private readonly _uri: vscode.Uri
-  private readonly intialContent: Uint8Array
-  private readonly intialFile: ChartFile
+  private readonly initialContent: Uint8Array
+  private readonly initialFile: ChartFile
 
   private readonly _delegate: ChartDocumentDelegate
   private readonly _services: PreInitServices
@@ -68,8 +69,8 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
   ) {
     super()
     this._uri = uri
-    this.intialContent = initialContent
-    this.intialFile = initialDocument
+    this.initialContent = initialContent
+    this.initialFile = initialDocument
     this._delegate = delegate
     this._services = services
   }
@@ -85,7 +86,7 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
   public get documentData(): ChartFile {
     return this._edits.length > 0
       ? this._edits[this._edits.length - 1]
-      : this.intialFile
+      : this.initialFile
   }
 
   private readonly _onDidDispose = this._register(
@@ -139,10 +140,21 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
    * This fires an event to notify VS Code that the document has been edited.
    */
   makeEdit(edit: Edit) {
-    if (
-      this._edits.length === 0 ||
-      this._edits[this._edits.length - 1] !== edit
-    ) {
+    // if there  are no edits yet, compare to the initial state
+    const currentDocumentState =
+      this._edits.length === 0
+        ? this.documentData
+        : this._edits[this._edits.length - 1]
+
+    // create clones to avoid mutation of the original objects
+    const editCopy = cloneDeep(edit)
+    const currentStateCopy = cloneDeep(currentDocumentState)
+
+    // ignore the config.settings attribute from Perspective
+    delete editCopy?.config?.settings
+    delete currentStateCopy?.config?.settings
+
+    if (!isEqual(editCopy, currentStateCopy)) {
       this._edits.push(edit)
       this._onDidChange.fire({
         undo: async () => {
