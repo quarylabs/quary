@@ -3,7 +3,7 @@
   "publisher": "Quary",
   "displayName": "quary",
   "description": "",
-  "repository": "https://github.com/quarylabs/template",
+  "repository": "https://github.com/quarylabs/quary",
   "icon": "images/quary-logo.png",
   "version": "0.1.2",
   "engines": {
