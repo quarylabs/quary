@@ -113,6 +113,9 @@ importers:
       '@types/assert':
         specifier: ^1.5.10
         version: 1.5.10
+      '@types/jest':
+        specifier: ^29.5.12
+        version: 29.5.12
       '@types/mocha':
         specifier: ^10.0.6
         version: 10.0.6
@@ -164,12 +167,21 @@ importers:
       eslint-plugin-storybook:
         specifier: ^0.8.0
         version: 0.8.0(eslint@8.57.0)(typescript@5.4.5)
+      jest:
+        specifier: ^29.7.0
+        version: 29.7.0(@types/node@20.12.12)
+      jest-mock-vscode:
+        specifier: ^3.0.4
+        version: 3.0.4
       mocha:
         specifier: ^10.4.0
         version: 10.4.0
       process:
         specifier: ^0.11.10
         version: 0.11.10
+      ts-jest:
+        specifier: ^29.1.2
+        version: 29.1.2(@babel/core@7.24.5)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.24.5))(jest@29.7.0(@types/node@20.12.12))(typescript@5.4.5)
       ts-loader:
         specifier: ^9.5.1
         version: 9.5.1(typescript@5.4.5)(webpack@5.91.0(webpack-cli@5.1.4))
@@ -5352,6 +5364,10 @@ packages:
   jest-message-util@29.7.0:
     resolution: {integrity: sha512-GBEV4GRADeP+qtB2+6u61stea8mGcOT4mCtrYISZwfu9/ISHFJ/5zOMXYbpBE9RsS5+Gb63DW4FgmnKJ79Kf6w==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+
+  jest-mock-vscode@3.0.4:
+    resolution: {integrity: sha512-9B0hAxt7voPrHrfNJ3irNJNorL/ffmcXVM9MOi8IGjTT/46kmo1r8a8SoPj5i43JT5VfMJwV988RdbRy9LN7LQ==}
+    engines: {node: '>16.0.0'}
 
   jest-mock@29.7.0:
     resolution: {integrity: sha512-ITOMZn+UkYS4ZFh83xYAOzWStloNzJFO2s8DWrE4lhtGD+AorgnbkiKERe4wQVBydIGPx059g6riW5Btp6Llnw==}
@@ -14130,6 +14146,10 @@ snapshots:
       pretty-format: 29.7.0
       slash: 3.0.0
       stack-utils: 2.0.6
+
+  jest-mock-vscode@3.0.4:
+    dependencies:
+      vscode-uri: 3.0.8
 
   jest-mock@29.7.0:
     dependencies:
