@@ -1,5 +1,7 @@
 import { spawn } from 'child_process'
 import * as vscode from 'vscode'
+import * as path from 'path'
+import { BinaryManager } from './binaryManager'
 
 export interface CommandProcessResult {
   stdout: string
@@ -10,16 +12,26 @@ export interface CommandProcessResult {
 
 export class TerminalExecutor {
   private outputChannel: vscode.OutputChannel
+  private cliBinaryPath: string
 
   constructor(channelName: string) {
+    const binaryManager = new BinaryManager(
+      vscode.extensions.getExtension('Quary.quary-extension')?.extensionPath!,
+    )
+
     this.outputChannel = vscode.window.createOutputChannel(channelName)
+    this.cliBinaryPath = binaryManager.getBinaryPath()
   }
 
   public async executeCommand(
-    command: string,
+    _command: string,
     args?: string[],
   ): Promise<CommandProcessResult> {
     return new Promise<CommandProcessResult>((resolve) => {
+      const fullCommandPath = this.cliBinaryPath
+
+      console.log({ fullCommandPath, args })
+
       // Get the workspace root path
       const workspaceRoot = vscode.workspace.rootPath
 
@@ -28,7 +40,7 @@ export class TerminalExecutor {
         cwd: workspaceRoot,
         shell: true,
       }
-      const proc = spawn(command, args || [], options)
+      const proc = spawn(fullCommandPath, args || [], options)
 
       let stdout = ''
       let stderr = ''
