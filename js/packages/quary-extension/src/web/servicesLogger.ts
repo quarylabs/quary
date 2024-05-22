@@ -4,6 +4,7 @@ import { QuaryError, codeToString } from '@shared/result'
 
 export interface ServicesLogger {
   captureException(error: QuaryError): void
+
   setUser: (user: { id: string; email: string } | null) => void
 }
 
@@ -11,9 +12,7 @@ export const servicesLoggerExceptionThrower = (): ServicesLogger => ({
   captureException: (error: QuaryError) => {
     // eslint-disable-next-line no-console
     console.error('Error in servicesLoggerExceptionThrower', error)
-    vscode.window.showErrorMessage(
-      `${codeToString(error.code)}: ${error.message}`,
-    )
+    vscode.window.showErrorMessage(`Quary: ${error.message}`)
   },
   setUser: (user) => {
     // eslint-disable-next-line no-console
@@ -32,9 +31,7 @@ export const servicesLoggerSentry = (
 
   return {
     captureException(error: QuaryError) {
-      vscode.window.showErrorMessage(
-        `${codeToString(error.code)}: ${error.message}`,
-      )
+      vscode.window.showErrorMessage(`Quary: ${error.message}`)
       Sentry.captureException(error)
     },
     setUser(user: { id: string; email: string } | null): void {

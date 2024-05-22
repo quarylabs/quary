@@ -134,23 +134,21 @@ const getWorkspaceFolder = (
   if (workspacesFolders === undefined) {
     return Err({
       code: ErrorCodes.INVALID_ARGUMENT,
-      message:
-        'No workspace folders found. Please open a folder in the editor.',
+      message: 'Open folder to begin.',
     })
   }
   switch (workspacesFolders.length) {
     case 0:
       return Err({
         code: ErrorCodes.INVALID_ARGUMENT,
-        message:
-          'No workspace folders found. Please open a folder in the editor.',
+        message: 'Open folder to begin.',
       })
     case 1:
       return Ok(workspacesFolders[0])
     default:
       return Err({
         code: ErrorCodes.INVALID_ARGUMENT,
-        message: `Too many workspaces open, expect 1, not ${workspacesFolders.length}`,
+        message: `Too many workspaces open, Quary only supports one at a time.`,
       })
   }
 }
