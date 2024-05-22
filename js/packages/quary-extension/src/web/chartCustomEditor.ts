@@ -291,7 +291,9 @@ export class ChartEditorProvider
     e: any,
   ) {
     const title =
-      document.uri.fsPath.split('/').pop()?.split('.').at(0) || 'No title'
+      document.documentData?.config?.title ||
+      document.uri.fsPath.split('/').pop()?.split('.').at(0) ||
+      'No title'
 
     switch (e.type) {
       case USE_GLOBAL_STATE_MESSAGE_TYPE_NOT_SET: {
@@ -409,7 +411,7 @@ export class ChartEditorProvider
               })
             }
             return this.postSetData(webviewPanel, {
-              title: document.uri.fsPath.split('/').pop() || 'Untitled',
+              title,
               allAssets,
               chartFile,
               results: {
