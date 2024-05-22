@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/browser'
 import * as vscode from 'vscode'
-import { QuaryError, codeToString } from '@shared/result'
+import { QuaryError } from '@shared/result'
 
 export interface ServicesLogger {
   captureException(error: QuaryError): void

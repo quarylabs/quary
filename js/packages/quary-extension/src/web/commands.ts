@@ -29,7 +29,6 @@ import { executeSQLOnModel } from './commandsExecuteSQL'
 // eslint-disable-next-line import/no-cycle
 import { onboarding } from './commandsOnboarding'
 import { importSources } from './commandsImportSources'
-import { ServicesDatabase } from './servicesDatabase'
 import { createTestRunner } from './servicesRustWasm'
 
 export const returnCommands = (
