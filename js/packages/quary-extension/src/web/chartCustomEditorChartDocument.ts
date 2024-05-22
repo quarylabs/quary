@@ -7,9 +7,10 @@ import { Disposable } from './dispose'
 import { PreInitServices } from './services'
 
 /**
- * Define the type of edits used in paw draw files.
+ * Define the types of edits that can be made to the document.
  */
-interface Edit extends ChartFile {}
+interface ChartEdit extends Pick<ChartFile, 'config'> {}
+interface SourceEdit extends Pick<ChartFile, 'source'> {}
 
 interface ChartDocumentDelegate {
   getFileData(): Promise<Uint8Array>
@@ -57,8 +58,11 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
   private readonly _delegate: ChartDocumentDelegate
   private readonly _services: PreInitServices
 
-  private _edits: Array<Edit> = []
-  private _savedEdits: Array<Edit> = []
+  private _chartEdits: Array<ChartEdit> = []
+  private _sourceEdits: Array<SourceEdit> = []
+
+  private _savedChartEdits: Array<ChartEdit> = []
+  private _savedSourceEdits: Array<SourceEdit> = []
 
   private constructor(
     uri: vscode.Uri,
@@ -80,13 +84,22 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
   }
 
   private set documentData(data: ChartFile) {
-    this._edits = [data]
+    this._chartEdits = [{ config: data.config }]
+    this._sourceEdits = [{ source: data.source }]
   }
 
   public get documentData(): ChartFile {
-    return this._edits.length > 0
-      ? this._edits[this._edits.length - 1]
-      : this.initialFile
+    return {
+      ...this.initialFile,
+      config:
+        this._chartEdits.length > 0
+          ? this._chartEdits[this._chartEdits.length - 1].config
+          : this.initialFile.config,
+      source:
+        this._sourceEdits.length > 0
+          ? this._sourceEdits[this._sourceEdits.length - 1].source
+          : this.initialFile.source,
+    }
   }
 
   private readonly _onDidDispose = this._register(
@@ -101,7 +114,8 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
   private readonly _onDidChangeDocument = this._register(
     new vscode.EventEmitter<{
       readonly content?: Uint8Array
-      readonly edits: readonly Edit[]
+      readonly chartEdits: readonly ChartEdit[]
+      readonly sourceEdits: readonly SourceEdit[]
     }>(),
   )
 
@@ -135,38 +149,79 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
   }
 
   /**
-   * Called when the user edits the document in a webview.
+   * Called when the user edits the Chart configuration in a webview.
    *
    * This fires an event to notify VS Code that the document has been edited.
    */
-  makeEdit(edit: Edit) {
-    // if there  are no edits yet, compare to the initial state
-    const currentDocumentState =
-      this._edits.length === 0
-        ? this.documentData
-        : this._edits[this._edits.length - 1]
+
+  makeChartEdit(edit: ChartEdit) {
+    // if there are no edits yet, compare to the initial state
+    const currentChartConfigState =
+      this._chartEdits.length === 0
+        ? this.documentData.config
+        : this._chartEdits[this._chartEdits.length - 1].config
 
     // create clones to avoid mutation of the original objects
     const editCopy = cloneDeep(edit)
-    const currentStateCopy = cloneDeep(currentDocumentState)
+    const currentStateCopy = cloneDeep({ config: currentChartConfigState })
 
-    // ignore the config.settings attribute from Perspective
+    // ignore the settings attribute from Perspective's config
     delete editCopy?.config?.settings
     delete currentStateCopy?.config?.settings
 
     if (!isEqual(editCopy, currentStateCopy)) {
-      this._edits.push(edit)
+      this._chartEdits.push(edit)
       this._onDidChange.fire({
         undo: async () => {
-          this._edits.pop()
+          this._chartEdits.pop()
           this._onDidChangeDocument.fire({
-            edits: this._edits,
+            chartEdits: this._chartEdits,
+            sourceEdits: this._sourceEdits,
           })
         },
         redo: async () => {
-          this._edits.push(edit)
+          this._chartEdits.push(edit)
           this._onDidChangeDocument.fire({
-            edits: this._edits,
+            chartEdits: this._chartEdits,
+            sourceEdits: this._sourceEdits,
+          })
+        },
+      })
+    }
+  }
+
+  /**
+   * Called when the user edits the Source configuration in a webview.
+   *
+   * This fires an event to notify VS Code that the document has been edited.
+   */
+
+  makeSourceEdit(edit: SourceEdit) {
+    // if there are no edits yet, compare to the initial state
+    const currentSourceConfigState =
+      this._sourceEdits.length === 0
+        ? this.documentData.source
+        : this._sourceEdits[this._sourceEdits.length - 1].source
+
+    // create clones to avoid mutation of the original objects
+    const editCopy = cloneDeep(edit)
+    const currentStateCopy = cloneDeep(currentSourceConfigState)
+
+    if (!isEqual(editCopy, currentStateCopy)) {
+      this._sourceEdits.push(edit)
+      this._onDidChange.fire({
+        undo: async () => {
+          this._chartEdits.pop()
+          this._onDidChangeDocument.fire({
+            chartEdits: this._chartEdits,
+            sourceEdits: this._sourceEdits,
+          })
+        },
+        redo: async () => {
+          this._sourceEdits.push(edit)
+          this._onDidChangeDocument.fire({
+            chartEdits: this._chartEdits,
+            sourceEdits: this._sourceEdits,
           })
         },
       })
@@ -178,7 +233,8 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
    */
   async save(cancellation: vscode.CancellationToken): Promise<void> {
     await this.saveAs(this.uri, cancellation)
-    this._savedEdits = Array.from(this._edits)
+    this._savedChartEdits = Array.from(this._chartEdits)
+    this._savedSourceEdits = Array.from(this._sourceEdits)
   }
 
   /**
@@ -188,9 +244,19 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
     targetResource: vscode.Uri,
     cancellation: vscode.CancellationToken,
   ): Promise<void> {
-    const yaml = this._services.rust.write_chart_file_to_yaml(
-      this._edits[this._edits.length - 1],
-    )
+    const constructedChartFile: ChartFile = {
+      ...this.initialFile,
+      config:
+        this._chartEdits.length > 0
+          ? this._chartEdits[this._chartEdits.length - 1].config
+          : this.initialFile.config,
+      source:
+        this._sourceEdits.length > 0
+          ? this._sourceEdits[this._sourceEdits.length - 1].source
+          : this.initialFile.source,
+    }
+    const yaml =
+      this._services.rust.write_chart_file_to_yaml(constructedChartFile)
     if (cancellation.isCancellationRequested) {
       return
     }
@@ -209,10 +275,12 @@ export class ChartDocument extends Disposable implements vscode.CustomDocument {
       this._services,
     )
     this.documentData = diskContent
-    this._edits = this._savedEdits
+    this._chartEdits = this._savedChartEdits
+    this._sourceEdits = this._savedSourceEdits
     this._onDidChangeDocument.fire({
       content: data,
-      edits: this._edits,
+      chartEdits: this._chartEdits,
+      sourceEdits: this._sourceEdits,
     })
   }
 

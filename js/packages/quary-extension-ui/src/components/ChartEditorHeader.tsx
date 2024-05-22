@@ -1,7 +1,10 @@
-import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
-import * as z from 'zod'
-import { PencilSquareIcon, PlayIcon, PlusIcon } from '@heroicons/react/20/solid'
 import React, { useState } from 'react'
+import { PencilSquareIcon, PlayIcon, PlusIcon } from '@heroicons/react/20/solid'
+import { useCallBackFrontEnd } from '@shared/callBacks.ts'
+import { z } from 'zod'
+import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
+import { vscode } from '@/utils/VSCodeAPIWrapper.ts'
+
 import {
   Select,
   SelectContent,
@@ -10,50 +13,59 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from './ui/select'
-import { Button } from './ui/button'
+} from '@/components/ui/select'
 import {
   TooltipProvider,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from './ui/tooltip'
+} from '@/components/ui/tooltip'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input.tsx'
 
 interface Props {
-  data?: ChartFile['source']
-  onChangeSource: (source: ChartFile['source']) => void
-
-  allAssets: string[]
-  // disable the buttons when things are loading
+  chartFileSource: ChartFile['source']
+  assets: string[]
   disabled: boolean
-  onClickRunQuery: (source: ChartFile['source']) => void
-  // open text editor
-  onClickEdit: () => void
-  // create a model from the sql should open file
-  onClickCreateModel: (sql: string) => void
 }
 
 export const ChartEditorHeader: React.FC<Props> = ({
-  data,
-  allAssets,
+  assets,
   disabled,
-  onChangeSource: onChangeSourceProp,
-  onClickRunQuery,
-  onClickCreateModel,
-  onClickEdit,
+  chartFileSource,
 }) => {
-  const [state, changeState] = useState(data)
-  const values = mapChartFileSourceToForm(state)
+  const {
+    chartViewMakeSourceEdit,
+    chartViewCreateModel,
+    chartViewRunQuery,
+    chartViewOpenTextEditor,
+  } = useCallBackFrontEnd(
+    [
+      'chartViewMakeSourceEdit',
+      'chartViewCreateModel',
+      'chartViewRunQuery',
+      'chartViewOpenTextEditor',
+    ],
+    vscode.postMessage,
+  )
+
+  // intermediary source state for the header component
+  const [stagedChartFileSource, setStagedChartFileSource] =
+    useState<ChartFile['source']>(chartFileSource)
+
   const onChangeSource = (source: ChartFile['source']) => {
-    changeState(source)
-    onChangeSourceProp(source)
+    // update the staged source
+    setStagedChartFileSource(source)
+    // emit a change to the file (makeEditSource)
+    chartViewMakeSourceEdit(source)
   }
+
+  const formSourceValue = mapChartFileSourceToForm(stagedChartFileSource)
 
   return (
     <div className="flex flex-row items-center gap-1">
       <Select
-        defaultValue={values.type}
+        value={formSourceValue.type}
         disabled={disabled}
         onValueChange={(value) => {
           switch (value) {
@@ -71,7 +83,7 @@ export const ChartEditorHeader: React.FC<Props> = ({
               return onChangeSource({
                 $case: 'reference',
                 reference: {
-                  name: allAssets[0],
+                  name: assets[0],
                 },
               })
             default:
@@ -92,87 +104,97 @@ export const ChartEditorHeader: React.FC<Props> = ({
         </SelectContent>
       </Select>
       <SubForm
-        allAssets={allAssets}
         disabled={disabled}
-        values={values}
+        formSourceValue={formSourceValue}
+        assets={assets}
         onChangeSource={onChangeSource}
-        onClickCreateModel={onClickCreateModel}
+        chartViewCreateModel={chartViewCreateModel}
       />
-      <RunQueryButton
+      <TooltipButton
+        icon={<PlayIcon className="h-4 w-4" />}
+        onClick={() => {
+          chartViewRunQuery(null)
+        }}
         disabled={disabled}
-        onClick={() => onClickRunQuery(mapFormToChartFileSource(values))}
+        tooltip="Run Query"
       />
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger>
-            <Button size="icon" onClick={onClickEdit} disabled={disabled}>
-              <PencilSquareIcon className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Edit Yaml</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <TooltipButton
+        icon={<PencilSquareIcon className="h-4 w-4" />}
+        onClick={() => chartViewOpenTextEditor(null)}
+        disabled={disabled}
+        tooltip="Edit Yaml"
+      />
     </div>
   )
 }
 
 interface SubFormProps {
-  values: FormValues
+  formSourceValue: FormSourceValue
   disabled: boolean
   onChangeSource: (source: ChartFile['source']) => void
-  allAssets: string[]
-  onClickCreateModel: (sql: string) => void
+  assets: string[]
+  // create a model from the sql should open file
+  chartViewCreateModel: (sql: string) => void
 }
 
 const SubForm: React.FC<SubFormProps> = ({
-  values,
+  formSourceValue,
   disabled,
   onChangeSource,
-  allAssets,
-  onClickCreateModel,
+  assets,
+  chartViewCreateModel,
 }) => {
-  switch (values.type) {
+  switch (formSourceValue.type) {
     case 'rawSql':
       return (
-        <div className="flex-1">
-          <Input
-            disabled={disabled}
-            value={values.rawSql}
-            onChange={(e) => {
-              onChangeSource({
-                $case: 'rawSql' as const,
-                rawSql: e.target.value,
-              })
-            }}
-          />
-        </div>
+        <Input
+          className="flex-1"
+          disabled={disabled}
+          value={formSourceValue.rawSql}
+          onChange={(e) =>
+            onChangeSource({ $case: 'rawSql', rawSql: e.target.value })
+          }
+        />
       )
     case 'preTemplatedSql':
       return (
-        <div className="flex flex-1 flex-row items-center gap-1">
+        <>
           <Input
+            className="flex-1"
             disabled={disabled}
-            value={values.preTemplatedSql}
-            onChange={(e) => {
+            value={formSourceValue.preTemplatedSql}
+            onChange={(e) =>
               onChangeSource({
                 $case: 'preTemplatedSql',
                 preTemplatedSql: e.target.value,
               })
-            }}
+            }
           />
-          <CreateModelButton
-            onClick={() => onClickCreateModel(values.preTemplatedSql)}
-            disabled={disabled}
-          />
-        </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Button
+                  size="icon"
+                  onClick={() => {
+                    chartViewCreateModel(formSourceValue.preTemplatedSql)
+                  }}
+                  disabled={disabled}
+                >
+                  <PlusIcon className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Create Model</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </>
       )
     case 'reference':
       return (
         <div className="flex-1">
           <Select
-            defaultValue={values.reference}
+            defaultValue={formSourceValue.reference}
             disabled={disabled}
             onValueChange={(value) => {
               onChangeSource({
@@ -189,7 +211,7 @@ const SubForm: React.FC<SubFormProps> = ({
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Asset</SelectLabel>
-                {allAssets.map((asset) => (
+                {assets.map((asset) => (
                   <SelectItem key={asset} value={asset}>
                     {asset}
                   </SelectItem>
@@ -199,10 +221,14 @@ const SubForm: React.FC<SubFormProps> = ({
           </Select>
         </div>
       )
+    default:
+      return null
   }
 }
 
-const mapChartFileSourceToForm = (source: ChartFile['source']): FormValues => {
+const mapChartFileSourceToForm = (
+  source: ChartFile['source'],
+): FormSourceValue => {
   if (!source) {
     return {
       type: 'rawSql',
@@ -228,28 +254,6 @@ const mapChartFileSourceToForm = (source: ChartFile['source']): FormValues => {
   }
 }
 
-const mapFormToChartFileSource = (values: FormValues): ChartFile['source'] => {
-  switch (values.type) {
-    case 'rawSql':
-      return {
-        $case: 'rawSql',
-        rawSql: values.rawSql,
-      }
-    case 'preTemplatedSql':
-      return {
-        $case: 'preTemplatedSql',
-        preTemplatedSql: values.preTemplatedSql,
-      }
-    case 'reference':
-      return {
-        $case: 'reference',
-        reference: {
-          name: values.reference,
-        },
-      }
-  }
-}
-
 const FormSchema = z.union([
   z.object({
     type: z.literal('rawSql'),
@@ -265,46 +269,31 @@ const FormSchema = z.union([
   }),
 ])
 
-type FormValues = z.infer<typeof FormSchema>
-
-const CreateModelButton = ({
-  onClick,
-  disabled,
-}: {
+interface TooltipButtonProps {
+  icon: React.ReactNode
   onClick: () => void
   disabled: boolean
+  tooltip: string
+}
+
+const TooltipButton: React.FC<TooltipButtonProps> = ({
+  icon,
+  onClick,
+  disabled,
+  tooltip,
 }) => (
   <TooltipProvider>
     <Tooltip>
       <TooltipTrigger>
         <Button size="icon" onClick={onClick} disabled={disabled}>
-          <PlusIcon className="h-4 w-4" />
+          {icon}
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <p>Create Model</p>
+        <p>{tooltip}</p>
       </TooltipContent>
     </Tooltip>
   </TooltipProvider>
 )
 
-const RunQueryButton = ({
-  onClick,
-  disabled,
-}: {
-  onClick: () => void
-  disabled: boolean
-}) => (
-  <TooltipProvider>
-    <Tooltip>
-      <TooltipTrigger>
-        <Button size="icon" onClick={onClick} disabled={disabled}>
-          <PlayIcon className="h-4 w-4" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>Run Query</p>
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
-)
+type FormSourceValue = z.infer<typeof FormSchema>

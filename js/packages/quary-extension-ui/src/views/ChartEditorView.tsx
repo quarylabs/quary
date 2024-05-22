@@ -1,37 +1,24 @@
 import React from 'react'
 import type { ChartEditorData } from '@shared/globalViewState'
-import { useCallBackFrontEnd } from '@shared/callBacks.ts'
-import { ChartEditor } from '@/components/ChartEditor.tsx'
-import { vscode } from '@/utils/VSCodeAPIWrapper.ts'
+import { ChartEditorHeader } from '@/components/ChartEditorHeader'
+import { ChartEditor } from '@/components/ChartEditor'
 
 interface Props {
-  chart: ChartEditorData
+  data: ChartEditorData
 }
 
-export const ChartEditorView: React.FC<Props> = ({ chart }) => {
-  const {
-    chartViewChangeHandler,
-    chartViewRunQuery,
-    chartViewOpenTextEditor,
-    chartViewCreateModel,
-  } = useCallBackFrontEnd(
-    [
-      'chartViewChangeHandler',
-      'chartViewRunQuery',
-      'chartViewOpenTextEditor',
-      'chartViewCreateModel',
-    ],
-    vscode.postMessage,
-  )
-  const [chartFile, setChartFile] = React.useState(chart.chartFile)
-
-  return (
+export const ChartEditorView: React.FC<Props> = ({ data }) => (
+  <>
+    <ChartEditorHeader
+      chartFileSource={data.chartFile?.source}
+      assets={data.allAssets}
+      disabled={data.results.type === 'loading'}
+    />
     <ChartEditor
-      onClickCreateModel={chartViewCreateModel}
-      title={chart.title}
-      chartResults={chart.results}
+      title={data.title}
+      chartResults={data.results}
       chartFile={
-        chartFile || {
+        data.chartFile || {
           tags: [],
           source: {
             $case: 'rawSql',
@@ -40,13 +27,6 @@ export const ChartEditorView: React.FC<Props> = ({ chart }) => {
           config: {},
         }
       }
-      registerChangeChartFile={(chartFile) => {
-        setChartFile(chartFile)
-        chartViewChangeHandler(chartFile)
-      }}
-      onClickRunQuery={chartViewRunQuery}
-      allAssets={chart.allAssets}
-      onClickEdit={() => chartViewOpenTextEditor(null)}
     />
-  )
-}
+  </>
+)

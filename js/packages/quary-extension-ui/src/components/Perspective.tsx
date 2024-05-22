@@ -59,7 +59,7 @@ export const Perspective: React.FC<Props> = ({
       }
 
       if (el && updateConfigListener) {
-        el.addEventListener('click', async () => {
+        el.addEventListener('perspective-config-update', async () => {
           const config = await el.save('json')
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-expect-error
@@ -91,9 +91,6 @@ export const Perspective: React.FC<Props> = ({
       <perspective-viewer
         style={{ width: '100%', height: '500px' }}
         ref={viewerRef}
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        settings={true}
       ></perspective-viewer>
     </div>
   )
