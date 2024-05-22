@@ -865,6 +865,136 @@ models:
     }
 
     #[tokio::test]
+    async fn postgres_sql_test() {
+        let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
+            .start()
+            .await;
+        let pg_port = postgres_image.get_host_port_ipv4(5432).await;
+
+        let database = Postgres::new(
+            "localhost",
+            Some(pg_port.to_string()),
+            "postgres",
+            "postgres",
+            "postgres",
+            "transform",
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
+        .await
+        .unwrap();
+
+        database.exec("CREATE SCHEMA other_schema").await.unwrap();
+        database.exec("CREATE SCHEMA transform").await.unwrap();
+        database
+            .exec("CREATE TABLE other_schema.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        database
+            .exec("INSERT INTO other_schema.test_table VALUES (1, 'test'), (2, 'rubbish')")
+            .await
+            .unwrap();
+        database
+            .exec("CREATE TABLE transform.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
+        database
+            .exec("INSERT INTO transform.test_table VALUES (3, 'test_3'), (4, 'rubbish_rubiish')")
+            .await
+            .unwrap();
+
+        let file_system = FileSystem {
+            files: vec![
+                ("quary.yaml", "postgres: {schema: transform}"),
+                ("models/test_model.sql", "SELECT id FROM q.test_source"),
+                (
+                    "models/test_model_same_schema.sql",
+                    "SELECT id FROM q.test_source_same_schema",
+                ),
+                ("models/test_model_out.sql", "SELECT id FROM q.test_model"),
+                (
+                    "tests/test_model_out_is_unique.sql",
+                    "SELECT id, COUNT(*)
+FROM q.test_model_out
+GROUP BY id
+HAVING COUNT(*) > 1;
+",
+                ),
+                (
+                    "models/schema.yaml",
+                    "
+sources:
+    - name: test_source
+      path: other_schema.test_table
+    - name: test_source_same_schema
+      path: transform.test_table
+models:
+  - name: test_model_out
+    columns:
+      - name: id
+        tests:
+          - type: relationship
+            info:
+              column: id
+              model: test_model
+          - type: relationship
+            info:
+              column: id
+              model: test_source
+  - name: test_model_same_schema
+    columns:
+      - name: id
+        tests:
+          - type: relationship
+            info:
+              column: id
+              model: test_source_same_schema
+                    ",
+                ),
+            ]
+            .into_iter()
+            .map(|(k, v)| {
+                (
+                    k.to_string(),
+                    File {
+                        name: k.to_string(),
+                        contents: Bytes::from(v),
+                    },
+                )
+            })
+            .collect(),
+        };
+
+        let project = parse_project(&file_system, &database.query_generator(), "")
+            .await
+            .unwrap();
+
+        let tests = return_tests_sql(
+            &database.query_generator(),
+            &project,
+            &file_system,
+            true,
+            None,
+            None,
+        )
+        .await
+        .unwrap();
+        let tests = tests.iter().collect::<Vec<_>>();
+
+        assert!(!tests.is_empty());
+
+        for (name, test) in tests.iter() {
+            let results = database.query(test).await.unwrap();
+
+            assert_eq!(results.rows.len(), 0, "test {} failed: {}", name, test);
+        }
+    }
+
+    #[tokio::test]
     async fn test_list_tables_outside_the_schema() {
         let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
             .start()
