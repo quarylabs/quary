@@ -143,8 +143,13 @@ pub async fn return_tests_sql(
                         let mut sources = project
                             .sources
                             .iter()
-                            .map(|(name, source)| (name.clone(), source.path.clone()))
-                            .collect::<HashMap<_, _>>();
+                            .map(|(name, source)| {
+                                (
+                                    name.clone(),
+                                    format!("SELECT * FROM {}", source.path.clone()),
+                                )
+                            })
+                            .collect::<BTreeMap<_, _>>();
                         for name in test
                             .references
                             .iter()
@@ -153,15 +158,32 @@ pub async fn return_tests_sql(
                             let (sql, _) =
                                 project_and_fs_to_query_sql(database, project, fs, name, None)
                                     .await?;
-                            sources.insert(name.clone(), format!("({})", sql));
+                            sources.insert(name.clone(), format!("{}", sql));
                         }
                         let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
                             .map_err(|e| format!("failed to return reference search: {}", e))?;
+                        let reference_map = test
+                            .references
+                            .iter()
+                            .map(|name| (name.clone(), name.clone()))
+                            .collect::<HashMap<_, _>>();
                         let sql = reference_search.clone().replace_all(
                             file.as_str(),
-                            replace_reference_string_found(&sources, database),
+                            replace_reference_string_found(&reference_map, database),
                         );
-                        Ok(sql.to_string())
+
+                        match &test.references[..] {
+                            [] => Ok(sql.to_string()),
+                            _ => {
+                                let source_grouped = sources
+                                    .iter()
+                                    .map(|(name, sql)| format!("{} AS ({})", name, sql))
+                                    .collect::<Vec<_>>()
+                                    .join(", ");
+                                let sql = format!("WITH {} {}", source_grouped, sql);
+                                Ok(sql)
+                            }
+                        }
                     }
                 }?;
                 Ok((name.to_string(), sql))
@@ -719,7 +741,7 @@ sources:
             results,
             BTreeMap::from([(
                 "test_sql_model_a_and_model_b".to_string(),
-                "SELECT * FROM (WITH source_a AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT * FROM `source_a`) AS alias) a JOIN (WITH source_b AS (SELECT * FROM project_3.dataset_3.table_3) SELECT * FROM (SELECT * FROM `source_b`) AS alias) b ON a.column_a = b.column_b WHERE column_a IS NULL OR column_b IS NULL".to_string(),
+                "WITH model_a AS (WITH source_a AS (SELECT * FROM project_2.dataset_2.table_2) SELECT * FROM (SELECT * FROM `source_a`) AS alias), model_b AS (WITH source_b AS (SELECT * FROM project_3.dataset_3.table_3) SELECT * FROM (SELECT * FROM `source_b`) AS alias), source_a AS (SELECT * FROM project_2.dataset_2.table_2), source_b AS (SELECT * FROM project_3.dataset_3.table_3) SELECT * FROM `model_a` a JOIN `model_b` b ON a.column_a = b.column_b WHERE column_a IS NULL OR column_b IS NULL".to_string(),
             )])
         );
     }
