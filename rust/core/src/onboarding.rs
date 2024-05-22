@@ -143,6 +143,8 @@ pub async fn generate_source_files(
 /// - hidden files
 /// - .sqlite files
 /// - .git folder
+/// - .idea folder
+/// - .env files
 pub async fn is_empty_bar_hidden_and_sqlite(
     file_system: &impl FileSystem,
     root_path: &str,
@@ -161,8 +163,9 @@ pub async fn is_empty_bar_hidden_and_sqlite(
         let is_sqlite = path.extension().map(|ext| ext == "sqlite").unwrap_or(false);
         let is_git = file_path.contains(".git/");
         let is_jetbrains = file_path.contains(".idea/");
+        let is_env = file_path.ends_with(".env");
 
-        is_hidden || is_sqlite || is_git || is_jetbrains
+        is_hidden || is_sqlite || is_git || is_jetbrains || is_env
     });
 
     Ok(is_empty)
@@ -287,6 +290,13 @@ mod tests {
                     ".idea/text.txt".to_string(),
                     File {
                         name: ".idea/text.txt".to_string(),
+                        contents: Bytes::from("".as_bytes()),
+                    },
+                ),
+                (
+                    "/.env".to_string(),
+                    File {
+                        name: ".env".to_string(),
                         contents: Bytes::from("".as_bytes()),
                     },
                 ),
