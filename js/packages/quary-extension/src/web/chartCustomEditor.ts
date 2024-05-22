@@ -6,7 +6,7 @@ import {
   View,
 } from '@shared/globalViewState'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
-import { ErrorCodes, isErr, Ok, Result } from '@shared/result'
+import { ErrorCodes, isErr, Ok, QuaryError, Result } from '@shared/result'
 import { ListAssetsResponse_Asset_AssetType } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { disposeAll } from './dispose'
 import { HTML_STRING } from './panels'
@@ -291,7 +291,9 @@ export class ChartEditorProvider
     e: any,
   ) {
     const title =
-      document.uri.fsPath.split('/').pop()?.split('.').at(0) || 'No title'
+      document.documentData?.config?.title ||
+      document.uri.fsPath.split('/').pop()?.split('.').at(0) ||
+      'No title'
 
     switch (e.type) {
       case USE_GLOBAL_STATE_MESSAGE_TYPE_NOT_SET: {
@@ -329,37 +331,79 @@ export class ChartEditorProvider
           view,
         )
       }
+      case 'chartViewMakeSourceEdit': {
+        const source = e.payload as ChartFile['source']
+        if (source?.$case === 'reference') {
+          const allAssetsAttempt = await this.getAssets()
+          const allAssets = isErr(allAssetsAttempt)
+            ? []
+            : allAssetsAttempt.value
+          const payload = {
+            title,
+            allAssets,
+            chartFile: document.documentData,
+            results: {
+              type: 'not loaded' as const,
+            },
+          }
+          this.postSetData(webviewPanel, payload)
+        } else {
+          const payload = {
+            title,
+            allAssets: [],
+            chartFile: document.documentData,
+            results: {
+              type: 'not loaded' as const,
+            },
+          }
+          this.postSetData(webviewPanel, payload)
+        }
+        return document.makeSourceEdit({ source })
+      }
+      case 'chartViewMakeChartEdit': {
+        const config = e.payload as ChartFile['config']
+        return document.makeChartEdit({ config })
+      }
       case 'chartViewRunQuery': {
-        const chartFile = e.payload as ChartFile
-        document.makeEdit(chartFile)
+        const chartFile = document.documentData
         const services = await getServices(this._context)
+
+        // handle error webview response
+        const handleError = (error: QuaryError, assets: string[] = []) => {
+          this.postSetData(webviewPanel, {
+            title,
+            allAssets: assets,
+            chartFile,
+            results: {
+              type: 'error',
+              error,
+            },
+          })
+        }
+
         switch (chartFile.source?.$case) {
           case 'rawSql': {
-            const returned = await services.database.runStatement(
+            this.postSetData(webviewPanel, {
+              title,
+              allAssets: [],
+              chartFile,
+              results: {
+                type: 'loading',
+              },
+            })
+            const queryResult = await services.database.runStatement(
               chartFile.source.rawSql,
             )
-            const allAssetsAttempt = await this.getAssets()
-            const allAssets = isErr(allAssetsAttempt)
-              ? []
-              : allAssetsAttempt.value
-            if (isErr(returned)) {
-              return this.postSetData(webviewPanel, {
-                title,
-                allAssets,
-                chartFile,
-                results: {
-                  type: 'error',
-                  error: returned.error,
-                },
-              })
+            if (isErr(queryResult)) {
+              return handleError(queryResult.error)
             }
             return this.postSetData(webviewPanel, {
               title,
-              allAssets,
+              allAssets: [],
               chartFile,
               results: {
                 type: 'success',
-                queryResult: returned.value,
+                queryResult: queryResult.value,
               },
             })
           }
@@ -372,87 +416,34 @@ export class ChartEditorProvider
                 type: 'loading',
               },
             })
-            const setupValues = await preInitSetup(services)
-            if (isErr(setupValues)) {
-              return
-            }
             const allAssetsAttempt = await this.getAssets()
             const allAssets = isErr(allAssetsAttempt)
               ? [chartFile.source.reference.name]
               : allAssetsAttempt.value
-            const sql = await services.rust.return_full_sql_for_asset({
-              projectRoot: setupValues.value.projectRoot,
-              assetName: chartFile.source.reference.name,
-              cacheViewInformation: {
-                cacheView: {
-                  $case: 'doNotUse',
-                  doNotUse: {},
-                },
-              },
-            })
-            if (isErr(sql)) {
-              return
+            const preInitSetupResult = await preInitSetup(services)
+            if (isErr(preInitSetupResult)) {
+              return handleError(preInitSetupResult.error, allAssets)
             }
-            const returned = await services.database.runStatement(
-              sql.value.fullSql,
-            )
-            if (isErr(returned)) {
-              return this.postSetData(webviewPanel, {
-                title,
-                allAssets,
+            const sqlForAssetResult =
+              await services.rust.return_full_sql_for_asset({
+                projectRoot: preInitSetupResult.value.projectRoot,
+                assetName: chartFile.source.reference.name,
+                cacheViewInformation: {
+                  cacheView: {
+                    $case: 'doNotUse',
+                    doNotUse: {},
+                  },
+                },
+              })
+            if (isErr(sqlForAssetResult)) {
+              return handleError(sqlForAssetResult.error, allAssets)
+            }
 
-                chartFile,
-                results: {
-                  type: 'error',
-                  error: returned.error,
-                },
-              })
-            }
-            return this.postSetData(webviewPanel, {
-              title: document.uri.fsPath.split('/').pop() || 'Untitled',
-              allAssets,
-              chartFile,
-              results: {
-                type: 'success',
-                queryResult: returned.value,
-              },
-            })
-          }
-          case 'preTemplatedSql': {
-            const setupValues = await preInitSetup(services)
-            if (isErr(setupValues)) {
-              return
-            }
-            const allAssetsAttempt = await this.getAssets()
-            const allAssets = isErr(allAssetsAttempt)
-              ? []
-              : allAssetsAttempt.value
-            const sql = await services.rust.returnSQLForInjectedModel({
-              projectRoot: setupValues.value.projectRoot,
-              sql: chartFile.source.preTemplatedSql,
-            })
-            if (isErr(sql)) {
-              return this.postSetData(webviewPanel, {
-                title,
-                allAssets,
-                chartFile,
-                results: {
-                  type: 'error',
-                  error: sql.error,
-                },
-              })
-            }
-            const returned = await services.database.runStatement(sql.value.sql)
-            if (isErr(returned)) {
-              return this.postSetData(webviewPanel, {
-                title,
-                allAssets,
-                chartFile,
-                results: {
-                  type: 'error',
-                  error: returned.error,
-                },
-              })
+            const queryResult = await services.database.runStatement(
+              sqlForAssetResult.value.fullSql,
+            )
+            if (isErr(queryResult)) {
+              return handleError(queryResult.error, allAssets)
             }
             return this.postSetData(webviewPanel, {
               title,
@@ -460,57 +451,53 @@ export class ChartEditorProvider
               chartFile,
               results: {
                 type: 'success',
-                queryResult: returned.value,
+                queryResult: queryResult.value,
               },
             })
           }
-          default:
+          case 'preTemplatedSql': {
+            this.postSetData(webviewPanel, {
+              title,
+              allAssets: [],
+              chartFile,
+              results: {
+                type: 'loading',
+              },
+            })
+            const setupValues = await preInitSetup(services)
+            if (isErr(setupValues)) {
+              return handleError(setupValues.error)
+            }
+            const returnSqlResult =
+              await services.rust.returnSQLForInjectedModel({
+                projectRoot: setupValues.value.projectRoot,
+                sql: chartFile.source.preTemplatedSql,
+              })
+            if (isErr(returnSqlResult)) {
+              return handleError(returnSqlResult.error)
+            }
+            const queryResult = await services.database.runStatement(
+              returnSqlResult.value.sql,
+            )
+            if (isErr(queryResult)) {
+              return handleError(queryResult.error)
+            }
             return this.postSetData(webviewPanel, {
               title,
               allAssets: [],
               chartFile,
               results: {
-                type: 'error',
-                error: {
-                  code: ErrorCodes.INTERNAL,
-                  message: 'Unexpected source type',
-                },
+                type: 'success',
+                queryResult: queryResult.value,
               },
             })
-        }
-      }
-      case 'chartViewChangeHandler': {
-        const config = e.payload as ChartFile
-        if (
-          config.source?.$case === 'reference' &&
-          config.source.reference.name === undefined
-        ) {
-          config.source.reference.name = ''
-        }
-
-        // On change of the reference source -> Rerender the assets
-        if (
-          document.documentData === undefined ||
-          document.documentData.source === undefined ||
-          config.source === undefined ||
-          document.documentData.source.$case !== config.source.$case
-        ) {
-          const allAssetsAttempt = await this.getAssets()
-          const allAssets = isErr(allAssetsAttempt)
-            ? []
-            : allAssetsAttempt.value
-          const payload = {
-            title,
-            allAssets,
-            chartFile: config,
-            results: {
-              type: 'not loaded' as const,
-            },
           }
-          this.postSetData(webviewPanel, payload)
-          return document.makeEdit(config)
+          default:
+            return handleError({
+              code: ErrorCodes.INTERNAL,
+              message: 'Unexpected source type',
+            })
         }
-        return document.makeEdit(config)
       }
       case 'chartViewOpenTextEditor': {
         return vscode.commands.executeCommand(

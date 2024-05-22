@@ -1,40 +1,25 @@
 import { Meta, StoryObj } from '@storybook/react'
-import * as React from 'react'
 import { ChartEditorHeader } from './ChartEditorHeader'
 
 const meta: Meta<typeof ChartEditorHeader> = {
   component: ChartEditorHeader,
-  argTypes: {
-    onChangeSource: { action: 'change source ' },
-    onClickRunQuery: { action: 'run query' },
-    onClickCreateModel: { action: 'create model' },
-    onClickEdit: { action: 'edit' },
-  },
 }
 
 export default meta
 
 type Story = StoryObj<typeof ChartEditorHeader>
 
-const allAssets = ['model_a', 'model_b', 'model_c']
-
-const WrappedWithState = (
-  args: React.ComponentPropsWithRef<typeof ChartEditorHeader>,
-) => {
-  const [data, setData] = React.useState(args.data)
-  return <ChartEditorHeader {...args} data={data} onChangeSource={setData} />
-}
+const assets = ['model_a', 'model_b', 'model_c']
 
 export const RawSQL: Story = {
   args: {
-    data: {
+    chartFileSource: {
       $case: 'rawSql',
       rawSql: 'SELECT * FROM table',
     },
-    allAssets,
+    assets,
     disabled: false,
   },
-  render: WrappedWithState,
 }
 
 export const DisabledRawSQL: Story = {
@@ -42,19 +27,17 @@ export const DisabledRawSQL: Story = {
     ...RawSQL.args,
     disabled: true,
   },
-  render: WrappedWithState,
 }
 
 export const TemplatedSQL: Story = {
   args: {
-    data: {
+    chartFileSource: {
       $case: 'preTemplatedSql',
       preTemplatedSql: 'SELECT * FROM q.table',
     },
-    allAssets,
+    assets,
     disabled: false,
   },
-  render: WrappedWithState,
 }
 
 export const DisabledTemplatedSQL: Story = {
@@ -62,19 +45,17 @@ export const DisabledTemplatedSQL: Story = {
     ...TemplatedSQL.args,
     disabled: true,
   },
-  render: WrappedWithState,
 }
 
 export const AssetReference: Story = {
   args: {
-    data: {
+    chartFileSource: {
       $case: 'reference',
       reference: 'model_a',
     },
-    allAssets,
+    assets,
     disabled: false,
   },
-  render: WrappedWithState,
 }
 
 export const DisabledAssetReference: Story = {
@@ -82,5 +63,4 @@ export const DisabledAssetReference: Story = {
     ...AssetReference.args,
     disabled: true,
   },
-  render: WrappedWithState,
 }

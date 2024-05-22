@@ -1,15 +1,10 @@
 import { Meta, StoryObj } from '@storybook/react'
+import { ErrorCodes } from '@shared/result'
 import { sampleQueryResult } from '../lib/sampleData'
 import { ChartEditor } from './ChartEditor'
 
 const meta: Meta<typeof ChartEditor> = {
   component: ChartEditor,
-  argTypes: {
-    registerChangeChartFile: { action: 'change chart file' },
-    onClickRunQuery: { action: 'run query' },
-    onClickEdit: { action: 'edit' },
-    onClickCreateModel: { action: 'create model' },
-  },
 }
 
 export default meta
@@ -17,7 +12,6 @@ export default meta
 type Story = StoryObj<typeof ChartEditor>
 
 const title = 'model_a_chart'
-const allAssets = ['model_a', 'model_b', 'model_c']
 const rawSql = {
   $case: 'rawSql',
   rawSql: 'SELECT * FROM table',
@@ -41,7 +35,6 @@ export const SuccessRawSql: Story = {
       source: rawSql,
       config: {},
     },
-    allAssets,
     chartResults: success,
   },
 }
@@ -51,7 +44,10 @@ export const ErrorRawSql: Story = {
     ...SuccessRawSql.args,
     chartResults: {
       type: 'error',
-      error: 'Error message',
+      error: {
+        code: ErrorCodes.INVALID_ARGUMENT,
+        message: 'error',
+      },
     },
   },
 }

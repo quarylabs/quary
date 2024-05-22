@@ -51,8 +51,10 @@ export type Callbacks = {
     sources: ProjectFileSource[]
     folderPath: string
   }
-  chartViewRunQuery: ChartFile
+  chartViewRunQuery: null
   chartViewChangeHandler: ChartFile
+  chartViewMakeSourceEdit: ChartFile['source']
+  chartViewMakeChartEdit: ChartFile['config']
   chartViewOpenTextEditor: null
   chartViewCreateModel: string
 }
