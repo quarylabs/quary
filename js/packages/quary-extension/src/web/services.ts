@@ -103,9 +103,7 @@ export const getPreInitServices = async (
   const rootPath = fileSystem.getProjectRoot()
   if (isErr(rootPath)) {
     // Handle the error, e.g., show an error message to the user and stop execution or retry
-    vscode.window.showErrorMessage(
-      `Error getting project root: ${rootPath.error.message}`,
-    )
+    vscode.window.showErrorMessage('Quary: ' + rootPath.error.message)
   }
   return {
     rust: rustWithoutDatabaseWasmServices(fileSystem),
