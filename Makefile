@@ -14,6 +14,7 @@ proto: proto_fmt ## Generate the proto code
 	rm -rf js/packages/proto/src/generated/
 	mkdir -p js/packages/proto/src/generated/
 	cp -a ./proto/gen/ts/. js/packages/proto/src/generated/
+	pnpm run fmt
 
 .PHONY: proto_breaking
 proto_breaking: ## Check for breaking changes in the proto code

@@ -864,6 +864,7 @@ models:
         }
     }
 
+    /// postgres_sql_test tests a sql test with injecting the whole path of many models in tests
     #[tokio::test]
     async fn postgres_sql_test() {
         let postgres_image = RunnableImage::from(TestcontainersPostgres::default())
