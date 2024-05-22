@@ -170,8 +170,8 @@ pub async fn derive_sha256_file_contents(
     Ok(HEXLOWER.encode(digest.as_ref()))
 }
 
-/// derive_hash_views returns table names for every model
-/// and seed inside of the project that is passed in. The returned type is a map from the model
+/// derive_hash_views returns table names for every model/snapshot and seed inside 
+/// of the project that is passed in. The returned type is a map from the model
 /// to a tuple of the model hash and sql statements required to create the view.
 pub fn derive_hash_views<'a>(
     database: &impl DatabaseQueryGenerator,

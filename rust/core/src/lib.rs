@@ -10,6 +10,7 @@
 extern crate core;
 
 pub mod automatic_branching;
+pub mod automatic_branching_build_cached;
 pub mod chart;
 pub mod config;
 pub mod database_bigquery;
