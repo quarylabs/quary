@@ -303,6 +303,9 @@ importers:
       fuse.js:
         specifier: ^7.0.0
         version: 7.0.0
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       postcss:
         specifier: ^8.4.38
         version: 8.4.38
@@ -358,6 +361,9 @@ importers:
       '@types/dagre':
         specifier: ^0.7.52
         version: 0.7.52
+      '@types/lodash':
+        specifier: ^4.17.4
+        version: 4.17.4
       '@types/react':
         specifier: ^18.3.2
         version: 18.3.2

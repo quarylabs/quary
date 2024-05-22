@@ -1,4 +1,5 @@
 import React from 'react'
+import { isEqual } from 'lodash'
 import type { ChartEditorData } from '@shared/globalViewState'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import { LoadingView } from '../views/LoadingView'
@@ -86,6 +87,7 @@ const RenderedPerspective = ({
             title={title}
             existingSettings={{}}
             results={chartResults.queryResult}
+            source={chartFile.source}
             updateConfigListener={(config) => {
               registerChangeChartFile({
                 ...chartFile,
@@ -100,6 +102,7 @@ const RenderedPerspective = ({
           title={title}
           existingSettings={chartFile.config}
           results={chartResults.queryResult}
+          source={chartFile.source}
           updateConfigListener={(config) => {
             registerChangeChartFile({
               ...chartFile,
@@ -112,14 +115,16 @@ const RenderedPerspective = ({
   }
 }
 
-const PerspectiveWithMemo = React.memo(Perspective, (prevProps, nextProps) => {
-  const stringifiedPrev = JSON.stringify(prevProps.existingSettings)
-  const stringifiedNext = JSON.stringify(nextProps.existingSettings)
-
-  return (
-    prevProps.title === nextProps.title && stringifiedPrev === stringifiedNext
-  )
-})
+/*
+    Re-render the Perspective component only when the source settings or results change.
+    This prevents unnecessary re-renders triggered by changes in the config object.
+*/
+const PerspectiveWithMemo = React.memo(
+  Perspective,
+  (prevProps, nextProps) =>
+    isEqual(prevProps.source, nextProps.source) &&
+    isEqual(prevProps.results, nextProps.results),
+)
 
 const WrappedMemoizedChartEditorHeader = React.memo(
   ChartEditorHeader,

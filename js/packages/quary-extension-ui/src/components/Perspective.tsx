@@ -8,9 +8,12 @@ import '@finos/perspective-viewer/dist/css/pro.css'
 import type { HTMLPerspectiveViewerElement } from '@finos/perspective-viewer'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { dropNullValuesInJSONLike, JSONValue } from '@shared/jsonValue.ts'
+import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 
 interface Props {
   title?: string
+  // source is used to memoize the Perspective component
+  source?: ChartFile['source']
   results: QueryResult
   updateConfigListener?: (chartDefinition: JSONValue) => void
   openWithSettings?: boolean
@@ -59,7 +62,7 @@ export const Perspective: React.FC<Props> = ({
       }
 
       if (el && updateConfigListener) {
-        el.addEventListener('click', async () => {
+        el.addEventListener('perspective-config-update', async () => {
           const config = await el.save('json')
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-expect-error
@@ -91,9 +94,6 @@ export const Perspective: React.FC<Props> = ({
       <perspective-viewer
         style={{ width: '100%', height: '500px' }}
         ref={viewerRef}
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        settings={true}
       ></perspective-viewer>
     </div>
   )
