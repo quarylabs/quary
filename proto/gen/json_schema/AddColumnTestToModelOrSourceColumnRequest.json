@@ -15,10 +15,10 @@
                 },
                 "column_test": {
                     "$ref": "#/definitions/quary.service.v1.ColumnTest",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Add Column Test To Model Or Source Column Request"
         },
@@ -34,7 +34,7 @@
                     "type": "object"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Column Test"
         }

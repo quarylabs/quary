@@ -3,7 +3,7 @@
     "$ref": "#/definitions/UpdateModelOrSourceColumnDescriptionResponse",
     "definitions": {
         "UpdateModelOrSourceColumnDescriptionResponse": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Update Model Or Source Column Description Response"
         }

@@ -17,7 +17,7 @@
                     "description": "The final error result of the job as a human-readable string."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Job Status",
             "description": "JobStatus API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/JobStatus"

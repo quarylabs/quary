@@ -18,7 +18,7 @@
                 },
                 "project_reference": {
                     "$ref": "#/definitions/quary.service.v1.BigQueryProjectReference",
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "description": "A unique reference to a project."
                 },
                 "friendly_name": {
@@ -26,7 +26,7 @@
                     "description": "A descriptive name for this project."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Project",
             "description": "Project API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/projects/list"
@@ -37,7 +37,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "------------------\n BigQuery Responses\n ------------------",
             "description": "------------------ BigQuery Responses ------------------"

@@ -11,7 +11,7 @@
                     "type": "boolean"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Node"
         }

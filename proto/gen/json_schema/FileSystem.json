@@ -7,12 +7,12 @@
                 "files": {
                     "additionalProperties": {
                         "$ref": "#/definitions/quary.service.v1.File",
-                        "additionalProperties": true
+                        "additionalProperties": false
                     },
                     "type": "object"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "File System"
         },
@@ -28,7 +28,7 @@
                     "binaryEncoding": "base64"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "File"
         }

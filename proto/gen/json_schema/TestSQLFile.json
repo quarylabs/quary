@@ -14,7 +14,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test SQL File"
         }

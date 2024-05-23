@@ -20,7 +20,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Multi Column Unique"
         }

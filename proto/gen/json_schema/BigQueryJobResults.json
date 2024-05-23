@@ -10,12 +10,12 @@
                 },
                 "schema": {
                     "$ref": "#/definitions/quary.service.v1.BigQueryTableSchema",
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "description": "The schema of the results. Present only when the query completes successfully."
                 },
                 "job_reference": {
                     "$ref": "#/definitions/quary.service.v1.BigQueryJobReference",
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "description": "A reference uniquely identifying the job."
                 },
                 "total_rows": {
@@ -30,6 +30,7 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.BigQueryTableRow"
                     },
+                    "additionalProperties": false,
                     "type": "array",
                     "description": "An object with as many results as can be contained within the maximum permitted reply size. To get any additional rows, you can call GetQueryResults and specify the jobReference returned above."
                 },
@@ -41,6 +42,7 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.BigQueryError"
                     },
+                    "additionalProperties": false,
                     "type": "array",
                     "description": "The first errors encountered during the running of the job. The final message includes the number of errors encountered."
                 },
@@ -53,7 +55,7 @@
                     "description": "The number of rows affected by a DML statement. Present only for DML statements INSERT, UPDATE or DELETE."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Job Results",
             "description": "BigQueryJobResults API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/getQueryResults"
@@ -77,7 +79,7 @@
                     "description": "A human-readable description of the error."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Error",
             "description": "BigQueryError API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/ErrorProto"
@@ -93,7 +95,7 @@
                     "description": "Represents the 'v' in a JSON object"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Field Value"
         },
@@ -112,7 +114,7 @@
                     "description": "The geographic location of the job."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Job Reference",
             "description": "JobReference API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/JobReference"
@@ -135,6 +137,7 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.BigQueryTableField"
                     },
+                    "additionalProperties": false,
                     "type": "array",
                     "description": "Describes the nested schema fields if the type property is set to RECORD."
                 },
@@ -143,7 +146,7 @@
                     "description": "The field description."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Table Field",
             "description": "Table Field API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#TableFieldSchema"
@@ -154,11 +157,12 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.BigQueryFieldValue"
                     },
+                    "additionalProperties": false,
                     "type": "array",
                     "description": "Represents a single row as a series of field-value pairs"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Table Row"
         },
@@ -174,6 +178,7 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.BigQueryTableField"
                     },
+                    "additionalProperties": false,
                     "type": "array",
                     "description": "Describes the fields in a table."
                 },
@@ -182,7 +187,7 @@
                     "description": "The field description."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Table Schema",
             "description": "Table Schema API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#TableSchema"

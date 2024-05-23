@@ -13,7 +13,7 @@
                     "description": "absolute time the token expires"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Oauth Token Refresh"
         }

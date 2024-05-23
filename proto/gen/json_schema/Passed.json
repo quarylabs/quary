@@ -5,12 +5,12 @@
         "Passed": {
             "properties": {
                 "ran": {
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "type": "object"
                 },
                 "inferred_from_tests": {
                     "$ref": "#/definitions/quary.service.v1.InferredChain",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "inferred_from_logic": {
                     "type": "string",
@@ -18,11 +18,11 @@
                 },
                 "inferred_through_tests_operation": {
                     "$ref": "#/definitions/quary.service.v1.InferredChainWithOperation",
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "description": "inferred_through_tests_operation infers that the test was inferred and implied through the operation"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Passed"
         },
@@ -35,7 +35,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Inferred Chain"
         },
@@ -51,7 +51,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Inferred Chain With Operation"
         }

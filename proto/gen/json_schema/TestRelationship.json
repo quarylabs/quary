@@ -26,7 +26,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Relationship"
         }
