@@ -16,7 +16,7 @@
                     "description": "absolute time the token expires"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Oauth Token",
             "description": "Google Oauth 2.0 token API Documentation: https://developers.google.com/identity/protocols/oauth2/web-server#httprest"

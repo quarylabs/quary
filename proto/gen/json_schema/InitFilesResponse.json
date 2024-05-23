@@ -3,7 +3,7 @@
     "$ref": "#/definitions/InitFilesResponse",
     "definitions": {
         "InitFilesResponse": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Init Files Response"
         }

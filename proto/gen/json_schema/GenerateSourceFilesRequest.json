@@ -11,6 +11,7 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.DatabaseSource"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 },
                 "folder_path": {
@@ -18,7 +19,7 @@
                     "description": "folder_path is the path to the folder where the source files will be generated."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Generate Source Files Request"
         },
@@ -37,7 +38,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Database Source",
             "description": "Generic source structure, used as input to generate the quary-specific source structure"

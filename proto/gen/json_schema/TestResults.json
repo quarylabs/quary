@@ -8,10 +8,11 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.TestResult"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Results",
             "description": "WasmRunTestResponse is a temporary message type to work on inferring in Rust rather than in Typescript. The goal is to make better interfaces over time."
@@ -20,22 +21,22 @@
             "properties": {
                 "ran": {
                     "$ref": "#/definitions/quary.service.v1.FailedRunResults",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "inferred_from_tests": {
                     "$ref": "#/definitions/quary.service.v1.InferredChain",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "inferred_through_tests_operation": {
                     "$ref": "#/definitions/quary.service.v1.InferredChainWithOperation",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "failed_run_message": {
                     "$ref": "#/definitions/quary.service.v1.FailedRunMessage",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Failed"
         },
@@ -45,7 +46,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Failed Run Message",
             "description": "FailedRunMessage is a message that contains a message that can be displayed to the user when a test fails. This shoudl be used when the failure is not due to a query result but due to some other reason for example an incorrect query or a query that is not supported."
@@ -54,10 +55,10 @@
             "properties": {
                 "query_result": {
                     "$ref": "#/definitions/quary.service.v1.QueryResult",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Failed Run Results"
         },
@@ -70,7 +71,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Inferred Chain"
         },
@@ -86,19 +87,19 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Inferred Chain With Operation"
         },
         "quary.service.v1.Passed": {
             "properties": {
                 "ran": {
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "type": "object"
                 },
                 "inferred_from_tests": {
                     "$ref": "#/definitions/quary.service.v1.InferredChain",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "inferred_from_logic": {
                     "type": "string",
@@ -106,11 +107,11 @@
                 },
                 "inferred_through_tests_operation": {
                     "$ref": "#/definitions/quary.service.v1.InferredChainWithOperation",
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "description": "inferred_through_tests_operation infers that the test was inferred and implied through the operation"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Passed"
         },
@@ -120,10 +121,11 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.QueryResultColumn"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Query Result",
             "description": "QueryResult is the result of a ran query."
@@ -143,7 +145,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Query Result Column"
         },
@@ -157,14 +159,14 @@
                 },
                 "passed": {
                     "$ref": "#/definitions/quary.service.v1.Passed",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "failed": {
                     "$ref": "#/definitions/quary.service.v1.Failed",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Result",
             "description": "TestResult is the result of a test serializable so it can be shared"

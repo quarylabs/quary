@@ -6,14 +6,14 @@
             "properties": {
                 "start": {
                     "$ref": "#/definitions/quary.service.v1.Position",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "end": {
                     "$ref": "#/definitions/quary.service.v1.Position",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Range",
             "description": "Range represents a range of positions in a file."
@@ -27,7 +27,7 @@
                     "type": "integer"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Position",
             "description": "Position is a simple representation of a line and character position in a file."

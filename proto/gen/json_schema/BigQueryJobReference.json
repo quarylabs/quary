@@ -17,7 +17,7 @@
                     "description": "The geographic location of the job."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Job Reference",
             "description": "JobReference API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/JobReference"

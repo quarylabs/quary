@@ -21,7 +21,7 @@
                     "description": "A human-readable description of the error."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Error",
             "description": "BigQueryError API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/ErrorProto"

@@ -16,6 +16,8 @@ plugins:
     out: proto/gen/rust/src
   - out: proto/gen/json_schema
     plugin: buf.build/community/chrusty-jsonschema
+    opt:
+      - disallow_additional_properties
   - plugin: buf.build/bufbuild/connect-es
     out: proto/gen/es
     opt:

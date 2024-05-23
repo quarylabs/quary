@@ -3,7 +3,7 @@
     "$ref": "#/definitions/RemoveColumnTestFromModelOrSourceColumnResponse",
     "definitions": {
         "RemoveColumnTestFromModelOrSourceColumnResponse": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Remove Column Test From Model Or Source Column Response"
         }

@@ -3,7 +3,7 @@
     "$ref": "#/definitions/UpdateAssetDescriptionResponse",
     "definitions": {
         "UpdateAssetDescriptionResponse": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Update Asset Description Response"
         }

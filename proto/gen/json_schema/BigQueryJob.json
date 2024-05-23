@@ -22,16 +22,16 @@
                 },
                 "job_reference": {
                     "$ref": "#/definitions/quary.service.v1.BigQueryJobReference",
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "description": "A reference uniquely identifying the job."
                 },
                 "status": {
                     "$ref": "#/definitions/quary.service.v1.BigQueryJobStatus",
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "description": "Information about the job, including starting time and ending time of the job."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Job",
             "description": "Job API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/Job"
@@ -51,7 +51,7 @@
                     "description": "The geographic location of the job."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Job Reference",
             "description": "JobReference API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/JobReference"
@@ -71,7 +71,7 @@
                     "description": "The final error result of the job as a human-readable string."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Job Status",
             "description": "JobStatus API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/JobStatus"

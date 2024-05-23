@@ -6,10 +6,10 @@
             "properties": {
                 "connection_config": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Generate Project Files Request"
         },
@@ -17,44 +17,45 @@
             "properties": {
                 "duckdb": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigDuckDB",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "duckdb_in_memory": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigDuckDBInMemory",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "sqlite": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigSqLite",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "sqlite_in_memory": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigSqLiteInMemory",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "big_query": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigBigQuery",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "snowflake": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigSnowflake",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "postgres": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigPostgres",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "redshift": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigRedshift",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "vars": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.Var"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config",
             "description": "Configuration describes the configuration of the project."
@@ -68,7 +69,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Big Query"
         },
@@ -81,7 +82,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Duck DB"
         },
@@ -91,7 +92,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Duck DB In Memory"
         },
@@ -101,7 +102,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Postgres"
         },
@@ -111,7 +112,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Redshift"
         },
@@ -140,7 +141,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Snowflake"
         },
@@ -150,12 +151,12 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Sq Lite"
         },
         "quary.service.v1.ConnectionConfig.ConnectionConfigSqLiteInMemory": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Sq Lite In Memory"
         },
@@ -168,7 +169,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Var"
         }

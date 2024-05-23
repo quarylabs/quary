@@ -17,7 +17,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Database Source",
             "description": "Generic source structure, used as input to generate the quary-specific source structure"

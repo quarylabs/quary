@@ -6,14 +6,14 @@
             "properties": {
                 "cache_view_information": {
                     "$ref": "#/definitions/quary.service.v1.CacheViewInformationPaths",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "do_not_use": {
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "type": "object"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Cache View Information"
         },
@@ -26,7 +26,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Cache View Information Paths"
         }

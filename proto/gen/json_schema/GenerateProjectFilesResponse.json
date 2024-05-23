@@ -3,7 +3,7 @@
     "$ref": "#/definitions/GenerateProjectFilesResponse",
     "definitions": {
         "GenerateProjectFilesResponse": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Generate Project Files Response"
         }

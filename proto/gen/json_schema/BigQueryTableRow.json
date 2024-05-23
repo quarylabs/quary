@@ -8,11 +8,12 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.BigQueryFieldValue"
                     },
+                    "additionalProperties": false,
                     "type": "array",
                     "description": "Represents a single row as a series of field-value pairs"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Table Row"
         },
@@ -27,7 +28,7 @@
                     "description": "Represents the 'v' in a JSON object"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Field Value"
         }

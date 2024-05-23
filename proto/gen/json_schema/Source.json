@@ -28,10 +28,11 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.Source.SourceColumn"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Source"
         },
@@ -44,7 +45,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Source Column"
         }

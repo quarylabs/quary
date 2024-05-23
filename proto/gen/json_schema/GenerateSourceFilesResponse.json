@@ -3,7 +3,7 @@
     "$ref": "#/definitions/GenerateSourceFilesResponse",
     "definitions": {
         "GenerateSourceFilesResponse": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Generate Source Files Response"
         }

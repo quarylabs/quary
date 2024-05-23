@@ -33,11 +33,11 @@
                 },
                 "reference": {
                     "$ref": "#/definitions/quary.service.v1.Chart.AssetReference",
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "description": "reference to a pre-existing asset, model, source, seed, snapshot"
                 },
                 "config": {
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "type": "object",
                     "description": "Configuration for the chart that is passed to perspective"
                 },
@@ -49,7 +49,7 @@
                     "description": "References that this chart has, these can be models/sources/seeds/snapshots"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Chart",
             "description": "Parsed chart that is in a project"
@@ -60,7 +60,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Asset Reference"
         }

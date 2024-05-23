@@ -14,7 +14,7 @@
                     "binaryEncoding": "base64"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "File"
         }

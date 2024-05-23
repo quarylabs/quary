@@ -3,7 +3,7 @@
     "$ref": "#/definitions/ExecResponse",
     "definitions": {
         "ExecResponse": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Exec Response"
         }
