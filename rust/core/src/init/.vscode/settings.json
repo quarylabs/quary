@@ -2,5 +2,13 @@
   "editor.formatOnSave": true,
   "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/quarylabs/quary/main/proto/gen/json_schema/ConnectionConfig.json": "quary.yaml",
+    "https://raw.githubusercontent.com/quarylabs/quary/main/proto/gen/json_schema/ChartFile.json": "models/**/*.chart.yaml",
+    "https://raw.githubusercontent.com/quarylabs/quary/main/proto/gen/json_schema/ProjectFile.json": [
+      "models/**/**.yaml",
+      "!models/**/**.chart.yaml"
+    ]
   }
 }
