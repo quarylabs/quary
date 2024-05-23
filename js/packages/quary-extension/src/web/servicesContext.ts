@@ -5,6 +5,7 @@ const HostDetailsSchema = z.object({
   hostType: z.union([
     z.literal('web'),
     z.literal('desktop'),
+    z.literal('codespaces'),
     z.literal('github.dev'),
     z.literal('vscode.dev'),
   ]),
