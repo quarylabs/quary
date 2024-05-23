@@ -46,14 +46,14 @@ pub enum Commands {
     )]
     Rpc(RpcArgs),
     #[command(
-        name = "generate-sources",
-        about = "Returns a project file with all sources in a database"
-    )]
-    #[command(
         name = "snapshot",
         about = "Execute snapshots to capture data changes over time"
     )]
     Snapshot(SnapshotArgs),
+    #[command(
+        name = "generate-sources",
+        about = "Returns a project file with all sources in a database"
+    )]
     GenerateSources(GenerateSourcesArgs),
 }
 
