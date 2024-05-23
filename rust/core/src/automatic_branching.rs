@@ -198,7 +198,7 @@ pub fn derive_hash_views<'a>(
 /// create_automatic_branch_view_name creates a name for the view that is created for the
 /// automatic branching. The name is qqq_<model_name>_<hash _of_upstream_views> where the hash
 /// is the first 7 digits of the sha256 hash of the upstream views.
-fn create_automatic_branch_view_name(model: &str, hash: &str) -> Result<String, String> {
+pub(crate) fn create_automatic_branch_view_name(model: &str, hash: &str) -> Result<String, String> {
     let shortened_hash = hash.get(0..7).ok_or(format!(
         "Hash {} is not long enough to create automatic branch view name",
         hash
@@ -274,6 +274,11 @@ pub type ModelName<'a> = &'a str;
 pub type ModelNameString = String;
 
 pub type ShortenedHash<'a> = &'a str;
+
+/// model_name_with_hash_to_model converts
+pub fn model_name_with_hash_to_model_name<'a>(name: ModelWithHash<'a>) -> ModelName<'a> {
+    &name[4..name.len() - 8]
+}
 
 /// given_map_and_hash_map_return_sub_graph_all_cached takes a graph and a map of the model to the
 /// shortened hashes and returns a set that includes the model names of the models that are cached.
