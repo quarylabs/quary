@@ -1464,6 +1464,7 @@ pub(crate) async fn return_sql_for_injected_model(
         &request.project_root,
         &request.sql,
         None,
+        &request.temporary_id,
     )
     .await?;
     Ok(ReturnSqlForInjectedModelResponse { sql })

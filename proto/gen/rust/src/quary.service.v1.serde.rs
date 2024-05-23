@@ -12637,12 +12637,18 @@ impl serde::Serialize for ReturnSqlForInjectedModelRequest {
         if !self.sql.is_empty() {
             len += 1;
         }
+        if !self.temporary_id.is_empty() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.ReturnSQLForInjectedModelRequest", len)?;
         if !self.project_root.is_empty() {
             struct_ser.serialize_field("projectRoot", &self.project_root)?;
         }
         if !self.sql.is_empty() {
             struct_ser.serialize_field("sql", &self.sql)?;
+        }
+        if !self.temporary_id.is_empty() {
+            struct_ser.serialize_field("temporaryId", &self.temporary_id)?;
         }
         struct_ser.end()
     }
@@ -12657,12 +12663,15 @@ impl<'de> serde::Deserialize<'de> for ReturnSqlForInjectedModelRequest {
             "project_root",
             "projectRoot",
             "sql",
+            "temporary_id",
+            "temporaryId",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             ProjectRoot,
             Sql,
+            TemporaryId,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -12686,6 +12695,7 @@ impl<'de> serde::Deserialize<'de> for ReturnSqlForInjectedModelRequest {
                         match value {
                             "projectRoot" | "project_root" => Ok(GeneratedField::ProjectRoot),
                             "sql" => Ok(GeneratedField::Sql),
+                            "temporaryId" | "temporary_id" => Ok(GeneratedField::TemporaryId),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -12707,6 +12717,7 @@ impl<'de> serde::Deserialize<'de> for ReturnSqlForInjectedModelRequest {
             {
                 let mut project_root__ = None;
                 let mut sql__ = None;
+                let mut temporary_id__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::ProjectRoot => {
@@ -12721,11 +12732,18 @@ impl<'de> serde::Deserialize<'de> for ReturnSqlForInjectedModelRequest {
                             }
                             sql__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::TemporaryId => {
+                            if temporary_id__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("temporaryId"));
+                            }
+                            temporary_id__ = Some(map_.next_value()?);
+                        }
                     }
                 }
                 Ok(ReturnSqlForInjectedModelRequest {
                     project_root: project_root__.unwrap_or_default(),
                     sql: sql__.unwrap_or_default(),
+                    temporary_id: temporary_id__.unwrap_or_default(),
                 })
             }
         }

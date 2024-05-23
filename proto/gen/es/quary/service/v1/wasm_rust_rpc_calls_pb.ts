@@ -1963,6 +1963,15 @@ export class ReturnSQLForInjectedModelRequest extends Message<ReturnSQLForInject
    */
   sql = "";
 
+  /**
+   * temporary_id is the unique identifier for the artificially created model in the file system.
+   * It is manually parsed in the function and serves as a temporary ID (model name) for the model.
+   * It must be distinct from any other model names in the project to avoid collisions.
+   *
+   * @generated from field: string temporary_id = 3;
+   */
+  temporaryId = "";
+
   constructor(data?: PartialMessage<ReturnSQLForInjectedModelRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1973,6 +1982,7 @@ export class ReturnSQLForInjectedModelRequest extends Message<ReturnSQLForInject
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "project_root", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "sql", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "temporary_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReturnSQLForInjectedModelRequest {

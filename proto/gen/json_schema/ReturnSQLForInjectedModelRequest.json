@@ -9,6 +9,10 @@
                 },
                 "sql": {
                     "type": "string"
+                },
+                "temporary_id": {
+                    "type": "string",
+                    "description": "temporary_id is the unique identifier for the artificially created model in the file system. It is manually parsed in the function and serves as a temporary ID (model name) for the model. It must be distinct from any other model names in the project to avoid collisions."
                 }
             },
             "additionalProperties": true,

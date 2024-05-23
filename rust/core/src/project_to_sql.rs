@@ -23,13 +23,12 @@ pub async fn project_and_fs_to_query_sql_for_model_sql(
     project_root: &str,
     model_sql: &str,
     overrides: Option<HashMap<String, String>>,
+    temporary_id: &str,
 ) -> Result<(String, (BTreeSet<String>, Vec<Edge>)), String> {
-    // TODO Improve by using a random model name generator but test in wasm and in wasm in node
-    let random_model_name = "0d570d7f-43da-4e9f-aea5-d7c5bdc33080".to_string();
     let project_root_path = Path::new(project_root);
     let full_path = project_root_path
         .join("models")
-        .join(format!("{}.sql", random_model_name));
+        .join(format!("{}.sql", temporary_id));
     let random_model_location = full_path
         .to_str()
         .ok_or("failed to convert random model location to string")?;
@@ -38,14 +37,7 @@ pub async fn project_and_fs_to_query_sql_for_model_sql(
     file_system.add_override(random_model_location, model_sql);
 
     let project = parse_project(&file_system, database, project_root).await?;
-    project_and_fs_to_query_sql(
-        database,
-        &project,
-        &file_system,
-        random_model_name.as_str(),
-        overrides,
-    )
-    .await
+    project_and_fs_to_query_sql(database, &project, &file_system, temporary_id, overrides).await
 }
 
 /// project_and_fs_to_query_sql returns the sql statement for a model in a project. The model can be
@@ -1475,6 +1467,7 @@ sources:
             project_root,
             model,
             None,
+            "shift_hours.chart.sql", // this is the unique identifier for the injected model
         )
         .await
         .unwrap();
@@ -1517,5 +1510,52 @@ sources:
 
         assert_eq!(expected, sql);
         assert_eq!("WITH raw_shifts AS (SELECT * FROM raw_shifts_real_table) SELECT * FROM (SELECT employee_id, shift_date, shift FROM `raw_shifts`) AS alias", sql);
+    }
+
+    // This test checks that project_and_fs_to_query_sql_for_model_sql handles the case
+    // where a model references a non-existent model, source, or snapshot.
+    // It should return a useful error in this case.
+    #[tokio::test]
+    async fn test_project_and_fs_to_query_sql_for_model_sql_reference_error() {
+        // shared
+        let model = "SELECT employee_id, shift_date, shift FROM q.non_existent_model";
+        let project_root = "some_random_project_root/nested";
+        let database = DatabaseQueryGeneratorSqlite::default();
+
+        // generating sql
+        let filesystem = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "some_random_project_root/nested/quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "projectquary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from("sqliteInMemory: {}".as_bytes()),
+                    },
+                ),
+                (
+                    "some_random_project_root/nested/models/schema.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "sources: [{name: raw_shifts, path: raw_shifts_real_table}]",
+                        ),
+                    },
+                ),
+            ]),
+        };
+        let result = project_and_fs_to_query_sql_for_model_sql(
+            &database,
+            &filesystem,
+            project_root,
+            model,
+            None,
+            "shift_hours.chart.sql", // this is the unique identifier for the injected model
+        )
+        .await;
+
+        assert_eq!(
+        result.unwrap_err().to_string(),
+        "model \"shift_hours.chart.sql\" has reference to \"non_existent_model\" which is not a model, source or snapshot"
+    );
     }
 }

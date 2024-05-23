@@ -292,6 +292,12 @@ export interface ReturnDefinitionLocationsForSQLResponse_Definition {
 export interface ReturnSQLForInjectedModelRequest {
   projectRoot: string;
   sql: string;
+  /**
+   * temporary_id is the unique identifier for the artificially created model in the file system.
+   * It is manually parsed in the function and serves as a temporary ID (model name) for the model.
+   * It must be distinct from any other model names in the project to avoid collisions.
+   */
+  temporaryId: string;
 }
 
 export interface ReturnSQLForInjectedModelResponse {
@@ -3551,7 +3557,7 @@ export const ReturnDefinitionLocationsForSQLResponse_Definition = {
 };
 
 function createBaseReturnSQLForInjectedModelRequest(): ReturnSQLForInjectedModelRequest {
-  return { projectRoot: "", sql: "" };
+  return { projectRoot: "", sql: "", temporaryId: "" };
 }
 
 export const ReturnSQLForInjectedModelRequest = {
@@ -3561,6 +3567,9 @@ export const ReturnSQLForInjectedModelRequest = {
     }
     if (message.sql !== "") {
       writer.uint32(18).string(message.sql);
+    }
+    if (message.temporaryId !== "") {
+      writer.uint32(26).string(message.temporaryId);
     }
     return writer;
   },
@@ -3586,6 +3595,13 @@ export const ReturnSQLForInjectedModelRequest = {
 
           message.sql = reader.string();
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.temporaryId = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3599,6 +3615,7 @@ export const ReturnSQLForInjectedModelRequest = {
     return {
       projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
       sql: isSet(object.sql) ? gt.String(object.sql) : "",
+      temporaryId: isSet(object.temporaryId) ? gt.String(object.temporaryId) : "",
     };
   },
 
@@ -3609,6 +3626,9 @@ export const ReturnSQLForInjectedModelRequest = {
     }
     if (message.sql !== "") {
       obj.sql = message.sql;
+    }
+    if (message.temporaryId !== "") {
+      obj.temporaryId = message.temporaryId;
     }
     return obj;
   },
@@ -3624,6 +3644,7 @@ export const ReturnSQLForInjectedModelRequest = {
     const message = createBaseReturnSQLForInjectedModelRequest();
     message.projectRoot = object.projectRoot ?? "";
     message.sql = object.sql ?? "";
+    message.temporaryId = object.temporaryId ?? "";
     return message;
   },
 };
