@@ -12,17 +12,17 @@
                 },
                 "present_with_different_inference": {
                     "$ref": "#/definitions/quary.service.v1.RowDescription.PresentWithInference",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "inferred": {
                     "type": "string"
                 },
                 "not_present": {
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "type": "object"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Row Description",
             "description": "RowDescription is a description of a row in a table. It is a oneof because the description can be inferred from the YAML definitions and/or it can be present in the SQL document."
@@ -36,7 +36,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Present With Inference"
         }

@@ -3,7 +3,7 @@
     "$ref": "#/definitions/ListSourcesRequest",
     "definitions": {
         "ListSourcesRequest": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "List Sources Request"
         }

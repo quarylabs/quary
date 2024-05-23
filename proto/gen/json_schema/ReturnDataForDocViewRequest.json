@@ -12,11 +12,11 @@
                 },
                 "cache_view_information": {
                     "$ref": "#/definitions/quary.service.v1.CacheViewInformation",
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "description": "cache_view defines whether or not to use the cached views in the returned sql and dag."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Return Data For Doc View Request"
         },
@@ -24,14 +24,14 @@
             "properties": {
                 "cache_view_information": {
                     "$ref": "#/definitions/quary.service.v1.CacheViewInformationPaths",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "do_not_use": {
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "type": "object"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Cache View Information"
         },
@@ -44,7 +44,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Cache View Information Paths"
         }

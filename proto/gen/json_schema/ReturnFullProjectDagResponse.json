@@ -6,10 +6,10 @@
             "properties": {
                 "dag": {
                     "$ref": "#/definitions/quary.service.v1.ProjectDag",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Return Full Project Dag Response"
         },
@@ -22,7 +22,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Edge"
         },
@@ -35,7 +35,7 @@
                     "type": "boolean"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Node"
         },
@@ -45,16 +45,18 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.Node"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 },
                 "edges": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.Edge"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Project Dag",
             "description": "DirectedAcyclicGraph represents a directed acyclic graph that is used to visualize the project dependencies in a project."

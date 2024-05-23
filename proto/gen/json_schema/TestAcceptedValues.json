@@ -23,7 +23,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Accepted Values"
         }

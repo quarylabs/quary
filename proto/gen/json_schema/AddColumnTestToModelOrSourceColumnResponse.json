@@ -3,7 +3,7 @@
     "$ref": "#/definitions/AddColumnTestToModelOrSourceColumnResponse",
     "definitions": {
         "AddColumnTestToModelOrSourceColumnResponse": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Add Column Test To Model Or Source Column Response"
         }

@@ -8,10 +8,11 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ReturnDefinitionLocationsForSQLResponse.Definition"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Return Definition Locations For SQL Response"
         },
@@ -24,7 +25,7 @@
                     "type": "integer"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Position",
             "description": "Position is a simple representation of a line and character position in a file."
@@ -33,14 +34,14 @@
             "properties": {
                 "start": {
                     "$ref": "#/definitions/quary.service.v1.Position",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "end": {
                     "$ref": "#/definitions/quary.service.v1.Position",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Range",
             "description": "Range represents a range of positions in a file."
@@ -49,7 +50,7 @@
             "properties": {
                 "range": {
                     "$ref": "#/definitions/quary.service.v1.Range",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "target_model": {
                     "type": "string"
@@ -58,7 +59,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Definition"
         }

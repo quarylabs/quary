@@ -7,58 +7,58 @@
                 "seeds": {
                     "additionalProperties": {
                         "$ref": "#/definitions/quary.service.v1.Seed",
-                        "additionalProperties": true
+                        "additionalProperties": false
                     },
                     "type": "object"
                 },
                 "models": {
                     "additionalProperties": {
                         "$ref": "#/definitions/quary.service.v1.Model",
-                        "additionalProperties": true
+                        "additionalProperties": false
                     },
                     "type": "object"
                 },
                 "tests": {
                     "additionalProperties": {
                         "$ref": "#/definitions/quary.service.v1.Test",
-                        "additionalProperties": true
+                        "additionalProperties": false
                     },
                     "type": "object"
                 },
                 "sources": {
                     "additionalProperties": {
                         "$ref": "#/definitions/quary.service.v1.Source",
-                        "additionalProperties": true
+                        "additionalProperties": false
                     },
                     "type": "object"
                 },
                 "snapshots": {
                     "additionalProperties": {
                         "$ref": "#/definitions/quary.service.v1.Snapshot",
-                        "additionalProperties": true
+                        "additionalProperties": false
                     },
                     "type": "object"
                 },
                 "charts": {
                     "additionalProperties": {
                         "$ref": "#/definitions/quary.service.v1.Chart",
-                        "additionalProperties": true
+                        "additionalProperties": false
                     },
                     "type": "object"
                 },
                 "project_files": {
                     "additionalProperties": {
                         "$ref": "#/definitions/quary.service.v1.ProjectFile",
-                        "additionalProperties": true
+                        "additionalProperties": false
                     },
                     "type": "object"
                 },
                 "connection_config": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Project"
         },
@@ -93,11 +93,11 @@
                 },
                 "reference": {
                     "$ref": "#/definitions/quary.service.v1.Chart.AssetReference",
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "description": "reference to a pre-existing asset, model, source, seed, snapshot"
                 },
                 "config": {
-                    "additionalProperties": true,
+                    "additionalProperties": false,
                     "type": "object",
                     "description": "Configuration for the chart that is passed to perspective"
                 },
@@ -109,7 +109,7 @@
                     "description": "References that this chart has, these can be models/sources/seeds/snapshots"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Chart",
             "description": "Parsed chart that is in a project"
@@ -120,7 +120,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Asset Reference"
         },
@@ -136,7 +136,7 @@
                     "type": "object"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Column Test"
         },
@@ -144,44 +144,45 @@
             "properties": {
                 "duckdb": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigDuckDB",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "duckdb_in_memory": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigDuckDBInMemory",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "sqlite": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigSqLite",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "sqlite_in_memory": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigSqLiteInMemory",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "big_query": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigBigQuery",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "snowflake": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigSnowflake",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "postgres": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigPostgres",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "redshift": {
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigRedshift",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "vars": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.Var"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config",
             "description": "Configuration describes the configuration of the project."
@@ -195,7 +196,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Big Query"
         },
@@ -208,7 +209,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Duck DB"
         },
@@ -218,7 +219,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Duck DB In Memory"
         },
@@ -228,7 +229,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Postgres"
         },
@@ -238,7 +239,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Redshift"
         },
@@ -267,7 +268,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Snowflake"
         },
@@ -277,12 +278,12 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Sq Lite"
         },
         "quary.service.v1.ConnectionConfig.ConnectionConfigSqLiteInMemory": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Sq Lite In Memory"
         },
@@ -314,6 +315,7 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.Model.ModelColum"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 },
                 "references": {
@@ -324,7 +326,7 @@
                     "description": "References to other models/seeds/snapshots that are used in the model. These are unique keys and sorted alphabetically."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Model"
         },
@@ -337,7 +339,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Model Colum"
         },
@@ -353,7 +355,7 @@
                     "type": "object"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Model Test"
         },
@@ -363,22 +365,25 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ProjectFileSource"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 },
                 "models": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ProjectFile.Model"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 },
                 "snapshots": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ProjectFile.Snapshot"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Project File"
         },
@@ -405,16 +410,18 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ModelTest"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 },
                 "columns": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ProjectFileColumn"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Model"
         },
@@ -438,10 +445,10 @@
                 },
                 "strategy": {
                     "$ref": "#/definitions/quary.service.v1.ProjectFile.SnapshotStrategy",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Snapshot"
         },
@@ -449,10 +456,10 @@
             "properties": {
                 "timestamp": {
                     "$ref": "#/definitions/quary.service.v1.ProjectFile.TimestampStrategy",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Snapshot Strategy"
         },
@@ -462,7 +469,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Timestamp Strategy"
         },
@@ -478,10 +485,11 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ColumnTest"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Project File Column",
             "description": "Standard types are: - not_null - unique - 'relationship' which takes into data (model and field)"
@@ -509,16 +517,18 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ModelTest"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 },
                 "columns": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ProjectFileColumn"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Project File Source"
         },
@@ -534,7 +544,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Seed"
         },
@@ -564,7 +574,7 @@
                 },
                 "strategy": {
                     "$ref": "#/definitions/quary.service.v1.Snapshot.SnapshotStrategy",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "references": {
                     "items": {
@@ -574,7 +584,7 @@
                     "description": "References to other seeds/sources that are used in the snapshot. These are unique keys and sorted alphabetically."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Snapshot"
         },
@@ -582,10 +592,10 @@
             "properties": {
                 "timestamp": {
                     "$ref": "#/definitions/quary.service.v1.Snapshot.SnapshotStrategy.TimestampStrategy",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Snapshot Strategy"
         },
@@ -595,7 +605,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Timestamp Strategy"
         },
@@ -625,10 +635,11 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.Source.SourceColumn"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Source"
         },
@@ -641,7 +652,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Source Column"
         },
@@ -649,46 +660,46 @@
             "properties": {
                 "sql": {
                     "$ref": "#/definitions/quary.service.v1.TestSQLFile",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "unique": {
                     "$ref": "#/definitions/quary.service.v1.TestUnique",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "not_null": {
                     "$ref": "#/definitions/quary.service.v1.TestNotNull",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "relationship": {
                     "$ref": "#/definitions/quary.service.v1.TestRelationship",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "accepted_values": {
                     "$ref": "#/definitions/quary.service.v1.TestAcceptedValues",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "greater_than_or_equal": {
                     "$ref": "#/definitions/quary.service.v1.TestGreaterThanOrEqual",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "less_than_or_equal": {
                     "$ref": "#/definitions/quary.service.v1.TestLessThanOrEqual",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "greater_than": {
                     "$ref": "#/definitions/quary.service.v1.TestGreaterThan",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "less_than": {
                     "$ref": "#/definitions/quary.service.v1.TestLessThan",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 },
                 "multi_column_unique": {
                     "$ref": "#/definitions/quary.service.v1.TestMultiColumnUnique",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "TODO Will eventually in the tests want to store more than the file_path but also the line location",
             "description": "TODO Will eventually in the tests want to store more than the file_path but also the line location"
@@ -714,7 +725,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Accepted Values"
         },
@@ -736,7 +747,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Greater Than"
         },
@@ -758,7 +769,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Greater Than Or Equal"
         },
@@ -780,7 +791,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Less Than"
         },
@@ -802,7 +813,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Less Than Or Equal"
         },
@@ -824,7 +835,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Multi Column Unique"
         },
@@ -843,7 +854,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Not Null"
         },
@@ -871,7 +882,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Relationship"
         },
@@ -887,7 +898,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test SQL File"
         },
@@ -906,7 +917,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Test Unique"
         },
@@ -919,7 +930,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Var"
         }

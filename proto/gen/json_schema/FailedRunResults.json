@@ -6,10 +6,10 @@
             "properties": {
                 "query_result": {
                     "$ref": "#/definitions/quary.service.v1.QueryResult",
-                    "additionalProperties": true
+                    "additionalProperties": false
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Failed Run Results"
         },
@@ -19,10 +19,11 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.QueryResultColumn"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Query Result",
             "description": "QueryResult is the result of a ran query."
@@ -42,7 +43,7 @@
                     "type": "array"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Query Result Column"
         }

@@ -3,7 +3,7 @@
     "$ref": "#/definitions/ListTablesRequest",
     "definitions": {
         "ListTablesRequest": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "List Tables Request"
         }

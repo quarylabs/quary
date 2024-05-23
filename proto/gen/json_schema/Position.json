@@ -11,7 +11,7 @@
                     "type": "integer"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Position",
             "description": "Position is a simple representation of a line and character position in a file."

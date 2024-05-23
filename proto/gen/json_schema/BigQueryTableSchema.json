@@ -14,6 +14,7 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.BigQueryTableField"
                     },
+                    "additionalProperties": false,
                     "type": "array",
                     "description": "Describes the fields in a table."
                 },
@@ -22,7 +23,7 @@
                     "description": "The field description."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Table Schema",
             "description": "Table Schema API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#TableSchema"
@@ -45,6 +46,7 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.BigQueryTableField"
                     },
+                    "additionalProperties": false,
                     "type": "array",
                     "description": "Describes the nested schema fields if the type property is set to RECORD."
                 },
@@ -53,7 +55,7 @@
                     "description": "The field description."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Big Query Table Field",
             "description": "Table Field API Documentation: https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#TableFieldSchema"

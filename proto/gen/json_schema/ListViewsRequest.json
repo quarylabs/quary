@@ -3,7 +3,7 @@
     "$ref": "#/definitions/ListViewsRequest",
     "definitions": {
         "ListViewsRequest": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "List Views Request"
         }

@@ -3,7 +3,7 @@
     "$ref": "#/definitions/AddColumnToModelOrSourceResponse",
     "definitions": {
         "AddColumnToModelOrSourceResponse": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Add Column To Model Or Source Response"
         }

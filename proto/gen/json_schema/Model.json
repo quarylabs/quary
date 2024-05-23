@@ -30,6 +30,7 @@
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.Model.ModelColum"
                     },
+                    "additionalProperties": false,
                     "type": "array"
                 },
                 "references": {
@@ -40,7 +41,7 @@
                     "description": "References to other models/seeds/snapshots that are used in the model. These are unique keys and sorted alphabetically."
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Model"
         },
@@ -53,7 +54,7 @@
                     "type": "string"
                 }
             },
-            "additionalProperties": true,
+            "additionalProperties": false,
             "type": "object",
             "title": "Model Colum"
         }
