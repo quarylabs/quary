@@ -115,7 +115,11 @@ export const ChartEditorHeader: React.FC<Props> = ({
         onClick={() => {
           chartViewRunQuery(null)
         }}
-        disabled={disabled}
+        disabled={
+          disabled ||
+          // disable the run button if no asset is selected
+          (formSourceValue.type === 'reference' && !formSourceValue.reference)
+        }
         tooltip="Run Query"
       />
       <TooltipButton
