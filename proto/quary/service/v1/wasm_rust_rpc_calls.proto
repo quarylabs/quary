@@ -312,6 +312,10 @@ message ReturnDefinitionLocationsForSQLResponse {
 message ReturnSQLForInjectedModelRequest {
   string project_root = 1;
   string sql = 2;
+  // temporary_id is the unique identifier for the artificially created model in the file system.
+  // It is manually parsed in the function and serves as a temporary ID (model name) for the model.
+  // It must be distinct from any other model names in the project to avoid collisions.
+  string temporary_id = 3;
 }
 
 message ReturnSQLForInjectedModelResponse {

@@ -6,7 +6,7 @@ import {
   View,
 } from '@shared/globalViewState'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
-import { ErrorCodes, isErr, Ok, QuaryError, Result } from '@shared/result'
+import { Err, ErrorCodes, isErr, Ok, QuaryError, Result } from '@shared/result'
 import { ListAssetsResponse_Asset_AssetType } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { disposeAll } from './dispose'
 import { HTML_STRING } from './panels'
@@ -145,8 +145,17 @@ export class ChartEditorProvider
             }
             chartFile = parsed.value
           }
+          const fileName = document.uri.fsPath.split('/').pop()
+
+          // return an error if the file name is undefined
+          if (!fileName) {
+            throw Err({
+              code: ErrorCodes.INTERNAL,
+              message: 'Unable to extract chart/file name from file system.',
+            })
+          }
           this.postSetData(webviewPanel, {
-            title: document.uri.fsPath.split('/').pop() || 'Untitled',
+            title: fileName,
             allAssets: [],
             chartFile,
             results: {
@@ -290,10 +299,20 @@ export class ChartEditorProvider
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     e: any,
   ) {
-    const title =
-      document.documentData?.config?.title ||
-      document.uri.fsPath.split('/').pop()?.split('.').at(0) ||
-      'No title'
+    // the file name of the chart file i.e. "chart_name.chart.yaml"
+    const fileName = document.uri.fsPath.split('/').pop()
+    // the name of the chart i.e. "chart_name"
+    const chartName = fileName?.split('.').at(0)
+
+    // return an error if the file name or chart name are undefined
+    if (!chartName || !fileName) {
+      throw Err({
+        code: ErrorCodes.INTERNAL,
+        message: 'Unable to extract chart/file name from file system.',
+      })
+    }
+
+    const title = document.documentData?.config?.title || chartName
 
     switch (e.type) {
       case USE_GLOBAL_STATE_MESSAGE_TYPE_NOT_SET: {
@@ -368,7 +387,6 @@ export class ChartEditorProvider
         const chartFile = document.documentData
         const services = await getServices(this._context)
 
-        // handle error webview response
         const handleError = (error: QuaryError, assets: string[] = []) => {
           this.postSetData(webviewPanel, {
             title,
@@ -472,6 +490,8 @@ export class ChartEditorProvider
               await services.rust.returnSQLForInjectedModel({
                 projectRoot: setupValues.value.projectRoot,
                 sql: chartFile.source.preTemplatedSql,
+                // treat the chart file name i.e. "chart_name.chart.yaml" as the temporary id
+                temporaryId: fileName,
               })
             if (isErr(returnSqlResult)) {
               return handleError(returnSqlResult.error)
