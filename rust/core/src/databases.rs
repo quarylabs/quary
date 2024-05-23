@@ -61,7 +61,7 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             ))),
-            Some(MATERIALIZATION_TYPE_MATERIALIZED_VIEW) => Ok(Some(format!(
+            Some(MATERIALIZATION_TYPE_VIEW) => Ok(Some(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             ))),
