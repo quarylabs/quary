@@ -78,9 +78,9 @@ impl BigQuery {
     pub async fn new(
         project_id: String,
         dataset_id: String,
-        access_toke: Option<String>,
+        access_token: Option<String>,
     ) -> Result<Self, String> {
-        if let Some(access_token) = access_toke {
+        if let Some(access_token) = access_token {
             let authenticator = AccessTokenProviderHolder::new(access_token);
             let client = Client::from_authenticator(Arc::new(authenticator));
             Ok(BigQuery {
@@ -122,7 +122,52 @@ impl BigQuery {
 }
 
 impl BigQuery {
+    // retrieves all the datasets in the project_id
     async fn get_all_table_like_things(
+        &self,
+    ) -> Result<Vec<gcp_bigquery_client::model::table_list_tables::TableListTables>, String> {
+        let mut collected_tables = vec![];
+
+        let datasets = self
+            .client
+            .dataset()
+            .list(&self.project_id, Default::default())
+            .await
+            .map_err(|e| format!("Failed to list datasets: {}", e))?;
+
+        for dataset in datasets.datasets {
+            let dataset_id = dataset.dataset_reference.dataset_id;
+            let mut next_page_token: Option<String> = None;
+
+            loop {
+                let mut options = gcp_bigquery_client::table::ListOptions::default();
+                if let Some(next_page_token) = &next_page_token {
+                    options = options.page_token(next_page_token.to_string());
+                }
+
+                let tables = self
+                    .client
+                    .table()
+                    .list(&self.project_id, &dataset_id, options)
+                    .await
+                    .map_err(|e| {
+                        format!("Failed to list tables in dataset {}: {}", dataset_id, e)
+                    })?;
+
+                collected_tables.extend(tables.tables.unwrap_or_default());
+
+                if tables.next_page_token.is_none() {
+                    break;
+                }
+                next_page_token = tables.next_page_token;
+            }
+        }
+
+        Ok(collected_tables)
+    }
+
+    // retrieves all the datasets in the target quary schema
+    async fn get_all_local_table_like_things(
         &self,
     ) -> Result<Vec<gcp_bigquery_client::model::table_list_tables::TableListTables>, String> {
         let mut next_page_token: Option<String> = None;
@@ -151,27 +196,55 @@ impl BigQuery {
 
 #[async_trait]
 impl DatabaseConnection for BigQuery {
-    // TODO Go wider and get all tables in all the databases and datasets
     async fn list_tables(&self) -> Result<Vec<TableAddress>, String> {
-        self.list_local_tables().await
+        let tables = self.get_all_table_like_things().await?;
+
+        let table_addresses = tables
+            .into_iter()
+            .filter(|t| t.r#type == Some("TABLE".to_string()))
+            .map(|t| {
+                let dataset_id = t.table_reference.dataset_id.clone();
+                let name = t
+                    .friendly_name
+                    .clone()
+                    .unwrap_or_else(|| t.table_reference.table_id.clone());
+                TableAddress {
+                    full_path: format!("{}.{}.{}", self.project_id, dataset_id, name),
+                    name,
+                }
+            })
+            .collect();
+
+        Ok(table_addresses)
     }
 
-    // TODO Go wider and get all views in all the databases and datasets
     async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
-        self.list_local_views().await
+        let tables = self.get_all_table_like_things().await?;
+
+        let view_addresses = tables
+            .into_iter()
+            .filter(|t| t.r#type == Some("VIEW".to_string()))
+            .map(|t| {
+                let dataset_id = t.table_reference.dataset_id.clone();
+                let name = t
+                    .friendly_name
+                    .clone()
+                    .unwrap_or_else(|| t.table_reference.table_id.clone());
+                TableAddress {
+                    full_path: format!("{}.{}.{}", self.project_id, dataset_id, name),
+                    name,
+                }
+            })
+            .collect();
+
+        Ok(view_addresses)
     }
 
     async fn list_local_tables(&self) -> Result<Vec<TableAddress>, String> {
-        self.get_all_table_like_things()
+        self.get_all_local_table_like_things()
             .await?
             .iter()
-            .filter(|table| {
-                if let Some(kind) = &table.kind {
-                    kind == "TABLE"
-                } else {
-                    false
-                }
-            })
+            .filter(|t| t.r#type == Some("TABLE".to_string()))
             .map(|t| {
                 let name = t
                     .friendly_name
@@ -186,15 +259,9 @@ impl DatabaseConnection for BigQuery {
     }
 
     async fn list_local_views(&self) -> Result<Vec<TableAddress>, String> {
-        self.get_all_table_like_things().await?
+        self.get_all_local_table_like_things().await?
             .iter()
-            .filter(|table| {
-                if let Some(kind) = &table.kind {
-                    kind == "VIEW"
-                } else {
-                    false
-                }
-            })
+            .filter(|t| t.r#type == Some("VIEW".to_string()))
             .map(|t| {
                 let friendly_name = t
                     .friendly_name
@@ -211,18 +278,24 @@ impl DatabaseConnection for BigQuery {
             .collect()
     }
 
-    async fn list_columns(&self, table: &str) -> Result<Vec<ColumnWithDetails>, String> {
+    async fn list_columns(&self, path: &str) -> Result<Vec<ColumnWithDetails>, String> {
+        let bigquery_path_parts: Vec<&str> = path.split('.').collect();
+        if bigquery_path_parts.len() != 3 {
+            return Err(format!("Invalid fully qualified path: {}", path));
+        }
+
+        let (project_id, dataset_id, table_id) = (
+            bigquery_path_parts[0],
+            bigquery_path_parts[1],
+            bigquery_path_parts[2],
+        );
+
         let tables = self
             .client
             .table()
-            .get(
-                &self.project_id,
-                &self.dataset_id,
-                table,
-                Some(vec!["schema"]),
-            )
+            .get(project_id, dataset_id, table_id, None)
             .await
-            .map_err(|e| format!("Failed to get table {}: {}", table, e))?;
+            .map_err(|e| format!("Failed to get table {}: {}", path, e))?;
         let fields = tables.schema.fields.unwrap_or_default();
         let columns = fields
             .iter()
