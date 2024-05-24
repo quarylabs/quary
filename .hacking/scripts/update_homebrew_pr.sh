@@ -37,23 +37,17 @@ echo "$assets"
 while read -r asset; do
   echo "Asset: $asset"
   name=$(echo "$asset" | jq -r '.name')
-  sha256=$(echo "$asset" | jq -r '.sha256')
+  url=$(echo "$asset" | jq -r '.sha256')
 
   if [[ "$name" == *"macos-aarch64"* ]]; then
-    DARWIN_AARCH64_SHA256_URL=$sha256
-    DARWIN_AARCH64_URL="${DARWIN_AARCH64_SHA256_URL%.sha256}"
-    DARWIN_AARCH64_SHA256=$(curl -sL "$sha256")
-    DARWIN_AARCH64_SHA256="${DARWIN_AARCH64_SHA256%% *}"
+    DARWIN_AARCH64_URL=$url
+    DARWIN_AARCH64_SHA256=$(curl -sL "$url" | shasum -a 256 | cut -d ' ' -f 1)
   elif [[ "$name" == *"macos-x86_64"* ]]; then
-    DARWIN_X86_64_SHA256_URL=$sha256
-    DARWIN_X86_64_URL="${DARWIN_X86_64_SHA256_URL%.sha256}"
-    DARWIN_X86_64_SHA256=$(curl -sL "$sha256")
-    DARWIN_X86_64_SHA256="${DARWIN_X86_64_SHA256%% *}"
+    DARWIN_X86_64_URL=$url
+    DARWIN_X86_64_SHA256=$(curl -sL "$url" | shasum -a 256 | cut -d ' ' -f 1)
   elif [[ "$name" == *"linux-x86_64"* ]]; then
-    LINUX_X86_64_SHA256_URL=$sha256
-    LINUX_X86_64_URL="${LINUX_X86_64_SHA256_URL%.sha256}"
-    LINUX_X86_64_SHA256=$(curl -sL "$sha256")
-    LINUX_X86_64_SHA256="${LINUX_X86_64_SHA256%% *}"
+    LINUX_X86_64_URL=$url
+    LINUX_X86_64_SHA256=$(curl -sL "$url" | shasum -a 256 | cut -d ' ' -f 1)
   fi
 done <<< "$assets"
 
@@ -66,17 +60,19 @@ echo "LINUX_X86_64_URL: $LINUX_X86_64_URL"
 echo "LINUX_X86_64_SHA256: $LINUX_X86_64_SHA256"
 
 
-sed -i.bak "/if OS.mac? && Hardware::CPU.arm?/,/elsif/ s|url \".*\"|url \"${DARWIN_AARCH64_URL}\"|" quary.rb
-sed -i.bak "/if OS.mac? && Hardware::CPU.arm?/,/elsif/ s/sha256 \".*\"/sha256 \"${DARWIN_AARCH64_SHA256}\"/" quary.rb
+sed -i.bak "/if OS.mac? && Hardware::CPU.intel?/,/elsif/ s|url \".*\"|url \"${DARWIN_X86_64_URL}\"|" quary.rb
+sed -i.bak "/if OS.mac? && Hardware::CPU.intel?/,/elsif/ s/sha256 \".*\"/sha256 \"${DARWIN_X86_64_SHA256}\"/" quary.rb
 
-sed -i.bak "/elsif OS.mac? && Hardware::CPU.intel?/,/elsif/ s|url \".*\"|url \"${DARWIN_X86_64_URL}\"|" quary.rb
-sed -i.bak "/elsif OS.mac? && Hardware::CPU.intel?/,/elsif/ s/sha256 \".*\"/sha256 \"${DARWIN_X86_64_SHA256}\"/" quary.rb
+sed -i.bak "/elsif OS.mac? && Hardware::CPU.arm?/,/elsif/ s|url \".*\"|url \"${DARWIN_AARCH64_URL}\"|" quary.rb
+sed -i.bak "/elsif OS.mac? && Hardware::CPU.arm?/,/elsif/ s/sha256 \".*\"/sha256 \"${DARWIN_AARCH64_SHA256}\"/" quary.rb
 
 sed -i.bak "/elsif OS.linux? && Hardware::CPU.intel?/,/end/ s|url \".*\"|url \"${LINUX_X86_64_URL}\"|" quary.rb
 sed -i.bak "/elsif OS.linux? && Hardware::CPU.intel?/,/end/ s/sha256 \".*\"/sha256 \"${LINUX_X86_64_SHA256}\"/" quary.rb
 
+rm quary.rb.bak
+
 git add quary.rb
-git commit -m "Update Sqruff to version ${STRIPPED_VERSION}"
+git commit -m "Update Quary to version ${STRIPPED_VERSION}"
 git push origin update-quary-to-"${STRIPPED_VERSION}"
 
 # TODO - Create a PR using the GitHub CLI
