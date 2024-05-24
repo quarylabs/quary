@@ -10,7 +10,7 @@ use quary_core::database_snowflake::DatabaseQueryGeneratorSnowflake;
 use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
 use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator};
 use quary_proto::connection_config::Config::{
-    BigQuery as OtherBigQueryConfig, Duckdb, DuckdbInMemory, Postgres as PostgresConfig,
+    BigQuery as BigQueryConfig, Duckdb, DuckdbInMemory, Postgres as PostgresConfig,
     Redshift as RedshiftConfig, Snowflake, Sqlite, SqliteInMemory,
 };
 use std::{env, fs};
@@ -52,10 +52,9 @@ pub async fn database_from_config(
                 .map_err(|e| e.to_string())?;
             Ok(Box::new(database))
         }
-        OtherBigQueryConfig(config) => {
+        BigQueryConfig(config) => {
             let google_access_token = env::var("GOOGLE_CLOUD_ACCESS_TOKEN");
             if let Ok(google_access_token) = google_access_token {
-                println!("Using GOOGLE_CLOUD_ACCESS_TOKEN");
                 let database = BigQuery::new(
                     config.project_id.clone(),
                     config.dataset_id.clone(),
@@ -224,7 +223,7 @@ pub fn database_query_generator_from_config(
             let database = DatabaseQueryGeneratorSqlite::default();
             Ok(Box::new(database))
         }
-        Some(OtherBigQueryConfig(config)) => {
+        Some(BigQueryConfig(config)) => {
             let database =
                 DatabaseQueryGeneratorBigQuery::new(config.project_id, config.dataset_id);
             Ok(Box::new(database))
