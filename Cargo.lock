@@ -2800,30 +2800,17 @@ dependencies = [
  "async-trait",
  "chrono",
  "console_error_panic_hook",
- "csv",
- "data-encoding",
  "futures",
  "js-sys",
- "once_cell",
- "petgraph",
  "prost",
  "quary-core",
  "quary_proto",
- "regex",
- "rust-embed",
  "send_wrapper",
- "serde",
- "serde-wasm-bindgen",
- "serde_json",
- "serde_yaml",
- "sha2",
  "sqlinference",
- "sqlparser",
  "tokio",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",
- "web-sys",
 ]
 
 [[package]]
@@ -3447,17 +3434,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fb1c873e1b9b056a4dc4c0c198b24c3ffa059243875552b2bd0933b1aee4ce2"
 dependencies = [
  "serde_derive",
-]
-
-[[package]]
-name = "serde-wasm-bindgen"
-version = "0.6.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8302e169f0eddcc139c70f139d19d6467353af16f9fce27e8c30158036a1e16b"
-dependencies = [
- "js-sys",
- "serde",
- "wasm-bindgen",
 ]
 
 [[package]]
