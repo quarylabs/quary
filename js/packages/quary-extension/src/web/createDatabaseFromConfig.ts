@@ -4,6 +4,7 @@ import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_confi
 import { ServicesDatabase } from './servicesDatabase'
 import { InMemorySqlite, PathBasedSqlite } from './servicesDatabaseSqlite'
 import { BigQueryOAuth } from './servicesDatabaseBigQuery'
+import { servicesDatabaseBigQueryNode } from './servicesDatabaseBigQueryNode'
 import { Snowflake } from './servicesDatabaseSnowflake'
 import { ServicesDatabaseDuckDBInMemory } from './servicesDatabaseDuckDB'
 import { ServicesFiles } from './servicesFiles'
@@ -55,13 +56,32 @@ export const databaseFromConfig = async (
         default: {
           return Err({
             code: ErrorCodes.INVALID_ARGUMENT,
-            message: 'Postgres is not supported in the web extension',
+            message: 'Invalid UI Kind',
           })
         }
       }
     }
     case 'bigQuery': {
-      return Ok(new BigQueryOAuth(config.config.bigQuery))
+      switch (vscode.env.uiKind) {
+        case vscode.UIKind.Web: {
+          return Ok(new BigQueryOAuth(config.config.bigQuery))
+        }
+        case vscode.UIKind.Desktop: {
+          return Ok(
+            new servicesDatabaseBigQueryNode(
+              getTerminal(),
+              config.config.bigQuery.projectId,
+              config.config.bigQuery.datasetId,
+            ),
+          )
+        }
+        default: {
+          return Err({
+            code: ErrorCodes.INVALID_ARGUMENT,
+            message: 'Invalid UI Kind',
+          })
+        }
+      }
     }
     case 'snowflake': {
       return Ok(new Snowflake(config.config.snowflake))
