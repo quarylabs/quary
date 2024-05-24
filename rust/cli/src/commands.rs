@@ -55,6 +55,23 @@ pub enum Commands {
         about = "Returns a project file with all sources in a database"
     )]
     GenerateSources(GenerateSourcesArgs),
+    #[command(name = "experimental", about = "Experimental commands")]
+    Experimental(ExternalCommands),
+}
+
+#[derive(Debug, Args)]
+pub struct ExternalCommands {
+    #[command(subcommand)]
+    pub(crate) command: ExperimentalCommands,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum ExperimentalCommands {
+    #[command(
+        name = "separate-project-files",
+        about = "Seperates the project file into multiple files for each individual model"
+    )]
+    SeperateProjectFiles,
 }
 
 #[derive(Args, Debug)]
