@@ -80,6 +80,10 @@ module.exports = (
     },
 
     plugins: [
+		 new webpack.NormalModuleReplacementPlugin(
+      /^net$/,
+      'net-browserify'
+    ),
       new webpack.optimize.LimitChunkCountPlugin({
         maxChunks: 1, // disable chunks by default since web extensions must be a single bundle
       }),
@@ -94,7 +98,7 @@ module.exports = (
         __PACKAGE_VERSION__: JSON.stringify(packageJson.version),
       }),
     ],
-    externals: {
+    externals: { 
       vscode: 'commonjs vscode', // ignored because it doesn't exist
     },
     performance: {
