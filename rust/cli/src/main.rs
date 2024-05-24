@@ -42,6 +42,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 mod commands;
+mod commands_experimental;
 mod file_system;
 mod rpc_functions;
 mod rpc_scaffolding;
@@ -550,6 +551,13 @@ async fn main_wrapped() -> Result<(), String> {
                 );
                 Ok(())
             }
+        }
+        Commands::Experimental(experimental_args) => {
+            crate::commands_experimental::experimental_commands(
+                experimental_args,
+                &args.project_file,
+            )
+            .await
         }
     }
 }
