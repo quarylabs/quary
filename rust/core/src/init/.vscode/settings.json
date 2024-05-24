@@ -10,5 +10,10 @@
       "models/**/**.yaml",
       "!models/**/**.chart.yaml"
     ]
-  }
+  },
+  "explorer.fileNesting.patterns": {
+    "*.sql": "${capture}.yaml"
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false
 }
