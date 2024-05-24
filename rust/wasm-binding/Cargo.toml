@@ -22,31 +22,12 @@ send_wrapper = "0.6"
 quary-core = { path = "../core" }
 console_error_panic_hook = { version = "0.1", optional = true }
 prost = { default-features = false, version = "0.12" }
-sqlparser = { default-features = false, version = "0.45" }
 js-sys = "0.3"
 quary_proto = { path = "../../proto/gen/rust" }
 sqlinference = { path = "../sqlinference" }
-rust-embed = "8"
-serde = { version = "1", default-features = false }
-csv = "1"
-petgraph = { version = "0.6", default-features = false }
-regex = { version = "1", default-features = false, features = ["unicode-perl"] }
-once_cell = "1"
 async-trait = "0.1"
-serde_yaml = "0.9"
 wasm-bindgen-futures = "0.4"
-serde_json = { default-features = false, version = "1", features = ["std"] }
 futures = { version = "0.3", features = ["async-await"], default-features = false }
-serde-wasm-bindgen = "0.6"
-sha2 = { default-features = false, version = "0.10" }
-data-encoding = "2.6.0"
-web-sys = { version = "0.3", default-features = false, features = [
-    "RequestInit",
-    "Headers",
-    "RequestMode",
-    "Request",
-    "Response"
-] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
