@@ -14,7 +14,7 @@ import {
   SelectContent,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { Card } from '@/components/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { vscode } from '@/utils/VSCodeAPIWrapper'
 import { Warning } from '@/components/Warning'
 import { ProgressRing } from '@/components/ProgressRing'
@@ -50,7 +50,7 @@ export const OnboardingView: React.FC<Props> = ({ states }) => {
       case 'listSourcesLoading':
         return (
           <div className="flex items-center justify-center">
-            <ProgressRing />
+            <ProgressRing className="h-10 w-10" />
           </div>
         )
       case 'generateProjectError':
@@ -91,9 +91,16 @@ export const OnboardingView: React.FC<Props> = ({ states }) => {
   }
 
   return (
-    <Card title="Project Configuration">
-      <Step />
-    </Card>
+    <div className="flex h-screen items-center justify-center">
+      <Card className="sm:w-96">
+        <CardHeader>
+          <CardTitle>Project Configuration </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Step />
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
@@ -230,7 +237,7 @@ const DatabaseSelection: React.FC<{
           </>
         )}
       </div>
-      <div className="flex justify-between pt-4">
+      <div className="flex justify-end pt-4">
         <Button
           size="sm"
           onClick={() => {

@@ -5,7 +5,7 @@ import Fuse from 'fuse.js'
 import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file.ts'
 import { ProgressRing } from '@/components/ProgressRing'
 import { Warning } from '@/components/Warning'
-import { Card } from '@/components/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
@@ -26,7 +26,7 @@ export const ImportSourcesView: React.FC<Props> = ({
       case 'loading':
         return (
           <div className="flex items-center justify-center">
-            <ProgressRing />
+            <ProgressRing className="h-10 w-10" />
           </div>
         )
       case 'error': {
@@ -54,9 +54,16 @@ export const ImportSourcesView: React.FC<Props> = ({
     }
   }
   return (
-    <Card title="Import sources">
-      <State />
-    </Card>
+    <div className="flex h-screen items-center justify-center">
+      <Card className="sm:w-96">
+        <CardHeader>
+          <CardTitle>Import Sources</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <State />
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
