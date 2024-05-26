@@ -9,6 +9,7 @@
     "test": "CI=true pnpm -r run test",
     "lint": "prettier --check . && pnpm -r run lint",
     "fmt": "prettier -w .",
+    "storybook": "pnpm --filter \"quary-extension-ui\" storybook",
     "audit": "pnpm audit --recursive --all"
   },
   "engines": {
