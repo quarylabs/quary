@@ -1,5 +1,5 @@
 import { Ok } from '@shared/result'
-import * as postgres from 'postgres'
+import postgres from './postgres/index'
 import { ServicesDatabase } from './servicesDatabase'
 
 const DefaultDatabaseDependentSettings = {

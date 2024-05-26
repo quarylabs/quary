@@ -2,7 +2,7 @@ import net from 'net'
 import tls from 'tls'
 import crypto from 'crypto'
 import Stream from 'stream'
-import { performance } from 'perf_hooks'
+// import { performance } from 'perf_hooks'
 
 import { stringify, handleValue, arrayParser, arraySerializer } from './types.js'
 import { Errors } from './errors.js'
@@ -350,7 +350,7 @@ function Connection(options, queues = {}, { onopen = noop, onend = noop, onclose
   }
 
   function reconnect() {
-    setTimeout(connect, closedDate ? closedDate + delay - performance.now() : 0)
+    // setTimeout(connect, closedDate ? closedDate + delay - performance.now() : 0)
   }
 
   function connected() {
@@ -436,7 +436,7 @@ function Connection(options, queues = {}, { onopen = noop, onend = noop, onclose
       return reconnect()
 
     !hadError && (query || sent.length) && error(Errors.connection('CONNECTION_CLOSED', options, socket))
-    closedDate = performance.now()
+    // closedDate = performance.now()
     hadError && options.shared.retries++
     delay = (typeof backoff === 'function' ? backoff(options.shared.retries) : backoff) * 1000
     onclose(connection, Errors.connection('CONNECTION_CLOSED', options, socket))
