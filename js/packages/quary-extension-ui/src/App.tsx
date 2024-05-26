@@ -7,7 +7,6 @@ import { ResultsView } from '@/views/ResultsView'
 import { DatabaseConfigView } from '@/views/DatabaseConfigView'
 import { ProjectFileView } from '@/views/ProjectFileView'
 import { LoadingView } from '@/views/LoadingView'
-import { AIView } from '@/views/AIView'
 import { vscode } from '@/utils/VSCodeAPIWrapper'
 import { DocumentationView } from '@/views/DocumentationView'
 import { OnboardingView } from '@/views/OnboardingView'
@@ -20,8 +19,8 @@ import { ChartEditorView } from '@/views/ChartEditorView.tsx'
 
 function App() {
   const [view] = useGlobalState()
-  const { createFile, importSources } = useCallBackFrontEnd(
-    ['createFile', 'importSources'],
+  const { importSources } = useCallBackFrontEnd(
+    ['importSources'],
     vscode.postMessage,
   )
 
@@ -70,16 +69,6 @@ function App() {
     }
     case 'databaseShowProjectFile': {
       return <ProjectFileView file={view.projectFile} />
-    }
-    case 'aiGeneratedQuery': {
-      return (
-        <AIView
-          onClickCreateFile={(content: string) =>
-            createFile({ content, language: 'sql' })
-          }
-          {...view}
-        />
-      )
     }
     case 'importSources': {
       return (

@@ -72,16 +72,6 @@ export type View =
       projectFile: string
     }
   | {
-      type: 'aiGeneratedQuery'
-      aiPrompt: string
-      sqlQuery: string
-      language: SqlLanguage
-      columns: Array<string>
-      unknownColumns: Array<string>
-      dag: Dag
-      projectFile: string
-    }
-  | {
       type: 'docsView'
       modelName: string
       description: string | null

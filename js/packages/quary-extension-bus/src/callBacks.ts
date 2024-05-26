@@ -16,13 +16,6 @@ import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 
 export type Callbacks = {
   useGlobalStateNotSet: null
-  createFile: {
-    content: string
-    /**
-     * The language identifier of the resulting document. For example, sql.
-     */
-    language?: string
-  }
   documentationViewRunSqlQuery: null
   documentationViewLoad: null
   documentationViewOpenFile: { filePath: string }
