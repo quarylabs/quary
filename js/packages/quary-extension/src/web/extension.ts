@@ -44,6 +44,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const hostDetails = await VSCodeInstanceContext.getHostDetails()
   const isProduction = hostDetails.environment === 'production'
 
+
   console.info(`starting extension activation with details: ${hostDetails}`)
 
   const logger = isProduction

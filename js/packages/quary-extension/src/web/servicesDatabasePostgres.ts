@@ -27,7 +27,7 @@ export class ServicesDatabasePostgres implements ServicesDatabase {
       database: 'postgres',
       username: 'postgres',
       password: 'mysecretpassword',
-    })
+    }, undefined)
   }
 
   async listTables() {

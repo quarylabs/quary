@@ -1,7 +1,7 @@
-import net from 'net'
-import tls from 'tls'
-import crypto from 'crypto'
-import Stream from 'stream'
+// import net from 'net-browserify'
+import tls from 'tls-browserify'
+import crypto from 'crypto-browserify'
+import Stream from 'stream-http'
 // import { performance } from 'perf_hooks'
 
 import { stringify, handleValue, arrayParser, arraySerializer } from './types.js'
@@ -127,9 +127,7 @@ function Connection(options, queues = {}, { onopen = noop, onend = noop, onclose
   async function createSocket() {
     let x
     try {
-      x = options.socket
-        ? (await Promise.resolve(options.socket(options)))
-        : new net.Socket()
+      x = options.socket ? (await Promise.resolve(options.socket(options))) : console.log("hello")
     } catch (e) {
       error(e)
       return
@@ -268,15 +266,16 @@ function Connection(options, queues = {}, { onopen = noop, onend = noop, onclose
     socket.removeAllListeners()
     socket = tls.connect({
       socket,
-      servername: net.isIP(socket.host) ? undefined : socket.host,
-      ...(ssl === 'require' || ssl === 'allow' || ssl === 'prefer'
-        ? { rejectUnauthorized: false }
-        : ssl === 'verify-full'
-          ? {}
-          : typeof ssl === 'object'
-            ? ssl
-            : {}
-      )
+      serverName: "localhost",
+      // servername: net.isIP(socket.host) ? undefined : socket.host,
+      // ...(ssl === 'require' || ssl === 'allow' || ssl === 'prefer'
+      //   ? { rejectUnauthorized: false }
+      //   : ssl === 'verify-full'
+      //     ? {}
+      //     : typeof ssl === 'object'
+      //       ? ssl
+      //       : {}
+      // )
     })
     socket.on('secureConnect', connected)
     socket.on('error', error)
