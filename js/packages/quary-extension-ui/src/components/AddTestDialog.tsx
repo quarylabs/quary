@@ -145,7 +145,7 @@ export const AddTestDialog: React.FC<{
       </DialogTrigger>
       <DialogContent>
         <Label>Test type</Label>
-        <Popover open={testSelectOpen} onOpenChange={setTestSelectOpen}>
+        <Popover open={testSelectOpen} onOpenChange={setTestSelectOpen} modal>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
