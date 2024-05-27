@@ -1,6 +1,7 @@
+import { ClipboardDocumentIcon } from '@heroicons/react/20/solid'
 import { Language } from '@/utils/sql'
 import { PageTitle } from '@/components/PageTitle'
-import { Button } from '@/components/Button'
+import { Button } from '@/components/ui/button'
 import { CodeBlock } from '@/components/CodeBlock'
 
 interface Props {
@@ -19,7 +20,10 @@ export const FullSchemaView: React.FC<Props> = ({ fullSchema, language }) => {
         <PageTitle>Schema</PageTitle>
       </div>
       <div className="pt-5">
-        <Button label="Copy To Clipboard" onClick={copyToClipboard} />
+        <Button size="sm" onClick={copyToClipboard}>
+          <ClipboardDocumentIcon className="mr-2 h-4 w-4" />
+          Copy to Clipboard
+        </Button>
       </div>
       <div className="whitespace-pre-wrap pt-5">
         <CodeBlock
