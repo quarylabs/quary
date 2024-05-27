@@ -35,6 +35,7 @@ async function activateCommands(
   )
 }
 
+
 const SENTRY_DSN =
   'https://360983d50cb2c46d0d39778ce2a3443e@o4506173297524736.ingest.sentry.io/4506175684673536'
 const JUNE_ANALYTICS = '9PbCtSiPLLggvaE5'
@@ -42,6 +43,7 @@ const JUNE_ANALYTICS = '9PbCtSiPLLggvaE5'
 export async function activate(context: vscode.ExtensionContext) {
   const hostDetails = await VSCodeInstanceContext.getHostDetails()
   const isProduction = hostDetails.environment === 'production'
+
 
   console.info(`starting extension activation with details: ${hostDetails}`)
 

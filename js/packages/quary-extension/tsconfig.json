@@ -9,6 +9,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedParameters": true,
+    "allowJs": true,
     "paths": {
       "@shared/*": ["../quary-extension-bus/src/*"],
       "@quary/proto/*": ["../proto/src/generated/*"]

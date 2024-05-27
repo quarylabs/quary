@@ -47,10 +47,15 @@ module.exports = (
         stream: require.resolve('stream-browserify'),
         path: false,
         fs: false,
+        os: false,
+        tls: false,
         crypto: require.resolve('crypto-browserify'),
         request: false,
-        buffer: require.resolve('buffer'),
-        vm: require.resolve('vm-browserify'),
+        buffer: false,
+        vm: false,
+        net: false,
+        http: false,
+        "timers": false,
       },
     },
     module: {
@@ -80,6 +85,10 @@ module.exports = (
     },
 
     plugins: [
+		 new webpack.NormalModuleReplacementPlugin(
+      /^net$/,
+      'net-browserify'
+    ),
       new webpack.optimize.LimitChunkCountPlugin({
         maxChunks: 1, // disable chunks by default since web extensions must be a single bundle
       }),
@@ -94,7 +103,7 @@ module.exports = (
         __PACKAGE_VERSION__: JSON.stringify(packageJson.version),
       }),
     ],
-    externals: {
+    externals: { 
       vscode: 'commonjs vscode', // ignored because it doesn't exist
     },
     performance: {

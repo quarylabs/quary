@@ -19,6 +19,7 @@ import {
 } from './servicesDatabaseDuckDBNode'
 import { ServicesDatabaseRedshiftNode } from './servicesDatabaseRedshiftNode'
 import { ServicesDatabasePostgresNode } from './servicesDatabasePostgresNode'
+import { ServicesDatabasePostgres } from './servicesDatabasePostgres'
 
 /**
  * Creates a database instance from a given configuration.
@@ -176,10 +177,9 @@ export const databaseFromConfig = async (
     case 'postgres': {
       switch (vscode.env.uiKind) {
         case vscode.UIKind.Web: {
-          return Err({
-            code: ErrorCodes.INVALID_ARGUMENT,
-            message: 'Postgres is not supported in the web extension',
-          })
+          const postgres = new ServicesDatabasePostgres()
+          // @ts-ignore
+          return Ok(postgres)
         }
         case vscode.UIKind.Desktop: {
           const { schema } = config.config.postgres
