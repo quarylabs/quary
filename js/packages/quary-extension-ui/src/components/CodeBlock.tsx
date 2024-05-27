@@ -3,9 +3,10 @@ import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter'
 import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql'
 import yaml from 'react-syntax-highlighter/dist/esm/languages/prism/yaml'
 import vs from 'react-syntax-highlighter/dist/esm/styles/prism/vs'
+import { ClipboardDocumentIcon } from '@heroicons/react/20/solid'
 import { format } from 'sql-formatter'
 import { SqlLanguage } from '@shared/config'
-import { Button } from '@/components/Button'
+import { Button } from '@/components/ui/button'
 import { copyToClipboard } from '@/utils/clipboard'
 
 interface Props {
@@ -50,10 +51,10 @@ export const CodeBlock: React.FC<Props> = ({ code, language, turnOffCopy }) => {
       </div>
       {turnOffCopy === true ? null : (
         <div className="absolute right-2 top-1">
-          <Button
-            label="Copy"
-            onClick={async () => await copyToClipboard(out)}
-          />
+          <Button size="sm" onClick={async () => await copyToClipboard(out)}>
+            <ClipboardDocumentIcon className="mr-2 h-4 w-4" />
+            Copy
+          </Button>
         </div>
       )}
     </div>
