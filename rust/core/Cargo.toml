@@ -31,4 +31,4 @@ mockall = "0.12.1"
 js-sys = "0.3.69"
 
 [dev-dependencies]
-tokio = { version = "1.37.0", features = ["rt", "macros"], default-features = false }
+tokio = { version = "1.38.0", features = ["rt", "macros"], default-features = false }
