@@ -26,4 +26,4 @@ chrono = "0.4.38"
 assert_cmd = "2"
 tempfile = "3"
 testcontainers = "0.16.7"
-testcontainers-modules = { version = "0.4.2", features = ["postgres"] }
+testcontainers-modules = { version = "0.4.3", features = ["postgres"] }
