@@ -62,6 +62,8 @@ jspm_packages/
 .idea/dictionaries
 .idea/vcs.xml
 .idea/jsLibraryMappings.xml
+.idea/*
+.gitignore
 
 # Sensitive or high-churn files:
 .idea/dataSources.ids
@@ -107,3 +109,5 @@ fabric.properties
 
 machine_learning/wikisql
 .vercel
+models/*
+quary.yaml
