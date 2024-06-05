@@ -1,8 +1,4 @@
-use crate::databases::{
-    base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, MaterializationType,
-    SnapshotGenerator, Timestamp, MATERIALIZATION_TYPE_MATERIALIZED_VIEW,
-    MATERIALIZATION_TYPE_TABLE, MATERIALIZATION_TYPE_VIEW,
-};
+use crate::databases::{base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, MaterializationType, SnapshotGenerator, Timestamp, MATERIALIZATION_TYPE_MATERIALIZED_VIEW, MATERIALIZATION_TYPE_TABLE, MATERIALIZATION_TYPE_VIEW, CacheStatus};
 use chrono::{DateTime, Utc};
 #[cfg(target_arch = "wasm32")]
 use js_sys::Date;
@@ -40,31 +36,32 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         &self,
         object_name: &str,
         materialization_type: &Option<String>,
-    ) -> Result<String, String> {
+        _: &CacheStatus,
+    ) -> Result<Option<String>, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type {
-            None => Ok(format!("DROP VIEW IF EXISTS {}", object_name).to_string()),
+            None => Ok(Some(format!("DROP VIEW IF EXISTS {}", object_name).to_string())),
             Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_VIEW => {
                 println!("don't drop view");
-                Ok(format!(
+                Ok(Some(format!(
                     "select 1 from pg_matviews where matviewname = '{}'",
                     object_name
                 )
-                .to_string())
+                .to_string()))
             }
             Some(materialization_type) if materialization_type == MATERIALIZATION_TYPE_TABLE => {
-                Ok(format!("DROP TABLE IF EXISTS {}", object_name).to_string())
+                Ok(Some(format!("DROP TABLE IF EXISTS {}", object_name).to_string()))
             }
             Some(materialization_type)
                 if materialization_type == MATERIALIZATION_TYPE_MATERIALIZED_VIEW =>
             {
                 println!("don't drop materialized view");
-                Ok(format!(
+                Ok(Some(format!(
                     "select 1 from pg_matviews where matviewname = '{}'",
                     object_name
                 )
-                .to_string())
+                .to_string()))
             }
             Some(materialization_type) => Err(format!(
                 "Unsupported materialization type: {}",
@@ -78,23 +75,24 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         object_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
-    ) -> Result<String, String> {
+        _: &CacheStatus,
+    ) -> Result<Option<String>, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type.as_deref() {
             None => Ok(format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
-            )),
+            ).into()),
             Some(MATERIALIZATION_TYPE_VIEW) => Ok(format!(
                 "CREATE OR REPLACE VIEW {} AS {}",
                 object_name, original_select_statement
-            )),
+            ).into()),
             Some(MATERIALIZATION_TYPE_TABLE) => Ok(format!(
                 "CREATE TABLE {} AS {}",
                 object_name, original_select_statement
-            )),
-            Some(MATERIALIZATION_TYPE_MATERIALIZED_VIEW) => Ok(format!(
+            ).into()),
+            Some(MATERIALIZATION_TYPE_MATERIALIZED_VIEW) => Ok(Some(format!(
                 // if view doesn't exist it need to be created, if exists then refreshed
                 "DO $$
                  BEGIN
@@ -109,7 +107,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
                 object_name,
                 object_name,
                 original_select_statement
-            )),
+            ).into())),
             _ => Err("Unsupported materialization type".to_string()),
         }
     }
