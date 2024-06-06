@@ -54,10 +54,10 @@ jobs:
       - name: Build release
         run: |
           cargo build --release --target=${{ matrix.target }}
-          strip target/${{ matrix.target }}/release/my-project
+          strip target/${{ matrix.target }}/release/quary
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dbt-${{ matrix.target }}-${{ github.ref_name }}
+          name: quary-${{ matrix.target }}-${{ github.ref_name }}
           path: target/${{ matrix.target }}/release/
