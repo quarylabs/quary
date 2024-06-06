@@ -500,13 +500,13 @@ mod tests {
         .unwrap();
         for sql in &sqls {
             for sql in &sql.1 {
-                database.exec(&sql).await.unwrap();
+                database.exec(sql).await.unwrap();
             }
         }
         // Run twice
         for sql in &sqls {
             for sql in &sql.1 {
-                database.exec(&sql).await.unwrap();
+                database.exec(sql).await.unwrap();
             }
         }
 
@@ -680,7 +680,7 @@ mod tests {
                 .unwrap();
 
         let file_system = FileSystem {
-            files: vec![
+            files: [
                 ("quary.yaml", "postgres: {schema: analytics}"),
                 (
                     "models/orders_snapshot.snapshot.sql",

@@ -813,7 +813,7 @@ mod tests {
     #[tokio::test]
     async fn test_return_sub_graph_single_node() {
         let fs = FileSystem {
-            files: vec![
+            files: [
                 ("quary.yaml", "sqliteInMemory: {}"),
                 ("models/test_model.sql", "SELECT \"1\""),
             ]
@@ -841,7 +841,7 @@ mod tests {
     #[tokio::test]
     async fn test_return_sub_graph_with_snapshot() {
         let fs = FileSystem {
-            files: vec![
+            files: [
                 ("quary.yaml", "sqliteInMemory: {}"),
                 (
                     "models/orders_snapshot_model.sql",

@@ -448,7 +448,7 @@ mod tests {
     #[test]
     fn test_query_result_to_proto_success() {
         // Arrange
-        let columns = vec!["id".to_string(), "name".to_string()];
+        let columns = ["id".to_string(), "name".to_string()];
         let rows = vec![
             vec!["1".to_string(), "Alice".to_string()],
             vec!["2".to_string(), "Bob".to_string()],
@@ -486,7 +486,7 @@ mod tests {
 
     #[test]
     fn test_query_result_to_proto_error_missing_value() {
-        let columns = vec!["id".to_string(), "name".to_string()];
+        let columns = ["id".to_string(), "name".to_string()];
         // The second row is missing a value
         let rows = vec![
             vec!["1".to_string(), "Alice".to_string()],

@@ -158,7 +158,7 @@ pub async fn return_tests_sql(
                             let (sql, _) =
                                 project_and_fs_to_query_sql(database, project, fs, name, None)
                                     .await?;
-                            sources.insert(name.clone(), format!("{}", sql));
+                            sources.insert(name.clone(), sql.to_string());
                         }
                         let reference_search = return_reference_search(DEFAULT_SCHEMA_PREFIX)
                             .map_err(|e| format!("failed to return reference search: {}", e))?;

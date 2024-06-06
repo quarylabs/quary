@@ -13,11 +13,11 @@ fn test_init() {
     let git_dir = project_dir.join(".git");
     std::fs::create_dir(&git_dir).unwrap();
     let git_dir_head = git_dir.join("HEAD");
-    std::fs::write(&git_dir_head, "").unwrap();
+    std::fs::write(git_dir_head, "").unwrap();
 
     // Create a file that looks like a gitignore
     let gitignore = project_dir.join(".gitignore");
-    std::fs::write(&gitignore, "").unwrap();
+    std::fs::write(gitignore, "").unwrap();
 
     // Define the sequence of command arguments
     let commands = vec![vec!["init"]];
