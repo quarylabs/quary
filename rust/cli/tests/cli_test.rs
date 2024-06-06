@@ -581,7 +581,8 @@ async fn test_postgres_build_model_twice() {
     // Setup
     let postgres = RunnableImage::from(TestcontainersPostgres::default())
         .start()
-        .await;
+        .await
+        .unwrap();
 
     let name = "quary";
     let temp_dir = tempdir().unwrap();
@@ -591,7 +592,7 @@ async fn test_postgres_build_model_twice() {
     let env_file_path = project_dir.join(".env");
     let env_content = format!(
         "PGHOST=localhost\nPGPORT={}\nPGUSER=postgres\nPGPASSWORD=postgres\nPGDATABASE=postgres",
-        postgres.get_host_port_ipv4(5432).await
+        postgres.get_host_port_ipv4(5432).await.unwrap()
     );
     fs::write(&env_file_path, env_content).unwrap();
 
@@ -644,7 +645,8 @@ async fn test_postgres_run_tests_from_sources() {
     // Setup
     let postgres = RunnableImage::from(TestcontainersPostgres::default())
         .start()
-        .await;
+        .await
+        .unwrap();
 
     let name = "quary";
     let temp_dir = tempdir().unwrap();
@@ -654,7 +656,7 @@ async fn test_postgres_run_tests_from_sources() {
     let env_file_path = project_dir.join(".env");
     let env_content = format!(
         "PGHOST=localhost\nPGPORT={}\nPGUSER=postgres\nPGPASSWORD=postgres\nPGDATABASE=postgres",
-        postgres.get_host_port_ipv4(5432).await
+        postgres.get_host_port_ipv4(5432).await.unwrap()
     );
     fs::write(&env_file_path, env_content).unwrap();
 
@@ -699,7 +701,8 @@ async fn test_postgres_run_tests_from_database_tables() {
     // Setup
     let postgres = RunnableImage::from(TestcontainersPostgres::default())
         .start()
-        .await;
+        .await
+        .unwrap();
 
     let name = "quary";
     let temp_dir = tempdir().unwrap();
@@ -709,7 +712,7 @@ async fn test_postgres_run_tests_from_database_tables() {
     let env_file_path = project_dir.join(".env");
     let env_content = format!(
         "PGHOST=localhost\nPGPORT={}\nPGUSER=postgres\nPGPASSWORD=postgres\nPGDATABASE=postgres",
-        postgres.get_host_port_ipv4(5432).await
+        postgres.get_host_port_ipv4(5432).await.unwrap()
     );
     fs::write(&env_file_path, env_content).unwrap();
 
