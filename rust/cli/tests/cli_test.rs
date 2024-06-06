@@ -603,13 +603,13 @@ async fn test_postgres_build_model_twice() {
     let model_1_content = "SELECT 100 as random_number";
     let model_2_file = models_dir.join("model_2.sql");
     let model_2_content = "SELECT * FROM q.model_1";
-    fs::write(&model_1_file, model_1_content).unwrap();
-    fs::write(&model_2_file, model_2_content).unwrap();
+    fs::write(model_1_file, model_1_content).unwrap();
+    fs::write(model_2_file, model_2_content).unwrap();
 
     // Create quary.yaml file
     let quary_yaml_content = "postgres:\n  schema: public";
     let quary_yaml_path = project_dir.join("quary.yaml");
-    fs::write(&quary_yaml_path, quary_yaml_content).unwrap();
+    fs::write(quary_yaml_path, quary_yaml_content).unwrap();
 
     // Create schema.yaml file
     let schema_file = models_dir.join("schema.yaml");
@@ -620,7 +620,7 @@ async fn test_postgres_build_model_twice() {
         - name: model_2
           materialization: view 
         "#;
-    fs::write(&schema_file, schema_content).unwrap();
+    fs::write(schema_file, schema_content).unwrap();
     {
         Command::cargo_bin(name)
             .unwrap()
@@ -665,12 +665,12 @@ async fn test_postgres_run_tests_from_sources() {
     fs::create_dir_all(&models_dir).unwrap();
     let model_1_file = models_dir.join("model_1.sql");
     let model_1_content = "SELECT 100 as random_number";
-    fs::write(&model_1_file, model_1_content).unwrap();
+    fs::write(model_1_file, model_1_content).unwrap();
 
     // Create quary.yaml file
     let quary_yaml_content = "postgres:\n  schema: public";
     let quary_yaml_path = project_dir.join("quary.yaml");
-    fs::write(&quary_yaml_path, quary_yaml_content).unwrap();
+    fs::write(quary_yaml_path, quary_yaml_content).unwrap();
 
     // Create schema.yaml file
     let schema_file = models_dir.join("schema.yaml");
@@ -684,7 +684,7 @@ async fn test_postgres_run_tests_from_sources() {
             - type: not_null
             - type: unique
         "#;
-    fs::write(&schema_file, schema_content).unwrap();
+    fs::write(schema_file, schema_content).unwrap();
     {
         Command::cargo_bin(name)
             .unwrap()
@@ -721,12 +721,12 @@ async fn test_postgres_run_tests_from_database_tables() {
     fs::create_dir_all(&models_dir).unwrap();
     let model_1_file = models_dir.join("model_1.sql");
     let model_1_content = "SELECT 100 as random_number";
-    fs::write(&model_1_file, model_1_content).unwrap();
+    fs::write(model_1_file, model_1_content).unwrap();
 
     // Create quary.yaml file
     let quary_yaml_content = "postgres:\n  schema: public";
     let quary_yaml_path = project_dir.join("quary.yaml");
-    fs::write(&quary_yaml_path, quary_yaml_content).unwrap();
+    fs::write(quary_yaml_path, quary_yaml_content).unwrap();
 
     // Create schema.yaml file
     let schema_file = models_dir.join("schema.yaml");
@@ -740,7 +740,7 @@ async fn test_postgres_run_tests_from_database_tables() {
             - type: not_null
             - type: unique
         "#;
-    fs::write(&schema_file, schema_content).unwrap();
+    fs::write(schema_file, schema_content).unwrap();
     {
         Command::cargo_bin(name)
             .unwrap()

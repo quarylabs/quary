@@ -11,12 +11,12 @@ fn main() {
     let version = capture.as_str();
 
     // assert version is in the format "0.1.0"
-    assert_eq!(version.split(".").count(), 3);
-    assert!(version.split(".").all(|x| x.parse::<u32>().is_ok()));
+    assert_eq!(version.split('.').count(), 3);
+    assert!(version.split('.').all(|x| x.parse::<u32>().is_ok()));
 
     // assert package version is in the format "0.1.0"
-    assert_eq!(package_version.split(".").count(), 3);
-    assert!(package_version.split(".").all(|x| x.parse::<u32>().is_ok()));
+    assert_eq!(package_version.split('.').count(), 3);
+    assert!(package_version.split('.').all(|x| x.parse::<u32>().is_ok()));
 
     let version_string = format!("{} - dependencies: duckdb {}", package_version, version);
 

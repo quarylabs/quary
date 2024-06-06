@@ -23,8 +23,8 @@ pub(crate) async fn experimental_commands(
 
             // delete all the files
             project_files
-                .iter()
-                .map(|(path, _)| std::fs::remove_file(path))
+                .keys()
+                .map(std::fs::remove_file)
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(|e| e.to_string())?;
 
@@ -34,7 +34,7 @@ pub(crate) async fn experimental_commands(
                 .fold(
                     HashMap::<String, Vec<ProjectFile>>::new(),
                     |mut acc: HashMap<String, Vec<ProjectFile>>, (path, file)| {
-                        let (folder, _) = path.rsplit_once("/").unwrap();
+                        let (folder, _) = path.rsplit_once('/').unwrap();
                         let entry = acc.entry(folder.to_string()).or_default();
                         entry.push(file.clone());
                         acc
@@ -56,7 +56,7 @@ pub(crate) async fn experimental_commands(
                         })
                         .collect::<BTreeMap<_, _>>();
                     let project_file = ProjectFile {
-                        sources: sources.iter().map(|(_, source)| source.clone()).collect(),
+                        sources: sources.values().cloned().collect(),
                         ..Default::default()
                     };
                     if project_file.sources.is_empty() {

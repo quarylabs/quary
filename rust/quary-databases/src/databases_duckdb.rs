@@ -663,7 +663,7 @@ HAVING COUNT(*) > 1;",
             .unwrap();
 
         let file_system = FileSystem {
-            files: vec![
+            files: [
                 ("quary.yaml", "duckdbInMemory: {schema: finances}"),
                 ("models/test_model.sql", "SELECT id FROM q.test_source"),
                 (
@@ -749,7 +749,7 @@ sources:
             .unwrap();
 
         let file_system = FileSystem {
-            files: vec![
+            files: [
                 ("quary.yaml", "duckdbInMemory: {schema: analytics}"),
                 (
                     "models/orders_snapshot.snapshot.sql",
@@ -861,7 +861,7 @@ snapshots:
             .unwrap();
 
         let file_system = FileSystem {
-            files: vec![
+            files: [
                 ("quary.yaml", "duckdbInMemory: {schema: analytics}"),
                 (
                     "models/orders_snapshot.snapshot.sql",
@@ -1093,7 +1093,7 @@ snapshots:
             .unwrap();
 
         let file_system = FileSystem {
-            files: vec![
+            files: [
                 ("quary.yaml", "duckdbInMemory: {schema: analytics}"),
                 (
                     "models/orders_snapshot.snapshot.sql",

@@ -392,13 +392,13 @@ mod tests {
 
         for sql in &sqls {
             for sql in &sql.1 {
-                quary_postgres.exec(&sql).await.unwrap();
+                quary_postgres.exec(sql).await.unwrap();
             }
         }
         // Run twice
         for sql in &sqls {
             for sql in &sql.1 {
-                quary_postgres.exec(&sql).await.unwrap();
+                quary_postgres.exec(sql).await.unwrap();
             }
         }
     }
@@ -838,13 +838,13 @@ models:
         .unwrap();
         for sql in &sqls {
             for sql in &sql.1 {
-                database.exec(&sql).await.unwrap();
+                database.exec(sql).await.unwrap();
             }
         }
         // Run twice
         for sql in &sqls {
             for sql in &sql.1 {
-                database.exec(&sql).await.unwrap();
+                database.exec(sql).await.unwrap();
             }
         }
 
@@ -1187,7 +1187,7 @@ models:
             .unwrap();
 
         let file_system = FileSystem {
-            files: vec![
+            files: [
                 ("quary.yaml", "duckdbInMemory: {schema: analytics}"),
                 (
                     "models/orders_snapshot.snapshot.sql",
@@ -1321,7 +1321,7 @@ snapshots:
             .unwrap();
 
         let file_system = FileSystem {
-            files: vec![
+            files: [
                 ("quary.yaml", "postgres: {schema: analytics}"),
                 (
                     "models/orders_snapshot.snapshot.sql",
@@ -1556,7 +1556,7 @@ snapshots:
         database.exec("INSERT INTO jaffle_shop.orders VALUES (1, 'in_progress', '2023-01-01 00:00:00'), (2, 'completed', '2023-01-01 00:00:00')").await.unwrap();
 
         let file_system = FileSystem {
-            files: vec![
+            files: [
                 ("quary.yaml", "postgres: {schema: analytics}"),
                 ("models/stg_orders.sql", "SELECT * FROM q.raw_orders"),
                 ("models/stg_orders_2.sql", "SELECT * FROM q.raw_orders"),

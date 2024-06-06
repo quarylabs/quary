@@ -724,8 +724,8 @@ fn extract_select(query: &Query) -> Result<ExtractedSelect, String> {
                                                         "Could not find {} in {:?}",
                                                         int_key, sub_columns
                                                     ))?;
-                                                *int_table = target_table.clone();
-                                                *int_key = target_key.clone();
+                                                int_table.clone_from(target_table);
+                                                int_key.clone_from(target_key);
                                             }
                                         }
                                     }

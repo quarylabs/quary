@@ -154,9 +154,7 @@ fn create_run_statement_func(function: Rc<Function>) -> RunStatementFunc {
                                 format!("Failed to await js function to : {:?}", err)
                             })?;
 
-                            let array: js_sys::Array = js_value.try_into().map_err(|err| {
-                                format!("Failed to map js value to array: {:?}", err)
-                            })?;
+                            let array: js_sys::Array = js_value.into();
                             let length = array.length();
                             if length != 2 {
                                 return Err(format!(
@@ -173,15 +171,9 @@ fn create_run_statement_func(function: Rc<Function>) -> RunStatementFunc {
                             match js_string.as_str() {
                                 "success_call" => {
                                     let js_value = array.get(1);
-                                    let uint_8_array: Uint8Array =
-                                        js_value.try_into().map_err(|err| {
-                                            format!(
-                                                "Failed to map js value to Uint8Array: {:?}",
-                                                err
-                                            )
-                                        })?;
+                                    let uint_8_array: Uint8Array = js_value.into();
                                     let result: quary_proto::QueryResult = decode(uint_8_array)?;
-                                    match result.columns.get(0) {
+                                    match result.columns.first() {
                                         Some(column) => {
                                             if column.values.is_empty() {
                                                 Ok(RunReturnResult::Passed)
