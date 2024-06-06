@@ -25,6 +25,7 @@ export interface ConnectionConfig {
     | { $case: "snowflake"; snowflake: ConnectionConfig_ConnectionConfigSnowflake }
     | { $case: "postgres"; postgres: ConnectionConfig_ConnectionConfigPostgres }
     | { $case: "redshift"; redshift: ConnectionConfig_ConnectionConfigRedshift }
+    | { $case: "clickhouse"; clickhouse: ConnectionConfig_ConnectionConfigClickHouse }
     | undefined;
   vars: Var[];
 }
@@ -67,6 +68,10 @@ export interface ConnectionConfig_ConnectionConfigSnowflake {
   database: string;
   schema: string;
   warehouse: string;
+}
+
+export interface ConnectionConfig_ConnectionConfigClickHouse {
+  database: string;
 }
 
 function createBaseVar(): Var {
@@ -176,6 +181,10 @@ export const ConnectionConfig = {
       case "redshift":
         ConnectionConfig_ConnectionConfigRedshift.encode(message.config.redshift, writer.uint32(74).fork()).ldelim();
         break;
+      case "clickhouse":
+        ConnectionConfig_ConnectionConfigClickHouse.encode(message.config.clickhouse, writer.uint32(82).fork())
+          .ldelim();
+        break;
     }
     for (const v of message.vars) {
       Var.encode(v!, writer.uint32(66).fork()).ldelim();
@@ -270,6 +279,16 @@ export const ConnectionConfig = {
             redshift: ConnectionConfig_ConnectionConfigRedshift.decode(reader, reader.uint32()),
           };
           continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.config = {
+            $case: "clickhouse",
+            clickhouse: ConnectionConfig_ConnectionConfigClickHouse.decode(reader, reader.uint32()),
+          };
+          continue;
         case 8:
           if (tag !== 66) {
             break;
@@ -310,6 +329,8 @@ export const ConnectionConfig = {
         ? { $case: "postgres", postgres: ConnectionConfig_ConnectionConfigPostgres.fromJSON(object.postgres) }
         : isSet(object.redshift)
         ? { $case: "redshift", redshift: ConnectionConfig_ConnectionConfigRedshift.fromJSON(object.redshift) }
+        : isSet(object.clickhouse)
+        ? { $case: "clickhouse", clickhouse: ConnectionConfig_ConnectionConfigClickHouse.fromJSON(object.clickhouse) }
         : undefined,
       vars: gt.Array.isArray(object?.vars) ? object.vars.map((e: any) => Var.fromJSON(e)) : [],
     };
@@ -340,6 +361,9 @@ export const ConnectionConfig = {
     }
     if (message.config?.$case === "redshift") {
       obj.redshift = ConnectionConfig_ConnectionConfigRedshift.toJSON(message.config.redshift);
+    }
+    if (message.config?.$case === "clickhouse") {
+      obj.clickhouse = ConnectionConfig_ConnectionConfigClickHouse.toJSON(message.config.clickhouse);
     }
     if (message.vars?.length) {
       obj.vars = message.vars.map((e) => Var.toJSON(e));
@@ -416,6 +440,16 @@ export const ConnectionConfig = {
       message.config = {
         $case: "redshift",
         redshift: ConnectionConfig_ConnectionConfigRedshift.fromPartial(object.config.redshift),
+      };
+    }
+    if (
+      object.config?.$case === "clickhouse" &&
+      object.config?.clickhouse !== undefined &&
+      object.config?.clickhouse !== null
+    ) {
+      message.config = {
+        $case: "clickhouse",
+        clickhouse: ConnectionConfig_ConnectionConfigClickHouse.fromPartial(object.config.clickhouse),
       };
     }
     message.vars = object.vars?.map((e) => Var.fromPartial(e)) || [];
@@ -1022,6 +1056,67 @@ export const ConnectionConfig_ConnectionConfigSnowflake = {
     message.database = object.database ?? "";
     message.schema = object.schema ?? "";
     message.warehouse = object.warehouse ?? "";
+    return message;
+  },
+};
+
+function createBaseConnectionConfig_ConnectionConfigClickHouse(): ConnectionConfig_ConnectionConfigClickHouse {
+  return { database: "" };
+}
+
+export const ConnectionConfig_ConnectionConfigClickHouse = {
+  encode(message: ConnectionConfig_ConnectionConfigClickHouse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.database !== "") {
+      writer.uint32(10).string(message.database);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ConnectionConfig_ConnectionConfigClickHouse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseConnectionConfig_ConnectionConfigClickHouse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.database = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ConnectionConfig_ConnectionConfigClickHouse {
+    return { database: isSet(object.database) ? gt.String(object.database) : "" };
+  },
+
+  toJSON(message: ConnectionConfig_ConnectionConfigClickHouse): unknown {
+    const obj: any = {};
+    if (message.database !== "") {
+      obj.database = message.database;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ConnectionConfig_ConnectionConfigClickHouse>, I>>(
+    base?: I,
+  ): ConnectionConfig_ConnectionConfigClickHouse {
+    return ConnectionConfig_ConnectionConfigClickHouse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ConnectionConfig_ConnectionConfigClickHouse>, I>>(
+    object: I,
+  ): ConnectionConfig_ConnectionConfigClickHouse {
+    const message = createBaseConnectionConfig_ConnectionConfigClickHouse();
+    message.database = object.database ?? "";
     return message;
   },
 };

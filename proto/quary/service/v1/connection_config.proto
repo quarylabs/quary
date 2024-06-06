@@ -20,6 +20,7 @@ message ConnectionConfig {
     ConnectionConfigSnowflake snowflake = 6;
     ConnectionConfigPostgres postgres = 7;
     ConnectionConfigRedshift redshift = 9;
+    ConnectionConfigClickHouse clickhouse = 10;
   }
 
   repeated Var vars = 8;
@@ -60,5 +61,9 @@ message ConnectionConfig {
     string database = 5;
     string schema = 6;
     string warehouse = 7;
+  }
+
+  message ConnectionConfigClickHouse {
+    string database = 1;
   }
 }
