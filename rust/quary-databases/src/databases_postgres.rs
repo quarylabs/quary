@@ -316,22 +316,19 @@ impl DatabaseConnection for Postgres {
 
 #[cfg(test)]
 mod tests {
-    use std::time::SystemTime;
-
+    use super::*;
     use chrono::{DateTime, NaiveDateTime, Utc};
     use prost::bytes::Bytes;
-    use testcontainers::runners::AsyncRunner;
-    use testcontainers::RunnableImage;
-    use testcontainers_modules::postgres::Postgres as TestcontainersPostgres;
-
     use quary_core::project::parse_project;
     use quary_core::project_tests::return_tests_sql;
     use quary_core::project_to_sql::{
         project_and_fs_to_sql_for_snapshots, project_and_fs_to_sql_for_views,
     };
     use quary_proto::{File, FileSystem};
-
-    use super::*;
+    use std::time::SystemTime;
+    use testcontainers::runners::AsyncRunner;
+    use testcontainers::RunnableImage;
+    use testcontainers_modules::postgres::Postgres as TestcontainersPostgres;
 
     #[tokio::test]
     async fn run_build_with_project_twice() {

@@ -1,6 +1,6 @@
 use sqlparser::dialect::{
-    BigQueryDialect, Dialect as ParseDialect, DuckDbDialect, PostgreSqlDialect, SQLiteDialect,
-    SnowflakeDialect,
+    BigQueryDialect, ClickHouseDialect, Dialect as ParseDialect, DuckDbDialect, PostgreSqlDialect,
+    SQLiteDialect, SnowflakeDialect,
 };
 use std::sync::Arc;
 
@@ -10,6 +10,7 @@ pub enum Dialect {
     DuckDB,
     Snowflake,
     Postgres,
+    Clickhouse,
 }
 
 impl Dialect {
@@ -20,6 +21,7 @@ impl Dialect {
             Dialect::Snowflake => Arc::new(SnowflakeDialect {}),
             Dialect::DuckDB => Arc::new(DuckDbDialect {}),
             Dialect::Postgres => Arc::new(PostgreSqlDialect {}),
+            Dialect::Clickhouse => Arc::new(ClickHouseDialect {}),
         }
     }
 }

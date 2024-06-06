@@ -27,7 +27,8 @@ chrono = "0.4.38"
 assert_cmd = "2"
 tempfile = "3"
 testcontainers = "0.17.0"
-testcontainers-modules = { version = "0.5.0", features = ["postgres"] }
+# TODO make this depend on latest version when clickhouse is published
+testcontainers-modules = { git = "https://github.com/testcontainers/testcontainers-rs-modules-community", commit = "edf3c6e", features = ["postgres", "clickhouse"]}
 
 [build-dependencies]
 regex = "1.10.4"
