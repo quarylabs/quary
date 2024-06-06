@@ -1,5 +1,6 @@
 mod database_arrow_helper;
 mod databases_bigquery;
+mod databases_clickhouse;
 pub mod databases_connection;
 pub mod databases_duckdb;
 pub mod databases_postgres;

@@ -21,9 +21,12 @@ regex = "1.10.4"
 chrono = "0.4.38"
 duckdb = { version = "0.10.2", features = ["bundled"] }
 snowflake-api = "0.8.0"
+clickhouse-rs = "1.1.0-alpha.1"
+futures-util = "0.3.30"
 
 [dev-dependencies]
 assert_cmd = "2"
 tempfile = "3"
 testcontainers = "0.17.0"
-testcontainers-modules = { version = "0.5.0", features = ["postgres"] }
+# TODO make this depend on latest version when clickhouse is published
+testcontainers-modules = { git = "https://github.com/testcontainers/testcontainers-rs-modules-community", commit = "edf3c6e", features = ["postgres", "clickhouse"]}

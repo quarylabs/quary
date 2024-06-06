@@ -1,4 +1,5 @@
 use crate::databases_bigquery::BigQuery;
+use crate::databases_clickhouse::Clickhouse;
 use crate::databases_postgres::Postgres;
 use crate::databases_redshift::Redshift;
 use crate::databases_snowflake;
@@ -10,8 +11,8 @@ use quary_core::database_snowflake::DatabaseQueryGeneratorSnowflake;
 use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
 use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator};
 use quary_proto::connection_config::Config::{
-    BigQuery as BigQueryConfig, Clickhouse, Duckdb, DuckdbInMemory, Postgres as PostgresConfig,
-    Redshift as RedshiftConfig, Snowflake, Sqlite, SqliteInMemory,
+    BigQuery as BigQueryConfig, Clickhouse as ClickhouseConfig, Duckdb, DuckdbInMemory,
+    Postgres as PostgresConfig, Redshift as RedshiftConfig, Snowflake, Sqlite, SqliteInMemory,
 };
 use std::{env, fs};
 
@@ -150,6 +151,24 @@ pub async fn database_from_config(
             .map_err(|e| e.to_string())?;
             Ok(Box::new(database))
         }
+        ClickhouseConfig(config) => {
+            let host = env::var("CLICKHOUSE_HOST")
+                .map_err(|_| "CLICKHOUSE_HOST must be set to connect to Clickhouse".to_string())?;
+            let port = env::var("CLICKHOUSE_PORT").ok();
+            let user = env::var("CLICKHOUSE_USER").ok();
+            let password = env::var("CLICKHOUSE_PASSWORD").ok();
+
+            let database = Clickhouse::new(
+                &host,
+                port.as_deref(),
+                user.as_deref(),
+                password.as_deref(),
+                Some(&config.database),
+            )
+            .await
+            .map_err(|e| e.to_string())?;
+            Ok(Box::new(database))
+        }
         RedshiftConfig(config) => {
             let host = env::var("RSHOST")
                 .map_err(|_| "RSHOST must be set to connect to Redshift".to_string())?;
@@ -207,9 +226,6 @@ pub async fn database_from_config(
             .await
             .map_err(|e| e.to_string())?;
             Ok(Box::new(database))
-        }
-        Clickhouse(config) => {
-            unimplemented!("Clickhouse not implemented")
         }
     }
 }

@@ -13,6 +13,7 @@ pub mod automatic_branching;
 pub mod chart;
 pub mod config;
 pub mod database_bigquery;
+pub mod database_clickhouse;
 pub mod database_duckdb;
 pub mod database_postgres;
 pub mod database_redshift;

@@ -18,6 +18,7 @@ pub fn aggregate_function_behaviour(
         | Dialect::BigQuery
         | Dialect::Snowflake
         | Dialect::DuckDB
+        | Dialect::Clickhouse
         | Dialect::Postgres => HashMap::from([
             (
                 Operation::Min,
