@@ -35,7 +35,7 @@ pub(crate) async fn experimental_commands(
                     HashMap::<String, Vec<ProjectFile>>::new(),
                     |mut acc: HashMap<String, Vec<ProjectFile>>, (path, file)| {
                         let (folder, _) = path.rsplit_once("/").unwrap();
-                        let entry = acc.entry(folder.to_string()).or_insert(vec![]);
+                        let entry = acc.entry(folder.to_string()).or_default();
                         entry.push(file.clone());
                         acc
                     },
