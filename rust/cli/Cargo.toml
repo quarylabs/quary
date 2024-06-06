@@ -20,6 +20,7 @@ futures = "0.3.30"
 base64 = "0.22.1"
 dotenv = "0.15"
 serde_yaml = "0.9.33"
+duckdb = { version = "0.10.2", features = ["bundled"] }
 
 [dev-dependencies]
 chrono = "0.4.38"
@@ -27,3 +28,6 @@ assert_cmd = "2"
 tempfile = "3"
 testcontainers = "0.16.7"
 testcontainers-modules = { version = "0.4.3", features = ["postgres"] }
+
+[build-dependencies]
+regex = "1.10.4"

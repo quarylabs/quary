@@ -3,7 +3,7 @@ use quary_proto::TestRunner;
 
 #[derive(Debug, Parser)]
 #[command(name = "quary")]
-#[command(about = "A tool for managing SQL transformations and tests. For more documentation on these commands, visit: quary.dev/docs", long_about = None, version = env!("CARGO_PKG_VERSION"))]
+#[command(about = "A tool for managing SQL transformations and tests. For more documentation on these commands, visit: quary.dev/docs", long_about = None, version = env!("VERSION_STRING"))]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
