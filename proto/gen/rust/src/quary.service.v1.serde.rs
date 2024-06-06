@@ -3873,6 +3873,9 @@ impl serde::Serialize for ConnectionConfig {
                 connection_config::Config::Redshift(v) => {
                     struct_ser.serialize_field("redshift", v)?;
                 }
+                connection_config::Config::Clickhouse(v) => {
+                    struct_ser.serialize_field("clickhouse", v)?;
+                }
             }
         }
         struct_ser.end()
@@ -3897,6 +3900,7 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
             "snowflake",
             "postgres",
             "redshift",
+            "clickhouse",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -3910,6 +3914,7 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
             Snowflake,
             Postgres,
             Redshift,
+            Clickhouse,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -3940,6 +3945,7 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
                             "snowflake" => Ok(GeneratedField::Snowflake),
                             "postgres" => Ok(GeneratedField::Postgres),
                             "redshift" => Ok(GeneratedField::Redshift),
+                            "clickhouse" => Ok(GeneratedField::Clickhouse),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -4023,6 +4029,13 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
                                 return Err(serde::de::Error::duplicate_field("redshift"));
                             }
                             config__ = map_.next_value::<::std::option::Option<_>>()?.map(connection_config::Config::Redshift)
+;
+                        }
+                        GeneratedField::Clickhouse => {
+                            if config__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("clickhouse"));
+                            }
+                            config__ = map_.next_value::<::std::option::Option<_>>()?.map(connection_config::Config::Clickhouse)
 ;
                         }
                     }
@@ -4144,6 +4157,97 @@ impl<'de> serde::Deserialize<'de> for connection_config::ConnectionConfigBigQuer
             }
         }
         deserializer.deserialize_struct("quary.service.v1.ConnectionConfig.ConnectionConfigBigQuery", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for connection_config::ConnectionConfigClickHouse {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.database.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ConnectionConfig.ConnectionConfigClickHouse", len)?;
+        if !self.database.is_empty() {
+            struct_ser.serialize_field("database", &self.database)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for connection_config::ConnectionConfigClickHouse {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "database",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Database,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "database" => Ok(GeneratedField::Database),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = connection_config::ConnectionConfigClickHouse;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.ConnectionConfig.ConnectionConfigClickHouse")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<connection_config::ConnectionConfigClickHouse, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut database__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Database => {
+                            if database__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("database"));
+                            }
+                            database__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(connection_config::ConnectionConfigClickHouse {
+                    database: database__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.ConnectionConfig.ConnectionConfigClickHouse", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for connection_config::ConnectionConfigDuckDb {

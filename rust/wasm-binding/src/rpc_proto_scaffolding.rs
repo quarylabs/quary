@@ -189,6 +189,9 @@ pub fn database_query_generator_from_config(
         Config::Redshift(config) => {
             Box::new(DatabaseQueryGeneratorRedshift::new(config.schema, None))
         }
+        Config::Clickhouse(_) => {
+            return Err("Clickhouse not implemented".to_string());
+        }
     };
     Ok(database)
 }

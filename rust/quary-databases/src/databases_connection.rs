@@ -10,7 +10,7 @@ use quary_core::database_snowflake::DatabaseQueryGeneratorSnowflake;
 use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
 use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator};
 use quary_proto::connection_config::Config::{
-    BigQuery as BigQueryConfig, Duckdb, DuckdbInMemory, Postgres as PostgresConfig,
+    BigQuery as BigQueryConfig, Clickhouse, Duckdb, DuckdbInMemory, Postgres as PostgresConfig,
     Redshift as RedshiftConfig, Snowflake, Sqlite, SqliteInMemory,
 };
 use std::{env, fs};
@@ -207,6 +207,9 @@ pub async fn database_from_config(
             .await
             .map_err(|e| e.to_string())?;
             Ok(Box::new(database))
+        }
+        Clickhouse(config) => {
+            unimplemented!("Clickhouse not implemented")
         }
     }
 }
