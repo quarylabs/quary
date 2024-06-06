@@ -19,7 +19,6 @@ google-cloud-auth = { version = "0.14.0", default-features = false, features = [
 prost = "0.12.4"
 regex = "1.10.4"
 chrono = "0.4.38"
-
 duckdb = { version = "0.10.2", features = ["bundled"] }
 snowflake-api = "0.8.0"
 
