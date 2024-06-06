@@ -51,7 +51,7 @@ jobs:
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libc6-dev-arm64-cross
 
-      - name: Build release
+      - name: Build
         run: |
           cargo build --release --target=${{ matrix.target }}
           strip target/${{ matrix.target }}/release/quary
@@ -60,4 +60,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: quary-${{ matrix.target }}-${{ github.ref_name }}
-          path: target/${{ matrix.target }}/release/
+          path: target/${{ matrix.target }}/release/quary
