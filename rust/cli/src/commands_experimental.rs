@@ -1,4 +1,4 @@
-#![allow(unwrap_used)]
+#![allow(clippy::unwrap_used)]
 use crate::commands::ExperimentalCommands;
 use crate::commands::ExternalCommands;
 use crate::{get_config_file, parse_project};
