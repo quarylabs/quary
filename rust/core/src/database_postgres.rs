@@ -92,22 +92,25 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
                 "CREATE TABLE {} AS {}",
                 object_name, original_select_statement
             ).into()),
-            Some(MATERIALIZATION_TYPE_MATERIALIZED_VIEW) => Ok(Some(format!(
-                // if view doesn't exist it need to be created, if exists then refreshed
-                "DO $$
-                 BEGIN
-                    IF EXISTS (select 1 from pg_matviews where matviewname = '{}')
-                 THEN
-                    EXECUTE format('REFRESH MATERIALIZED VIEW {}');
-                 ELSE
-                    EXECUTE format('CREATE MATERIALIZED VIEW {} AS {}');
-                 END IF;
-                 END $$;",
-                object_name.split('.').last().unwrap_or(""),
-                object_name,
-                object_name,
-                original_select_statement
-            ).into())),
+            Some(MATERIALIZATION_TYPE_MATERIALIZED_VIEW) => {
+                Ok(Some(format!(
+                    "DO $$ BEGIN
+                    IF EXISTS (SELECT 1 FROM pg_matviews WHERE matviewname = '{}') THEN
+                        RAISE NOTICE 'Refreshing materialized view {}';
+                        EXECUTE 'REFRESH MATERIALIZED VIEW {}';
+                    ELSE
+                        RAISE NOTICE 'Creating materialized view {}';
+                        EXECUTE 'CREATE MATERIALIZED VIEW {} AS {}';
+                    END IF;
+                END $$;",
+                    object_name.split('.').last().unwrap(),
+                    object_name,
+                    object_name,
+                    object_name,
+                    object_name,
+                    original_select_statement.replace("'", "''") // Escape single quotes
+                )))
+            },
             _ => Err("Unsupported materialization type".to_string()),
         }
     }
