@@ -31,4 +31,4 @@ testcontainers = "0.17.0"
 testcontainers-modules = { git = "https://github.com/testcontainers/testcontainers-rs-modules-community", commit = "edf3c6e", features = ["postgres", "clickhouse"]}
 
 [build-dependencies]
-regex = "1.10.4"
+regex = "1.10.5"
