@@ -172,7 +172,7 @@
     "@quary/eslint-config-shared": "workspace:*",
     "@types/assert": "^1.5.10",
     "@types/jest": "^29.5.12",
-    "@types/lodash": "^4.17.4",
+    "@types/lodash": "^4.17.5",
     "@types/mocha": "^10.0.6",
     "@types/papaparse": "^5.3.14",
     "@types/sql.js": "^1.4.9",
