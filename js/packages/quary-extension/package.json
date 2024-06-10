@@ -204,7 +204,7 @@
   "dependencies": {
     "@duckdb/duckdb-wasm": "1.28.0",
     "@june-so/analytics-node": "^8.0.0",
-    "@sentry/browser": "^8.7.0",
+    "@sentry/browser": "^8.8.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",
     "file-loader": "^6.2.0",
