@@ -19,6 +19,7 @@ import {
 } from './servicesDatabaseDuckDBNode'
 import { ServicesDatabaseRedshiftNode } from './servicesDatabaseRedshiftNode'
 import { ServicesDatabasePostgresNode } from './servicesDatabasePostgresNode'
+import { ServicesDatabaseClickhouseNode } from './servicesDatabaseClickhouseNode'
 
 /**
  * Creates a database instance from a given configuration.
@@ -39,6 +40,29 @@ export const databaseFromConfig = async (
     })
   }
   switch (config.config.$case) {
+    case 'clickhouse': {
+      switch (vscode.env.uiKind) {
+        case vscode.UIKind.Web: {
+          return Err({
+            code: ErrorCodes.INVALID_ARGUMENT,
+            message: 'Clickhouse is not supported in the web extension',
+          })
+        }
+        case vscode.UIKind.Desktop: {
+          const clickhouseNode = new ServicesDatabaseClickhouseNode(
+            getTerminal(),
+            config.config.clickhouse.database,
+          )
+          return Ok(clickhouseNode)
+        }
+        default: {
+          return Err({
+            code: ErrorCodes.INVALID_ARGUMENT,
+            message: 'Invalid UI Kind',
+          })
+        }
+      }
+    }
     case 'sqliteInMemory': {
       switch (vscode.env.uiKind) {
         case vscode.UIKind.Web: {

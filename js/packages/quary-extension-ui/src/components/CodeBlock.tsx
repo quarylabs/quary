@@ -30,7 +30,10 @@ export const CodeBlock: React.FC<Props> = ({ code, language, turnOffCopy }) => {
   switch (language.type) {
     case 'sql': {
       out = format(code.trim(), {
-        language: language.variant === 'duckdb' ? 'sql' : language.variant,
+        language:
+          language.variant === 'duckdb' || language.variant === 'clickhouse'
+            ? 'sql'
+            : language.variant,
       })
       break
     }

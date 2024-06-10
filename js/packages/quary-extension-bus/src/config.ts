@@ -42,3 +42,4 @@ export type SqlLanguage =
   | 'snowflake'
   | 'duckdb'
   | 'postgresql'
+  | 'clickhouse'
