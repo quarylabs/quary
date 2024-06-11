@@ -114,7 +114,7 @@ export const DocumentationView: React.FC<Props> = ({
                 }}
                 variant="default"
                 size="sm"
-                className=" border-dashed"
+                className="border-dashed"
               >
                 <PlusCircleIcon className="mr-2 h-4 w-4" />
                 Add to Schema
