@@ -377,7 +377,7 @@ export class ListAssetsRequest extends Message<ListAssetsRequest> {
   /**
    * @generated from field: quary.service.v1.ListAssetsRequest.AssetsToSkip assets_to_skip = 4;
    */
-  assetsToSkip?: ListAssetsRequest_AssetsToSkip;
+  assetsToSkip = ListAssetsRequest_AssetsToSkip.UNSPECIFIED;
 
   constructor(data?: PartialMessage<ListAssetsRequest>) {
     super();
@@ -388,7 +388,7 @@ export class ListAssetsRequest extends Message<ListAssetsRequest> {
   static readonly typeName = "quary.service.v1.ListAssetsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 3, name: "project_root", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "assets_to_skip", kind: "message", T: ListAssetsRequest_AssetsToSkip },
+    { no: 4, name: "assets_to_skip", kind: "enum", T: proto3.getEnumType(ListAssetsRequest_AssetsToSkip) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListAssetsRequest {
@@ -409,41 +409,36 @@ export class ListAssetsRequest extends Message<ListAssetsRequest> {
 }
 
 /**
- * @generated from message quary.service.v1.ListAssetsRequest.AssetsToSkip
+ * @generated from enum quary.service.v1.ListAssetsRequest.AssetsToSkip
  */
-export class ListAssetsRequest_AssetsToSkip extends Message<ListAssetsRequest_AssetsToSkip> {
+export enum ListAssetsRequest_AssetsToSkip {
   /**
-   * @generated from field: bool charts = 1;
+   * @generated from enum value: ASSETS_TO_SKIP_UNSPECIFIED = 0;
    */
-  charts = false;
+  UNSPECIFIED = 0,
 
-  constructor(data?: PartialMessage<ListAssetsRequest_AssetsToSkip>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
+  /**
+   * @generated from enum value: ASSETS_TO_SKIP_NONE = 1;
+   */
+  NONE = 1,
 
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "quary.service.v1.ListAssetsRequest.AssetsToSkip";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "charts", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
+  /**
+   * @generated from enum value: ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS = 2;
+   */
+  CHARTS_AND_DASHBOARDS = 2,
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListAssetsRequest_AssetsToSkip {
-    return new ListAssetsRequest_AssetsToSkip().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListAssetsRequest_AssetsToSkip {
-    return new ListAssetsRequest_AssetsToSkip().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListAssetsRequest_AssetsToSkip {
-    return new ListAssetsRequest_AssetsToSkip().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListAssetsRequest_AssetsToSkip | PlainMessage<ListAssetsRequest_AssetsToSkip> | undefined, b: ListAssetsRequest_AssetsToSkip | PlainMessage<ListAssetsRequest_AssetsToSkip> | undefined): boolean {
-    return proto3.util.equals(ListAssetsRequest_AssetsToSkip, a, b);
-  }
+  /**
+   * @generated from enum value: ASSETS_TO_SKIP_DASHBOARDS = 3;
+   */
+  DASHBOARDS = 3,
 }
+// Retrieve enum metadata with: proto3.getEnumType(ListAssetsRequest_AssetsToSkip)
+proto3.util.setEnumType(ListAssetsRequest_AssetsToSkip, "quary.service.v1.ListAssetsRequest.AssetsToSkip", [
+  { no: 0, name: "ASSETS_TO_SKIP_UNSPECIFIED" },
+  { no: 1, name: "ASSETS_TO_SKIP_NONE" },
+  { no: 2, name: "ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS" },
+  { no: 3, name: "ASSETS_TO_SKIP_DASHBOARDS" },
+]);
 
 /**
  * @generated from message quary.service.v1.ListAssetsResponse

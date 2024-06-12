@@ -125,8 +125,11 @@ message StringifyProjectFileResponse {
 
 message ListAssetsRequest {
   string project_root = 3;
-  message AssetsToSkip {
-    bool charts = 1;
+  enum AssetsToSkip {
+    ASSETS_TO_SKIP_UNSPECIFIED = 0;
+    ASSETS_TO_SKIP_NONE = 1;
+    ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS = 2;
+    ASSETS_TO_SKIP_DASHBOARDS = 3;
   }
   AssetsToSkip assets_to_skip = 4;
 }

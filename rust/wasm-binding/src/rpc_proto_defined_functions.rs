@@ -1,4 +1,6 @@
-use crate::rpc_proto_scaffolding::{JsFileSystem, Writer};
+use std::collections::{BTreeSet, HashMap, HashSet};
+use std::path::PathBuf;
+
 use quary_core::automatic_branching::{
     cache_view_name_to_table_name_and_hash,
     given_map_and_hash_map_return_sub_graph_all_cached_for_a_particular_model, is_cache_full_path,
@@ -54,8 +56,8 @@ use quary_proto::{
 };
 use sqlinference::columns::get_columns_internal;
 use sqlinference::infer_tests::infer_tests;
-use std::collections::{BTreeSet, HashMap, HashSet};
-use std::path::PathBuf;
+
+use crate::rpc_proto_scaffolding::{JsFileSystem, Writer};
 
 pub(crate) async fn is_path_empty(
     _: Writer,
@@ -826,14 +828,12 @@ pub(crate) async fn list_assets_internal(
     file_system: &impl FileSystem,
     request: ListAssetsRequest,
 ) -> Result<ListAssetsResponse, String> {
-    let assets_to_skip = request.assets_to_skip.ok_or("No assets to skip provided")?;
+    let assets_to_skip = AssetsToSkip::try_from(request.assets_to_skip)?;
     let project = quary_core::project::parse_project_with_skip(
         file_system,
         database,
         &request.project_root,
-        AssetsToSkip {
-            charts: assets_to_skip.charts,
-        },
+        assets_to_skip,
     )
     .await?;
 
@@ -1515,8 +1515,13 @@ pub(crate) async fn return_sql_for_injected_model(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::cell::RefCell;
+    use std::collections::HashMap;
+    use std::rc::Rc;
+    use std::time::SystemTime;
+
     use chrono::{DateTime, Utc};
+
     use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
     use quary_core::database_redshift::DatabaseQueryGeneratorRedshift;
     use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
@@ -1524,10 +1529,8 @@ mod tests {
     use quary_core::init::DuckDBAsset;
     use quary_proto::table::TableType;
     use quary_proto::{CacheViewInformation, CacheViewInformationPaths, FileSystem};
-    use std::cell::RefCell;
-    use std::collections::HashMap;
-    use std::rc::Rc;
-    use std::time::SystemTime;
+
+    use super::*;
 
     // TODO Make all the others use this function
     fn files_to_file_system(files: Vec<(&str, &str)>) -> FileSystem {
@@ -2182,7 +2185,7 @@ models:
 
         let request = ListAssetsRequest {
             project_root: "".to_string(),
-            assets_to_skip: Some(quary_proto::list_assets_request::AssetsToSkip { charts: true }),
+            assets_to_skip: quary_proto::list_assets_request::AssetsToSkip::ChartsAndDashboards.into(),
         };
         let response = list_assets_internal(&database, &file_system, request)
             .await
@@ -2203,7 +2206,7 @@ models:
 
         let request = ListAssetsRequest {
             project_root: "".to_string(),
-            assets_to_skip: Some(quary_proto::list_assets_request::AssetsToSkip { charts: false }),
+            assets_to_skip: quary_proto::list_assets_request::AssetsToSkip::None.into(),
         };
         let response = list_assets_internal(&database, &file_system, request)
             .await
