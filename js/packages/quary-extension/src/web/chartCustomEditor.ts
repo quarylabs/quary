@@ -13,6 +13,7 @@ import { HTML_STRING } from './panels'
 import { getServices, PreInitServices, preInitSetup } from './services'
 import { WebviewCollection } from './chartCustomEditorWebviewCollection'
 import { ChartDocument } from './chartCustomEditorChartDocument'
+import { cacheViewBuilder } from './cacheViewBuilder'
 
 /**
  * Provider for chart editors.
@@ -442,16 +443,15 @@ export class ChartEditorProvider
             if (isErr(preInitSetupResult)) {
               return handleError(preInitSetupResult.error, allAssets)
             }
+            const cacheView = await cacheViewBuilder(services.database)
+            if (isErr(cacheView)) {
+              return handleError(cacheView.error, allAssets)
+            }
             const sqlForAssetResult =
               await services.rust.return_full_sql_for_asset({
                 projectRoot: preInitSetupResult.value.projectRoot,
                 assetName: chartFile.source.reference.name,
-                cacheViewInformation: {
-                  cacheView: {
-                    $case: 'doNotUse',
-                    doNotUse: {},
-                  },
-                },
+                cacheViewInformation: cacheView.value,
               })
             if (isErr(sqlForAssetResult)) {
               return handleError(sqlForAssetResult.error, allAssets)
