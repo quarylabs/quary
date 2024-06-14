@@ -1,0 +1,18 @@
+models:
+  - name: shift_last
+    description: This is an intermediary table and contains the first last of each employee.
+    columns:
+      - name: employee_id
+        tests:
+          - type: unique
+          - type: not_null
+          - type: relationship
+            info:
+              model: stg_employees
+              column: employee_id
+      - name: shift_start
+        tests:
+          - type: not_null
+      - name: shift_end
+        tests:
+          - type: not_null

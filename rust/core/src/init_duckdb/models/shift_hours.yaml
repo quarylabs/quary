@@ -1,0 +1,17 @@
+models:
+  - name: shift_hours
+    description: This is an intermediary table and contains the shift start and end times for each shift.
+    columns:
+      - name: shift
+        tests:
+          - type: not_null
+          - type: unique
+          - type: accepted_values
+            info:
+              values: morning,afternoon
+      - name: start_time
+        tests:
+          - type: not_null
+      - name: end_time
+        tests:
+          - type: not_null

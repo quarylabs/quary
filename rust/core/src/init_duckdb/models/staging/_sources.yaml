@@ -1,0 +1,7 @@
+sources:
+  - name: raw_employees
+    path: "'data/raw_employees.csv'"
+  - name: raw_shifts
+    path: "'data/raw_shifts.csv'"
+  - name: raw_shop_locations
+    path: "'data/raw_shop_locations.csv'"

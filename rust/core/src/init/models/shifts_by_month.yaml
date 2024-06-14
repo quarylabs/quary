@@ -1,0 +1,26 @@
+models:
+  - name: shifts_by_month
+    tags:
+      - monthly
+    description: This is a transformation for shifts and contains the total number of shifts for each employee by month.
+    tests:
+      - type: multi_column_unique
+        info:
+          columns: employee_id,shift_month
+    columns:
+      - name: employee_id
+        tests:
+          - type: not_null
+          - type: relationship
+            info:
+              model: stg_employees
+              column: employee_id
+      - name: shift_month
+        tests:
+          - type: not_null
+      - name: total_shifts
+        tests:
+          - type: not_null
+          - type: gte
+            info:
+              value: '0'

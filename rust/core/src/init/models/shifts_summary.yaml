@@ -1,0 +1,40 @@
+models:
+  - name: shifts_summary
+    description: This is final table for summary analysis of the shifts.
+    columns:
+      - name: employee_id
+        tests:
+          - type: not_null
+          - type: relationship
+            info:
+              model: stg_employees
+              column: employee_id
+      - name: first_name
+        tests:
+          - type: not_null
+      - name: last_name
+        tests:
+          - type: not_null
+      - name: first_shift
+      - name: last_shift
+      - name: percentage_morning_shifts
+        description: This is the percentage number of shifts worked by the employee in the mornings.
+        tests:
+          - type: gte
+            info:
+              value: '0'
+          - type: lte
+            info:
+              value: '100'
+      - name: total_shifts
+        description: This is the total number of shifts worked by the employee.
+        tests:
+          - type: gte
+            info:
+              value: '0'
+      - name: total_hours
+        description: This is the total number of hours worked by the employee.
+        tests:
+          - type: gte
+            info:
+              value: '0'

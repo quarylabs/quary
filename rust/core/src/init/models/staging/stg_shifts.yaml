@@ -1,0 +1,31 @@
+models:
+  - name: stg_shifts
+    description: This is a staging model for shifts and contains information about the shifts of the company's employees.
+    columns:
+      - name: employee_id
+        description: This is the employee's unique identifier.
+        tests:
+          - type: not_null
+          - type: relationship
+            info:
+              model: stg_employees
+              column: employee_id
+      - name: shop_id
+        description: This is the shop's unique identifier where the shift took place.
+        tests:
+          - type: not_null
+          - type: relationship
+            info:
+              model: stg_shop_locations
+              column: id
+      - name: shift_date
+        description: This is the date of the shift.
+        tests:
+          - type: not_null
+      - name: shift
+        description: This is the shift (morning/afternoon) of the day.
+        tests:
+          - type: not_null
+          - type: accepted_values
+            info:
+              values: morning,afternoon

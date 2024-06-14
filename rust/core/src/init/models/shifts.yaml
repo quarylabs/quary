@@ -1,0 +1,26 @@
+models:
+  - name: shifts
+    description: This is transformation for shift and for each shift has a derive start/stop time.
+    columns:
+      - name: employee_id
+        tests:
+          - type: not_null
+          - type: relationship
+            info:
+              column: employee_id
+              model: stg_employees
+      - name: shift
+        tests:
+          - type: not_null
+          - type: relationship
+            info:
+              column: shift
+              model: shift_hours
+      - name: shift_start
+        description: This is the start time of the shift.
+        tests:
+          - type: not_null
+      - name: shift_end
+        description: This is the end time of the shift.
+        tests:
+          - type: not_null

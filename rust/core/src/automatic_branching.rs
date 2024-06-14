@@ -415,7 +415,10 @@ mod tests {
         let hash_0 = get_hash_derive_model_hash(&fs).await;
 
         let mut fs = init_to_file_system();
-        let reader = fs.read_file("models/staging/schema.yaml").await.unwrap();
+        let reader = fs
+            .read_file("models/staging/stg_employees.yaml")
+            .await
+            .unwrap();
         let reader = convert_async_read_to_blocking_read(reader).await;
 
         let mut staging_schema = deserialize_project_file_from_yaml(reader).unwrap();
@@ -432,9 +435,9 @@ mod tests {
         );
 
         fs.files.insert(
-            "models/staging/schema.yaml".to_string(),
+            "models/staging/stg_employees.yaml".to_string(),
             File {
-                name: "models/staging/schema.yaml".to_string(),
+                name: "models/staging/stg_employees.yaml".to_string(),
                 contents: prost::bytes::Bytes::from(
                     serialize_project_file_to_yaml(staging_schema).unwrap(),
                 ),

@@ -116,7 +116,7 @@ mod tests {
 
         assert!(!project.models.is_empty());
         assert!(!project.tests.is_empty());
-        assert_eq!(project.project_files.len(), 2);
+        assert_eq!(project.project_files.len(), 10);
     }
 
     //     TODO Impleemnt
