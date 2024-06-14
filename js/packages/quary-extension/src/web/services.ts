@@ -92,9 +92,9 @@ export const getServices = async (
 }
 
 // services to be used pre quary project initialisation
-export const getPreInitServices = async (
+export const getPreInitServices = (
   extension: vscode.ExtensionContext,
-): Promise<PreInitServices> => {
+): PreInitServices => {
   const storage = createExtensionStorageService(extension)
   const fileSystem = vsCodeWebFiles(
     vscode.workspace.workspaceFolders,

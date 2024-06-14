@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddColumnTestToModelOrSourceColumnRequest, AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest, AddColumnToModelOrSourceResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest, GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse, GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse, IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, ParseProjectRequest, ParseProjectResponse, RemoveColumnTestFromModelOrSourceColumnRequest, RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse, ReturnDataForDocViewRequest, ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSQLRequest, ReturnDefinitionLocationsForSQLResponse, ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest, ReturnFullSqlForAssetResponse, ReturnSQLForInjectedModelRequest, ReturnSQLForInjectedModelResponse, ReturnSQLForSeedsAndModelsRequest, ReturnSQLForSeedsAndModelsResponse, StringifyProjectFileRequest, StringifyProjectFileResponse, UpdateAssetDescriptionRequest, UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest, UpdateModelOrSourceColumnDescriptionResponse } from "./wasm_rust_rpc_calls_pb.js";
+import { AddColumnTestToModelOrSourceColumnRequest, AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest, AddColumnToModelOrSourceResponse, CreateModelChartFileRequest, CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest, GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse, GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse, IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, ParseProjectRequest, ParseProjectResponse, RemoveColumnTestFromModelOrSourceColumnRequest, RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse, ReturnDataForDocViewRequest, ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSQLRequest, ReturnDefinitionLocationsForSQLResponse, ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest, ReturnFullSqlForAssetResponse, ReturnSQLForInjectedModelRequest, ReturnSQLForInjectedModelResponse, ReturnSQLForSeedsAndModelsRequest, ReturnSQLForSeedsAndModelsResponse, StringifyProjectFileRequest, StringifyProjectFileResponse, UpdateAssetDescriptionRequest, UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest, UpdateModelOrSourceColumnDescriptionResponse } from "./wasm_rust_rpc_calls_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -69,6 +69,17 @@ export const RustWithoutDatabaseService = {
       name: "GenerateProjectFiles",
       I: GenerateProjectFilesRequest,
       O: GenerateProjectFilesResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * CreateModelChartFile returns the yaml file for the chart for the given model with the given chart settings
+     *
+     * @generated from rpc quary.service.v1.RustWithoutDatabaseService.CreateModelChartFile
+     */
+    createModelChartFile: {
+      name: "CreateModelChartFile",
+      I: CreateModelChartFileRequest,
+      O: CreateModelChartFileResponse,
       kind: MethodKind.Unary,
     },
   }

@@ -12,6 +12,7 @@ type Story = StoryObj<typeof ExecuteSQLView>
 
 export const Main: Story = {
   args: {
+    modelName: 'model_a',
     results: {
       type: 'run',
       results: sampleQueryResult,

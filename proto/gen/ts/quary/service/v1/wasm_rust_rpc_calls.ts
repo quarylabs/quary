@@ -7,6 +7,7 @@
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
+import { Struct } from "../../../google/protobuf/struct";
 import { ColumnDescription } from "./column_description";
 import { ConnectionConfig } from "./connection_config";
 import { Project } from "./project";
@@ -302,6 +303,15 @@ export interface ReturnSQLForInjectedModelRequest {
 
 export interface ReturnSQLForInjectedModelResponse {
   sql: string;
+}
+
+export interface CreateModelChartFileRequest {
+  modelName: string;
+  config: { [key: string]: any } | undefined;
+}
+
+export interface CreateModelChartFileResponse {
+  chartFile: string;
 }
 
 function createBaseGetProjectConfigRequest(): GetProjectConfigRequest {
@@ -3710,6 +3720,137 @@ export const ReturnSQLForInjectedModelResponse = {
   },
 };
 
+function createBaseCreateModelChartFileRequest(): CreateModelChartFileRequest {
+  return { modelName: "", config: undefined };
+}
+
+export const CreateModelChartFileRequest = {
+  encode(message: CreateModelChartFileRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.modelName !== "") {
+      writer.uint32(18).string(message.modelName);
+    }
+    if (message.config !== undefined) {
+      Struct.encode(Struct.wrap(message.config), writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateModelChartFileRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateModelChartFileRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.modelName = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.config = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateModelChartFileRequest {
+    return {
+      modelName: isSet(object.modelName) ? gt.String(object.modelName) : "",
+      config: isObject(object.config) ? object.config : undefined,
+    };
+  },
+
+  toJSON(message: CreateModelChartFileRequest): unknown {
+    const obj: any = {};
+    if (message.modelName !== "") {
+      obj.modelName = message.modelName;
+    }
+    if (message.config !== undefined) {
+      obj.config = message.config;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateModelChartFileRequest>, I>>(base?: I): CreateModelChartFileRequest {
+    return CreateModelChartFileRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateModelChartFileRequest>, I>>(object: I): CreateModelChartFileRequest {
+    const message = createBaseCreateModelChartFileRequest();
+    message.modelName = object.modelName ?? "";
+    message.config = object.config ?? undefined;
+    return message;
+  },
+};
+
+function createBaseCreateModelChartFileResponse(): CreateModelChartFileResponse {
+  return { chartFile: "" };
+}
+
+export const CreateModelChartFileResponse = {
+  encode(message: CreateModelChartFileResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.chartFile !== "") {
+      writer.uint32(10).string(message.chartFile);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateModelChartFileResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateModelChartFileResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.chartFile = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateModelChartFileResponse {
+    return { chartFile: isSet(object.chartFile) ? gt.String(object.chartFile) : "" };
+  },
+
+  toJSON(message: CreateModelChartFileResponse): unknown {
+    const obj: any = {};
+    if (message.chartFile !== "") {
+      obj.chartFile = message.chartFile;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateModelChartFileResponse>, I>>(base?: I): CreateModelChartFileResponse {
+    return CreateModelChartFileResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateModelChartFileResponse>, I>>(object: I): CreateModelChartFileResponse {
+    const message = createBaseCreateModelChartFileResponse();
+    message.chartFile = object.chartFile ?? "";
+    return message;
+  },
+};
+
 /**
  * RustWithoutDatabaseService is the service that is used and where the database is not used and so not passed in as a
  * parameter in.
@@ -3728,6 +3869,8 @@ export interface RustWithoutDatabaseService {
    * ancillary files for set up like .gitignore, github actions, and some folders.
    */
   GenerateProjectFiles(request: GenerateProjectFilesRequest): Promise<GenerateProjectFilesResponse>;
+  /** CreateModelChartFile returns the yaml file for the chart for the given model with the given chart settings */
+  CreateModelChartFile(request: CreateModelChartFileRequest): Promise<CreateModelChartFileResponse>;
 }
 
 export const RustWithoutDatabaseServiceServiceName = "quary.service.v1.RustWithoutDatabaseService";
@@ -3742,6 +3885,7 @@ export class RustWithoutDatabaseServiceClientImpl implements RustWithoutDatabase
     this.IsPathEmpty = this.IsPathEmpty.bind(this);
     this.StringifyProjectFile = this.StringifyProjectFile.bind(this);
     this.GenerateProjectFiles = this.GenerateProjectFiles.bind(this);
+    this.CreateModelChartFile = this.CreateModelChartFile.bind(this);
   }
   GetProjectConfig(request: GetProjectConfigRequest): Promise<GetProjectConfigResponse> {
     const data = GetProjectConfigRequest.encode(request).finish();
@@ -3771,6 +3915,12 @@ export class RustWithoutDatabaseServiceClientImpl implements RustWithoutDatabase
     const data = GenerateProjectFilesRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "GenerateProjectFiles", data);
     return promise.then((data) => GenerateProjectFilesResponse.decode(_m0.Reader.create(data)));
+  }
+
+  CreateModelChartFile(request: CreateModelChartFileRequest): Promise<CreateModelChartFileResponse> {
+    const data = CreateModelChartFileRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "CreateModelChartFile", data);
+    return promise.then((data) => CreateModelChartFileResponse.decode(_m0.Reader.create(data)));
   }
 }
 
@@ -4033,6 +4183,10 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

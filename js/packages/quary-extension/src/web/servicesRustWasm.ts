@@ -203,6 +203,7 @@ export const rustWithoutDatabaseWasmServices = (files: ServicesFiles) => {
     get_project_config: wrapper(client.GetProjectConfig),
     generate_project_files: wrapper(client.GenerateProjectFiles),
     stringify_project_file: wrapper(client.StringifyProjectFile),
+    create_model_chart_file: wrapper(client.CreateModelChartFile),
     add_limit_to_select,
     clean_up,
     write_chart_file_to_yaml: (data: ChartFile): Result<Uint8Array> => {

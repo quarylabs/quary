@@ -3,6 +3,7 @@ use quary_core::automatic_branching::{
     cache_view_name_to_table_name_and_hash,
     given_map_and_hash_map_return_sub_graph_all_cached_for_a_particular_model, is_cache_full_path,
 };
+use quary_core::chart::chart_file_to_yaml;
 use quary_core::config::get_config_from_filesystem;
 use quary_core::databases::DatabaseQueryGenerator;
 use quary_core::description_table::map_to_description_table;
@@ -26,18 +27,21 @@ use quary_core::sql_inference_translator::map_test_to_sql_inference;
 use quary_core::sql_model_finder::sql_model_finder;
 use quary_core::tests::{return_test_for_model_column, ShortTestString};
 use quary_proto::cache_view_information::CacheView;
+use quary_proto::chart_file::AssetReference;
 use quary_proto::project_file::{Model, Snapshot};
 use quary_proto::return_definition_locations_for_sql_response::Definition;
 use quary_proto::{
-    AddColumnTestToModelOrSourceColumnRequest, AddColumnTestToModelOrSourceColumnResponse,
-    AddColumnToModelOrSourceRequest, AddColumnToModelOrSourceResponse, CacheViewInformation,
-    ColumnDescription, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse, Edge,
-    GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest,
-    GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse,
-    GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse,
-    IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, Node,
-    ParseProjectRequest, ParseProjectResponse, Project, ProjectDag, ProjectFile, ProjectFileColumn,
-    ProjectFileSource, RemoveColumnTestFromModelOrSourceColumnRequest,
+    chart_file, AddColumnTestToModelOrSourceColumnRequest,
+    AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest,
+    AddColumnToModelOrSourceResponse, CacheViewInformation, ChartFile, ColumnDescription,
+    CreateModelChartFileRequest, CreateModelChartFileResponse, CreateModelSchemaEntryRequest,
+    CreateModelSchemaEntryResponse, Edge, GenerateProjectFilesRequest,
+    GenerateProjectFilesResponse, GenerateSourceFilesRequest, GenerateSourceFilesResponse,
+    GetModelTableRequest, GetModelTableResponse, GetProjectConfigRequest, GetProjectConfigResponse,
+    InitFilesRequest, InitFilesResponse, IsPathEmptyRequest, IsPathEmptyResponse,
+    ListAssetsRequest, ListAssetsResponse, Node, ParseProjectRequest, ParseProjectResponse,
+    Project, ProjectDag, ProjectFile, ProjectFileColumn, ProjectFileSource,
+    RemoveColumnTestFromModelOrSourceColumnRequest,
     RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse,
     ReturnDataForDocViewRequest, ReturnDataForDocViewResponse,
     ReturnDefinitionLocationsForSqlRequest, ReturnDefinitionLocationsForSqlResponse,
@@ -163,6 +167,23 @@ pub(crate) async fn create_model_schema_entry(
         &request.model_name,
     )
     .await
+}
+
+pub(crate) async fn create_model_chart_file(
+    _: Writer,
+    _: JsFileSystem,
+    request: CreateModelChartFileRequest,
+) -> Result<CreateModelChartFileResponse, String> {
+    let chart_file = ChartFile {
+        description: None,
+        tags: vec![],
+        config: request.config,
+        source: Some(chart_file::Source::Reference(AssetReference {
+            name: request.model_name,
+        })),
+    };
+    let chart_file = chart_file_to_yaml(&chart_file)?;
+    Ok(CreateModelChartFileResponse { chart_file })
 }
 
 async fn create_model_schema_entry_internal(

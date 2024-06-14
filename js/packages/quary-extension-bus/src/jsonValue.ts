@@ -1,3 +1,5 @@
+export type JSONStruct = { [x: string]: JSONValue }
+
 export type JSONValue =
   | string
   | number

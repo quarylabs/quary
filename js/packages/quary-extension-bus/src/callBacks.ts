@@ -13,6 +13,7 @@ import {
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
+import { JSONStruct } from './jsonValue'
 
 export type Callbacks = {
   useGlobalStateNotSet: null
@@ -40,6 +41,10 @@ export type Callbacks = {
   executeSQLViewRunQuery: { limit: number | undefined }
   executeSQLViewExportCSV: { data: QueryResult }
   executeSQLViewCopyToClipboard: { data: QueryResult }
+  executeSQLViewCreateChart: {
+    model: string
+    chartSettings: JSONStruct
+  }
   importSources: {
     sources: ProjectFileSource[]
     folderPath: string

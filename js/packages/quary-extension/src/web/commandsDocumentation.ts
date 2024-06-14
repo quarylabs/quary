@@ -177,6 +177,7 @@ export const runDocumentationOnModel = async (
               results: {
                 type: 'run',
                 results: results.value,
+                modelName,
               },
             })
           }
@@ -237,6 +238,7 @@ export const runDocumentationOnModel = async (
               results: {
                 type: 'run',
                 results: results.value,
+                modelName,
               },
             })
           },
@@ -422,6 +424,7 @@ export const runDocumentationOnModel = async (
           ...sqlDocumentation,
           results: {
             type: 'run',
+            modelName: sqlDocumentation.modelName,
             results: results.value,
           },
         })
