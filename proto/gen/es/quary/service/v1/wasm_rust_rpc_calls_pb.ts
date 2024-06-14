@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Empty, Message, proto3 } from "@bufbuild/protobuf";
+import { Empty, Message, proto3, Struct } from "@bufbuild/protobuf";
 import { ConnectionConfig } from "./connection_config_pb.js";
 import { ColumnTest, ProjectFile } from "./project_file_pb.js";
 import { Project } from "./project_pb.js";
@@ -2036,6 +2036,86 @@ export class ReturnSQLForInjectedModelResponse extends Message<ReturnSQLForInjec
 
   static equals(a: ReturnSQLForInjectedModelResponse | PlainMessage<ReturnSQLForInjectedModelResponse> | undefined, b: ReturnSQLForInjectedModelResponse | PlainMessage<ReturnSQLForInjectedModelResponse> | undefined): boolean {
     return proto3.util.equals(ReturnSQLForInjectedModelResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.CreateModelChartFileRequest
+ */
+export class CreateModelChartFileRequest extends Message<CreateModelChartFileRequest> {
+  /**
+   * @generated from field: string model_name = 2;
+   */
+  modelName = "";
+
+  /**
+   * @generated from field: google.protobuf.Struct config = 3;
+   */
+  config?: Struct;
+
+  constructor(data?: PartialMessage<CreateModelChartFileRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.CreateModelChartFileRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 2, name: "model_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "config", kind: "message", T: Struct },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateModelChartFileRequest {
+    return new CreateModelChartFileRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateModelChartFileRequest {
+    return new CreateModelChartFileRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateModelChartFileRequest {
+    return new CreateModelChartFileRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreateModelChartFileRequest | PlainMessage<CreateModelChartFileRequest> | undefined, b: CreateModelChartFileRequest | PlainMessage<CreateModelChartFileRequest> | undefined): boolean {
+    return proto3.util.equals(CreateModelChartFileRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.CreateModelChartFileResponse
+ */
+export class CreateModelChartFileResponse extends Message<CreateModelChartFileResponse> {
+  /**
+   * @generated from field: string chart_file = 1;
+   */
+  chartFile = "";
+
+  constructor(data?: PartialMessage<CreateModelChartFileResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.CreateModelChartFileResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chart_file", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateModelChartFileResponse {
+    return new CreateModelChartFileResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateModelChartFileResponse {
+    return new CreateModelChartFileResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateModelChartFileResponse {
+    return new CreateModelChartFileResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreateModelChartFileResponse | PlainMessage<CreateModelChartFileResponse> | undefined, b: CreateModelChartFileResponse | PlainMessage<CreateModelChartFileResponse> | undefined): boolean {
+    return proto3.util.equals(CreateModelChartFileResponse, a, b);
   }
 }
 

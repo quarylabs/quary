@@ -1,0 +1,20 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/CreateModelChartFileRequest",
+    "definitions": {
+        "CreateModelChartFileRequest": {
+            "properties": {
+                "model_name": {
+                    "type": "string"
+                },
+                "config": {
+                    "additionalProperties": false,
+                    "type": "object"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Create Model Chart File Request"
+        }
+    }
+}

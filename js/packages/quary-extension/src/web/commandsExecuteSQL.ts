@@ -7,7 +7,7 @@ import * as vscode from 'vscode'
 import { ListAssetsResponse_Asset } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { queryResultToColumnsValues } from '@shared/shared'
 import { rustWithoutDatabaseWasmServices } from './servicesRustWasm'
-import { Services } from './services'
+import { getPreInitServices, Services } from './services'
 import { renderingFunction } from './commandsScaffolding'
 import { DEFAULT_LIMIT_FOR_SELECT } from './defaults'
 import { cacheViewBuilder } from './cacheViewBuilder'
@@ -126,6 +126,7 @@ export const executeSQLOnModel = async (
           limit,
           results: {
             type: 'run',
+            modelName,
             results: results.value,
           },
         })
@@ -136,6 +137,7 @@ export const executeSQLOnModel = async (
           'executeSQLViewRunQuery',
           'executeSQLViewExportCSV',
           'executeSQLViewCopyToClipboard',
+          'executeSQLViewCreateChart',
         ],
         {
           executeSQLViewRunQuery,
@@ -182,6 +184,27 @@ export const executeSQLOnModel = async (
                 `Error copying to clipboard ${error instanceof Error ? error.message : 'unknown error'}`,
               )
             }
+          },
+          executeSQLViewCreateChart: async ({ model, chartSettings }) => {
+            const services = getPreInitServices(extensionContext)
+            const content = await services.rust.create_model_chart_file({
+              modelName: model,
+              config: chartSettings,
+            })
+            if (isErr(content)) {
+              vscode.window.showErrorMessage(
+                `Error creating chart ${content.error.message}`,
+              )
+              return
+            }
+
+            const doc = await vscode.workspace.openTextDocument({
+              language: 'yaml',
+              content: content.value.chartFile,
+            })
+            vscode.window.showTextDocument(doc, {
+              preview: true,
+            })
           },
         },
         setState,

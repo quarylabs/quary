@@ -3,6 +3,7 @@ syntax = "proto3";
 package quary.service.v1;
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
 import "quary/service/v1/column_description.proto";
 import "quary/service/v1/connection_config.proto";
 import "quary/service/v1/project.proto";
@@ -28,6 +29,8 @@ service RustWithoutDatabaseService {
   // GenerateProjectFiles generates the project files after onboarding. This includes the project file, and some other
   // ancillary files for set up like .gitignore, github actions, and some folders.
   rpc GenerateProjectFiles(GenerateProjectFilesRequest) returns (GenerateProjectFilesResponse);
+  // CreateModelChartFile returns the yaml file for the chart for the given model with the given chart settings
+  rpc CreateModelChartFile(CreateModelChartFileRequest) returns (CreateModelChartFileResponse);
 }
 
 // RustServiceWithDatabase is the service that is used and where the database is used and so passed in as a parameter in
@@ -320,4 +323,13 @@ message ReturnSQLForInjectedModelRequest {
 
 message ReturnSQLForInjectedModelResponse {
   string sql = 1;
+}
+
+message CreateModelChartFileRequest {
+  string model_name = 2;
+  google.protobuf.Struct config = 3;
+}
+
+message CreateModelChartFileResponse {
+  string chart_file = 1;
 }

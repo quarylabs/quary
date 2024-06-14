@@ -125,6 +125,7 @@ export type SqlDocumentationResultsView =
     }
   | {
       type: 'run'
+      modelName: string
       results: QueryResult
     }
   | {

@@ -524,12 +524,12 @@ export const returnCommands = (
       )
       if (!asset) {
         return Err({
-          code: ErrorCodes.INTERNAL,
+          code: ErrorCodes.INVALID_ARGUMENT,
           message: `Active file is not a model: ${JSON.stringify(activeFileName)}`,
         })
       }
 
-      const preInitServices = await getPreInitServices(extensionContext)
+      const preInitServices = getPreInitServices(extensionContext)
       return executeSQLOnModel(
         asset.name,
         services,
@@ -594,15 +594,12 @@ export const returnCommandsWithLogs = (
 function extractModelNameFromFilePath(filePath: string): Result<string> {
   const pathSegments = filePath.split(/[/\\]/)
   const fileName = pathSegments.pop()
-
   if (!fileName) {
     return Err({
       code: ErrorCodes.INTERNAL,
       message: `No file name found in the path: ${filePath}`,
     })
   }
-
   const modelName = fileName.replace('.sql', '').replace('.snapshot', '')
-
   return Ok(modelName)
 }

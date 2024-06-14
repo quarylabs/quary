@@ -1,9 +1,14 @@
-import React, { useState } from 'react'
-import { PlayIcon, ClipboardDocumentListIcon } from '@heroicons/react/20/solid'
+import React, { useRef, useState } from 'react'
+import {
+  PlayIcon,
+  ClipboardDocumentListIcon,
+  ChartBarSquareIcon,
+} from '@heroicons/react/20/solid'
 import { DownloadIcon } from '@radix-ui/react-icons'
 import { useCallBackFrontEnd } from '@shared/callBacks'
 import { SqlDocumentationResultsView } from '@shared/globalViewState'
 import { codeToString } from '@shared/result.ts'
+import { JSONStruct, JSONValue } from '@shared/jsonValue.ts'
 import {
   Tooltip,
   TooltipContent,
@@ -38,20 +43,31 @@ export const ExecuteSQLView: React.FC<Props> = ({ results, limit }) => {
     executeSQLViewRunQuery,
     executeSQLViewExportCSV,
     executeSQLViewCopyToClipboard,
+    executeSQLViewCreateChart,
   } = useCallBackFrontEnd(
     [
       'executeSQLViewRunQuery',
       'executeSQLViewExportCSV',
       'executeSQLViewCopyToClipboard',
+      'executeSQLViewCreateChart',
     ],
     vscode.postMessage,
   )
   const loading = results.type === 'loading'
 
+  const chartState = useRef<JSONStruct>({})
+  const createChart = async () => {
+    await executeSQLViewCreateChart({
+      chartSettings: chartState.current,
+      model: results.type === 'run' ? results.modelName : '',
+    })
+  }
+
   return (
     <>
       <div className="pt-5">
         <TableToolbar
+          createChart={createChart}
           loading={loading}
           stagedLimit={stagedLimit}
           setStagedLimit={setStagedLimit}
@@ -78,8 +94,11 @@ export const ExecuteSQLView: React.FC<Props> = ({ results, limit }) => {
           }}
         />
         <Separator className="my-4" />
-
-        <Results results={results} limit={limit} />
+        <Results
+          results={results}
+          limit={limit}
+          chartSettingsRef={chartState}
+        />
       </div>
       <Separator className="my-4" />
     </>
@@ -93,7 +112,9 @@ const TableToolbar: React.FC<{
   reload: (message: { limit: number | undefined }) => void
   exportCSV: () => void
   copyToClipboard: () => void
+  createChart: () => void
 }> = ({
+  createChart,
   loading,
   stagedLimit,
   setStagedLimit,
@@ -143,6 +164,18 @@ const TableToolbar: React.FC<{
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger>
+            <Button variant="outline" disabled={loading} onClick={createChart}>
+              <ChartBarSquareIcon className="h-5 w-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Create Chart</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
             <Button variant="outline" disabled={loading} onClick={exportCSV}>
               <DownloadIcon className="h-5 w-5" />
             </Button>
@@ -176,7 +209,17 @@ const TableToolbar: React.FC<{
   </div>
 )
 
-const Results: React.FC<Props> = ({ results, limit }) => {
+interface ResultsProps {
+  results: SqlDocumentationResultsView
+  limit: number | undefined
+  chartSettingsRef: React.MutableRefObject<JSONValue>
+}
+
+const Results: React.FC<ResultsProps> = ({
+  results,
+  limit,
+  chartSettingsRef,
+}) => {
   switch (results.type) {
     case 'error': {
       return (
@@ -201,7 +244,12 @@ const Results: React.FC<Props> = ({ results, limit }) => {
             <DataTable result={results.results} limit={limit} />
           </TabsContent>
           <TabsContent value="perspective">
-            <Perspective results={results.results} />
+            <Perspective
+              results={results.results}
+              updateConfigListener={(chartDefinition) => {
+                chartSettingsRef.current = chartDefinition
+              }}
+            />
           </TabsContent>
         </Tabs>
       )
