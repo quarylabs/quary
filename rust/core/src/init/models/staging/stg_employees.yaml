@@ -1,0 +1,17 @@
+models:
+  - name: stg_employees
+    description: This is a staging model for employees and contains information about the employees of the company.
+    columns:
+      - name: employee_id
+        description: This is the employee's unique identifier.
+        tests:
+          - type: unique
+          - type: not_null
+      - name: first_name
+        description: This is the employee's first name.
+        tests:
+          - type: not_null
+      - name: last_name
+        description: This is the employee's last name.
+        tests:
+          - type: not_null

@@ -1,0 +1,30 @@
+models:
+  - name: shifts_by_month_average_min_max
+    description: minimum, max and average shifts worked by month by employees
+    columns:
+      - name: shift_month
+        description: This is the month of the shift in the format YYYY-MM.
+        tests:
+          - type: not_null
+          - type: unique
+      - name: average_shifts
+        description: This is the average number of shifts worked by all employees in the month.
+        tests:
+          - type: not_null
+          - type: gte
+            info:
+              value: '0'
+      - name: min_shifts
+        description: This is the minimum number of shifts worked by an employee.
+        tests:
+          - type: not_null
+          - type: gte
+            info:
+              value: '0'
+      - name: max_shifts
+        description: This is the maximum number of shifts worked by an employee.
+        tests:
+          - type: not_null
+          - type: gte
+            info:
+              value: '0'

@@ -1,0 +1,41 @@
+models:
+  - name: stg_shop_locations
+    description: This is a staging model for shop locations and contains information about the locations of the company's shops.
+    columns:
+      - name: id
+        description: This is the shop's unique identifier.
+        tests:
+          - type: unique
+          - type: not_null
+      - name: shop_name
+        description: This is the shop's name.
+        tests:
+          - type: not_null
+      - name: latitude
+        description: This is the shop's latitude.
+        tests:
+          - type: not_null
+          - type: gte
+            info:
+              value: '-90'
+          - type: lte
+            info:
+              value: '90'
+      - name: longitude
+        description: This is the shop's longitude.
+        tests:
+          - type: not_null
+          - type: gt
+            info:
+              value: '-180'
+          - type: lt
+            info:
+              value: '180'
+      - name: manager_id
+        description: This is the employee's unique identifier who acts as the shops manager.
+        tests:
+          - type: not_null
+          - type: relationship
+            info:
+              column: employee_id
+              model: stg_employees
