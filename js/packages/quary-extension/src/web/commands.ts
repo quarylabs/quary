@@ -34,7 +34,7 @@ import { createTestRunner } from './servicesRustWasm'
 export const returnCommands = (
   getServices: () => Promise<Services>,
   extensionContext: ExtensionContext,
-): Record<string, () => Promise<Result<undefined>>> =>
+) =>
   ({
     onboarding: onboarding(extensionContext),
     importSources: importSources(getServices, extensionContext),
