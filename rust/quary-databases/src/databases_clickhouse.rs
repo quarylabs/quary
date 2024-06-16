@@ -269,12 +269,12 @@ mod tests {
     use quary_core::project_tests::return_tests_sql;
     use quary_proto::{File, FileSystem};
     use testcontainers::runners::AsyncRunner;
-    use testcontainers::RunnableImage;
+    use testcontainers::ContainerRequest;
     use testcontainers_modules::clickhouse::ClickHouse as TestcontainersClickHouse;
 
     #[tokio::test]
     async fn test_clickhouse_list_tables_and_views() {
-        let container = RunnableImage::from(TestcontainersClickHouse::default())
+        let container = ContainerRequest::from(TestcontainersClickHouse::default())
             .start()
             .await
             .unwrap();
@@ -381,7 +381,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_clickhouse_list_columns_in_table() {
-        let container = RunnableImage::from(TestcontainersClickHouse::default())
+        let container = ContainerRequest::from(TestcontainersClickHouse::default())
             .start()
             .await
             .unwrap();
@@ -463,7 +463,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_clickhouse_foreign_relationship_test_with_schema() {
-        let container = RunnableImage::from(TestcontainersClickHouse::default())
+        let container = ContainerRequest::from(TestcontainersClickHouse::default())
             .start()
             .await
             .unwrap();
@@ -718,7 +718,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_tables_outside_the_schema() {
-        let container = RunnableImage::from(TestcontainersClickHouse::default())
+        let container = ContainerRequest::from(TestcontainersClickHouse::default())
             .start()
             .await
             .unwrap();
@@ -835,7 +835,7 @@ mod tests {
     // async fn test_clickhouse_snapshots_with_schema() {
     //     let schema = "analytics";
     //
-    //     let container = RunnableImage::from(TestcontainersClickHouse::default())
+    //     let container = ContainerRequest::from(TestcontainersClickHouse::default())
     //         .start()
     //         .await
     //         .unwrap();
