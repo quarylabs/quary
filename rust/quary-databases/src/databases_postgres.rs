@@ -327,12 +327,12 @@ mod tests {
     use quary_proto::{File, FileSystem};
     use std::time::SystemTime;
     use testcontainers::runners::AsyncRunner;
-    use testcontainers::RunnableImage;
+    use testcontainers::ContainerRequest;
     use testcontainers_modules::postgres::Postgres as TestcontainersPostgres;
 
     #[tokio::test]
     async fn run_build_with_project_twice() {
-        let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        let postgres = ContainerRequest::from(TestcontainersPostgres::default())
             .start()
             .await
             .unwrap();
@@ -402,7 +402,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_postgres_list_tables_and_views() {
-        let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        let postgres = ContainerRequest::from(TestcontainersPostgres::default())
             .start()
             .await
             .unwrap();
@@ -518,7 +518,7 @@ mod tests {
 
     #[tokio::test]
     async fn list_columns_in_table() {
-        let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        let postgres = ContainerRequest::from(TestcontainersPostgres::default())
             .start()
             .await
             .unwrap();
@@ -599,7 +599,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_postgres_foreign_relationship_test_with_schema() {
-        let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        let postgres = ContainerRequest::from(TestcontainersPostgres::default())
             .start()
             .await
             .unwrap();
@@ -722,7 +722,7 @@ models:
 
     #[tokio::test]
     async fn test_postgres_foreign_relationship_test_with_materialized_view_table() {
-        let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        let postgres = ContainerRequest::from(TestcontainersPostgres::default())
             .start()
             .await
             .unwrap();
@@ -869,7 +869,7 @@ models:
     /// postgres_sql_test tests a sql test with injecting the whole path of many models in tests
     #[tokio::test]
     async fn postgres_sql_test() {
-        let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        let postgres = ContainerRequest::from(TestcontainersPostgres::default())
             .start()
             .await
             .unwrap();
@@ -1000,7 +1000,7 @@ models:
 
     #[tokio::test]
     async fn test_list_tables_outside_the_schema() {
-        let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        let postgres = ContainerRequest::from(TestcontainersPostgres::default())
             .start()
             .await
             .unwrap();
@@ -1075,7 +1075,7 @@ models:
 
     #[tokio::test]
     async fn test_list_columns_with_case_sensitive_columns() {
-        let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        let postgres = ContainerRequest::from(TestcontainersPostgres::default())
             .start()
             .await
             .unwrap();
@@ -1142,7 +1142,7 @@ models:
 
     #[tokio::test]
     async fn test_snapshot_with_no_time_override() {
-        let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        let postgres = ContainerRequest::from(TestcontainersPostgres::default())
             .start()
             .await
             .unwrap();
@@ -1261,7 +1261,7 @@ snapshots:
 
     #[tokio::test]
     async fn test_snapshots_with_schema() {
-        let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        let postgres = ContainerRequest::from(TestcontainersPostgres::default())
             .start()
             .await
             .unwrap();
@@ -1524,7 +1524,7 @@ snapshots:
     async fn test_tests_with_full_source_tree() {
         let schema = "analytics";
 
-        let postgres = RunnableImage::from(TestcontainersPostgres::default())
+        let postgres = ContainerRequest::from(TestcontainersPostgres::default())
             .start()
             .await
             .unwrap();

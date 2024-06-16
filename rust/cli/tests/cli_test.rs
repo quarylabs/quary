@@ -7,7 +7,7 @@ use quary_databases::databases_redshift;
 use std::fs;
 use tempfile::tempdir;
 use testcontainers::runners::AsyncRunner;
-use testcontainers::RunnableImage;
+use testcontainers::ContainerRequest;
 use testcontainers_modules::postgres::Postgres as TestcontainersPostgres;
 #[test]
 fn test_cli_in_memory() {
@@ -579,7 +579,7 @@ async fn test_redshift_snapshots() {
 #[tokio::test]
 async fn test_postgres_build_model_twice() {
     // Setup
-    let postgres = RunnableImage::from(TestcontainersPostgres::default())
+    let postgres = ContainerRequest::from(TestcontainersPostgres::default())
         .start()
         .await
         .unwrap();
@@ -643,7 +643,7 @@ async fn test_postgres_build_model_twice() {
 #[tokio::test]
 async fn test_postgres_run_tests_from_sources() {
     // Setup
-    let postgres = RunnableImage::from(TestcontainersPostgres::default())
+    let postgres = ContainerRequest::from(TestcontainersPostgres::default())
         .start()
         .await
         .unwrap();
@@ -699,7 +699,7 @@ async fn test_postgres_run_tests_from_sources() {
 #[tokio::test]
 async fn test_postgres_run_tests_from_database_tables() {
     // Setup
-    let postgres = RunnableImage::from(TestcontainersPostgres::default())
+    let postgres = ContainerRequest::from(TestcontainersPostgres::default())
         .start()
         .await
         .unwrap();

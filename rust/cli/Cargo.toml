@@ -26,9 +26,8 @@ duckdb = { version = "0.10.2", features = ["bundled"] }
 chrono = "0.4.38"
 assert_cmd = "2"
 tempfile = "3"
-testcontainers = "0.17.0"
-# TODO make this depend on latest version when clickhouse is published
-testcontainers-modules = { git = "https://github.com/testcontainers/testcontainers-rs-modules-community", commit = "edf3c6e", features = ["postgres", "clickhouse"]}
+testcontainers = "0.18.0"
+testcontainers-modules = { version="0.6.1", features = ["postgres", "clickhouse"]}
 
 [build-dependencies]
 regex = "1.10.5"
