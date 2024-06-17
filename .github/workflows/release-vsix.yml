@@ -32,7 +32,7 @@ jobs:
           override: true
           profile: minimal
       - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
-      - uses: taiki-e/cache-cargo-install-action@5b024fe3a0a2c7f2aaff0e47871acf0d14b07207 # ratchet:taiki-e/cache-cargo-install-action@v1
+      - uses: taiki-e/cache-cargo-install-action@caa6f48d18d42462f9c30df89e2b4f71a42b7c2c # ratchet:taiki-e/cache-cargo-install-action@v1
         with:
           tool: wasm-bindgen-cli
       - name: Build rust wasm
