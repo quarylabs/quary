@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@types/node": "^20.14.2",
-    "protobufjs": "^7.3.0"
+    "protobufjs": "^7.3.2"
   },
   "devDependencies": {
     "typescript": "^5.4.5"
