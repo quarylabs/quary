@@ -7,7 +7,7 @@ import '@finos/perspective-viewer/dist/css/pro.css'
 // eslint-disable-next-line no-duplicate-imports
 import type { HTMLPerspectiveViewerElement } from '@finos/perspective-viewer'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
-import { dropNullValuesInJSONLike, JSONValue } from '@shared/jsonValue.ts'
+import { dropNullValuesInJSONLike, JSONValue } from '@shared/jsonValue'
 
 interface Props {
   title?: string

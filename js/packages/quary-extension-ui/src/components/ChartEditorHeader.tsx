@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { PencilSquareIcon, PlayIcon, PlusIcon } from '@heroicons/react/20/solid'
-import { useCallBackFrontEnd } from '@shared/callBacks.ts'
+import { useCallBackFrontEnd } from '@shared/callBacks'
 import { z } from 'zod'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
-import { vscode } from '@ui/utils/VSCodeAPIWrapper.ts'
+import { vscode } from '@ui/utils/VSCodeAPIWrapper'
 
 import {
   Select,

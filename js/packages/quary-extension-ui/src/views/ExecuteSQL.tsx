@@ -7,8 +7,8 @@ import {
 import { DownloadIcon } from '@radix-ui/react-icons'
 import { useCallBackFrontEnd } from '@shared/callBacks'
 import { SqlDocumentationResultsView } from '@shared/globalViewState'
-import { codeToString } from '@shared/result.ts'
-import { JSONStruct, JSONValue } from '@shared/jsonValue.ts'
+import { codeToString } from '@shared/result'
+import { JSONStruct, JSONValue } from '@shared/jsonValue'
 import {
   Tooltip,
   TooltipContent,

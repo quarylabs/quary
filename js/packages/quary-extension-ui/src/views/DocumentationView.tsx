@@ -10,10 +10,10 @@ import {
   ArrowPathIcon,
   PlusCircleIcon,
 } from '@heroicons/react/20/solid'
-import { Table } from '@quary/proto/quary/service/v1/table.ts'
-import { ColumnTest } from '@quary/proto/quary/service/v1/project_file.ts'
-import { useCallBackFrontEnd } from '@shared/callBacks.ts'
-import { codeToString } from '@shared/result.ts'
+import { Table } from '@quary/proto/quary/service/v1/table'
+import { ColumnTest } from '@quary/proto/quary/service/v1/project_file'
+import { useCallBackFrontEnd } from '@shared/callBacks'
+import { codeToString } from '@shared/result'
 import { Button } from '@ui/components/ui/button'
 import {
   Dialog,
