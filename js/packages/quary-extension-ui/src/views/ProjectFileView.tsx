@@ -1,5 +1,5 @@
-import { PageTitle } from '@/components/PageTitle'
-import { CodeBlock } from '@/components/CodeBlock'
+import { PageTitle } from '@ui/components/PageTitle'
+import { CodeBlock } from '@ui/components/CodeBlock'
 
 interface Props {
   file: string

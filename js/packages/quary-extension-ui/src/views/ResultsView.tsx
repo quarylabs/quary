@@ -1,18 +1,18 @@
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { queryResultToColumnsValues } from '@shared/shared'
 import React from 'react'
-import { Language } from '@/utils/sql'
-import { PageTitle } from '@/components/PageTitle'
-import { Table, TableHeaderWithSubheader } from '@/components/Table'
-import { SectionTitle } from '@/components/SectionTitle'
-import { CodeBlock } from '@/components/CodeBlock'
+import { Language } from '@ui/utils/sql'
+import { PageTitle } from '@ui/components/PageTitle'
+import { Table, TableHeaderWithSubheader } from '@ui/components/Table'
+import { SectionTitle } from '@ui/components/SectionTitle'
+import { CodeBlock } from '@ui/components/CodeBlock'
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '@/components/ui/tabs.tsx'
-import { Perspective } from '@/components/Perspective.tsx'
+} from '@ui/components/ui/tabs.tsx'
+import { Perspective } from '@ui/components/Perspective.tsx'
 
 interface Props {
   originalSql: string

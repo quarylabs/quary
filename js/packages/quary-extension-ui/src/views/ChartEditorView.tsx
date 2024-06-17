@@ -1,7 +1,7 @@
 import React from 'react'
 import type { ChartEditorData } from '@shared/globalViewState'
-import { ChartEditorHeader } from '@/components/ChartEditorHeader'
-import { ChartEditor } from '@/components/ChartEditor'
+import { ChartEditorHeader } from '@ui/components/ChartEditorHeader'
+import { ChartEditor } from '@ui/components/ChartEditor'
 
 interface Props {
   data: ChartEditorData

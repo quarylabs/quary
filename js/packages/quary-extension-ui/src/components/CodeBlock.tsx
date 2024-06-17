@@ -6,8 +6,8 @@ import vs from 'react-syntax-highlighter/dist/esm/styles/prism/vs'
 import { ClipboardDocumentIcon } from '@heroicons/react/20/solid'
 import { format } from 'sql-formatter'
 import { SqlLanguage } from '@shared/config'
-import { Button } from '@/components/ui/button'
-import { copyToClipboard } from '@/utils/clipboard'
+import { Button } from '@ui/components/ui/button'
+import { copyToClipboard } from '@ui/utils/clipboard'
 
 interface Props {
   code: string

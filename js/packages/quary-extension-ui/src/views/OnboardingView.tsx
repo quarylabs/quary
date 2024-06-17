@@ -5,20 +5,25 @@ import {
 } from '@shared/globalViewState'
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
 import { Callbacks, useCallBackFrontEnd } from '@shared/callBacks'
-import { Button } from '@/components/ui/button'
+import { Button } from '@ui/components/ui/button'
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectItem,
   SelectContent,
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { vscode } from '@/utils/VSCodeAPIWrapper'
-import { Warning } from '@/components/Warning'
-import { ProgressRing } from '@/components/ProgressRing'
-import { Label } from '@/components/ui/label'
+} from '@ui/components/ui/select'
+import { Input } from '@ui/components/ui/input'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@ui/components/ui/card'
+import { vscode } from '@ui/utils/VSCodeAPIWrapper'
+import { Warning } from '@ui/components/Warning'
+import { ProgressRing } from '@ui/components/ProgressRing'
+import { Label } from '@ui/components/ui/label'
 
 interface Props {
   states: OnboardingViewStates

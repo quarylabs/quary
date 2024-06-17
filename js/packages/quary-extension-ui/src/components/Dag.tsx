@@ -12,9 +12,9 @@ import 'reactflow/dist/style.css'
 import './Dag.css'
 import { Dag as DagType } from '@shared/globalViewState'
 import { Err, isErr, Ok, ResultE } from '@shared/result'
+import { cn } from '@ui/lib/utils'
 import { Warning } from './Warning'
 import { DagNode, DagNodeDataType } from './DagNode'
-import { cn } from '@/lib/utils'
 
 const NODE_SPACING = 200
 const LAYER_SPACING = 20

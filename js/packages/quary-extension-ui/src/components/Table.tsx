@@ -6,7 +6,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from '@ui/components/ui/table'
 
 interface Props {
   headers: Array<React.ReactNode>
