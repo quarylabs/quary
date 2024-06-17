@@ -586,7 +586,7 @@ sources:
             Some("description for source".to_string())
         );
         // assertions about model
-        assert!(project.models.get(new_model).is_some());
+        assert!(project.models.contains_key(new_model));
         assert_eq!(
             project.models.get(new_model).unwrap().references,
             vec!["source_name_but_not_path"]

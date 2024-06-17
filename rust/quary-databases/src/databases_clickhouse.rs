@@ -206,7 +206,6 @@ ORDER BY position;",
             let row_length = row.len();
             // TODO Optimise only do this once
             columns = (0..row_length)
-                .into_iter()
                 .map(|i| {
                     (
                         row.name(i).unwrap().to_string(),
@@ -216,7 +215,6 @@ ORDER BY position;",
                 .collect();
 
             let row: Vec<String> = (0..row_length)
-                .into_iter()
                 .map(|i| {
                     let sql_type = row.sql_type(i).unwrap();
                     match sql_type {
