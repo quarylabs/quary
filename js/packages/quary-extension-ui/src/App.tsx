@@ -15,7 +15,7 @@ import '@ui/index.css'
 import { ErrorView } from '@ui/views/ErrorView'
 import { ExecuteSQLView } from '@ui/views/ExecuteSQL'
 import { ImportSourcesView } from '@ui/views/ImportSourcesView'
-import { ChartEditorView } from '@ui/views/ChartEditorView.tsx'
+import { ChartEditorView } from '@ui/views/ChartEditorView'
 
 function App() {
   const [view] = useGlobalState()

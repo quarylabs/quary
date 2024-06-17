@@ -21,7 +21,7 @@ import {
   TooltipTrigger,
 } from '@ui/components/ui/tooltip'
 import { Button } from '@ui/components/ui/button'
-import { Input } from '@ui/components/ui/input.tsx'
+import { Input } from '@ui/components/ui/input'
 
 interface Props {
   chartFileSource: ChartFile['source']
