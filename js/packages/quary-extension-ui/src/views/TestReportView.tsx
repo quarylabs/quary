@@ -1,8 +1,8 @@
 import type { Test, TestStatus } from '@shared/globalViewState'
 import { TestRunner } from '@quary/proto/quary/service/v1/test_runner'
-import { toSingleLine } from '@/utils/sql'
-import { PageTitle } from '@/components/PageTitle'
-import { Table } from '@/components/Table'
+import { toSingleLine } from '@ui/utils/sql'
+import { PageTitle } from '@ui/components/PageTitle'
+import { Table } from '@ui/components/Table'
 
 interface Props {
   testRunner: TestRunner

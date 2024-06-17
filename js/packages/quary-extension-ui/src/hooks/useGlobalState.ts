@@ -5,7 +5,7 @@ import {
   USE_GLOBAL_STATE_MESSAGE_TYPE_SET,
   View,
 } from '@shared/globalViewState'
-import { vscode } from '@/utils/VSCodeAPIWrapper'
+import { vscode } from '@ui/utils/VSCodeAPIWrapper'
 
 export const useGlobalState = (): [View] => {
   const [state, setState] = useState<View>({ type: 'loading' })

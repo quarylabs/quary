@@ -14,7 +14,7 @@ import { Table } from '@quary/proto/quary/service/v1/table.ts'
 import { ColumnTest } from '@quary/proto/quary/service/v1/project_file.ts'
 import { useCallBackFrontEnd } from '@shared/callBacks.ts'
 import { codeToString } from '@shared/result.ts'
-import { Button } from '@/components/ui/button'
+import { Button } from '@ui/components/ui/button'
 import {
   Dialog,
   DialogClose,
@@ -24,20 +24,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Textarea } from '@/components/ui/textarea'
-import { DataTable } from '@/components/DataTable'
-import { PageTitle } from '@/components/PageTitle'
-import { Dag } from '@/components/Dag'
-import { SectionTitle } from '@/components/SectionTitle'
-import { ModelDetails } from '@/components/ModelDetails'
-import { LoadingView } from '@/views/LoadingView'
-import { vscode } from '@/utils/VSCodeAPIWrapper'
-import { Warning } from '@/components/Warning'
-import { DagNodeDataType } from '@/components/DagNode'
-import { Badge } from '@/components/ui/badge.tsx'
+} from '@ui/components/ui/dialog'
+import { Label } from '@ui/components/ui/label'
+import { Separator } from '@ui/components/ui/separator'
+import { Textarea } from '@ui/components/ui/textarea'
+import { DataTable } from '@ui/components/DataTable'
+import { PageTitle } from '@ui/components/PageTitle'
+import { Dag } from '@ui/components/Dag'
+import { SectionTitle } from '@ui/components/SectionTitle'
+import { ModelDetails } from '@ui/components/ModelDetails'
+import { LoadingView } from '@ui/views/LoadingView'
+import { vscode } from '@ui/utils/VSCodeAPIWrapper'
+import { Warning } from '@ui/components/Warning'
+import { DagNodeDataType } from '@ui/components/DagNode'
+import { Badge } from '@ui/components/ui/badge.tsx'
 
 interface Props {
   modelName: string

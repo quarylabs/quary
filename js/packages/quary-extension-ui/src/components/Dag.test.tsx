@@ -1,7 +1,12 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { expect, it, describe } from 'vitest'
 import { isErr } from '@shared/result'
-import { DagEdge, DagNode, findTargetNode, applyLayout } from '@/components/Dag'
+import {
+  DagEdge,
+  DagNode,
+  findTargetNode,
+  applyLayout,
+} from '@ui/components/Dag'
 
 describe('findTargetNode', () => {
   it('should solve a simple example with one node', () => {

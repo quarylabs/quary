@@ -5,30 +5,30 @@ import {
   CheckIcon,
 } from '@radix-ui/react-icons'
 import { ColumnTest } from '@quary/proto/quary/service/v1/project_file'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Badge } from '@ui/components/ui/badge'
+import { Button } from '@ui/components/ui/button'
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from '@ui/components/ui/dialog'
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
-} from '@/components/ui/command'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from '@ui/components/ui/command'
+import { Input } from '@ui/components/ui/input'
+import { Label } from '@ui/components/ui/label'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover'
-import { cn } from '@/lib/utils'
+} from '@ui/components/ui/popover'
+import { cn } from '@ui/lib/utils'
 
 // TODO: get available tests from rust/proto
 const POSSIBLE_TESTS = [

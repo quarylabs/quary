@@ -14,22 +14,22 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { Button } from '@/components/ui/button'
-import { DataTable } from '@/components/DataTable'
-import { Warning } from '@/components/Warning'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { vscode } from '@/utils/VSCodeAPIWrapper'
-import { LoadingView } from '@/views/LoadingView'
+} from '@ui/components/ui/tooltip'
+import { Button } from '@ui/components/ui/button'
+import { DataTable } from '@ui/components/DataTable'
+import { Warning } from '@ui/components/Warning'
+import { Input } from '@ui/components/ui/input'
+import { Label } from '@ui/components/ui/label'
+import { Separator } from '@ui/components/ui/separator'
+import { vscode } from '@ui/utils/VSCodeAPIWrapper'
+import { LoadingView } from '@ui/views/LoadingView'
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '@/components/ui/tabs.tsx'
-import { Perspective } from '@/components/Perspective.tsx'
+} from '@ui/components/ui/tabs.tsx'
+import { Perspective } from '@ui/components/Perspective.tsx'
 
 interface Props {
   results: SqlDocumentationResultsView

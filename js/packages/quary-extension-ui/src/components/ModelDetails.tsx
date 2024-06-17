@@ -13,17 +13,17 @@ import {
   RowTest,
   Table,
 } from '@quary/proto/quary/service/v1/table'
-import { Table as TableComponent } from './Table'
-import { AddTestDialog } from './AddTestDialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Button } from '@ui/components/ui/button'
+import { Input } from '@ui/components/ui/input'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { Badge } from '@/components/ui/badge'
+} from '@ui/components/ui/tooltip'
+import { Badge } from '@ui/components/ui/badge'
+import { AddTestDialog } from './AddTestDialog'
+import { Table as TableComponent } from './Table'
 
 interface Props {
   table: Table

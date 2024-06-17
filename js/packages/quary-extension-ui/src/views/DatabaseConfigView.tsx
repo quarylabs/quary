@@ -1,5 +1,5 @@
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
-import { PageTitle } from '@/components/PageTitle'
+import { PageTitle } from '@ui/components/PageTitle'
 
 interface Props {
   config?: ConnectionConfig

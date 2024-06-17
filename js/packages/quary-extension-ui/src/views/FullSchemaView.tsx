@@ -1,8 +1,8 @@
 import { ClipboardDocumentIcon } from '@heroicons/react/20/solid'
-import { Language } from '@/utils/sql'
-import { PageTitle } from '@/components/PageTitle'
-import { Button } from '@/components/ui/button'
-import { CodeBlock } from '@/components/CodeBlock'
+import { Language } from '@ui/utils/sql'
+import { PageTitle } from '@ui/components/PageTitle'
+import { Button } from '@ui/components/ui/button'
+import { CodeBlock } from '@ui/components/CodeBlock'
 
 interface Props {
   fullSchema: string

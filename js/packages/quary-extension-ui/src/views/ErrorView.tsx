@@ -1,5 +1,5 @@
 import { ErrorCodes, QuaryError, codeToString } from '@shared/result'
-import { Warning } from '@/components/Warning'
+import { Warning } from '@ui/components/Warning'
 
 interface Props {
   error: QuaryError

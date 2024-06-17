@@ -1,4 +1,4 @@
-import { ProgressRing } from '@/components/ProgressRing'
+import { ProgressRing } from '@ui/components/ProgressRing'
 
 export const LoadingView: React.FC = () => (
   <div className="flex justify-center pt-10">

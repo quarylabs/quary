@@ -3,7 +3,7 @@ import { PencilSquareIcon, PlayIcon, PlusIcon } from '@heroicons/react/20/solid'
 import { useCallBackFrontEnd } from '@shared/callBacks.ts'
 import { z } from 'zod'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
-import { vscode } from '@/utils/VSCodeAPIWrapper.ts'
+import { vscode } from '@ui/utils/VSCodeAPIWrapper.ts'
 
 import {
   Select,
@@ -13,15 +13,15 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@ui/components/ui/select'
 import {
   TooltipProvider,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input.tsx'
+} from '@ui/components/ui/tooltip'
+import { Button } from '@ui/components/ui/button'
+import { Input } from '@ui/components/ui/input.tsx'
 
 interface Props {
   chartFileSource: ChartFile['source']

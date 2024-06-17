@@ -1,6 +1,6 @@
 import React from 'react'
-import { PageTitle } from '@/components/PageTitle'
-import { Table } from '@/components/Table'
+import { PageTitle } from '@ui/components/PageTitle'
+import { Table } from '@ui/components/Table'
 
 interface Props {
   tables: Array<string>

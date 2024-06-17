@@ -3,14 +3,19 @@ import { ImportSourcesViewState } from '@shared/globalViewState'
 import { VSCodeBadge } from '@vscode/webview-ui-toolkit/react'
 import Fuse from 'fuse.js'
 import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file.ts'
-import { ProgressRing } from '@/components/ProgressRing'
-import { Warning } from '@/components/Warning'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { ProgressRing } from '@ui/components/ProgressRing'
+import { Warning } from '@ui/components/Warning'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@ui/components/ui/card'
+import { Input } from '@ui/components/ui/input'
+import { Separator } from '@ui/components/ui/separator'
+import { Label } from '@ui/components/ui/label'
+import { Button } from '@ui/components/ui/button'
+import { Checkbox } from '@ui/components/ui/checkbox'
 
 interface Props {
   state: ImportSourcesViewState
