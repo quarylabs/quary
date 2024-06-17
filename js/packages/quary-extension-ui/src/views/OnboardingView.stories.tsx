@@ -1,4 +1,5 @@
 import { Meta, StoryObj } from '@storybook/react'
+import { DatabaseOnboardingOptions } from '@shared/globalViewState'
 import { OnboardingView } from './OnboardingView'
 
 const meta: Meta<typeof OnboardingView> = {
@@ -22,7 +23,7 @@ export const BigQueryLoading: Story = {
     states: {
       type: 'listSourcesLoading',
       database: {
-        type: 'bigQuery',
+        type: DatabaseOnboardingOptions.BigQuery,
         token: 'token',
       },
     },
@@ -34,7 +35,7 @@ export const SqliteLoading: Story = {
     states: {
       type: 'listSourcesLoading',
       database: {
-        type: 'sqlite',
+        type: DatabaseOnboardingOptions.Sqlite,
         path: 'db.sqlite',
       },
     },
@@ -46,7 +47,7 @@ export const SqliteInMemoryLoading: Story = {
     states: {
       type: 'listSourcesLoading',
       database: {
-        type: 'sqliteInMemory',
+        type: DatabaseOnboardingOptions.SQLiteInMemory,
       },
     },
   },
@@ -70,7 +71,7 @@ export const SqliteError: Story = {
     states: {
       type: 'listSourcesError',
       database: {
-        type: 'sqlite',
+        type: DatabaseOnboardingOptions.Sqlite,
         path: '/path/to/sqlite.db',
       },
       error: 'error',
@@ -83,7 +84,7 @@ export const SqliteInMemoryError: Story = {
     states: {
       type: 'listSourcesError',
       database: {
-        type: 'sqliteInMemory',
+        type: DatabaseOnboardingOptions.SQLiteInMemory,
       },
       error: 'error',
     },
@@ -95,7 +96,7 @@ export const BigQuerySuccess: Story = {
     states: {
       type: 'listSourcesSuccess',
       sourceDetails: {
-        type: 'bigQuery',
+        type: DatabaseOnboardingOptions.BigQuery,
         sources: [
           {
             name: 'stg_employees',
@@ -127,7 +128,7 @@ export const BigQuerySuccessVeryLongList: Story = {
     states: {
       type: 'listSourcesSuccess',
       sourceDetails: {
-        type: 'bigQuery',
+        type: DatabaseOnboardingOptions.BigQuery,
         sources: [
           {
             name: 'stg_employees',
@@ -185,7 +186,7 @@ export const SnowflakeSuccess: Story = {
     states: {
       type: 'listSourcesSuccess',
       sourceDetails: {
-        type: 'snowflake',
+        type: DatabaseOnboardingOptions.Snowflake,
         sources: [
           {
             name: 'stg_employees',
@@ -217,7 +218,7 @@ export const SqliteSuccess: Story = {
     states: {
       type: 'listSourcesSuccess',
       sourceDetails: {
-        type: 'sqlite',
+        type: DatabaseOnboardingOptions.Sqlite,
         path: '/path/to/sqlite.db',
         sources: [
           {

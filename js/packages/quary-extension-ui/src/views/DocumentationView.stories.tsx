@@ -38,7 +38,7 @@ export const Main: Story = {
           {
             name: 'value',
             type: 'REAL',
-            values: [33406.5, 33406.5, 33406.5, 33406.5],
+            values: ['33406.5', '33406.5', '33406.5', '33406.5'],
           },
           {
             name: 'date_opened',
@@ -48,7 +48,7 @@ export const Main: Story = {
           {
             name: 'date_closed',
             type: 'DATE',
-            values: [null, null, null, null],
+            values: ['null', 'null', 'null', 'null'],
           },
         ],
       },
