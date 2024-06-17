@@ -4,7 +4,6 @@ import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql'
 import yaml from 'react-syntax-highlighter/dist/esm/languages/prism/yaml'
 import vs from 'react-syntax-highlighter/dist/esm/styles/prism/vs'
 import { ClipboardDocumentIcon } from '@heroicons/react/20/solid'
-import { format } from 'sql-formatter'
 import { SqlLanguage } from '@shared/config'
 import { Button } from '@ui/components/ui/button'
 import { copyToClipboard } from '@ui/utils/clipboard'
@@ -29,12 +28,7 @@ export const CodeBlock: React.FC<Props> = ({ code, language, turnOffCopy }) => {
   let out: string
   switch (language.type) {
     case 'sql': {
-      out = format(code.trim(), {
-        language:
-          language.variant === 'duckdb' || language.variant === 'clickhouse'
-            ? 'sql'
-            : language.variant,
-      })
+      out = code
       break
     }
     case 'yaml': {
