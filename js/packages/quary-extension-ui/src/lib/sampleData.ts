@@ -13,12 +13,12 @@ export const sampleQueryResult: QueryResult = {
       ],
     },
     { name: 'currency', values: ['GBP', 'GBP', 'GBP', 'GBP'] },
-    { name: 'value', values: [33406.5, 33406.5, 33406.5, 33406.5] },
+    { name: 'value', values: ['33406.5', '33406.5', '33406.5', '33406.5'] },
     {
       name: 'date_opened',
       values: ['2022-12-21', '2022-12-21', '2022-12-21', '2022-12-21'],
     },
-    { name: 'date_closed', values: [null, null, null, null] },
+    { name: 'date_closed', values: ['null', 'null', 'null', 'null'] },
   ],
 }
 
@@ -47,7 +47,7 @@ export const sampleQueryResultWithTypes: QueryResult = {
     {
       name: 'value',
       type: 'REAL',
-      values: [33406.5, 33406.5, 33406.5, 33406.5],
+      values: ['33406.5', '33406.5', '33406.5', '33406.5'],
     },
     {
       name: 'date_opened',
@@ -57,7 +57,7 @@ export const sampleQueryResultWithTypes: QueryResult = {
     {
       name: 'date_closed',
       type: 'DATE',
-      values: [null, null, null, null],
+      values: ['null', 'null', 'null', 'null'],
     },
   ],
 }
