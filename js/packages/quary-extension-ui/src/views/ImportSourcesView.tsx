@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { ImportSourcesViewState } from '@shared/globalViewState'
 import { VSCodeBadge } from '@vscode/webview-ui-toolkit/react'
 import Fuse from 'fuse.js'
-import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file.ts'
+import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
 import { ProgressRing } from '@ui/components/ProgressRing'
 import { Warning } from '@ui/components/Warning'
 import {
