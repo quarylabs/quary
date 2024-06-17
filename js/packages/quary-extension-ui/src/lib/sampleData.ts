@@ -1,4 +1,4 @@
-import { QueryResult } from '@quary/root/proto/gen/ts/quary/service/v1/query_result'
+import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 
 export const sampleQueryResult: QueryResult = {
   columns: [
