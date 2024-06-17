@@ -37,7 +37,7 @@ import { LoadingView } from '@ui/views/LoadingView'
 import { vscode } from '@ui/utils/VSCodeAPIWrapper'
 import { Warning } from '@ui/components/Warning'
 import { DagNodeDataType } from '@ui/components/DagNode'
-import { Badge } from '@ui/components/ui/badge.tsx'
+import { Badge } from '@ui/components/ui/badge'
 
 interface Props {
   modelName: string

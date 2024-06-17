@@ -28,8 +28,8 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '@ui/components/ui/tabs.tsx'
-import { Perspective } from '@ui/components/Perspective.tsx'
+} from '@ui/components/ui/tabs'
+import { Perspective } from '@ui/components/Perspective'
 
 interface Props {
   results: SqlDocumentationResultsView
