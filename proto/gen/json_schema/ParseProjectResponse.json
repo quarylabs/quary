@@ -30,7 +30,7 @@
                     "type": "array",
                     "description": "Tags are used to group different parts of the project together. For example, you could tag all models that are related to a specific department with the same tag."
                 },
-                "path": {
+                "file_path": {
                     "type": "string",
                     "description": "Path of the file"
                 },

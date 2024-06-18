@@ -37,9 +37,9 @@ export class Chart extends Message<Chart> {
   /**
    * Path of the file
    *
-   * @generated from field: string path = 9;
+   * @generated from field: string file_path = 9;
    */
-  path = "";
+  filePath = "";
 
   /**
    * Where the data comes from
@@ -97,7 +97,7 @@ export class Chart extends Message<Chart> {
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "tags", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 9, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "file_path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "raw_sql", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "source" },
     { no: 5, name: "pre_templated_sql", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "source" },
     { no: 6, name: "reference", kind: "message", T: Chart_AssetReference, oneof: "source" },
