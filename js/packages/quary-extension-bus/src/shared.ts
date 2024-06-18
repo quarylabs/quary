@@ -7,7 +7,7 @@ function transpose<T>(matrix: T[][]): T[][] {
     return []
   }
   const cols = matrix[0].length
-  let newMatrix: T[][] = Array.from({ length: cols }, () =>
+  const newMatrix: T[][] = Array.from({ length: cols }, () =>
     Array.from({ length: rows }),
   )
 

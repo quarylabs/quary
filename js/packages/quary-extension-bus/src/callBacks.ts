@@ -100,9 +100,8 @@ export const useCallBackBackEnd = <T extends keyof Callbacks>(
         const callback = callbacks[type as T]
         if (callback) {
           await callback(payload as Callbacks[T], setState, panel)
-        } else {
-          throw new Error(`Unknown command ${type}`)
         }
+        throw new Error(`Unknown command ${type}`)
       }
     },
     undefined,

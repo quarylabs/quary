@@ -24,7 +24,7 @@ export function Err(error: QuaryError): Err<QuaryError> {
   return { ok: false, error }
 }
 
-export function isOk<T>(result: ResultE<T, any>): result is Ok<T>
+export function isOk<T, E>(result: ResultE<T, E>): result is Ok<T>
 export function isOk<T>(result: Result<T>): result is Ok<T> {
   return result.ok
 }
