@@ -20,17 +20,35 @@ export const Success: Story = {
         {
           name: 'stg_employees',
           path: 'quary.transform.stg_employees',
-          columns: ['id', 'name', 'age', 'salary'],
+          tags: [],
+          tests: [],
+          columns: [
+            { name: 'id', tests: [] },
+            { name: 'name', tests: [] },
+            { name: 'age', tests: [] },
+            { name: 'salary', tests: [] },
+          ],
         },
         {
           name: 'stg_orders',
           path: 'quary.sources.stg_orders',
-          columns: ['id', 'quantity', 'price'],
+          tags: [],
+          tests: [],
+          columns: [
+            { name: 'id', tests: [] },
+            { name: 'quantity', tests: [] },
+            { name: 'price', tests: [] },
+          ],
         },
         {
           name: 'weather_luxembourg',
           path: 'example.weather.weather_luxembourg',
-          columns: ['date', 'temperature'],
+          tags: [],
+          tests: [],
+          columns: [
+            { name: 'date', tests: [] },
+            { name: 'temperature', tests: [] },
+          ],
         },
       ],
     },

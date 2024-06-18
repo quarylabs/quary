@@ -19,7 +19,7 @@ const argTypes = {
 const args = {
   table: {
     tableType: {
-      $case: 'present',
+      $case: 'present' as const,
       present: {
         rows: [
           {
@@ -30,7 +30,7 @@ const args = {
                 tests: [],
                 description: {
                   description: {
-                    $case: 'present',
+                    $case: 'present' as const,
                     present: 'This is just a present description',
                   },
                 },
@@ -103,7 +103,7 @@ const args = {
           },
           {
             row: {
-              $case: 'presentInDefinitionsButNotRecognisableInSql',
+              $case: 'presentInDefinitionsButNotRecognisableInSql' as const,
               presentInDefinitionsButNotRecognisableInSql: {
                 title: 'Present in definition but not recognisable in SQL',
                 tests: [],
@@ -118,13 +118,13 @@ const args = {
           },
           {
             row: {
-              $case: 'presentInDefinitionsButNotRecognisableInSql',
+              $case: 'presentInDefinitionsButNotRecognisableInSql' as const,
               presentInDefinitionsButNotRecognisableInSql: {
                 title: 'Present in definition but not recognisable in SQL',
                 tests: [],
                 description: {
                   description: {
-                    $case: 'present',
+                    $case: 'present' as const,
                     present: 'This is just a present description',
                   },
                 },
@@ -133,7 +133,7 @@ const args = {
           },
           {
             row: {
-              $case: 'presentInDefinitionsButNotRecognisableInSql',
+              $case: 'presentInDefinitionsButNotRecognisableInSql' as const,
               presentInDefinitionsButNotRecognisableInSql: {
                 title: 'Present in definition but not recognisable in SQL',
                 tests: [
@@ -150,7 +150,7 @@ const args = {
                   },
                   {
                     test: {
-                      $case: 'presentAndNotInferred',
+                      $case: 'presentAndNotInferred' as const,
                       presentAndNotInferred: {
                         text: 'Present and not Inferred',
                         columnTest: {
@@ -206,7 +206,7 @@ const args = {
                 ],
                 description: {
                   description: {
-                    $case: 'present',
+                    $case: 'present' as const,
                     present: 'This is just a present description',
                   },
                 },
@@ -233,7 +233,7 @@ const args = {
                   },
                   {
                     test: {
-                      $case: 'presentAndInferred',
+                      $case: 'presentAndInferred' as const,
                       presentAndInferred: {
                         text: 'Present and inferred',
                         columnTest: {
@@ -244,7 +244,7 @@ const args = {
                   },
                   {
                     test: {
-                      $case: 'notPresentButInferred',
+                      $case: 'notPresentButInferred' as const,
                       notPresentButInferred: {
                         text: 'Not present but inferred',
                         columnTest: {
@@ -256,7 +256,7 @@ const args = {
                 ],
                 description: {
                   description: {
-                    $case: 'present',
+                    $case: 'present' as const,
                     present: 'This is just a present description',
                   },
                 },
@@ -279,7 +279,7 @@ export const NotPresent: Story = {
   args: {
     table: {
       tableType: {
-        $case: 'notPresent',
+        $case: 'notPresent' as const,
         notPresent: {
           rows: [
             {
@@ -287,7 +287,7 @@ export const NotPresent: Story = {
               tests: [],
               description: {
                 description: {
-                  $case: 'present',
+                  $case: 'present' as const,
                   present: 'This is just a present description',
                 },
               },
@@ -297,7 +297,7 @@ export const NotPresent: Story = {
               tests: [],
               description: {
                 description: {
-                  $case: 'presentAndInferredIdentical',
+                  $case: 'presentAndInferredIdentical' as const,
                   presentAndInferredIdentical:
                     "This is just a present description that's also inferred",
                 },
@@ -308,7 +308,7 @@ export const NotPresent: Story = {
               tests: [],
               description: {
                 description: {
-                  $case: 'presentWithDifferentInference',
+                  $case: 'presentWithDifferentInference' as const,
                   presentWithDifferentInference: {
                     present: "This is the description that's present",
                     inferred: "This is the description that's inferred",
@@ -331,7 +331,7 @@ export const NotPresent: Story = {
               tests: [],
               description: {
                 description: {
-                  $case: 'notPresent',
+                  $case: 'notPresent' as const,
                   notPresent: {},
                 },
               },
@@ -341,7 +341,7 @@ export const NotPresent: Story = {
               tests: [],
               description: {
                 description: {
-                  $case: 'notPresent',
+                  $case: 'notPresent' as const,
                   notPresent: {},
                 },
               },
@@ -351,7 +351,7 @@ export const NotPresent: Story = {
               tests: [],
               description: {
                 description: {
-                  $case: 'present',
+                  $case: 'present' as const,
                   present: 'This is just a present description',
                 },
               },
@@ -361,23 +361,30 @@ export const NotPresent: Story = {
               tests: [
                 {
                   test: {
-                    $case: 'presentAndNotInferred',
-                    presentAndNotInferred: 'Present and not inferred',
+                    $case: 'presentAndNotInferred' as const,
+                    presentAndNotInferred: {
+                      text: '',
+                      columnTest: undefined,
+                    },
                   },
                 },
                 {
                   test: {
-                    $case: 'presentAndInferred',
-                    presentAndInferred: 'Present and inferred',
+                    $case: 'presentAndInferred' as const,
+                    presentAndInferred: {
+                      columnTest: undefined,
+                      text: 'Present and inferred',
+                    },
                   },
                 },
                 {
                   test: {
-                    $case: 'notPresentButInferred',
+                    $case: 'notPresentButInferred' as const,
                     notPresentButInferred: {
                       text: 'Not present but inferred',
                       columnTest: {
                         type: 'not_null',
+                        info: {},
                       },
                     },
                   },
@@ -385,7 +392,7 @@ export const NotPresent: Story = {
               ],
               description: {
                 description: {
-                  $case: 'present',
+                  $case: 'present' as const,
                   present: 'This is just a present description',
                 },
               },

@@ -1,4 +1,5 @@
 import { Meta, StoryObj } from '@storybook/react'
+import { ErrorCodes } from '@shared/result'
 import { ErrorView } from './ErrorView'
 
 const meta: Meta<typeof ErrorView> = {
@@ -11,7 +12,10 @@ type Story = StoryObj<typeof ErrorView>
 
 export const Main: Story = {
   args: {
-    error: new Error('Error: An unknown error occured'),
+    error: {
+      message: 'Error message',
+      code: ErrorCodes.INVALID_ARGUMENT,
+    },
   },
 }
 export const ModelReferenceNotFound: Story = {

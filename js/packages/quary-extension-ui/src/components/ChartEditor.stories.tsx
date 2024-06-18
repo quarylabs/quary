@@ -13,25 +13,28 @@ type Story = StoryObj<typeof ChartEditor>
 
 const title = 'model_a_chart'
 const rawSql = {
-  $case: 'rawSql',
+  $case: 'rawSql' as const,
   rawSql: 'SELECT * FROM table',
 }
 const assetReference = {
-  $case: 'reference',
-  reference: 'model_a',
+  $case: 'reference' as const,
+  reference: {
+    name: 'model_a',
+  },
 }
 const success = {
-  type: 'success',
+  type: 'success' as const,
   queryResult: sampleQueryResult,
 }
 const loading = {
-  type: 'loading',
+  type: 'loading' as const,
 }
 
 export const SuccessRawSql: Story = {
   args: {
     title,
     chartFile: {
+      tags: [],
       source: rawSql,
       config: {},
     },
@@ -65,6 +68,7 @@ export const SuccessAssetReference: Story = {
   args: {
     ...SuccessRawSql.args,
     chartFile: {
+      tags: [],
       source: assetReference,
       config: {},
     },

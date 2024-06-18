@@ -51,7 +51,9 @@ export const AssetReference: Story = {
   args: {
     chartFileSource: {
       $case: 'reference',
-      reference: 'model_a',
+      reference: {
+        name: 'model_a',
+      },
     },
     assets,
     disabled: false,
