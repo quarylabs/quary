@@ -24,7 +24,6 @@ export const BigQueryLoading: Story = {
       type: 'listSourcesLoading',
       database: {
         type: DatabaseOnboardingOptions.BigQuery,
-        token: 'token',
       },
     },
   },
@@ -35,7 +34,7 @@ export const SqliteLoading: Story = {
     states: {
       type: 'listSourcesLoading',
       database: {
-        type: DatabaseOnboardingOptions.Sqlite,
+        type: DatabaseOnboardingOptions.SQLite,
         path: 'db.sqlite',
       },
     },
@@ -58,8 +57,7 @@ export const BigQueryError: Story = {
     states: {
       type: 'listSourcesError',
       database: {
-        type: 'bigQuery',
-        token: 'token',
+        type: DatabaseOnboardingOptions.BigQuery,
       },
       error: 'error',
     },
@@ -71,7 +69,7 @@ export const SqliteError: Story = {
     states: {
       type: 'listSourcesError',
       database: {
-        type: DatabaseOnboardingOptions.Sqlite,
+        type: DatabaseOnboardingOptions.SQLite,
         path: '/path/to/sqlite.db',
       },
       error: 'error',
@@ -97,23 +95,6 @@ export const BigQuerySuccess: Story = {
       type: 'listSourcesSuccess',
       sourceDetails: {
         type: DatabaseOnboardingOptions.BigQuery,
-        sources: [
-          {
-            name: 'stg_employees',
-            path: 'quary.transform.stg_employees',
-            columns: ['id', 'name', 'age', 'salary'],
-          },
-          {
-            name: 'stg_orders',
-            path: 'quary.sources.stg_orders',
-            columns: ['id', 'quantity', 'price'],
-          },
-          {
-            name: 'weather_luxembourg',
-            path: 'example.weather.weather_luxembourg',
-            columns: ['date', 'temperature'],
-          },
-        ],
         projectsAndDatasets: {
           quary: ['transform', 'sources'],
           example: ['thelook', 'weather', 'demo'],
@@ -129,23 +110,6 @@ export const BigQuerySuccessVeryLongList: Story = {
       type: 'listSourcesSuccess',
       sourceDetails: {
         type: DatabaseOnboardingOptions.BigQuery,
-        sources: [
-          {
-            name: 'stg_employees',
-            path: 'quary.transform.stg_employees',
-            columns: ['id', 'name', 'age', 'salary'],
-          },
-          {
-            name: 'stg_orders',
-            path: 'quary.sources.stg_orders',
-            columns: ['id', 'quantity', 'price'],
-          },
-          {
-            name: 'weather_luxembourg',
-            path: 'example.weather.weather_luxembourg',
-            columns: ['date', 'temperature'],
-          },
-        ],
         projectsAndDatasets: {
           quary: [
             'transform',
@@ -187,26 +151,16 @@ export const SnowflakeSuccess: Story = {
       type: 'listSourcesSuccess',
       sourceDetails: {
         type: DatabaseOnboardingOptions.Snowflake,
-        sources: [
-          {
-            name: 'stg_employees',
-            path: 'quary.transform.stg_employees',
-            columns: ['id', 'name', 'age', 'salary'],
-          },
-          {
-            name: 'stg_orders',
-            path: 'quary.sources.stg_orders',
-            columns: ['id', 'quantity', 'price'],
-          },
-          {
-            name: 'weather_luxembourg',
-            path: 'example.weather.weather_luxembourg',
-            columns: ['date', 'temperature'],
-          },
-        ],
         databasesAndSchemas: {
           quary: ['transform', 'sources'],
           example: ['thelook', 'weather', 'demo'],
+        },
+        config: {
+          accountUrl: '',
+          clientId: '',
+          clientSecret: '',
+          role: '',
+          warehouse: '',
         },
       },
     },
@@ -218,25 +172,8 @@ export const SqliteSuccess: Story = {
     states: {
       type: 'listSourcesSuccess',
       sourceDetails: {
-        type: DatabaseOnboardingOptions.Sqlite,
+        type: DatabaseOnboardingOptions.SQLite,
         path: '/path/to/sqlite.db',
-        sources: [
-          {
-            name: 'table_1',
-            path: 'table_1',
-            columns: ['column1', 'column2'],
-          },
-          {
-            name: 'table_2',
-            path: 'table_2',
-            columns: ['column1', 'column2'],
-          },
-          {
-            name: 'table_3',
-            path: 'table_3',
-            columns: ['column1', 'column2'],
-          },
-        ],
       },
     },
   },

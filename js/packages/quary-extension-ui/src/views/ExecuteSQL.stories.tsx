@@ -1,4 +1,5 @@
 import { Meta, StoryObj } from '@storybook/react'
+import { ErrorCodes } from '@shared/result'
 import { sampleQueryResult } from '../lib/sampleData'
 import { ExecuteSQLView } from './ExecuteSQL'
 
@@ -12,8 +13,8 @@ type Story = StoryObj<typeof ExecuteSQLView>
 
 export const Main: Story = {
   args: {
-    modelName: 'model_a',
     results: {
+      modelName: 'model_a',
       type: 'run',
       results: sampleQueryResult,
     },
@@ -49,7 +50,10 @@ export const ResultsError: Story = {
     ...Main.args,
     results: {
       type: 'error',
-      error: 'Error message',
+      error: {
+        code: ErrorCodes.INVALID_ARGUMENT,
+        message: 'Error message',
+      },
     },
   },
 }

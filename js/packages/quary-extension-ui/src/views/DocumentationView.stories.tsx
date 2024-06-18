@@ -13,6 +13,7 @@ export const Main: Story = {
   args: {
     results: {
       type: 'run',
+      modelName: 'shifts_hours_summary_very_very_long_name',
       results: {
         columns: [
           {
@@ -61,49 +62,63 @@ export const Main: Story = {
       models: [
         {
           name: 'a',
+          tags: [],
+          filePath: 'a.sql',
           description: 'The following model shows the shifts hours summary.',
-          modelOrSeedOrSource: 1,
+          assetType: 1,
         },
         {
           name: 'b',
+          tags: [],
+          filePath: 'a.sql',
           description: 'The following model shows the shifts hours summary.',
-          modelOrSeedOrSource: 1,
+          assetType: 1,
         },
         {
           name: 'c',
+          tags: [],
+          filePath: 'a.sql',
           description: 'The following model shows the shifts hours summary.',
-          modelOrSeedOrSource: 1,
+          assetType: 1,
         },
         {
           name: 'd',
+          tags: [],
+          filePath: 'a.sql',
           description: 'The following model shows the shifts hours summary.',
-          modelOrSeedOrSource: 1,
+          assetType: 1,
         },
         {
           name: 'e',
+          tags: [],
+          filePath: 'a.sql',
           description: 'The following model shows the shifts hours summary.',
-          modelOrSeedOrSource: 1,
+          assetType: 1,
         },
         {
           name: 'f',
+          tags: [],
+          filePath: 'a.sql',
           description: 'The following model shows the shifts hours summary.',
-          modelOrSeedOrSource: 1,
+          assetType: 1,
         },
         {
           name: 'g',
+          tags: [],
+          filePath: 'a.sql',
           description: 'The following model shows the shifts hours summary.',
-          modelOrSeedOrSource: 1,
+          assetType: 1,
         },
       ],
       dag: {
         nodes: [
-          { id: 'a', label: 'shifts_hours_summary_very_very_long_name' },
-          { id: 'b', label: 'b' },
-          { id: 'c', label: 'c' },
-          { id: 'd', label: 'd' },
-          { id: 'e', label: 'e' },
-          { id: 'f', label: 'f' },
-          { id: 'g', label: 'g' },
+          { id: 'a', isCached: false },
+          { id: 'b', isCached: false },
+          { id: 'c', isCached: false },
+          { id: 'd', isCached: false },
+          { id: 'e', isCached: false },
+          { id: 'f', isCached: false },
+          { id: 'g', isCached: false },
         ],
         edges: [
           { from: 'a', to: 'b' },
@@ -174,7 +189,10 @@ export const ResultsError: Story = {
     ...Main.args,
     results: {
       type: 'error',
-      error: 'Error message',
+      error: {
+        code: 1,
+        message: 'Error message',
+      },
     },
   },
 }
