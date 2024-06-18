@@ -3032,7 +3032,7 @@ impl serde::Serialize for Chart {
         if !self.tags.is_empty() {
             len += 1;
         }
-        if !self.path.is_empty() {
+        if !self.file_path.is_empty() {
             len += 1;
         }
         if self.config.is_some() {
@@ -3054,8 +3054,8 @@ impl serde::Serialize for Chart {
         if !self.tags.is_empty() {
             struct_ser.serialize_field("tags", &self.tags)?;
         }
-        if !self.path.is_empty() {
-            struct_ser.serialize_field("path", &self.path)?;
+        if !self.file_path.is_empty() {
+            struct_ser.serialize_field("filePath", &self.file_path)?;
         }
         if let Some(v) = self.config.as_ref() {
             struct_ser.serialize_field("config", v)?;
@@ -3089,7 +3089,8 @@ impl<'de> serde::Deserialize<'de> for Chart {
             "name",
             "description",
             "tags",
-            "path",
+            "file_path",
+            "filePath",
             "config",
             "references",
             "raw_sql",
@@ -3104,7 +3105,7 @@ impl<'de> serde::Deserialize<'de> for Chart {
             Name,
             Description,
             Tags,
-            Path,
+            FilePath,
             Config,
             References,
             RawSql,
@@ -3134,7 +3135,7 @@ impl<'de> serde::Deserialize<'de> for Chart {
                             "name" => Ok(GeneratedField::Name),
                             "description" => Ok(GeneratedField::Description),
                             "tags" => Ok(GeneratedField::Tags),
-                            "path" => Ok(GeneratedField::Path),
+                            "filePath" | "file_path" => Ok(GeneratedField::FilePath),
                             "config" => Ok(GeneratedField::Config),
                             "references" => Ok(GeneratedField::References),
                             "rawSql" | "raw_sql" => Ok(GeneratedField::RawSql),
@@ -3162,7 +3163,7 @@ impl<'de> serde::Deserialize<'de> for Chart {
                 let mut name__ = None;
                 let mut description__ = None;
                 let mut tags__ = None;
-                let mut path__ = None;
+                let mut file_path__ = None;
                 let mut config__ = None;
                 let mut references__ = None;
                 let mut source__ = None;
@@ -3186,11 +3187,11 @@ impl<'de> serde::Deserialize<'de> for Chart {
                             }
                             tags__ = Some(map_.next_value()?);
                         }
-                        GeneratedField::Path => {
-                            if path__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("path"));
+                        GeneratedField::FilePath => {
+                            if file_path__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("filePath"));
                             }
-                            path__ = Some(map_.next_value()?);
+                            file_path__ = Some(map_.next_value()?);
                         }
                         GeneratedField::Config => {
                             if config__.is_some() {
@@ -3229,7 +3230,7 @@ impl<'de> serde::Deserialize<'de> for Chart {
                     name: name__.unwrap_or_default(),
                     description: description__,
                     tags: tags__.unwrap_or_default(),
-                    path: path__.unwrap_or_default(),
+                    file_path: file_path__.unwrap_or_default(),
                     config: config__,
                     references: references__.unwrap_or_default(),
                     source: source__,

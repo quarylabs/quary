@@ -84,7 +84,7 @@ fn parse_chart_file_to_chart(path: &str, file: ChartFile) -> Result<(String, Cha
         Chart {
             name: name.to_string(),
             description,
-            path: path.to_string(),
+            file_path: path.to_string(),
             tags,
             source: Some(source),
             references: dependencies,
@@ -227,7 +227,7 @@ preTemplatedSql: SELECT * FROM table
             Chart {
                 name: "test_path".to_string(),
                 description: Some("test description for chart".to_string()),
-                path: "models/test_path.chart.yaml".to_string(),
+                file_path: "models/test_path.chart.yaml".to_string(),
                 tags: vec!["tag1".to_string(), "tag2".to_string()],
                 config: Some(pbjson_types::Struct {
                     fields: HashMap::new(),
@@ -262,7 +262,7 @@ preTemplatedSql: SELECT * FROM table
             Chart {
                 name: "test_path".to_string(),
                 description: Some("test description for chart".to_string()),
-                path: "models/test_path.chart.yaml".to_string(),
+                file_path: "models/test_path.chart.yaml".to_string(),
                 tags: vec!["tag1".to_string(), "tag2".to_string()],
                 config: Some(pbjson_types::Struct {
                     fields: HashMap::new(),
@@ -297,7 +297,7 @@ preTemplatedSql: SELECT * FROM table
             Chart {
                 name: "test_chart".to_string(),
                 description: Some("test description for chart".to_string()),
-                path: "models/test_chart.chart.yaml".to_string(),
+                file_path: "models/test_chart.chart.yaml".to_string(),
                 tags: vec!["tag1".to_string(), "tag2".to_string()],
                 config: Some(pbjson_types::Struct {
                     fields: HashMap::new(),

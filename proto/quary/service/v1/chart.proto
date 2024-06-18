@@ -16,7 +16,7 @@ message Chart {
   // related to a specific department with the same tag.
   repeated string tags = 3;
   // Path of the file
-  string path = 9;
+  string file_path = 9;
 
   message AssetReference {
     string name = 1;
