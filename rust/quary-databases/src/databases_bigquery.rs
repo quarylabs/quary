@@ -194,88 +194,64 @@ impl BigQuery {
     }
 }
 
+impl BigQuery {
+    fn map_table_list_table_to_table_address(
+        &self,
+        table: gcp_bigquery_client::model::table_list_tables::TableListTables,
+    ) -> TableAddress {
+        let dataset_id = table.table_reference.dataset_id;
+        TableAddress {
+            name: dataset_id.clone(),
+            full_path: format!("{}.{}.{}", self.project_id, dataset_id, dataset_id),
+        }
+    }
+}
+
 #[async_trait]
 impl DatabaseConnection for BigQuery {
     async fn list_tables(&self) -> Result<Vec<TableAddress>, String> {
-        let tables = self.get_all_table_like_things().await?;
-
-        let table_addresses = tables
+        let tables = self
+            .get_all_table_like_things()
+            .await?
             .into_iter()
             .filter(|t| t.r#type == Some("TABLE".to_string()))
-            .map(|t| {
-                let dataset_id = t.table_reference.dataset_id.clone();
-                let name = t
-                    .friendly_name
-                    .clone()
-                    .unwrap_or_else(|| t.table_reference.table_id.clone());
-                TableAddress {
-                    full_path: format!("{}.{}.{}", self.project_id, dataset_id, name),
-                    name,
-                }
-            })
+            .map(|t| self.map_table_list_table_to_table_address(t))
             .collect();
 
-        Ok(table_addresses)
+        Ok(tables)
     }
 
     async fn list_views(&self) -> Result<Vec<TableAddress>, String> {
-        let tables = self.get_all_table_like_things().await?;
-
-        let view_addresses = tables
+        let views = self
+            .get_all_table_like_things()
+            .await?
             .into_iter()
             .filter(|t| t.r#type == Some("VIEW".to_string()))
-            .map(|t| {
-                let dataset_id = t.table_reference.dataset_id.clone();
-                let name = t
-                    .friendly_name
-                    .clone()
-                    .unwrap_or_else(|| t.table_reference.table_id.clone());
-                TableAddress {
-                    full_path: format!("{}.{}.{}", self.project_id, dataset_id, name),
-                    name,
-                }
-            })
+            .map(|t| self.map_table_list_table_to_table_address(t))
             .collect();
-
-        Ok(view_addresses)
+        Ok(views)
     }
 
     async fn list_local_tables(&self) -> Result<Vec<TableAddress>, String> {
-        self.get_all_local_table_like_things()
+        let tables = self
+            .get_all_local_table_like_things()
             .await?
-            .iter()
+            .into_iter()
             .filter(|t| t.r#type == Some("TABLE".to_string()))
-            .map(|t| {
-                let name = t
-                    .friendly_name
-                    .clone()
-                    .ok_or("Failed to get friendly name of table".to_string())?;
-                Ok(TableAddress {
-                    full_path: format!("{}.{}.{}", self.project_id, self.dataset_id, name),
-                    name,
-                })
-            })
-            .collect()
+            .map(|t| self.map_table_list_table_to_table_address(t))
+            .collect();
+        Ok(tables)
     }
 
     async fn list_local_views(&self) -> Result<Vec<TableAddress>, String> {
-        self.get_all_local_table_like_things().await?
-            .iter()
+        let views = self
+            .get_all_local_table_like_things()
+            .await?
+            .into_iter()
             .filter(|t| t.r#type == Some("VIEW".to_string()))
-            .map(|t| {
-                let friendly_name = t
-                    .friendly_name
-                    .clone()
-                    .ok_or("Failed to get friendly name of table".to_string())?;
-                Ok(TableAddress {
-                    full_path: format!(
-                        "{}.{}.{}",
-                        self.project_id, self.dataset_id, friendly_name,
-                    ),
-                    name: friendly_name,
-                })
-            })
-            .collect()
+            .map(|t| self.map_table_list_table_to_table_address(t))
+            .collect();
+        Ok(views)
     }
 
     async fn list_columns(&self, path: &str) -> Result<Vec<ColumnWithDetails>, String> {
