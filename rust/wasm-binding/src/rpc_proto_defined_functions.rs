@@ -7,6 +7,7 @@ use quary_core::chart::chart_file_to_yaml;
 use quary_core::config::get_config_from_filesystem;
 use quary_core::databases::DatabaseQueryGenerator;
 use quary_core::description_table::map_to_description_table;
+use quary_core::file_system::FileSystem;
 use quary_core::graph::project_to_graph;
 use quary_core::init::init_to_file_system;
 use quary_core::onboarding::{generate_onboarding_files, is_empty_bar_hidden_and_sqlite};
@@ -890,15 +891,20 @@ pub(crate) async fn get_model_table(
     file_system: JsFileSystem,
     request: GetModelTableRequest,
 ) -> Result<GetModelTableResponse, String> {
+    get_model_table_internal(&database, &file_system, request).await
+}
+
+pub(crate) async fn get_model_table_internal(
+    database: &impl DatabaseQueryGenerator,
+    file_system: &impl FileSystem,
+    request: GetModelTableRequest,
+) -> Result<GetModelTableResponse, String> {
     let project_root = request.project_root;
 
-    let project =
-        quary_core::project::parse_project(&file_system, &database, &project_root).await?;
-
+    let project = quary_core::project::parse_project(file_system, database, &project_root).await?;
     let dialect = database.get_dialect().get_dialect();
 
-    let model_map =
-        name_to_raw_model_map_internal(&project, &file_system, DEFAULT_SCHEMA_PREFIX).await?;
+    let model_map = name_to_raw_model_map_internal(&project, file_system, &project_root).await?;
     let model_statement = model_map
         .get(&request.model_name)
         .ok_or(format!("Model {} not found", request.model_name))?;
@@ -927,7 +933,7 @@ pub(crate) async fn get_model_table(
         DEFAULT_SCHEMA_PREFIX,
         &request.model_name,
         &*dialect,
-        &file_system,
+        file_system,
     )
     .await
     .ok();
@@ -1498,6 +1504,8 @@ mod tests {
     use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
     use quary_core::database_redshift::DatabaseQueryGeneratorRedshift;
     use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
+    use quary_core::init::DuckDBAsset;
+    use quary_proto::table::TableType;
     use quary_proto::{CacheViewInformation, CacheViewInformationPaths, FileSystem};
     use std::cell::RefCell;
     use std::collections::HashMap;
@@ -2035,6 +2043,26 @@ mod tests {
                 columns: vec![]
             }
         );
+    }
+
+    #[tokio::test]
+    async fn get_model_table_model_test() {
+        let database = DatabaseQueryGeneratorDuckDB::new(Some("schema".to_string()), None);
+        let file_system = DuckDBAsset;
+        let request = GetModelTableRequest {
+            project_root: "".to_string(),
+            model_name: "shifts_summary".to_string(),
+        };
+
+        let response = get_model_table_internal(&database, &file_system, request)
+            .await
+            .unwrap();
+        match response.table.unwrap().table_type.unwrap() {
+            TableType::Present(model) => {
+                assert_eq!(model.rows.len(), 8)
+            }
+            _ => panic!("Expected model"),
+        }
     }
 
     fn setup_file_mocks() -> (Writer, Rc<RefCell<HashMap<String, String>>>) {
