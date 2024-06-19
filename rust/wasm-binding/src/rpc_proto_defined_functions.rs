@@ -1735,7 +1735,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_update_snapshot_description_without_schema_present() {
-        let (writer, written_files) = setup_file_mocks();
+        let (writer, _) = setup_file_mocks();
 
         let database = DatabaseQueryGeneratorSqlite {};
         let file_system = FileSystem {
@@ -1787,7 +1787,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_update_asset_description_internal_without_schema_present() {
-        let (writer, written_files) = setup_file_mocks();
+        let (writer, _) = setup_file_mocks();
         let database = DatabaseQueryGeneratorSqlite {};
         let file_system = FileSystem {
             files: vec![(
@@ -1817,7 +1817,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_update_asset_description_internal_with_model_and_source_same_name() {
-        let (writer, written_files) = setup_file_mocks();
+        let (writer, _) = setup_file_mocks();
 
         let database = DatabaseQueryGeneratorSqlite {};
         let file_system = FileSystem {
@@ -1872,8 +1872,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_return_full_sql_for_asset_internal_without_cache() {
-        let (writer, written_files) = setup_file_mocks();
-
         let fixed_time = SystemTime::now();
         let fixed_time_utc: DateTime<Utc> = fixed_time.into();
         let formatted_time = fixed_time_utc.format("%Y-%m-%dT%H:%M:%SZ");
@@ -1957,8 +1955,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_return_full_sql_for_asset_internal_with_cache() {
-        let (writer, written_files) = setup_file_mocks();
-
         let database = DatabaseQueryGeneratorRedshift::new("schema".to_string(), None);
 
         let file_system = FileSystem {
