@@ -166,20 +166,19 @@ pub async fn name_to_raw_model_map_internal(
     project_root: &str,
 ) -> Result<HashMap<String, String>, String> {
     let futures = project.models.iter().map(|(name, model)| async move {
+        let mut path = PathBuf::from(project_root);
+        path.push(model.file_path.as_str());
+        let path = path
+            .to_str()
+            .ok_or(format!(
+                "Failed to convert path {} to string",
+                model.file_path
+            ))?
+            .to_string();
         let mut file = file_system
-            .read_file({
-                let mut path = PathBuf::from(project_root);
-                path.push(model.file_path.as_str());
-                path.to_str()
-                    .ok_or(
-                        "Could not convert path to string. This is a bug. Please report it."
-                            .to_string(),
-                    )?
-                    .to_string()
-                    .as_str()
-            })
+            .read_file(&path)
             .await
-            .map_err(|_| "Failed to read file. This is a bug. Please report it.".to_string())?;
+            .map_err(|e| format!("Failed to read file {} with error {}", path, e))?;
 
         let mut contents = String::new();
         file.read_to_string(&mut contents)
