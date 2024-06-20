@@ -33,7 +33,7 @@ use quary_proto::return_definition_locations_for_sql_response::Definition;
 use quary_proto::{
     chart_file, AddColumnTestToModelOrSourceColumnRequest,
     AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest,
-    AddColumnToModelOrSourceResponse, CacheViewInformation, ChartFile, CreateModelChartFileRequest,
+    AddColumnToModelOrSourceResponse, ChartFile, CreateModelChartFileRequest,
     CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse,
     Edge, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest,
     GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse,
@@ -188,7 +188,7 @@ pub(crate) async fn create_model_chart_file(
 async fn create_model_schema_entry_internal(
     database: &impl DatabaseQueryGenerator,
     writer: &Writer,
-    file_system: &impl quary_core::file_system::FileSystem,
+    file_system: &impl FileSystem,
     project_root: &str,
     model_name: &str,
 ) -> Result<CreateModelSchemaEntryResponse, String> {
@@ -261,7 +261,7 @@ pub(crate) async fn update_asset_description(
 async fn update_asset_description_internal(
     database: impl DatabaseQueryGenerator,
     writer: Writer,
-    file_system: impl quary_core::file_system::FileSystem,
+    file_system: impl FileSystem,
     request: UpdateAssetDescriptionRequest,
 ) -> Result<UpdateAssetDescriptionResponse, String> {
     let project_root = request.project_root;
@@ -408,7 +408,7 @@ pub(crate) async fn add_column_to_model_or_source(
 async fn add_column_to_model_or_source_internal(
     database: &impl DatabaseQueryGenerator,
     writer: &Writer,
-    file_system: &impl quary_core::file_system::FileSystem,
+    file_system: &impl FileSystem,
     request: AddColumnToModelOrSourceRequest,
 ) -> Result<Result<AddColumnToModelOrSourceResponse, String>, String> {
     let project_root = request.project_root;
@@ -1058,13 +1058,15 @@ pub(crate) async fn return_full_sql_for_asset(
 
 async fn return_full_sql_for_asset_internal(
     database: &impl DatabaseQueryGenerator,
-    file_system: &impl quary_core::file_system::FileSystem,
+    file_system: &impl FileSystem,
     request: ReturnFullSqlForAssetRequest,
 ) -> Result<ReturnFullSqlForAssetResponse, String> {
     let project_root = request.project_root;
     let project = quary_core::project::parse_project(file_system, database, &project_root).await?;
     let cache_view = request
         .cache_view_information
+        .ok_or("No cache view mode provided")?
+        .cache_view
         .ok_or("No cache view mode provided")?;
 
     match (
@@ -1143,12 +1145,11 @@ async fn return_full_sql_for_source(
 
 async fn return_full_sql_for_model(
     project: Project,
-    file_system: &impl quary_core::file_system::FileSystem,
+    file_system: &impl FileSystem,
     model_name: String,
     database: &impl DatabaseQueryGenerator,
-    cache_view: CacheViewInformation,
+    cache_view: CacheView,
 ) -> Result<ReturnFullSqlForAssetResponse, String> {
-    let cache_view = cache_view.cache_view.ok_or("No cache view mode provided")?;
     let (sql, nodes, edges, cached_models): (String, BTreeSet<_>, Vec<_>, HashSet<String>) =
         match cache_view {
             CacheView::CacheViewInformation(cache_views) => {
@@ -1234,12 +1235,11 @@ async fn return_full_sql_for_model(
 
 async fn return_full_sql_for_snapshot(
     project: Project,
-    file_system: &impl quary_core::file_system::FileSystem,
+    file_system: &impl FileSystem,
     snapshot_name: String,
     database: &impl DatabaseQueryGenerator,
-    cache_view: CacheViewInformation,
+    cache_view: CacheView,
 ) -> Result<ReturnFullSqlForAssetResponse, String> {
-    let cache_view = cache_view.cache_view.ok_or("No cache view mode provided")?;
     let (sql, nodes, edges, cached_models): (String, BTreeSet<_>, Vec<_>, HashSet<String>) =
         match cache_view {
             CacheView::CacheViewInformation(cache_views) => {
