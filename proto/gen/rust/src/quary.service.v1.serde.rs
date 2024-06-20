@@ -3595,131 +3595,6 @@ impl<'de> serde::Deserialize<'de> for chart_file::AssetReference {
         deserializer.deserialize_struct("quary.service.v1.ChartFile.AssetReference", FIELDS, GeneratedVisitor)
     }
 }
-impl serde::Serialize for ColumnDescription {
-    #[allow(deprecated)]
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeStruct;
-        let mut len = 0;
-        if !self.name.is_empty() {
-            len += 1;
-        }
-        if self.description.is_some() {
-            len += 1;
-        }
-        if !self.tests.is_empty() {
-            len += 1;
-        }
-        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ColumnDescription", len)?;
-        if !self.name.is_empty() {
-            struct_ser.serialize_field("name", &self.name)?;
-        }
-        if let Some(v) = self.description.as_ref() {
-            struct_ser.serialize_field("description", v)?;
-        }
-        if !self.tests.is_empty() {
-            struct_ser.serialize_field("tests", &self.tests)?;
-        }
-        struct_ser.end()
-    }
-}
-impl<'de> serde::Deserialize<'de> for ColumnDescription {
-    #[allow(deprecated)]
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        const FIELDS: &[&str] = &[
-            "name",
-            "description",
-            "tests",
-        ];
-
-        #[allow(clippy::enum_variant_names)]
-        enum GeneratedField {
-            Name,
-            Description,
-            Tests,
-        }
-        impl<'de> serde::Deserialize<'de> for GeneratedField {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct GeneratedVisitor;
-
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-                    type Value = GeneratedField;
-
-                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(formatter, "expected one of: {:?}", &FIELDS)
-                    }
-
-                    #[allow(unused_variables)]
-                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match value {
-                            "name" => Ok(GeneratedField::Name),
-                            "description" => Ok(GeneratedField::Description),
-                            "tests" => Ok(GeneratedField::Tests),
-                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
-                        }
-                    }
-                }
-                deserializer.deserialize_identifier(GeneratedVisitor)
-            }
-        }
-        struct GeneratedVisitor;
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = ColumnDescription;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct quary.service.v1.ColumnDescription")
-            }
-
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ColumnDescription, V::Error>
-                where
-                    V: serde::de::MapAccess<'de>,
-            {
-                let mut name__ = None;
-                let mut description__ = None;
-                let mut tests__ = None;
-                while let Some(k) = map_.next_key()? {
-                    match k {
-                        GeneratedField::Name => {
-                            if name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("name"));
-                            }
-                            name__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::Description => {
-                            if description__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("description"));
-                            }
-                            description__ = map_.next_value()?;
-                        }
-                        GeneratedField::Tests => {
-                            if tests__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("tests"));
-                            }
-                            tests__ = Some(map_.next_value()?);
-                        }
-                    }
-                }
-                Ok(ColumnDescription {
-                    name: name__.unwrap_or_default(),
-                    description: description__,
-                    tests: tests__.unwrap_or_default(),
-                })
-            }
-        }
-        deserializer.deserialize_struct("quary.service.v1.ColumnDescription", FIELDS, GeneratedVisitor)
-    }
-}
 impl serde::Serialize for ColumnTest {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
@@ -12004,9 +11879,6 @@ impl serde::Serialize for ReturnDataForDocViewResponse {
         if self.dag.is_some() {
             len += 1;
         }
-        if !self.columns.is_empty() {
-            len += 1;
-        }
         if self.is_asset_in_schema_files {
             len += 1;
         }
@@ -12019,9 +11891,6 @@ impl serde::Serialize for ReturnDataForDocViewResponse {
         }
         if let Some(v) = self.dag.as_ref() {
             struct_ser.serialize_field("dag", v)?;
-        }
-        if !self.columns.is_empty() {
-            struct_ser.serialize_field("columns", &self.columns)?;
         }
         if self.is_asset_in_schema_files {
             struct_ser.serialize_field("isAssetInSchemaFiles", &self.is_asset_in_schema_files)?;
@@ -12040,7 +11909,6 @@ impl<'de> serde::Deserialize<'de> for ReturnDataForDocViewResponse {
             "fullSql",
             "description",
             "dag",
-            "columns",
             "is_asset_in_schema_files",
             "isAssetInSchemaFiles",
         ];
@@ -12050,7 +11918,6 @@ impl<'de> serde::Deserialize<'de> for ReturnDataForDocViewResponse {
             FullSql,
             Description,
             Dag,
-            Columns,
             IsAssetInSchemaFiles,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -12076,7 +11943,6 @@ impl<'de> serde::Deserialize<'de> for ReturnDataForDocViewResponse {
                             "fullSql" | "full_sql" => Ok(GeneratedField::FullSql),
                             "description" => Ok(GeneratedField::Description),
                             "dag" => Ok(GeneratedField::Dag),
-                            "columns" => Ok(GeneratedField::Columns),
                             "isAssetInSchemaFiles" | "is_asset_in_schema_files" => Ok(GeneratedField::IsAssetInSchemaFiles),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
@@ -12100,7 +11966,6 @@ impl<'de> serde::Deserialize<'de> for ReturnDataForDocViewResponse {
                 let mut full_sql__ = None;
                 let mut description__ = None;
                 let mut dag__ = None;
-                let mut columns__ = None;
                 let mut is_asset_in_schema_files__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
@@ -12122,12 +11987,6 @@ impl<'de> serde::Deserialize<'de> for ReturnDataForDocViewResponse {
                             }
                             dag__ = map_.next_value()?;
                         }
-                        GeneratedField::Columns => {
-                            if columns__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("columns"));
-                            }
-                            columns__ = Some(map_.next_value()?);
-                        }
                         GeneratedField::IsAssetInSchemaFiles => {
                             if is_asset_in_schema_files__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("isAssetInSchemaFiles"));
@@ -12140,7 +11999,6 @@ impl<'de> serde::Deserialize<'de> for ReturnDataForDocViewResponse {
                     full_sql: full_sql__.unwrap_or_default(),
                     description: description__,
                     dag: dag__,
-                    columns: columns__.unwrap_or_default(),
                     is_asset_in_schema_files: is_asset_in_schema_files__.unwrap_or_default(),
                 })
             }
@@ -12803,9 +12661,6 @@ impl serde::Serialize for ReturnFullSqlForAssetResponse {
         if self.dag.is_some() {
             len += 1;
         }
-        if !self.columns.is_empty() {
-            len += 1;
-        }
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.ReturnFullSqlForAssetResponse", len)?;
         if !self.full_sql.is_empty() {
             struct_ser.serialize_field("fullSql", &self.full_sql)?;
@@ -12815,9 +12670,6 @@ impl serde::Serialize for ReturnFullSqlForAssetResponse {
         }
         if let Some(v) = self.dag.as_ref() {
             struct_ser.serialize_field("dag", v)?;
-        }
-        if !self.columns.is_empty() {
-            struct_ser.serialize_field("columns", &self.columns)?;
         }
         struct_ser.end()
     }
@@ -12833,7 +12685,6 @@ impl<'de> serde::Deserialize<'de> for ReturnFullSqlForAssetResponse {
             "fullSql",
             "description",
             "dag",
-            "columns",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -12841,7 +12692,6 @@ impl<'de> serde::Deserialize<'de> for ReturnFullSqlForAssetResponse {
             FullSql,
             Description,
             Dag,
-            Columns,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -12866,7 +12716,6 @@ impl<'de> serde::Deserialize<'de> for ReturnFullSqlForAssetResponse {
                             "fullSql" | "full_sql" => Ok(GeneratedField::FullSql),
                             "description" => Ok(GeneratedField::Description),
                             "dag" => Ok(GeneratedField::Dag),
-                            "columns" => Ok(GeneratedField::Columns),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -12889,7 +12738,6 @@ impl<'de> serde::Deserialize<'de> for ReturnFullSqlForAssetResponse {
                 let mut full_sql__ = None;
                 let mut description__ = None;
                 let mut dag__ = None;
-                let mut columns__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::FullSql => {
@@ -12910,19 +12758,12 @@ impl<'de> serde::Deserialize<'de> for ReturnFullSqlForAssetResponse {
                             }
                             dag__ = map_.next_value()?;
                         }
-                        GeneratedField::Columns => {
-                            if columns__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("columns"));
-                            }
-                            columns__ = Some(map_.next_value()?);
-                        }
                     }
                 }
                 Ok(ReturnFullSqlForAssetResponse {
                     full_sql: full_sql__.unwrap_or_default(),
                     description: description__,
                     dag: dag__,
-                    columns: columns__.unwrap_or_default(),
                 })
             }
         }
