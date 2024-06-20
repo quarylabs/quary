@@ -22,7 +22,7 @@ pub mod database_sqlite;
 pub mod databases;
 pub mod description_table;
 pub mod file_system;
-mod file_system_override;
+pub mod file_system_override;
 pub mod graph;
 pub mod inference;
 pub mod init;

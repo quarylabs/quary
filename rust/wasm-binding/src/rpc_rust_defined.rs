@@ -77,7 +77,6 @@ pub async fn run_tests(
         &database,
         &file_system,
         &project,
-        project_root,
         database.get_dialect(),
         test_runner,
         func,
