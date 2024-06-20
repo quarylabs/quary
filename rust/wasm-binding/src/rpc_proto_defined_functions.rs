@@ -26,7 +26,6 @@ use quary_core::rpc_proto_defined_functions::{
 use quary_core::schema_name::DEFAULT_SCHEMA_PREFIX;
 use quary_core::sql_inference_translator::map_test_to_sql_inference;
 use quary_core::sql_model_finder::sql_model_finder;
-use quary_core::tests::{return_test_for_model_column, ShortTestString};
 use quary_proto::cache_view_information::CacheView;
 use quary_proto::chart_file::AssetReference;
 use quary_proto::project_file::{Model, Snapshot};
@@ -34,15 +33,14 @@ use quary_proto::return_definition_locations_for_sql_response::Definition;
 use quary_proto::{
     chart_file, AddColumnTestToModelOrSourceColumnRequest,
     AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest,
-    AddColumnToModelOrSourceResponse, CacheViewInformation, ChartFile, ColumnDescription,
-    CreateModelChartFileRequest, CreateModelChartFileResponse, CreateModelSchemaEntryRequest,
-    CreateModelSchemaEntryResponse, Edge, GenerateProjectFilesRequest,
-    GenerateProjectFilesResponse, GenerateSourceFilesRequest, GenerateSourceFilesResponse,
-    GetModelTableRequest, GetModelTableResponse, GetProjectConfigRequest, GetProjectConfigResponse,
-    InitFilesRequest, InitFilesResponse, IsPathEmptyRequest, IsPathEmptyResponse,
-    ListAssetsRequest, ListAssetsResponse, Node, ParseProjectRequest, ParseProjectResponse,
-    Project, ProjectDag, ProjectFile, ProjectFileColumn, ProjectFileSource,
-    RemoveColumnTestFromModelOrSourceColumnRequest,
+    AddColumnToModelOrSourceResponse, CacheViewInformation, ChartFile, CreateModelChartFileRequest,
+    CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse,
+    Edge, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest,
+    GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse,
+    GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse,
+    IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, Node,
+    ParseProjectRequest, ParseProjectResponse, Project, ProjectDag, ProjectFile, ProjectFileColumn,
+    ProjectFileSource, RemoveColumnTestFromModelOrSourceColumnRequest,
     RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse,
     ReturnDataForDocViewRequest, ReturnDataForDocViewResponse,
     ReturnDefinitionLocationsForSqlRequest, ReturnDefinitionLocationsForSqlResponse,
@@ -1045,7 +1043,6 @@ pub(crate) async fn return_data_for_doc_view(
         full_sql: data.full_sql,
         description: data.description,
         dag: data.dag,
-        columns: data.columns,
         is_asset_in_schema_files,
     })
 }
@@ -1108,7 +1105,7 @@ async fn return_full_sql_for_asset_internal(
 
 async fn return_full_sql_for_source(
     project: Project,
-    file_system: &impl quary_core::file_system::FileSystem,
+    file_system: &impl FileSystem,
     source_name: String,
     database: &impl DatabaseQueryGenerator,
 ) -> Result<ReturnFullSqlForAssetResponse, String> {
@@ -1123,27 +1120,6 @@ async fn return_full_sql_for_source(
         .into_iter()
         .map(|(from, to)| Edge { from, to })
         .collect::<Vec<_>>();
-
-    let columns = project
-        .sources
-        .get(&source_name)
-        .ok_or(format!(
-            "Source {} not found in project sources {:?}",
-            source_name, project.sources
-        ))?
-        .columns
-        .iter()
-        .map(|column| {
-            let tests = return_test_for_model_column(&project, &source_name, &column.title)
-                .map(|test| test.short_test_string())
-                .collect::<Result<_, _>>()?;
-            Ok(ColumnDescription {
-                name: column.title.clone(),
-                description: column.description.clone(),
-                tests,
-            })
-        })
-        .collect::<Result<Vec<ColumnDescription>, String>>()?;
 
     // If you want to have a string representation of the path
     Ok(ReturnFullSqlForAssetResponse {
@@ -1162,7 +1138,6 @@ async fn return_full_sql_for_source(
                 .collect::<Vec<_>>(),
             edges: out_edges,
         }),
-        columns,
     })
 }
 
@@ -1237,27 +1212,6 @@ async fn return_full_sql_for_model(
         .map(|(from, to)| Edge { from, to })
         .collect::<Vec<_>>();
 
-    let columns = project
-        .models
-        .get(&model_name)
-        .ok_or(format!(
-            "Model {} not found in project in models {:?}",
-            model_name, project.models
-        ))?
-        .columns
-        .iter()
-        .map(|column| {
-            let tests = return_test_for_model_column(&project, &model_name, &column.title)
-                .map(|test| test.short_test_string())
-                .collect::<Result<_, _>>()?;
-            Ok(ColumnDescription {
-                name: column.title.clone(),
-                description: column.description.clone(),
-                tests,
-            })
-        })
-        .collect::<Result<Vec<ColumnDescription>, String>>()?;
-
     // If you want to have a string representation of the path
     Ok(ReturnFullSqlForAssetResponse {
         full_sql: sql,
@@ -1275,7 +1229,6 @@ async fn return_full_sql_for_model(
                 .collect::<Vec<_>>(),
             edges: out_edges,
         }),
-        columns,
     })
 }
 
@@ -1378,7 +1331,6 @@ async fn return_full_sql_for_snapshot(
                 .collect::<Vec<_>>(),
             edges: out_edges,
         }),
-        columns: Vec::new(), // snapshots don't have columns
     })
 }
 
@@ -1956,7 +1908,6 @@ mod tests {
                     }],
                     edges: vec![Edge { to: "orders_snapshot".to_string(), from: "raw_orders".to_string() }]
                 }),
-                columns: vec![]
             }
         );
     }
@@ -2040,7 +1991,6 @@ mod tests {
                         from: "raw_orders".to_string()
                     }]
                 }),
-                columns: vec![]
             }
         );
     }

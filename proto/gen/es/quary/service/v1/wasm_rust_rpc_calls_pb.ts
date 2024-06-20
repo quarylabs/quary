@@ -9,7 +9,6 @@ import { ConnectionConfig } from "./connection_config_pb.js";
 import { ColumnTest, ProjectFile } from "./project_file_pb.js";
 import { Project } from "./project_pb.js";
 import { ProjectDag } from "./project_dag_pb.js";
-import { ColumnDescription } from "./column_description_pb.js";
 import { Table } from "./table_pb.js";
 import { DatabaseSource } from "./types_pb.js";
 import { Range } from "./range_pb.js";
@@ -920,11 +919,6 @@ export class ReturnDataForDocViewResponse extends Message<ReturnDataForDocViewRe
   dag?: ProjectDag;
 
   /**
-   * @generated from field: repeated quary.service.v1.ColumnDescription columns = 4;
-   */
-  columns: ColumnDescription[] = [];
-
-  /**
    * @generated from field: bool is_asset_in_schema_files = 5;
    */
   isAssetInSchemaFiles = false;
@@ -940,7 +934,6 @@ export class ReturnDataForDocViewResponse extends Message<ReturnDataForDocViewRe
     { no: 1, name: "full_sql", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "dag", kind: "message", T: ProjectDag },
-    { no: 4, name: "columns", kind: "message", T: ColumnDescription, repeated: true },
     { no: 5, name: "is_asset_in_schema_files", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
@@ -1118,11 +1111,6 @@ export class ReturnFullSqlForAssetResponse extends Message<ReturnFullSqlForAsset
    */
   dag?: ProjectDag;
 
-  /**
-   * @generated from field: repeated quary.service.v1.ColumnDescription columns = 4;
-   */
-  columns: ColumnDescription[] = [];
-
   constructor(data?: PartialMessage<ReturnFullSqlForAssetResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1134,7 +1122,6 @@ export class ReturnFullSqlForAssetResponse extends Message<ReturnFullSqlForAsset
     { no: 1, name: "full_sql", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "dag", kind: "message", T: ProjectDag },
-    { no: 4, name: "columns", kind: "message", T: ColumnDescription, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReturnFullSqlForAssetResponse {

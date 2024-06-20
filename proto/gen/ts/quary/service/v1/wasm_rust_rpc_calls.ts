@@ -8,7 +8,6 @@
 import * as _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
 import { Struct } from "../../../google/protobuf/struct";
-import { ColumnDescription } from "./column_description";
 import { ConnectionConfig } from "./connection_config";
 import { Project } from "./project";
 import { ProjectDag } from "./project_dag";
@@ -169,7 +168,6 @@ export interface ReturnDataForDocViewResponse {
   fullSql: string;
   description?: string | undefined;
   dag: ProjectDag | undefined;
-  columns: ColumnDescription[];
   isAssetInSchemaFiles: boolean;
 }
 
@@ -195,7 +193,6 @@ export interface ReturnFullSqlForAssetResponse {
   fullSql: string;
   description?: string | undefined;
   dag: ProjectDag | undefined;
-  columns: ColumnDescription[];
 }
 
 export interface GetModelTableRequest {
@@ -1687,7 +1684,7 @@ export const ReturnDataForDocViewRequest = {
 };
 
 function createBaseReturnDataForDocViewResponse(): ReturnDataForDocViewResponse {
-  return { fullSql: "", description: undefined, dag: undefined, columns: [], isAssetInSchemaFiles: false };
+  return { fullSql: "", description: undefined, dag: undefined, isAssetInSchemaFiles: false };
 }
 
 export const ReturnDataForDocViewResponse = {
@@ -1700,9 +1697,6 @@ export const ReturnDataForDocViewResponse = {
     }
     if (message.dag !== undefined) {
       ProjectDag.encode(message.dag, writer.uint32(26).fork()).ldelim();
-    }
-    for (const v of message.columns) {
-      ColumnDescription.encode(v!, writer.uint32(34).fork()).ldelim();
     }
     if (message.isAssetInSchemaFiles !== false) {
       writer.uint32(40).bool(message.isAssetInSchemaFiles);
@@ -1738,13 +1732,6 @@ export const ReturnDataForDocViewResponse = {
 
           message.dag = ProjectDag.decode(reader, reader.uint32());
           continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.columns.push(ColumnDescription.decode(reader, reader.uint32()));
-          continue;
         case 5:
           if (tag !== 40) {
             break;
@@ -1766,7 +1753,6 @@ export const ReturnDataForDocViewResponse = {
       fullSql: isSet(object.fullSql) ? gt.String(object.fullSql) : "",
       description: isSet(object.description) ? gt.String(object.description) : undefined,
       dag: isSet(object.dag) ? ProjectDag.fromJSON(object.dag) : undefined,
-      columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => ColumnDescription.fromJSON(e)) : [],
       isAssetInSchemaFiles: isSet(object.isAssetInSchemaFiles) ? gt.Boolean(object.isAssetInSchemaFiles) : false,
     };
   },
@@ -1782,9 +1768,6 @@ export const ReturnDataForDocViewResponse = {
     if (message.dag !== undefined) {
       obj.dag = ProjectDag.toJSON(message.dag);
     }
-    if (message.columns?.length) {
-      obj.columns = message.columns.map((e) => ColumnDescription.toJSON(e));
-    }
     if (message.isAssetInSchemaFiles !== false) {
       obj.isAssetInSchemaFiles = message.isAssetInSchemaFiles;
     }
@@ -1799,7 +1782,6 @@ export const ReturnDataForDocViewResponse = {
     message.fullSql = object.fullSql ?? "";
     message.description = object.description ?? undefined;
     message.dag = (object.dag !== undefined && object.dag !== null) ? ProjectDag.fromPartial(object.dag) : undefined;
-    message.columns = object.columns?.map((e) => ColumnDescription.fromPartial(e)) || [];
     message.isAssetInSchemaFiles = object.isAssetInSchemaFiles ?? false;
     return message;
   },
@@ -2060,7 +2042,7 @@ export const CacheViewInformationPaths = {
 };
 
 function createBaseReturnFullSqlForAssetResponse(): ReturnFullSqlForAssetResponse {
-  return { fullSql: "", description: undefined, dag: undefined, columns: [] };
+  return { fullSql: "", description: undefined, dag: undefined };
 }
 
 export const ReturnFullSqlForAssetResponse = {
@@ -2073,9 +2055,6 @@ export const ReturnFullSqlForAssetResponse = {
     }
     if (message.dag !== undefined) {
       ProjectDag.encode(message.dag, writer.uint32(26).fork()).ldelim();
-    }
-    for (const v of message.columns) {
-      ColumnDescription.encode(v!, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -2108,13 +2087,6 @@ export const ReturnFullSqlForAssetResponse = {
 
           message.dag = ProjectDag.decode(reader, reader.uint32());
           continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.columns.push(ColumnDescription.decode(reader, reader.uint32()));
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2129,7 +2101,6 @@ export const ReturnFullSqlForAssetResponse = {
       fullSql: isSet(object.fullSql) ? gt.String(object.fullSql) : "",
       description: isSet(object.description) ? gt.String(object.description) : undefined,
       dag: isSet(object.dag) ? ProjectDag.fromJSON(object.dag) : undefined,
-      columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => ColumnDescription.fromJSON(e)) : [],
     };
   },
 
@@ -2144,9 +2115,6 @@ export const ReturnFullSqlForAssetResponse = {
     if (message.dag !== undefined) {
       obj.dag = ProjectDag.toJSON(message.dag);
     }
-    if (message.columns?.length) {
-      obj.columns = message.columns.map((e) => ColumnDescription.toJSON(e));
-    }
     return obj;
   },
 
@@ -2160,7 +2128,6 @@ export const ReturnFullSqlForAssetResponse = {
     message.fullSql = object.fullSql ?? "";
     message.description = object.description ?? undefined;
     message.dag = (object.dag !== undefined && object.dag !== null) ? ProjectDag.fromPartial(object.dag) : undefined;
-    message.columns = object.columns?.map((e) => ColumnDescription.fromPartial(e)) || [];
     return message;
   },
 };
