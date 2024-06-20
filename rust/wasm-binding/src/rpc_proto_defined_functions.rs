@@ -27,13 +27,14 @@ use quary_core::schema_name::DEFAULT_SCHEMA_PREFIX;
 use quary_core::sql_inference_translator::map_test_to_sql_inference;
 use quary_core::sql_model_finder::sql_model_finder;
 use quary_proto::cache_view_information::CacheView;
+use quary_proto::chart::Source;
 use quary_proto::chart_file::AssetReference;
 use quary_proto::project_file::{Model, Snapshot};
 use quary_proto::return_definition_locations_for_sql_response::Definition;
 use quary_proto::{
     chart_file, AddColumnTestToModelOrSourceColumnRequest,
     AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest,
-    AddColumnToModelOrSourceResponse, ChartFile, CreateModelChartFileRequest,
+    AddColumnToModelOrSourceResponse, Chart, ChartFile, CreateModelChartFileRequest,
     CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse,
     Edge, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest,
     GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse,
@@ -1073,12 +1074,13 @@ async fn return_full_sql_for_asset_internal(
         project.sources.get(&request.asset_name),
         project.snapshots.get(&request.asset_name),
         project.models.get(&request.asset_name),
+        project.charts.get(&request.asset_name),
     ) {
-        (Some(source), None, None) => {
+        (Some(source), None, None, None) => {
             return_full_sql_for_source(project.clone(), file_system, source.name.clone(), database)
                 .await
         }
-        (None, Some(snapshot), None) => {
+        (None, Some(snapshot), None, None) => {
             return_full_sql_for_snapshot(
                 project.clone(),
                 file_system,
@@ -1088,7 +1090,7 @@ async fn return_full_sql_for_asset_internal(
             )
             .await
         }
-        (None, None, Some(model)) => {
+        (None, None, Some(model), None) => {
             return_full_sql_for_model(
                 project.clone(),
                 file_system,
@@ -1097,6 +1099,10 @@ async fn return_full_sql_for_asset_internal(
                 cache_view,
             )
             .await
+        }
+        (None, None, None, Some(chart)) => {
+            return_full_sql_for_chart(file_system, database, project.clone(), chart, cache_view)
+                .await
         }
         _ => Err(format!(
             "Model, source, or snapshot '{}' not found in project",
@@ -1334,6 +1340,44 @@ async fn return_full_sql_for_snapshot(
     })
 }
 
+async fn return_full_sql_for_chart(
+    file_system: &impl FileSystem,
+    database: &impl DatabaseQueryGenerator,
+    project: Project,
+    chart: &Chart,
+    cache_view: CacheView,
+) -> Result<ReturnFullSqlForAssetResponse, String> {
+    let source = chart.source.as_ref().ok_or("No source provided")?;
+    let description = chart.description.clone();
+    match source {
+        Source::RawSql(raw_sql) => {
+            return Ok(ReturnFullSqlForAssetResponse {
+                full_sql: raw_sql.clone(),
+                description,
+                dag: None,
+            })
+        }
+        Source::PreTemplatedSql(_) => {
+            unimplemented!()
+        }
+        Source::Reference(reference) => {
+            let returned_for_model = return_full_sql_for_model(
+                project,
+                file_system,
+                reference.name.clone(),
+                database,
+                cache_view,
+            )
+            .await?;
+            Ok(ReturnFullSqlForAssetResponse {
+                full_sql: returned_for_model.full_sql,
+                dag: returned_for_model.dag,
+                description,
+            })
+        }
+    }
+}
+
 pub(crate) async fn return_full_project_dag(
     database: impl DatabaseQueryGenerator,
     _: Writer,
@@ -1456,6 +1500,7 @@ mod tests {
     use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
     use quary_core::database_redshift::DatabaseQueryGeneratorRedshift;
     use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
+    use quary_core::file_system_override::OverrideFileSystem;
     use quary_core::init::DuckDBAsset;
     use quary_proto::table::TableType;
     use quary_proto::{CacheViewInformation, CacheViewInformationPaths, FileSystem};
@@ -1996,6 +2041,69 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_return_full_sql_for_asset_internal_chart_asset_reference_model() {
+        let database = DatabaseQueryGeneratorDuckDB::new(None, None);
+        let filesystem = DuckDBAsset {};
+
+        let response = return_full_sql_for_asset_internal(
+            &database,
+            &filesystem,
+            ReturnFullSqlForAssetRequest {
+                project_root: "".to_string(),
+                asset_name: "shifts_by_month_bar".to_string(),
+                cache_view_information: Some(CacheViewInformation {
+                    cache_view: Some(CacheView::DoNotUse(Default::default())),
+                }),
+            },
+        )
+        .await
+        .unwrap();
+
+        assert!(!response.full_sql.is_empty());
+        assert!(!response.description.unwrap().is_empty());
+        // TODO Fix the graph
+        // assert!(response.dag.unwrap().nodes.iter().find(
+        //     |node| node.id == "shifts_by_month_bar"
+        // ).is_some())
+    }
+
+    #[tokio::test]
+    async fn test_return_full_sql_for_asset_internal_chart_raw_sql() {
+        let database = DatabaseQueryGeneratorDuckDB::new(None, None);
+        let filesystem = DuckDBAsset {};
+        let mut filesystem = OverrideFileSystem::new(Box::new(&filesystem));
+        let chart_file = ChartFile {
+            description: Some("This is the description".to_string()),
+            tags: vec![],
+            config: None,
+            source: Some(chart_file::Source::RawSql("SELECT 1".to_string())),
+        };
+        let chart_file = chart_file_to_yaml(&chart_file).unwrap();
+        filesystem.add_override("models/shifts_by_month_bar_raw_sql.chart.yaml", &chart_file);
+
+        let response = return_full_sql_for_asset_internal(
+            &database,
+            &filesystem,
+            ReturnFullSqlForAssetRequest {
+                project_root: "".to_string(),
+                asset_name: "shifts_by_month_bar_raw_sql".to_string(),
+                cache_view_information: Some(CacheViewInformation {
+                    cache_view: Some(CacheView::DoNotUse(Default::default())),
+                }),
+            },
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(response.full_sql, "SELECT 1".to_string());
+        assert_eq!(
+            response.description.unwrap(),
+            "This is the description".to_string()
+        );
+        assert!(response.dag.is_none());
+    }
+
+    #[tokio::test]
     async fn get_model_table_model_test_empty_project_root() {
         let database = DatabaseQueryGeneratorDuckDB::new(Some("schema".to_string()), None);
         let file_system = DuckDBAsset;
@@ -2026,7 +2134,7 @@ mod tests {
                 "
 models:
   - name: shifts_summary
-    columns: 
+    columns:
       - name: column1
                             ",
             ),

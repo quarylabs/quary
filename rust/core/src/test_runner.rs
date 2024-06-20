@@ -79,7 +79,6 @@ pub async fn run_tests_internal(
     database: &impl DatabaseQueryGenerator,
     file_system: &impl FileSystem,
     project: &Project,
-    project_root: &str,
     dialect: &Dialect,
     test_runner: TestRunner,
     run_statement: RunStatementFunc,

@@ -144,6 +144,8 @@ export const RustWithDatabaseService = {
     /**
      * ReturnFullSqlForAsset returns the sql to create the view for the given asset. It also returns the dag and the
      * columns as well as the description for the asset.
+     * This currently works for models, sources and snapshots.
+     * TODO Implement working for charts
      *
      * @generated from rpc quary.service.v1.RustWithDatabaseService.ReturnFullSqlForAsset
      */
