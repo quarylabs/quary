@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-key */
 import { useState } from 'react'
 import {
   InfoCircledIcon,
@@ -70,6 +69,7 @@ export const ModelDetails: React.FC<Props> = ({
               : undefined
             return RowWrapper({
               title: <InferredAndPresentTitle title={title} />,
+              columnTitle: title,
               tests,
               description,
               addColumnTest: addColumnTestForCallback,
@@ -98,6 +98,7 @@ export const ModelDetails: React.FC<Props> = ({
             return RowWrapper({
               title: <p>{title}</p>,
               tests,
+              columnTitle: title,
               description,
               addColumnTest: addColumnTestForCallback,
               removeColumnTest: removeColumnTestForCallback,
@@ -129,6 +130,7 @@ export const ModelDetails: React.FC<Props> = ({
                 <InferredTitle title={title} addColumn={addColumnForCallback} />
               ),
               tests,
+              columnTitle: title,
               description,
               addColumnTest: addColumnTestForCallback,
               removeColumnTest: removeColumnTestForCallback,
@@ -171,6 +173,7 @@ export const ModelDetails: React.FC<Props> = ({
           title: (
             <InferredTitle title={title} addColumn={addColumnForCallback} />
           ),
+          columnTitle: title,
           tests,
           description,
           addDescription: addDescriptionForCallback,
@@ -227,7 +230,9 @@ const RowWrapper = ({
   addColumnTest,
   removeColumnTest,
   addDescription,
+  columnTitle,
 }: {
+  columnTitle: string
   title: React.ReactNode
   tests: RowTest[]
   description?: RowDescription
@@ -237,11 +242,14 @@ const RowWrapper = ({
 }) => [
   title,
   <TestWrapper
+    columnTitle={columnTitle}
+    key={`test-${columnTitle}`}
     tests={tests}
     addColumnTest={addColumnTest}
     removeColumnTest={removeColumnTest}
   />,
   <DescriptionWrapper
+    key={`description-${columnTitle}`}
     description={description}
     addDescription={addDescription}
   />,
@@ -357,14 +365,16 @@ const TestBadge = ({
 }
 
 const TestWrapper: React.FC<{
+  columnTitle: string
   tests: RowTest[]
   addColumnTest?: (columnTest: ColumnTest) => void
   removeColumnTest?: (columnTest: ColumnTest) => void
-}> = ({ tests, addColumnTest, removeColumnTest }) => (
+}> = ({ tests, columnTitle, addColumnTest, removeColumnTest }) => (
   <div className="flex items-center">
     <div className="flex flex-wrap gap-1.5">
       {tests.map((tableTest) => (
         <TestBadge
+          key={`${columnTitle}-test-${tableTest.test?.$case}`}
           rowTest={tableTest}
           addColumnTest={addColumnTest}
           removeColumnTest={removeColumnTest}
