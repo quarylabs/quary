@@ -404,10 +404,9 @@ pub async fn run_tests_internal(
             )
             .await
             .map_err(RunTestError::Other)?;
-            let whether_to_skip =
-                infer_skippable_tests_internal(dialect, project, file_system, project_root)
-                    .await
-                    .map_err(RunTestError::Other)?;
+            let whether_to_skip = infer_skippable_tests_internal(dialect, project, file_system)
+                .await
+                .map_err(RunTestError::Other)?;
             run_test_skip(tests, whether_to_skip, run_statement).await
         }
         TestRunner::All => {
