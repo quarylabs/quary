@@ -53,7 +53,6 @@ pub async fn infer_skippable_tests_internal(
     dialect: &Dialect,
     project: &Project,
     file_system: &impl FileSystem,
-    project_root: &str,
 ) -> Result<HashMap<String, Inference>, String> {
     let test_map = project
         .tests
@@ -68,7 +67,7 @@ pub async fn infer_skippable_tests_internal(
         .map(|(k, v)| (v.clone(), k.clone()))
         .collect::<HashMap<_, _>>();
 
-    let model_map = name_to_raw_model_map_internal(project, file_system, project_root).await?;
+    let model_map = name_to_raw_model_map_internal(project, file_system).await?;
 
     let inferred_tests = figure_out_skippable_tests(
         dialect,
@@ -163,18 +162,9 @@ use futures::future::try_join_all;
 pub async fn name_to_raw_model_map_internal(
     project: &Project,
     file_system: &impl FileSystem,
-    project_root: &str,
 ) -> Result<HashMap<String, String>, String> {
     let futures = project.models.iter().map(|(name, model)| async move {
-        let mut path = PathBuf::from(project_root);
-        path.push(model.file_path.as_str());
-        let path = path
-            .to_str()
-            .ok_or(format!(
-                "Failed to convert path {} to string",
-                model.file_path
-            ))?
-            .to_string();
+        let path = model.file_path.to_string();
         let mut file = file_system
             .read_file(&path)
             .await

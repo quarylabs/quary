@@ -902,7 +902,7 @@ pub(crate) async fn get_model_table_internal(
     let project = quary_core::project::parse_project(file_system, database, &project_root).await?;
     let dialect = database.get_dialect().get_dialect();
 
-    let model_map = name_to_raw_model_map_internal(&project, file_system, &project_root).await?;
+    let model_map = name_to_raw_model_map_internal(&project, file_system).await?;
     let model_statement = model_map
         .get(&request.model_name)
         .ok_or(format!("Model {} not found", request.model_name))?;
@@ -1996,7 +1996,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_model_table_model_test() {
+    async fn get_model_table_model_test_empty_project_root() {
         let database = DatabaseQueryGeneratorDuckDB::new(Some("schema".to_string()), None);
         let file_system = DuckDBAsset;
         let request = GetModelTableRequest {
@@ -2010,6 +2010,38 @@ mod tests {
         match response.table.unwrap().table_type.unwrap() {
             TableType::Present(model) => {
                 assert_eq!(model.rows.len(), 8)
+            }
+            _ => panic!("Expected model"),
+        }
+    }
+
+    #[tokio::test]
+    async fn get_model_table_test_with_project_root() {
+        let database = DatabaseQueryGeneratorDuckDB::new(Some("schema".to_string()), None);
+        let file_system = files_to_file_system(vec![
+            ("quarylabs-123/quary.yaml", "duckdb: {}"),
+            ("quarylabs-123/models/shifts_summary.sql", "SELECT 1"),
+            (
+                "quarylabs-123/models/schema.yaml",
+                "
+models:
+  - name: shifts_summary
+    columns: 
+      - name: column1
+                            ",
+            ),
+        ]);
+        let request = GetModelTableRequest {
+            project_root: "quarylabs-123".to_string(),
+            model_name: "shifts_summary".to_string(),
+        };
+        let response = get_model_table_internal(&database, &file_system, request)
+            .await
+            .unwrap();
+
+        match response.table.unwrap().table_type.unwrap() {
+            TableType::Present(model) => {
+                assert_eq!(model.rows.len(), 1)
             }
             _ => panic!("Expected model"),
         }
