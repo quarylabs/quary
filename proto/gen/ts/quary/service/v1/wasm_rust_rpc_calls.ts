@@ -57,6 +57,11 @@ export interface StringifyProjectFileResponse {
 
 export interface ListAssetsRequest {
   projectRoot: string;
+  assetsToSkip: ListAssetsRequest_AssetsToSkip | undefined;
+}
+
+export interface ListAssetsRequest_AssetsToSkip {
+  charts: boolean;
 }
 
 export interface ListAssetsResponse {
@@ -78,6 +83,7 @@ export enum ListAssetsResponse_Asset_AssetType {
   ASSET_TYPE_SEED = 2,
   ASSET_TYPE_SOURCE = 3,
   ASSET_TYPE_SNAPSHOT = 4,
+  ASSET_TYPE_CHART = 5,
   UNRECOGNIZED = -1,
 }
 
@@ -98,6 +104,9 @@ export function listAssetsResponse_Asset_AssetTypeFromJSON(object: any): ListAss
     case 4:
     case "ASSET_TYPE_SNAPSHOT":
       return ListAssetsResponse_Asset_AssetType.ASSET_TYPE_SNAPSHOT;
+    case 5:
+    case "ASSET_TYPE_CHART":
+      return ListAssetsResponse_Asset_AssetType.ASSET_TYPE_CHART;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -117,6 +126,8 @@ export function listAssetsResponse_Asset_AssetTypeToJSON(object: ListAssetsRespo
       return "ASSET_TYPE_SOURCE";
     case ListAssetsResponse_Asset_AssetType.ASSET_TYPE_SNAPSHOT:
       return "ASSET_TYPE_SNAPSHOT";
+    case ListAssetsResponse_Asset_AssetType.ASSET_TYPE_CHART:
+      return "ASSET_TYPE_CHART";
     case ListAssetsResponse_Asset_AssetType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -852,13 +863,16 @@ export const StringifyProjectFileResponse = {
 };
 
 function createBaseListAssetsRequest(): ListAssetsRequest {
-  return { projectRoot: "" };
+  return { projectRoot: "", assetsToSkip: undefined };
 }
 
 export const ListAssetsRequest = {
   encode(message: ListAssetsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.projectRoot !== "") {
       writer.uint32(26).string(message.projectRoot);
+    }
+    if (message.assetsToSkip !== undefined) {
+      ListAssetsRequest_AssetsToSkip.encode(message.assetsToSkip, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -877,6 +891,13 @@ export const ListAssetsRequest = {
 
           message.projectRoot = reader.string();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.assetsToSkip = ListAssetsRequest_AssetsToSkip.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -887,13 +908,21 @@ export const ListAssetsRequest = {
   },
 
   fromJSON(object: any): ListAssetsRequest {
-    return { projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "" };
+    return {
+      projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
+      assetsToSkip: isSet(object.assetsToSkip)
+        ? ListAssetsRequest_AssetsToSkip.fromJSON(object.assetsToSkip)
+        : undefined,
+    };
   },
 
   toJSON(message: ListAssetsRequest): unknown {
     const obj: any = {};
     if (message.projectRoot !== "") {
       obj.projectRoot = message.projectRoot;
+    }
+    if (message.assetsToSkip !== undefined) {
+      obj.assetsToSkip = ListAssetsRequest_AssetsToSkip.toJSON(message.assetsToSkip);
     }
     return obj;
   },
@@ -904,6 +933,68 @@ export const ListAssetsRequest = {
   fromPartial<I extends Exact<DeepPartial<ListAssetsRequest>, I>>(object: I): ListAssetsRequest {
     const message = createBaseListAssetsRequest();
     message.projectRoot = object.projectRoot ?? "";
+    message.assetsToSkip = (object.assetsToSkip !== undefined && object.assetsToSkip !== null)
+      ? ListAssetsRequest_AssetsToSkip.fromPartial(object.assetsToSkip)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseListAssetsRequest_AssetsToSkip(): ListAssetsRequest_AssetsToSkip {
+  return { charts: false };
+}
+
+export const ListAssetsRequest_AssetsToSkip = {
+  encode(message: ListAssetsRequest_AssetsToSkip, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.charts !== false) {
+      writer.uint32(8).bool(message.charts);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListAssetsRequest_AssetsToSkip {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListAssetsRequest_AssetsToSkip();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.charts = reader.bool();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListAssetsRequest_AssetsToSkip {
+    return { charts: isSet(object.charts) ? gt.Boolean(object.charts) : false };
+  },
+
+  toJSON(message: ListAssetsRequest_AssetsToSkip): unknown {
+    const obj: any = {};
+    if (message.charts !== false) {
+      obj.charts = message.charts;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListAssetsRequest_AssetsToSkip>, I>>(base?: I): ListAssetsRequest_AssetsToSkip {
+    return ListAssetsRequest_AssetsToSkip.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ListAssetsRequest_AssetsToSkip>, I>>(
+    object: I,
+  ): ListAssetsRequest_AssetsToSkip {
+    const message = createBaseListAssetsRequest_AssetsToSkip();
+    message.charts = object.charts ?? false;
     return message;
   },
 };

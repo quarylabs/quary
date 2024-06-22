@@ -277,6 +277,9 @@ export class ChartEditorProvider
     }
     const returned = await services.rust.list_assets({
       projectRoot: setupValues.value.projectRoot,
+      assetsToSkip: {
+        charts: true,
+      },
     })
     if (isErr(returned)) {
       return returned

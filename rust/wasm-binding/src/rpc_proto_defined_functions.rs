@@ -818,11 +818,22 @@ pub(crate) async fn list_assets(
     file_system: JsFileSystem,
     request: ListAssetsRequest,
 ) -> Result<ListAssetsResponse, String> {
+    list_assets_internal(&database, &file_system, request).await
+}
+
+pub(crate) async fn list_assets_internal(
+    database: &impl DatabaseQueryGenerator,
+    file_system: &impl FileSystem,
+    request: ListAssetsRequest,
+) -> Result<ListAssetsResponse, String> {
+    let assets_to_skip = request.assets_to_skip.ok_or("No assets to skip provided")?;
     let project = quary_core::project::parse_project_with_skip(
-        &file_system,
-        &database,
+        file_system,
+        database,
         &request.project_root,
-        AssetsToSkip { charts: true },
+        AssetsToSkip {
+            charts: assets_to_skip.charts,
+        },
     )
     .await?;
 
@@ -863,6 +874,15 @@ pub(crate) async fn list_assets(
                     quary_proto::list_assets_response::asset::AssetType::Snapshot,
                 ),
                 file_path: snapshot.file_path,
+            }
+        }))
+        .chain(project.charts.into_iter().map(|(name, chart)| {
+            quary_proto::list_assets_response::Asset {
+                name,
+                description: chart.description,
+                tags: chart.tags,
+                asset_type: i32::from(quary_proto::list_assets_response::asset::AssetType::Chart),
+                file_path: chart.file_path,
             }
         }))
         .collect::<Vec<_>>();
@@ -2153,6 +2173,49 @@ models:
             }
             _ => panic!("Expected model"),
         }
+    }
+
+    #[tokio::test]
+    async fn list_assets_skip_charts() {
+        let database = DatabaseQueryGeneratorDuckDB::new(Some("schema".to_string()), None);
+        let file_system = DuckDBAsset {};
+
+        let request = ListAssetsRequest {
+            project_root: "".to_string(),
+            assets_to_skip: Some(quary_proto::list_assets_request::AssetsToSkip { charts: true }),
+        };
+        let response = list_assets_internal(&database, &file_system, request)
+            .await
+            .unwrap();
+
+        // Find the chart
+        let chart = response
+            .assets
+            .iter()
+            .find(|asset| asset.name == "shifts_by_month_bar");
+        assert!(chart.is_none());
+    }
+
+    #[tokio::test]
+    async fn list_assets_include_charts() {
+        let database = DatabaseQueryGeneratorDuckDB::new(Some("schema".to_string()), None);
+        let file_system = DuckDBAsset {};
+
+        let request = ListAssetsRequest {
+            project_root: "".to_string(),
+            assets_to_skip: Some(quary_proto::list_assets_request::AssetsToSkip { charts: false }),
+        };
+        let response = list_assets_internal(&database, &file_system, request)
+            .await
+            .unwrap();
+
+        // Find the chart
+        let chart = response
+            .assets
+            .iter()
+            .find(|asset| asset.name == "shifts_by_month_bar")
+            .unwrap();
+        assert!(chart.description.is_some());
     }
 
     fn setup_file_mocks() -> (Writer, Rc<RefCell<HashMap<String, String>>>) {

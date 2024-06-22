@@ -7489,9 +7489,15 @@ impl serde::Serialize for ListAssetsRequest {
         if !self.project_root.is_empty() {
             len += 1;
         }
+        if self.assets_to_skip.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.ListAssetsRequest", len)?;
         if !self.project_root.is_empty() {
             struct_ser.serialize_field("projectRoot", &self.project_root)?;
+        }
+        if let Some(v) = self.assets_to_skip.as_ref() {
+            struct_ser.serialize_field("assetsToSkip", v)?;
         }
         struct_ser.end()
     }
@@ -7505,11 +7511,14 @@ impl<'de> serde::Deserialize<'de> for ListAssetsRequest {
         const FIELDS: &[&str] = &[
             "project_root",
             "projectRoot",
+            "assets_to_skip",
+            "assetsToSkip",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             ProjectRoot,
+            AssetsToSkip,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -7532,6 +7541,7 @@ impl<'de> serde::Deserialize<'de> for ListAssetsRequest {
                     {
                         match value {
                             "projectRoot" | "project_root" => Ok(GeneratedField::ProjectRoot),
+                            "assetsToSkip" | "assets_to_skip" => Ok(GeneratedField::AssetsToSkip),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -7552,6 +7562,7 @@ impl<'de> serde::Deserialize<'de> for ListAssetsRequest {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut project_root__ = None;
+                let mut assets_to_skip__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::ProjectRoot => {
@@ -7560,14 +7571,112 @@ impl<'de> serde::Deserialize<'de> for ListAssetsRequest {
                             }
                             project_root__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::AssetsToSkip => {
+                            if assets_to_skip__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("assetsToSkip"));
+                            }
+                            assets_to_skip__ = map_.next_value()?;
+                        }
                     }
                 }
                 Ok(ListAssetsRequest {
                     project_root: project_root__.unwrap_or_default(),
+                    assets_to_skip: assets_to_skip__,
                 })
             }
         }
         deserializer.deserialize_struct("quary.service.v1.ListAssetsRequest", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for list_assets_request::AssetsToSkip {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if self.charts {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ListAssetsRequest.AssetsToSkip", len)?;
+        if self.charts {
+            struct_ser.serialize_field("charts", &self.charts)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for list_assets_request::AssetsToSkip {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "charts",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Charts,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "charts" => Ok(GeneratedField::Charts),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = list_assets_request::AssetsToSkip;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.ListAssetsRequest.AssetsToSkip")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<list_assets_request::AssetsToSkip, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut charts__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Charts => {
+                            if charts__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("charts"));
+                            }
+                            charts__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(list_assets_request::AssetsToSkip {
+                    charts: charts__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.ListAssetsRequest.AssetsToSkip", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for ListAssetsResponse {
@@ -7836,6 +7945,7 @@ impl serde::Serialize for list_assets_response::asset::AssetType {
             Self::Seed => "ASSET_TYPE_SEED",
             Self::Source => "ASSET_TYPE_SOURCE",
             Self::Snapshot => "ASSET_TYPE_SNAPSHOT",
+            Self::Chart => "ASSET_TYPE_CHART",
         };
         serializer.serialize_str(variant)
     }
@@ -7852,6 +7962,7 @@ impl<'de> serde::Deserialize<'de> for list_assets_response::asset::AssetType {
             "ASSET_TYPE_SEED",
             "ASSET_TYPE_SOURCE",
             "ASSET_TYPE_SNAPSHOT",
+            "ASSET_TYPE_CHART",
         ];
 
         struct GeneratedVisitor;
@@ -7897,6 +8008,7 @@ impl<'de> serde::Deserialize<'de> for list_assets_response::asset::AssetType {
                     "ASSET_TYPE_SEED" => Ok(list_assets_response::asset::AssetType::Seed),
                     "ASSET_TYPE_SOURCE" => Ok(list_assets_response::asset::AssetType::Source),
                     "ASSET_TYPE_SNAPSHOT" => Ok(list_assets_response::asset::AssetType::Snapshot),
+                    "ASSET_TYPE_CHART" => Ok(list_assets_response::asset::AssetType::Chart),
                     _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),
                 }
             }

@@ -33,6 +33,9 @@ const getModelDetails = async ({
 > => {
   const assetsResponse = await services.rust.list_assets({
     projectRoot,
+    assetsToSkip: {
+      charts: true,
+    },
   })
   if (isErr(assetsResponse)) {
     return assetsResponse

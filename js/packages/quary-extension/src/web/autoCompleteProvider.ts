@@ -27,6 +27,9 @@ export const sqlAutocompleteProvider = (
       }
       const assets = await services.rust.list_assets({
         projectRoot: details.value.projectRoot,
+        assetsToSkip: {
+          charts: true,
+        },
       })
       if (isErr(assets)) {
         return assets

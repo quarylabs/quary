@@ -125,6 +125,10 @@ message StringifyProjectFileResponse {
 
 message ListAssetsRequest {
   string project_root = 3;
+  message AssetsToSkip {
+    bool charts = 1;
+  }
+  AssetsToSkip assets_to_skip = 4;
 }
 
 message ListAssetsResponse {
@@ -139,6 +143,7 @@ message ListAssetsResponse {
       ASSET_TYPE_SEED = 2;
       ASSET_TYPE_SOURCE = 3;
       ASSET_TYPE_SNAPSHOT = 4;
+      ASSET_TYPE_CHART = 5;
     }
     AssetType asset_type = 3;
     string file_path = 4;

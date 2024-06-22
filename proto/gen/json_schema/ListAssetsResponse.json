@@ -41,7 +41,9 @@
                         "ASSET_TYPE_SOURCE",
                         3,
                         "ASSET_TYPE_SNAPSHOT",
-                        4
+                        4,
+                        "ASSET_TYPE_CHART",
+                        5
                     ],
                     "oneOf": [
                         {

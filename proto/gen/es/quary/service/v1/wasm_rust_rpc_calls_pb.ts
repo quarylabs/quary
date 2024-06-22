@@ -374,6 +374,11 @@ export class ListAssetsRequest extends Message<ListAssetsRequest> {
    */
   projectRoot = "";
 
+  /**
+   * @generated from field: quary.service.v1.ListAssetsRequest.AssetsToSkip assets_to_skip = 4;
+   */
+  assetsToSkip?: ListAssetsRequest_AssetsToSkip;
+
   constructor(data?: PartialMessage<ListAssetsRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -383,6 +388,7 @@ export class ListAssetsRequest extends Message<ListAssetsRequest> {
   static readonly typeName = "quary.service.v1.ListAssetsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 3, name: "project_root", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "assets_to_skip", kind: "message", T: ListAssetsRequest_AssetsToSkip },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListAssetsRequest {
@@ -399,6 +405,43 @@ export class ListAssetsRequest extends Message<ListAssetsRequest> {
 
   static equals(a: ListAssetsRequest | PlainMessage<ListAssetsRequest> | undefined, b: ListAssetsRequest | PlainMessage<ListAssetsRequest> | undefined): boolean {
     return proto3.util.equals(ListAssetsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.ListAssetsRequest.AssetsToSkip
+ */
+export class ListAssetsRequest_AssetsToSkip extends Message<ListAssetsRequest_AssetsToSkip> {
+  /**
+   * @generated from field: bool charts = 1;
+   */
+  charts = false;
+
+  constructor(data?: PartialMessage<ListAssetsRequest_AssetsToSkip>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.ListAssetsRequest.AssetsToSkip";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "charts", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListAssetsRequest_AssetsToSkip {
+    return new ListAssetsRequest_AssetsToSkip().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListAssetsRequest_AssetsToSkip {
+    return new ListAssetsRequest_AssetsToSkip().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListAssetsRequest_AssetsToSkip {
+    return new ListAssetsRequest_AssetsToSkip().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListAssetsRequest_AssetsToSkip | PlainMessage<ListAssetsRequest_AssetsToSkip> | undefined, b: ListAssetsRequest_AssetsToSkip | PlainMessage<ListAssetsRequest_AssetsToSkip> | undefined): boolean {
+    return proto3.util.equals(ListAssetsRequest_AssetsToSkip, a, b);
   }
 }
 
@@ -530,6 +573,11 @@ export enum ListAssetsResponse_Asset_AssetType {
    * @generated from enum value: ASSET_TYPE_SNAPSHOT = 4;
    */
   SNAPSHOT = 4,
+
+  /**
+   * @generated from enum value: ASSET_TYPE_CHART = 5;
+   */
+  CHART = 5,
 }
 // Retrieve enum metadata with: proto3.getEnumType(ListAssetsResponse_Asset_AssetType)
 proto3.util.setEnumType(ListAssetsResponse_Asset_AssetType, "quary.service.v1.ListAssetsResponse.Asset.AssetType", [
@@ -538,6 +586,7 @@ proto3.util.setEnumType(ListAssetsResponse_Asset_AssetType, "quary.service.v1.Li
   { no: 2, name: "ASSET_TYPE_SEED" },
   { no: 3, name: "ASSET_TYPE_SOURCE" },
   { no: 4, name: "ASSET_TYPE_SNAPSHOT" },
+  { no: 5, name: "ASSET_TYPE_CHART" },
 ]);
 
 /**
