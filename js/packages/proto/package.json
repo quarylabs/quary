@@ -11,6 +11,6 @@
     "protobufjs": "^7.3.2"
   },
   "devDependencies": {
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.2"
   }
 }
