@@ -6,11 +6,25 @@
             "properties": {
                 "project_root": {
                     "type": "string"
+                },
+                "assets_to_skip": {
+                    "$ref": "#/definitions/quary.service.v1.ListAssetsRequest.AssetsToSkip",
+                    "additionalProperties": false
                 }
             },
             "additionalProperties": false,
             "type": "object",
             "title": "List Assets Request"
+        },
+        "quary.service.v1.ListAssetsRequest.AssetsToSkip": {
+            "properties": {
+                "charts": {
+                    "type": "boolean"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Assets To Skip"
         }
     }
 }

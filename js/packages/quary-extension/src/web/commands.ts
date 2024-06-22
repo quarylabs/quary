@@ -115,6 +115,9 @@ export const returnCommands = (
       // Check if the active file is a model
       const assets = await services.rust.list_assets({
         projectRoot,
+        assetsToSkip: {
+          charts: true,
+        },
       })
       if (isErr(assets)) {
         return assets
@@ -310,6 +313,9 @@ export const returnCommands = (
       const { projectRoot } = details.value
       const assets = await services.rust.list_assets({
         projectRoot,
+        assetsToSkip: {
+          charts: true,
+        },
       })
       if (isErr(assets)) {
         return assets
@@ -467,6 +473,9 @@ export const returnCommands = (
       // Check if the active file is a model
       const assets = await services.rust.list_assets({
         projectRoot,
+        assetsToSkip: {
+          charts: true,
+        },
       })
       if (isErr(assets)) {
         return assets
@@ -514,6 +523,9 @@ export const returnCommands = (
       // Check if the active file is a model
       const assets = await services.rust.list_assets({
         projectRoot,
+        assetsToSkip: {
+          charts: true,
+        },
       })
       if (isErr(assets)) {
         return assets
