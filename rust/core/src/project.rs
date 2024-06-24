@@ -358,7 +358,7 @@ async fn parse_sql_tests(
         project_root,
         PATH_FOR_TESTS,
         EXTENSION_SQL,
-        None,
+        &[],
     )
     .await?;
 
@@ -462,7 +462,7 @@ pub(crate) async fn get_path_bufs(
     project_root: &str,
     folder: &str,
     extension_of_interest: &str,
-    ignore_suffix: Option<&str>,
+    ignore_suffixes: &[&str],
 ) -> Result<Vec<PathBuf>, String> {
     let mut out = PathBuf::from(project_root);
     out.push(folder);
@@ -480,7 +480,9 @@ pub(crate) async fn get_path_bufs(
         .iter()
         .filter(|path: &&PathBuf| {
             path.to_string_lossy().ends_with(extension_of_interest)
-                && ignore_suffix.map_or(true, |suffix| !path.to_string_lossy().ends_with(suffix))
+                && ignore_suffixes
+                    .iter()
+                    .all(|suffix| !path.to_string_lossy().ends_with(suffix))
         })
         .map(|path| Ok(path.clone()))
         .collect()
@@ -496,7 +498,7 @@ async fn parse_models(
         project_root,
         PATH_FOR_MODELS,
         EXTENSION_SQL,
-        Some(EXTENSION_SNAPSHOT_SQL),
+        &[EXTENSION_SNAPSHOT_SQL],
     )
     .await?;
 
@@ -537,7 +539,7 @@ async fn parse_snapshots(
         project_root,
         PATH_FOR_MODELS,
         EXTENSION_SQL,
-        None,
+        &[],
     )
     .await?
     .into_iter()
@@ -781,14 +783,7 @@ async fn parse_seeds<'a>(
     filesystem: &'a impl FileSystem,
     project_root: &'a str,
 ) -> Result<Vec<(String, Seed)>, String> {
-    let paths = get_path_bufs(
-        filesystem,
-        project_root,
-        PATH_FOR_SEEDS,
-        EXTENSION_CSV,
-        None,
-    )
-    .await?;
+    let paths = get_path_bufs(filesystem, project_root, PATH_FOR_SEEDS, EXTENSION_CSV, &[]).await?;
 
     let seeds = paths
         .iter()
@@ -829,7 +824,7 @@ pub async fn parse_project_files(
         project_root,
         PATH_FOR_MODELS,
         EXTENSION_YAML,
-        Some(EXTENSION_CHART_YAML),
+        &[EXTENSION_CHART_YAML],
     )
     .await?;
 

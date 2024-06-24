@@ -102,7 +102,7 @@ pub(crate) async fn parse_charts(
         project_root,
         crate::project::PATH_FOR_MODELS,
         EXTENSION_CHART_YAML,
-        None,
+        &[],
     )
     .await?;
     let mut charts = Vec::new();
