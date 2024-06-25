@@ -12,7 +12,14 @@ export const protobufPackage = "quary.service.v1";
 export interface DashboardFile {
   name: string;
   title?: string | undefined;
-  description?: string | undefined;
+  description?:
+    | string
+    | undefined;
+  /**
+   * Tags are used to group different parts of the project together. For example, you could tag all models that are
+   * related to a specific department with the same tag.
+   */
+  tags: string[];
   items: DashboardItem[];
 }
 
@@ -33,7 +40,7 @@ export interface DashboardChartReference {
 }
 
 function createBaseDashboardFile(): DashboardFile {
-  return { name: "", title: undefined, description: undefined, items: [] };
+  return { name: "", title: undefined, description: undefined, tags: [], items: [] };
 }
 
 export const DashboardFile = {
@@ -47,8 +54,11 @@ export const DashboardFile = {
     if (message.description !== undefined) {
       writer.uint32(26).string(message.description);
     }
+    for (const v of message.tags) {
+      writer.uint32(34).string(v!);
+    }
     for (const v of message.items) {
-      DashboardItem.encode(v!, writer.uint32(34).fork()).ldelim();
+      DashboardItem.encode(v!, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -86,6 +96,13 @@ export const DashboardFile = {
             break;
           }
 
+          message.tags.push(reader.string());
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
           message.items.push(DashboardItem.decode(reader, reader.uint32()));
           continue;
       }
@@ -102,6 +119,7 @@ export const DashboardFile = {
       name: isSet(object.name) ? gt.String(object.name) : "",
       title: isSet(object.title) ? gt.String(object.title) : undefined,
       description: isSet(object.description) ? gt.String(object.description) : undefined,
+      tags: gt.Array.isArray(object?.tags) ? object.tags.map((e: any) => gt.String(e)) : [],
       items: gt.Array.isArray(object?.items) ? object.items.map((e: any) => DashboardItem.fromJSON(e)) : [],
     };
   },
@@ -117,6 +135,9 @@ export const DashboardFile = {
     if (message.description !== undefined) {
       obj.description = message.description;
     }
+    if (message.tags?.length) {
+      obj.tags = message.tags;
+    }
     if (message.items?.length) {
       obj.items = message.items.map((e) => DashboardItem.toJSON(e));
     }
@@ -131,6 +152,7 @@ export const DashboardFile = {
     message.name = object.name ?? "";
     message.title = object.title ?? undefined;
     message.description = object.description ?? undefined;
+    message.tags = object.tags?.map((e) => e) || [];
     message.items = object.items?.map((e) => DashboardItem.fromPartial(e)) || [];
     return message;
   },

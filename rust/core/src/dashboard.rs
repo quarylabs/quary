@@ -5,7 +5,7 @@ use crate::{
 };
 use quary_proto::dashboard_chart::Chart;
 use quary_proto::dashboard_item::Item;
-use quary_proto::DashboardFile;
+use quary_proto::{Dashboard, DashboardFile};
 use std::{collections::BTreeMap, io::Read};
 
 pub fn dashboard_file_from_yaml(yaml: impl Read) -> Result<DashboardFile, String> {
@@ -21,13 +21,13 @@ pub fn dashboard_file_to_yaml(chart_file: &DashboardFile) -> Result<String, Stri
 pub(crate) async fn parse_dashboard_files(
     filesystem: &impl FileSystem,
     project_root: &str,
-) -> Result<BTreeMap<String, (DashboardFile, Vec<String>)>, String> {
+) -> Result<BTreeMap<String, (Dashboard, Vec<String>)>, String> {
     let paths = get_path_bufs(
         filesystem,
         project_root,
         PATH_FOR_MODELS,
         EXTENSION_DASHBOARD_YAML,
-        None,
+        &[],
     )
     .await?;
 
@@ -51,12 +51,12 @@ pub(crate) async fn parse_dashboard_files(
             .trim_end_matches(EXTENSION_DASHBOARD_YAML)
             .to_string();
 
-        dashboard_files.insert(name, dashboard_file);
+        dashboard_files.insert(name, (str_path.to_string(), dashboard_file));
     }
 
     dashboard_files
         .into_iter()
-        .map(|(name, dashboard_file)| {
+        .map(|(name, (path, dashboard_file))| {
             let dependencies = dashboard_file
                 .items
                 .iter()
@@ -75,7 +75,15 @@ pub(crate) async fn parse_dashboard_files(
                     },
                 })
                 .collect::<Result<Vec<String>, String>>()?;
-            Ok((name, (dashboard_file, dependencies)))
+            let dashboard = Dashboard {
+                name: dashboard_file.name,
+                title: dashboard_file.title,
+                description: dashboard_file.description,
+                tags: dashboard_file.tags,
+                items: dashboard_file.items,
+                file_path: path,
+            };
+            Ok((name, (dashboard, dependencies)))
         })
-        .collect::<Result<BTreeMap<String, (DashboardFile, Vec<String>)>, String>>()
+        .collect::<Result<BTreeMap<String, (Dashboard, Vec<String>)>, String>>()
 }

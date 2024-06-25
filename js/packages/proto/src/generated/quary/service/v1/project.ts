@@ -8,7 +8,7 @@
 import * as _m0 from "protobufjs/minimal";
 import { Chart } from "./chart";
 import { ConnectionConfig } from "./connection_config";
-import { DashboardFile } from "./dashboard_file";
+import { Dashboard } from "./dashboard";
 import { ProjectFile } from "./project_file";
 import { Model, Seed, Snapshot, Source, Test } from "./types";
 
@@ -21,7 +21,7 @@ export interface Project {
   sources: { [key: string]: Source };
   snapshots: { [key: string]: Snapshot };
   charts: { [key: string]: Chart };
-  dashboards: { [key: string]: DashboardFile };
+  dashboards: { [key: string]: Dashboard };
   projectFiles: { [key: string]: ProjectFile };
   connectionConfig: ConnectionConfig | undefined;
 }
@@ -58,7 +58,7 @@ export interface Project_ChartsEntry {
 
 export interface Project_DashboardsEntry {
   key: string;
-  value: DashboardFile | undefined;
+  value: Dashboard | undefined;
 }
 
 export interface Project_ProjectFilesEntry {
@@ -254,8 +254,8 @@ export const Project = {
         }, {})
         : {},
       dashboards: isObject(object.dashboards)
-        ? Object.entries(object.dashboards).reduce<{ [key: string]: DashboardFile }>((acc, [key, value]) => {
-          acc[key] = DashboardFile.fromJSON(value);
+        ? Object.entries(object.dashboards).reduce<{ [key: string]: Dashboard }>((acc, [key, value]) => {
+          acc[key] = Dashboard.fromJSON(value);
           return acc;
         }, {})
         : {},
@@ -330,7 +330,7 @@ export const Project = {
       if (entries.length > 0) {
         obj.dashboards = {};
         entries.forEach(([k, v]) => {
-          obj.dashboards[k] = DashboardFile.toJSON(v);
+          obj.dashboards[k] = Dashboard.toJSON(v);
         });
       }
     }
@@ -393,10 +393,10 @@ export const Project = {
       }
       return acc;
     }, {});
-    message.dashboards = Object.entries(object.dashboards ?? {}).reduce<{ [key: string]: DashboardFile }>(
+    message.dashboards = Object.entries(object.dashboards ?? {}).reduce<{ [key: string]: Dashboard }>(
       (acc, [key, value]) => {
         if (value !== undefined) {
-          acc[key] = DashboardFile.fromPartial(value);
+          acc[key] = Dashboard.fromPartial(value);
         }
         return acc;
       },
@@ -876,7 +876,7 @@ export const Project_DashboardsEntry = {
       writer.uint32(10).string(message.key);
     }
     if (message.value !== undefined) {
-      DashboardFile.encode(message.value, writer.uint32(18).fork()).ldelim();
+      Dashboard.encode(message.value, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -900,7 +900,7 @@ export const Project_DashboardsEntry = {
             break;
           }
 
-          message.value = DashboardFile.decode(reader, reader.uint32());
+          message.value = Dashboard.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -914,7 +914,7 @@ export const Project_DashboardsEntry = {
   fromJSON(object: any): Project_DashboardsEntry {
     return {
       key: isSet(object.key) ? gt.String(object.key) : "",
-      value: isSet(object.value) ? DashboardFile.fromJSON(object.value) : undefined,
+      value: isSet(object.value) ? Dashboard.fromJSON(object.value) : undefined,
     };
   },
 
@@ -924,7 +924,7 @@ export const Project_DashboardsEntry = {
       obj.key = message.key;
     }
     if (message.value !== undefined) {
-      obj.value = DashboardFile.toJSON(message.value);
+      obj.value = Dashboard.toJSON(message.value);
     }
     return obj;
   },
@@ -936,7 +936,7 @@ export const Project_DashboardsEntry = {
     const message = createBaseProject_DashboardsEntry();
     message.key = object.key ?? "";
     message.value = (object.value !== undefined && object.value !== null)
-      ? DashboardFile.fromPartial(object.value)
+      ? Dashboard.fromPartial(object.value)
       : undefined;
     return message;
   },

@@ -5285,6 +5285,183 @@ impl<'de> serde::Deserialize<'de> for CreateModelSchemaEntryResponse {
         deserializer.deserialize_struct("quary.service.v1.CreateModelSchemaEntryResponse", FIELDS, GeneratedVisitor)
     }
 }
+impl serde::Serialize for Dashboard {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if self.title.is_some() {
+            len += 1;
+        }
+        if self.description.is_some() {
+            len += 1;
+        }
+        if !self.tags.is_empty() {
+            len += 1;
+        }
+        if !self.items.is_empty() {
+            len += 1;
+        }
+        if !self.file_path.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.Dashboard", len)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.title.as_ref() {
+            struct_ser.serialize_field("title", v)?;
+        }
+        if let Some(v) = self.description.as_ref() {
+            struct_ser.serialize_field("description", v)?;
+        }
+        if !self.tags.is_empty() {
+            struct_ser.serialize_field("tags", &self.tags)?;
+        }
+        if !self.items.is_empty() {
+            struct_ser.serialize_field("items", &self.items)?;
+        }
+        if !self.file_path.is_empty() {
+            struct_ser.serialize_field("filePath", &self.file_path)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for Dashboard {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "name",
+            "title",
+            "description",
+            "tags",
+            "items",
+            "file_path",
+            "filePath",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Name,
+            Title,
+            Description,
+            Tags,
+            Items,
+            FilePath,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "name" => Ok(GeneratedField::Name),
+                            "title" => Ok(GeneratedField::Title),
+                            "description" => Ok(GeneratedField::Description),
+                            "tags" => Ok(GeneratedField::Tags),
+                            "items" => Ok(GeneratedField::Items),
+                            "filePath" | "file_path" => Ok(GeneratedField::FilePath),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = Dashboard;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.Dashboard")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<Dashboard, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut name__ = None;
+                let mut title__ = None;
+                let mut description__ = None;
+                let mut tags__ = None;
+                let mut items__ = None;
+                let mut file_path__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
+                            }
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Title => {
+                            if title__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("title"));
+                            }
+                            title__ = map_.next_value()?;
+                        }
+                        GeneratedField::Description => {
+                            if description__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("description"));
+                            }
+                            description__ = map_.next_value()?;
+                        }
+                        GeneratedField::Tags => {
+                            if tags__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("tags"));
+                            }
+                            tags__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Items => {
+                            if items__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("items"));
+                            }
+                            items__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::FilePath => {
+                            if file_path__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("filePath"));
+                            }
+                            file_path__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(Dashboard {
+                    name: name__.unwrap_or_default(),
+                    title: title__,
+                    description: description__,
+                    tags: tags__.unwrap_or_default(),
+                    items: items__.unwrap_or_default(),
+                    file_path: file_path__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.Dashboard", FIELDS, GeneratedVisitor)
+    }
+}
 impl serde::Serialize for DashboardChart {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
@@ -5489,6 +5666,9 @@ impl serde::Serialize for DashboardFile {
         if self.description.is_some() {
             len += 1;
         }
+        if !self.tags.is_empty() {
+            len += 1;
+        }
         if !self.items.is_empty() {
             len += 1;
         }
@@ -5501,6 +5681,9 @@ impl serde::Serialize for DashboardFile {
         }
         if let Some(v) = self.description.as_ref() {
             struct_ser.serialize_field("description", v)?;
+        }
+        if !self.tags.is_empty() {
+            struct_ser.serialize_field("tags", &self.tags)?;
         }
         if !self.items.is_empty() {
             struct_ser.serialize_field("items", &self.items)?;
@@ -5518,6 +5701,7 @@ impl<'de> serde::Deserialize<'de> for DashboardFile {
             "name",
             "title",
             "description",
+            "tags",
             "items",
         ];
 
@@ -5526,6 +5710,7 @@ impl<'de> serde::Deserialize<'de> for DashboardFile {
             Name,
             Title,
             Description,
+            Tags,
             Items,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -5551,6 +5736,7 @@ impl<'de> serde::Deserialize<'de> for DashboardFile {
                             "name" => Ok(GeneratedField::Name),
                             "title" => Ok(GeneratedField::Title),
                             "description" => Ok(GeneratedField::Description),
+                            "tags" => Ok(GeneratedField::Tags),
                             "items" => Ok(GeneratedField::Items),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
@@ -5574,6 +5760,7 @@ impl<'de> serde::Deserialize<'de> for DashboardFile {
                 let mut name__ = None;
                 let mut title__ = None;
                 let mut description__ = None;
+                let mut tags__ = None;
                 let mut items__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
@@ -5595,6 +5782,12 @@ impl<'de> serde::Deserialize<'de> for DashboardFile {
                             }
                             description__ = map_.next_value()?;
                         }
+                        GeneratedField::Tags => {
+                            if tags__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("tags"));
+                            }
+                            tags__ = Some(map_.next_value()?);
+                        }
                         GeneratedField::Items => {
                             if items__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("items"));
@@ -5607,6 +5800,7 @@ impl<'de> serde::Deserialize<'de> for DashboardFile {
                     name: name__.unwrap_or_default(),
                     title: title__,
                     description: description__,
+                    tags: tags__.unwrap_or_default(),
                     items: items__.unwrap_or_default(),
                 })
             }
@@ -8437,6 +8631,7 @@ impl serde::Serialize for list_assets_response::asset::AssetType {
             Self::Source => "ASSET_TYPE_SOURCE",
             Self::Snapshot => "ASSET_TYPE_SNAPSHOT",
             Self::Chart => "ASSET_TYPE_CHART",
+            Self::Dashboard => "ASSET_TYPE_DASHBOARD",
         };
         serializer.serialize_str(variant)
     }
@@ -8454,6 +8649,7 @@ impl<'de> serde::Deserialize<'de> for list_assets_response::asset::AssetType {
             "ASSET_TYPE_SOURCE",
             "ASSET_TYPE_SNAPSHOT",
             "ASSET_TYPE_CHART",
+            "ASSET_TYPE_DASHBOARD",
         ];
 
         struct GeneratedVisitor;
@@ -8500,6 +8696,7 @@ impl<'de> serde::Deserialize<'de> for list_assets_response::asset::AssetType {
                     "ASSET_TYPE_SOURCE" => Ok(list_assets_response::asset::AssetType::Source),
                     "ASSET_TYPE_SNAPSHOT" => Ok(list_assets_response::asset::AssetType::Snapshot),
                     "ASSET_TYPE_CHART" => Ok(list_assets_response::asset::AssetType::Chart),
+                    "ASSET_TYPE_DASHBOARD" => Ok(list_assets_response::asset::AssetType::Dashboard),
                     _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),
                 }
             }
@@ -12354,6 +12551,225 @@ impl<'de> serde::Deserialize<'de> for RenderSchemaResponse {
             }
         }
         deserializer.deserialize_struct("quary.service.v1.RenderSchemaResponse", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for ReturnDashboardWithSqlRequest {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.project_root.is_empty() {
+            len += 1;
+        }
+        if !self.dashboard_name.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ReturnDashboardWithSqlRequest", len)?;
+        if !self.project_root.is_empty() {
+            struct_ser.serialize_field("projectRoot", &self.project_root)?;
+        }
+        if !self.dashboard_name.is_empty() {
+            struct_ser.serialize_field("dashboardName", &self.dashboard_name)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for ReturnDashboardWithSqlRequest {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "project_root",
+            "projectRoot",
+            "dashboard_name",
+            "dashboardName",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            ProjectRoot,
+            DashboardName,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "projectRoot" | "project_root" => Ok(GeneratedField::ProjectRoot),
+                            "dashboardName" | "dashboard_name" => Ok(GeneratedField::DashboardName),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = ReturnDashboardWithSqlRequest;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.ReturnDashboardWithSqlRequest")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ReturnDashboardWithSqlRequest, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut project_root__ = None;
+                let mut dashboard_name__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::ProjectRoot => {
+                            if project_root__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("projectRoot"));
+                            }
+                            project_root__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::DashboardName => {
+                            if dashboard_name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("dashboardName"));
+                            }
+                            dashboard_name__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(ReturnDashboardWithSqlRequest {
+                    project_root: project_root__.unwrap_or_default(),
+                    dashboard_name: dashboard_name__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.ReturnDashboardWithSqlRequest", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for ReturnDashboardWithSqlResponse {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if self.dashboard.is_some() {
+            len += 1;
+        }
+        if !self.item_sqls.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ReturnDashboardWithSqlResponse", len)?;
+        if let Some(v) = self.dashboard.as_ref() {
+            struct_ser.serialize_field("dashboard", v)?;
+        }
+        if !self.item_sqls.is_empty() {
+            struct_ser.serialize_field("itemSqls", &self.item_sqls)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for ReturnDashboardWithSqlResponse {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "dashboard",
+            "item_sqls",
+            "itemSqls",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Dashboard,
+            ItemSqls,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "dashboard" => Ok(GeneratedField::Dashboard),
+                            "itemSqls" | "item_sqls" => Ok(GeneratedField::ItemSqls),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = ReturnDashboardWithSqlResponse;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.ReturnDashboardWithSqlResponse")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ReturnDashboardWithSqlResponse, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut dashboard__ = None;
+                let mut item_sqls__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Dashboard => {
+                            if dashboard__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("dashboard"));
+                            }
+                            dashboard__ = map_.next_value()?;
+                        }
+                        GeneratedField::ItemSqls => {
+                            if item_sqls__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("itemSqls"));
+                            }
+                            item_sqls__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(ReturnDashboardWithSqlResponse {
+                    dashboard: dashboard__,
+                    item_sqls: item_sqls__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.ReturnDashboardWithSqlResponse", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for ReturnDataForDocViewRequest {

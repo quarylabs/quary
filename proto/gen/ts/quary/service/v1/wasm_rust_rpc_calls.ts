@@ -9,6 +9,7 @@ import * as _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
 import { Struct } from "../../../google/protobuf/struct";
 import { ConnectionConfig } from "./connection_config";
+import { Dashboard } from "./dashboard";
 import { Project } from "./project";
 import { ProjectDag } from "./project_dag";
 import { ColumnTest, ProjectFile } from "./project_file";
@@ -125,6 +126,7 @@ export enum ListAssetsResponse_Asset_AssetType {
   ASSET_TYPE_SOURCE = 3,
   ASSET_TYPE_SNAPSHOT = 4,
   ASSET_TYPE_CHART = 5,
+  ASSET_TYPE_DASHBOARD = 6,
   UNRECOGNIZED = -1,
 }
 
@@ -148,6 +150,9 @@ export function listAssetsResponse_Asset_AssetTypeFromJSON(object: any): ListAss
     case 5:
     case "ASSET_TYPE_CHART":
       return ListAssetsResponse_Asset_AssetType.ASSET_TYPE_CHART;
+    case 6:
+    case "ASSET_TYPE_DASHBOARD":
+      return ListAssetsResponse_Asset_AssetType.ASSET_TYPE_DASHBOARD;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -169,6 +174,8 @@ export function listAssetsResponse_Asset_AssetTypeToJSON(object: ListAssetsRespo
       return "ASSET_TYPE_SNAPSHOT";
     case ListAssetsResponse_Asset_AssetType.ASSET_TYPE_CHART:
       return "ASSET_TYPE_CHART";
+    case ListAssetsResponse_Asset_AssetType.ASSET_TYPE_DASHBOARD:
+      return "ASSET_TYPE_DASHBOARD";
     case ListAssetsResponse_Asset_AssetType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -361,6 +368,23 @@ export interface CreateModelChartFileRequest {
 
 export interface CreateModelChartFileResponse {
   chartFile: string;
+}
+
+/** TODO Implement caching */
+export interface ReturnDashboardWithSqlRequest {
+  projectRoot: string;
+  dashboardName: string;
+}
+
+export interface ReturnDashboardWithSqlResponse {
+  dashboard:
+    | Dashboard
+    | undefined;
+  /**
+   * item sql is the sql for each item in the dashboard in the same order as in the dashboard
+   * TODO Improve this type
+   */
+  itemSqls: string[];
 }
 
 function createBaseGetProjectConfigRequest(): GetProjectConfigRequest {
@@ -3887,6 +3911,160 @@ export const CreateModelChartFileResponse = {
   },
 };
 
+function createBaseReturnDashboardWithSqlRequest(): ReturnDashboardWithSqlRequest {
+  return { projectRoot: "", dashboardName: "" };
+}
+
+export const ReturnDashboardWithSqlRequest = {
+  encode(message: ReturnDashboardWithSqlRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.projectRoot !== "") {
+      writer.uint32(18).string(message.projectRoot);
+    }
+    if (message.dashboardName !== "") {
+      writer.uint32(26).string(message.dashboardName);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnDashboardWithSqlRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnDashboardWithSqlRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.projectRoot = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.dashboardName = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnDashboardWithSqlRequest {
+    return {
+      projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
+      dashboardName: isSet(object.dashboardName) ? gt.String(object.dashboardName) : "",
+    };
+  },
+
+  toJSON(message: ReturnDashboardWithSqlRequest): unknown {
+    const obj: any = {};
+    if (message.projectRoot !== "") {
+      obj.projectRoot = message.projectRoot;
+    }
+    if (message.dashboardName !== "") {
+      obj.dashboardName = message.dashboardName;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnDashboardWithSqlRequest>, I>>(base?: I): ReturnDashboardWithSqlRequest {
+    return ReturnDashboardWithSqlRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnDashboardWithSqlRequest>, I>>(
+    object: I,
+  ): ReturnDashboardWithSqlRequest {
+    const message = createBaseReturnDashboardWithSqlRequest();
+    message.projectRoot = object.projectRoot ?? "";
+    message.dashboardName = object.dashboardName ?? "";
+    return message;
+  },
+};
+
+function createBaseReturnDashboardWithSqlResponse(): ReturnDashboardWithSqlResponse {
+  return { dashboard: undefined, itemSqls: [] };
+}
+
+export const ReturnDashboardWithSqlResponse = {
+  encode(message: ReturnDashboardWithSqlResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.dashboard !== undefined) {
+      Dashboard.encode(message.dashboard, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.itemSqls) {
+      writer.uint32(18).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnDashboardWithSqlResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnDashboardWithSqlResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.dashboard = Dashboard.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.itemSqls.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnDashboardWithSqlResponse {
+    return {
+      dashboard: isSet(object.dashboard) ? Dashboard.fromJSON(object.dashboard) : undefined,
+      itemSqls: gt.Array.isArray(object?.itemSqls) ? object.itemSqls.map((e: any) => gt.String(e)) : [],
+    };
+  },
+
+  toJSON(message: ReturnDashboardWithSqlResponse): unknown {
+    const obj: any = {};
+    if (message.dashboard !== undefined) {
+      obj.dashboard = Dashboard.toJSON(message.dashboard);
+    }
+    if (message.itemSqls?.length) {
+      obj.itemSqls = message.itemSqls;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnDashboardWithSqlResponse>, I>>(base?: I): ReturnDashboardWithSqlResponse {
+    return ReturnDashboardWithSqlResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnDashboardWithSqlResponse>, I>>(
+    object: I,
+  ): ReturnDashboardWithSqlResponse {
+    const message = createBaseReturnDashboardWithSqlResponse();
+    message.dashboard = (object.dashboard !== undefined && object.dashboard !== null)
+      ? Dashboard.fromPartial(object.dashboard)
+      : undefined;
+    message.itemSqls = object.itemSqls?.map((e) => e) || [];
+    return message;
+  },
+};
+
 /**
  * RustWithoutDatabaseService is the service that is used and where the database is not used and so not passed in as a
  * parameter in.
@@ -4048,6 +4226,11 @@ export interface RustWithDatabaseService {
   ReturnDefinitionLocationsForSQL(
     request: ReturnDefinitionLocationsForSQLRequest,
   ): Promise<ReturnDefinitionLocationsForSQLResponse>;
+  /**
+   * ReturnDashboardWithSql returns the components for the dashboard for the given dashboard name. It also returns the sql
+   * for each item in the dashboard.
+   */
+  ReturnDashboardWithSql(request: ReturnDashboardWithSqlRequest): Promise<ReturnDashboardWithSqlResponse>;
 }
 
 export const RustWithDatabaseServiceServiceName = "quary.service.v1.RustWithDatabaseService";
@@ -4074,6 +4257,7 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     this.RemoveColumnTestFromModelOrSourceColumn = this.RemoveColumnTestFromModelOrSourceColumn.bind(this);
     this.GenerateSourceFiles = this.GenerateSourceFiles.bind(this);
     this.ReturnDefinitionLocationsForSQL = this.ReturnDefinitionLocationsForSQL.bind(this);
+    this.ReturnDashboardWithSql = this.ReturnDashboardWithSql.bind(this);
   }
   ListAssets(request: ListAssetsRequest): Promise<ListAssetsResponse> {
     const data = ListAssetsRequest.encode(request).finish();
@@ -4183,6 +4367,12 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     const data = ReturnDefinitionLocationsForSQLRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "ReturnDefinitionLocationsForSQL", data);
     return promise.then((data) => ReturnDefinitionLocationsForSQLResponse.decode(_m0.Reader.create(data)));
+  }
+
+  ReturnDashboardWithSql(request: ReturnDashboardWithSqlRequest): Promise<ReturnDashboardWithSqlResponse> {
+    const data = ReturnDashboardWithSqlRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ReturnDashboardWithSql", data);
+    return promise.then((data) => ReturnDashboardWithSqlResponse.decode(_m0.Reader.create(data)));
   }
 }
 

@@ -31,10 +31,11 @@ use quary_core::sql_model_finder::sql_model_finder;
 use quary_proto::cache_view_information::CacheView;
 use quary_proto::chart::Source;
 use quary_proto::chart_file::AssetReference;
+use quary_proto::dashboard_item::Item;
 use quary_proto::project_file::{Model, Snapshot};
 use quary_proto::return_definition_locations_for_sql_response::Definition;
 use quary_proto::{
-    chart_file, AddColumnTestToModelOrSourceColumnRequest,
+    chart_file, dashboard_chart, AddColumnTestToModelOrSourceColumnRequest,
     AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest,
     AddColumnToModelOrSourceResponse, Chart, ChartFile, CreateModelChartFileRequest,
     CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse,
@@ -45,14 +46,15 @@ use quary_proto::{
     ParseProjectRequest, ParseProjectResponse, Project, ProjectDag, ProjectFile, ProjectFileColumn,
     ProjectFileSource, RemoveColumnTestFromModelOrSourceColumnRequest,
     RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse,
-    ReturnDataForDocViewRequest, ReturnDataForDocViewResponse,
-    ReturnDefinitionLocationsForSqlRequest, ReturnDefinitionLocationsForSqlResponse,
-    ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest,
-    ReturnFullSqlForAssetResponse, ReturnSqlForInjectedModelRequest,
-    ReturnSqlForInjectedModelResponse, ReturnSqlForSeedsAndModelsRequest,
-    ReturnSqlForSeedsAndModelsResponse, StringifyProjectFileRequest, StringifyProjectFileResponse,
-    Test, UpdateAssetDescriptionRequest, UpdateAssetDescriptionResponse,
-    UpdateModelOrSourceColumnDescriptionRequest, UpdateModelOrSourceColumnDescriptionResponse,
+    ReturnDashboardWithSqlRequest, ReturnDashboardWithSqlResponse, ReturnDataForDocViewRequest,
+    ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSqlRequest,
+    ReturnDefinitionLocationsForSqlResponse, ReturnFullProjectDagRequest,
+    ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest, ReturnFullSqlForAssetResponse,
+    ReturnSqlForInjectedModelRequest, ReturnSqlForInjectedModelResponse,
+    ReturnSqlForSeedsAndModelsRequest, ReturnSqlForSeedsAndModelsResponse,
+    StringifyProjectFileRequest, StringifyProjectFileResponse, Test, UpdateAssetDescriptionRequest,
+    UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest,
+    UpdateModelOrSourceColumnDescriptionResponse,
 };
 use sqlinference::columns::get_columns_internal;
 use sqlinference::infer_tests::infer_tests;
@@ -885,6 +887,17 @@ pub(crate) async fn list_assets_internal(
                 file_path: chart.file_path,
             }
         }))
+        .chain(project.dashboards.into_iter().map(|(name, dashboard)| {
+            quary_proto::list_assets_response::Asset {
+                name,
+                description: dashboard.description,
+                tags: dashboard.tags,
+                asset_type: i32::from(
+                    quary_proto::list_assets_response::asset::AssetType::Dashboard,
+                ),
+                file_path: dashboard.file_path,
+            }
+        }))
         .collect::<Vec<_>>();
 
     Ok(ListAssetsResponse { assets })
@@ -1511,6 +1524,66 @@ pub(crate) async fn return_sql_for_injected_model(
     )
     .await?;
     Ok(ReturnSqlForInjectedModelResponse { sql })
+}
+
+// TODO This can be optimised
+pub(crate) async fn return_dashboard_with_sql(
+    database: impl DatabaseQueryGenerator,
+    _: Writer,
+    file_system: JsFileSystem,
+    request: ReturnDashboardWithSqlRequest,
+) -> Result<ReturnDashboardWithSqlResponse, String> {
+    let project_root = request.project_root;
+    let project =
+        quary_core::project::parse_project(&file_system, &database, &project_root).await?;
+
+    let dashboard = project
+        .dashboards
+        .get(&request.dashboard_name)
+        .cloned()
+        .ok_or(format!("Dashboard {} not found", request.dashboard_name))?;
+
+    // TODO Simple optimisation not running loop over function that parses whole project
+    let charts = dashboard
+        .items
+        .iter()
+        .map(|item| {
+            let item = item.item.as_ref().ok_or("No item provided")?;
+            match item {
+                Item::Chart(chart) => {
+                    let chart = chart.chart.as_ref().ok_or("No chart provided")?;
+                    match chart {
+                        dashboard_chart::Chart::Reference(reference) => {
+                            return &reference.reference
+                        }
+                    }
+                }
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let mut item_sqls = vec![];
+    for chart in charts {
+        let chart = project
+            .charts
+            .get(chart)
+            .ok_or(format!("Chart {} not found in project", chart))?;
+        // TODO Use cache
+        let sql = return_full_sql_for_chart(
+            &file_system,
+            &database,
+            project.clone(),
+            chart,
+            CacheView::DoNotUse(Default::default()),
+        )
+        .await?;
+        item_sqls.push(sql.full_sql);
+    }
+
+    Ok(ReturnDashboardWithSqlResponse {
+        item_sqls,
+        dashboard: Some(dashboard),
+    })
 }
 
 #[cfg(test)]
@@ -2185,7 +2258,8 @@ models:
 
         let request = ListAssetsRequest {
             project_root: "".to_string(),
-            assets_to_skip: quary_proto::list_assets_request::AssetsToSkip::ChartsAndDashboards.into(),
+            assets_to_skip: quary_proto::list_assets_request::AssetsToSkip::ChartsAndDashboards
+                .into(),
         };
         let response = list_assets_internal(&database, &file_system, request)
             .await
@@ -2219,6 +2293,11 @@ models:
             .find(|asset| asset.name == "shifts_by_month_bar")
             .unwrap();
         assert!(chart.description.is_some());
+    }
+   
+    #[tokio::test]
+    async fn return_dashboard_with_sql_test() {
+        unimplemented!()
     }
 
     fn setup_file_mocks() -> (Writer, Rc<RefCell<HashMap<String, String>>>) {

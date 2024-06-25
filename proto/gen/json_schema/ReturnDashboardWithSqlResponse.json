@@ -1,8 +1,26 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$ref": "#/definitions/DashboardFile",
+    "$ref": "#/definitions/ReturnDashboardWithSqlResponse",
     "definitions": {
-        "DashboardFile": {
+        "ReturnDashboardWithSqlResponse": {
+            "properties": {
+                "dashboard": {
+                    "$ref": "#/definitions/quary.service.v1.Dashboard",
+                    "additionalProperties": false
+                },
+                "item_sqls": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "item sql is the sql for each item in the dashboard in the same order as in the dashboard TODO Improve this type"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Return Dashboard With Sql Response"
+        },
+        "quary.service.v1.Dashboard": {
             "properties": {
                 "name": {
                     "type": "string"
@@ -26,11 +44,14 @@
                     },
                     "additionalProperties": false,
                     "type": "array"
+                },
+                "file_path": {
+                    "type": "string"
                 }
             },
             "additionalProperties": false,
             "type": "object",
-            "title": "Dashboard File"
+            "title": "Dashboard"
         },
         "quary.service.v1.DashboardChart": {
             "properties": {

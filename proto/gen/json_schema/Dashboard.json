@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$ref": "#/definitions/DashboardFile",
+    "$ref": "#/definitions/Dashboard",
     "definitions": {
-        "DashboardFile": {
+        "Dashboard": {
             "properties": {
                 "name": {
                     "type": "string"
@@ -26,11 +26,14 @@
                     },
                     "additionalProperties": false,
                     "type": "array"
+                },
+                "file_path": {
+                    "type": "string"
                 }
             },
             "additionalProperties": false,
             "type": "object",
-            "title": "Dashboard File"
+            "title": "Dashboard"
         },
         "quary.service.v1.DashboardChart": {
             "properties": {

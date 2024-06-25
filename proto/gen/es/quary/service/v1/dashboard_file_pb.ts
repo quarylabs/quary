@@ -26,7 +26,15 @@ export class DashboardFile extends Message<DashboardFile> {
   description?: string;
 
   /**
-   * @generated from field: repeated quary.service.v1.DashboardItem items = 4;
+   * Tags are used to group different parts of the project together. For example, you could tag all models that are
+   * related to a specific department with the same tag.
+   *
+   * @generated from field: repeated string tags = 4;
+   */
+  tags: string[] = [];
+
+  /**
+   * @generated from field: repeated quary.service.v1.DashboardItem items = 5;
    */
   items: DashboardItem[] = [];
 
@@ -41,7 +49,8 @@ export class DashboardFile extends Message<DashboardFile> {
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 4, name: "items", kind: "message", T: DashboardItem, repeated: true },
+    { no: 4, name: "tags", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 5, name: "items", kind: "message", T: DashboardItem, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DashboardFile {

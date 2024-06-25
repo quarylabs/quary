@@ -2,9 +2,11 @@ syntax = "proto3";
 
 package quary.service.v1;
 
+import "quary/service/v1/dashboard_file.proto";
+
 option java_multiple_files = true;
 
-message DashboardFile {
+message Dashboard {
   string name = 1;
 
   optional string title = 2;
@@ -14,25 +16,6 @@ message DashboardFile {
   repeated string tags = 4;
 
   repeated DashboardItem items = 5;
-}
 
-message DashboardItem {
-  uint32 top_left_x = 1;
-  uint32 top_left_y = 2;
-  uint32 width = 3;
-  uint32 height = 4;
-
-  oneof item {
-    DashboardChart chart = 5;
-  }
-}
-
-message DashboardChart {
-  oneof chart {
-    DashboardChartReference reference = 1;
-  }
-}
-
-message DashboardChartReference {
-  string reference = 1;
+  string file_path = 6;
 }

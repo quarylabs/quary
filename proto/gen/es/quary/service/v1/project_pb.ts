@@ -7,7 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Model, Seed, Snapshot, Source, Test } from "./types_pb.js";
 import { Chart } from "./chart_pb.js";
-import { DashboardFile } from "./dashboard_file_pb.js";
+import { Dashboard } from "./dashboard_pb.js";
 import { ProjectFile } from "./project_file_pb.js";
 import { ConnectionConfig } from "./connection_config_pb.js";
 
@@ -46,9 +46,9 @@ export class Project extends Message<Project> {
   charts: { [key: string]: Chart } = {};
 
   /**
-   * @generated from field: map<string, quary.service.v1.DashboardFile> dashboards = 11;
+   * @generated from field: map<string, quary.service.v1.Dashboard> dashboards = 11;
    */
-  dashboards: { [key: string]: DashboardFile } = {};
+  dashboards: { [key: string]: Dashboard } = {};
 
   /**
    * @generated from field: map<string, quary.service.v1.ProjectFile> project_files = 7;
@@ -74,7 +74,7 @@ export class Project extends Message<Project> {
     { no: 6, name: "sources", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: Source} },
     { no: 9, name: "snapshots", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: Snapshot} },
     { no: 10, name: "charts", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: Chart} },
-    { no: 11, name: "dashboards", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: DashboardFile} },
+    { no: 11, name: "dashboards", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: Dashboard} },
     { no: 7, name: "project_files", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ProjectFile} },
     { no: 8, name: "connection_config", kind: "message", T: ConnectionConfig },
   ]);

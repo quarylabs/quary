@@ -875,7 +875,7 @@ pub async fn parse_project_files(
         project_root,
         PATH_FOR_MODELS,
         EXTENSION_YAML,
-        &[EXTENSION_CHART_YAML],
+        &[EXTENSION_CHART_YAML, EXTENSION_DASHBOARD_YAML],
     )
     .await?;
 
@@ -2014,7 +2014,8 @@ mod tests {
 
         assert!(!project.models.is_empty());
         assert!(project.models.contains_key("shifts"));
-        assert_eq!(1, project.charts.len())
+        assert_eq!(1, project.charts.len());
+        assert_eq!(project.dashboards.len(), 1);
     }
 
     #[tokio::test]

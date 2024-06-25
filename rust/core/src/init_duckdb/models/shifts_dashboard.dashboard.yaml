@@ -8,6 +8,6 @@ items:
     top_left_y: 0
     width: 3
     height: 3
-    item:
-      chart:
+    chart:
+      reference:
         reference: shifts_by_month_bar
