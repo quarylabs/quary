@@ -110,6 +110,11 @@ function App() {
     case 'chartEditor': {
       return <ChartEditorView data={view.data} />
     }
+    case 'dashboardEditor': {
+      return (
+        <div>Dashboard editor {JSON.stringify(view.data.dashboardFile)} </div>
+      )
+    }
     default:
       return <div>Invalid view type {JSON.stringify(view)}</div>
   }

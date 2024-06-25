@@ -18,6 +18,7 @@ import {
 } from './servicesLogger'
 import { ChartEditorProvider } from './chartCustomEditor'
 import { getPreInitServices } from './services'
+import { DashboardEditorProvider } from './dashboardCustomEditor'
 
 export const commandName = (s: string): string => 'quary.' + s
 
@@ -86,6 +87,9 @@ export async function activate(context: vscode.ExtensionContext) {
   // Register chart editor
   const services = await getPreInitServices(context)
   context.subscriptions.push(ChartEditorProvider.register(context, services))
+  context.subscriptions.push(
+    DashboardEditorProvider.register(context, services),
+  )
 }
 
 // this method is called when your extension is deactivated

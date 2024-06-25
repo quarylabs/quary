@@ -10,7 +10,6 @@ import * as _m0 from "protobufjs/minimal";
 export const protobufPackage = "quary.service.v1";
 
 export interface DashboardFile {
-  name: string;
   title?: string | undefined;
   description?:
     | string
@@ -40,14 +39,11 @@ export interface DashboardChartReference {
 }
 
 function createBaseDashboardFile(): DashboardFile {
-  return { name: "", title: undefined, description: undefined, tags: [], items: [] };
+  return { title: undefined, description: undefined, tags: [], items: [] };
 }
 
 export const DashboardFile = {
   encode(message: DashboardFile, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
     if (message.title !== undefined) {
       writer.uint32(18).string(message.title);
     }
@@ -70,13 +66,6 @@ export const DashboardFile = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
         case 2:
           if (tag !== 18) {
             break;
@@ -116,7 +105,6 @@ export const DashboardFile = {
 
   fromJSON(object: any): DashboardFile {
     return {
-      name: isSet(object.name) ? gt.String(object.name) : "",
       title: isSet(object.title) ? gt.String(object.title) : undefined,
       description: isSet(object.description) ? gt.String(object.description) : undefined,
       tags: gt.Array.isArray(object?.tags) ? object.tags.map((e: any) => gt.String(e)) : [],
@@ -126,9 +114,6 @@ export const DashboardFile = {
 
   toJSON(message: DashboardFile): unknown {
     const obj: any = {};
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
     if (message.title !== undefined) {
       obj.title = message.title;
     }
@@ -149,7 +134,6 @@ export const DashboardFile = {
   },
   fromPartial<I extends Exact<DeepPartial<DashboardFile>, I>>(object: I): DashboardFile {
     const message = createBaseDashboardFile();
-    message.name = object.name ?? "";
     message.title = object.title ?? undefined;
     message.description = object.description ?? undefined;
     message.tags = object.tags?.map((e) => e) || [];

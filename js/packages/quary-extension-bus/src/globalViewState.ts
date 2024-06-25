@@ -1,6 +1,9 @@
 import { SqlLanguage } from './config'
 import { ProjectDag } from '@quary/proto/quary/service/v1/project_dag'
-import { ListAssetsResponse_Asset } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
+import {
+    ListAssetsResponse_Asset,
+    ReturnDashboardWithSqlResponse
+} from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { Project } from '@quary/proto/quary/service/v1/project'
 import { TestRunner } from '@quary/proto/quary/service/v1/test_runner'
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
@@ -97,6 +100,10 @@ export type View =
       type: 'chartEditor'
       data: ChartEditorData
     }
+  | {
+      type: 'dashboardEditor'
+      data: DashboardEditorData
+    }
 
 export type ChartEditorData = {
   title: string
@@ -117,6 +124,10 @@ export type ChartEditorData = {
         type: 'success'
         queryResult: QueryResult
       }
+}
+
+export type DashboardEditorData = {
+  dashboardFile: ReturnDashboardWithSqlResponse
 }
 
 export type SqlDocumentationResultsView =

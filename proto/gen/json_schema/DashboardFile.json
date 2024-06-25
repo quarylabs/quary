@@ -4,9 +4,6 @@
     "definitions": {
         "DashboardFile": {
             "properties": {
-                "name": {
-                    "type": "string"
-                },
                 "title": {
                     "type": "string"
                 },

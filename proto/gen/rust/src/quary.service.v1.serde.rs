@@ -5657,9 +5657,6 @@ impl serde::Serialize for DashboardFile {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if !self.name.is_empty() {
-            len += 1;
-        }
         if self.title.is_some() {
             len += 1;
         }
@@ -5673,9 +5670,6 @@ impl serde::Serialize for DashboardFile {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.DashboardFile", len)?;
-        if !self.name.is_empty() {
-            struct_ser.serialize_field("name", &self.name)?;
-        }
         if let Some(v) = self.title.as_ref() {
             struct_ser.serialize_field("title", v)?;
         }
@@ -5698,7 +5692,6 @@ impl<'de> serde::Deserialize<'de> for DashboardFile {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "name",
             "title",
             "description",
             "tags",
@@ -5707,7 +5700,6 @@ impl<'de> serde::Deserialize<'de> for DashboardFile {
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Name,
             Title,
             Description,
             Tags,
@@ -5733,7 +5725,6 @@ impl<'de> serde::Deserialize<'de> for DashboardFile {
                         E: serde::de::Error,
                     {
                         match value {
-                            "name" => Ok(GeneratedField::Name),
                             "title" => Ok(GeneratedField::Title),
                             "description" => Ok(GeneratedField::Description),
                             "tags" => Ok(GeneratedField::Tags),
@@ -5757,19 +5748,12 @@ impl<'de> serde::Deserialize<'de> for DashboardFile {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut name__ = None;
                 let mut title__ = None;
                 let mut description__ = None;
                 let mut tags__ = None;
                 let mut items__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Name => {
-                            if name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("name"));
-                            }
-                            name__ = Some(map_.next_value()?);
-                        }
                         GeneratedField::Title => {
                             if title__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("title"));
@@ -5797,7 +5781,6 @@ impl<'de> serde::Deserialize<'de> for DashboardFile {
                     }
                 }
                 Ok(DashboardFile {
-                    name: name__.unwrap_or_default(),
                     title: title__,
                     description: description__,
                     tags: tags__.unwrap_or_default(),

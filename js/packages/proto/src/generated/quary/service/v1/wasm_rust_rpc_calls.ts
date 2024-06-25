@@ -384,7 +384,7 @@ export interface ReturnDashboardWithSqlResponse {
    * item sql is the sql for each item in the dashboard in the same order as in the dashboard
    * TODO Improve this type
    */
-  itemSql: string[];
+  itemSqls: string[];
 }
 
 function createBaseGetProjectConfigRequest(): GetProjectConfigRequest {
@@ -3988,7 +3988,7 @@ export const ReturnDashboardWithSqlRequest = {
 };
 
 function createBaseReturnDashboardWithSqlResponse(): ReturnDashboardWithSqlResponse {
-  return { dashboard: undefined, itemSql: [] };
+  return { dashboard: undefined, itemSqls: [] };
 }
 
 export const ReturnDashboardWithSqlResponse = {
@@ -3996,7 +3996,7 @@ export const ReturnDashboardWithSqlResponse = {
     if (message.dashboard !== undefined) {
       Dashboard.encode(message.dashboard, writer.uint32(10).fork()).ldelim();
     }
-    for (const v of message.itemSql) {
+    for (const v of message.itemSqls) {
       writer.uint32(18).string(v!);
     }
     return writer;
@@ -4021,7 +4021,7 @@ export const ReturnDashboardWithSqlResponse = {
             break;
           }
 
-          message.itemSql.push(reader.string());
+          message.itemSqls.push(reader.string());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4035,7 +4035,7 @@ export const ReturnDashboardWithSqlResponse = {
   fromJSON(object: any): ReturnDashboardWithSqlResponse {
     return {
       dashboard: isSet(object.dashboard) ? Dashboard.fromJSON(object.dashboard) : undefined,
-      itemSql: gt.Array.isArray(object?.itemSql) ? object.itemSql.map((e: any) => gt.String(e)) : [],
+      itemSqls: gt.Array.isArray(object?.itemSqls) ? object.itemSqls.map((e: any) => gt.String(e)) : [],
     };
   },
 
@@ -4044,8 +4044,8 @@ export const ReturnDashboardWithSqlResponse = {
     if (message.dashboard !== undefined) {
       obj.dashboard = Dashboard.toJSON(message.dashboard);
     }
-    if (message.itemSql?.length) {
-      obj.itemSql = message.itemSql;
+    if (message.itemSqls?.length) {
+      obj.itemSqls = message.itemSqls;
     }
     return obj;
   },
@@ -4060,7 +4060,7 @@ export const ReturnDashboardWithSqlResponse = {
     message.dashboard = (object.dashboard !== undefined && object.dashboard !== null)
       ? Dashboard.fromPartial(object.dashboard)
       : undefined;
-    message.itemSql = object.itemSql?.map((e) => e) || [];
+    message.itemSqls = object.itemSqls?.map((e) => e) || [];
     return message;
   },
 };

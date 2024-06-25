@@ -11,6 +11,7 @@ use quary_proto::TestRunner;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
+use quary_core::dashboard::{dashboard_file_from_yaml, dashboard_file_to_yaml};
 
 /// write chart file to Uint8Array string encodes a chart file in Uint8Array proto and returns it
 /// as yaml string.
@@ -27,6 +28,24 @@ pub fn write_chart_file(chart_file: Uint8Array) -> Result<Uint8Array, String> {
 pub fn parse_chart_file(file: Uint8Array) -> Result<Uint8Array, String> {
     let reader = Uint8ArrayReader::new(file);
     let chart_file = chart_file_from_yaml(reader)?;
+
+    encode(chart_file)
+}
+
+/// write dashboard file to Uint8Array string encodes a dashboard file in Uint8Array proto and returns it
+#[wasm_bindgen]
+pub fn write_dashboard_file(dashboard_file: Uint8Array) -> Result<Uint8Array, String> {
+    let chart_file = decode::<quary_proto::DashboardFile>(dashboard_file)?;
+    let yaml = dashboard_file_to_yaml(&chart_file)?;
+    Ok(Uint8Array::from(yaml.as_bytes()))
+}
+
+/// string to dashboard file parses a dashboard file in Uint8Array string and returns a Uint8Array 
+/// dashboard file encoded in proto.
+#[wasm_bindgen]
+pub fn parse_dashboard_file(file: Uint8Array) -> Result<Uint8Array, String> {
+    let reader = Uint8ArrayReader::new(file);
+    let chart_file = dashboard_file_from_yaml(reader)?;
 
     encode(chart_file)
 }

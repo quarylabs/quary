@@ -1526,16 +1526,23 @@ pub(crate) async fn return_sql_for_injected_model(
     Ok(ReturnSqlForInjectedModelResponse { sql })
 }
 
-// TODO This can be optimised
 pub(crate) async fn return_dashboard_with_sql(
     database: impl DatabaseQueryGenerator,
     _: Writer,
     file_system: JsFileSystem,
     request: ReturnDashboardWithSqlRequest,
 ) -> Result<ReturnDashboardWithSqlResponse, String> {
+    return return_dashboard_with_sql_internal(&database, &file_system, request).await;
+}
+
+// TODO This can be optimised
+async fn return_dashboard_with_sql_internal(
+    database: &impl DatabaseQueryGenerator,
+    file_system: &impl FileSystem,
+    request: ReturnDashboardWithSqlRequest,
+) -> Result<ReturnDashboardWithSqlResponse, String> {
     let project_root = request.project_root;
-    let project =
-        quary_core::project::parse_project(&file_system, &database, &project_root).await?;
+    let project = quary_core::project::parse_project(file_system, database, &project_root).await?;
 
     let dashboard = project
         .dashboards
@@ -1548,19 +1555,22 @@ pub(crate) async fn return_dashboard_with_sql(
         .items
         .iter()
         .map(|item| {
-            let item = item.item.as_ref().ok_or("No item provided")?;
+            let item = item.item.as_ref().ok_or("No item provided".to_string())?;
             match item {
                 Item::Chart(chart) => {
-                    let chart = chart.chart.as_ref().ok_or("No chart provided")?;
+                    let chart = chart
+                        .chart
+                        .as_ref()
+                        .ok_or("No chart provided".to_string())?;
                     match chart {
                         dashboard_chart::Chart::Reference(reference) => {
-                            return &reference.reference
+                            Ok::<&String, String>(&reference.reference)
                         }
                     }
                 }
             }
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>, _>>()?;
 
     let mut item_sqls = vec![];
     for chart in charts {
@@ -1568,10 +1578,10 @@ pub(crate) async fn return_dashboard_with_sql(
             .charts
             .get(chart)
             .ok_or(format!("Chart {} not found in project", chart))?;
-        // TODO Use cache
+        // TODO Implement cache
         let sql = return_full_sql_for_chart(
-            &file_system,
-            &database,
+            file_system,
+            database,
             project.clone(),
             chart,
             CacheView::DoNotUse(Default::default()),
@@ -2294,10 +2304,25 @@ models:
             .unwrap();
         assert!(chart.description.is_some());
     }
-   
+
     #[tokio::test]
     async fn return_dashboard_with_sql_test() {
-        unimplemented!()
+        let database = DatabaseQueryGeneratorDuckDB::new(Some("schema".to_string()), None);
+        let file_system = DuckDBAsset {};
+
+        let request = ReturnDashboardWithSqlRequest {
+            project_root: "".to_string(),
+            dashboard_name: "shifts_dashboard".to_string(),
+        };
+        let response = return_dashboard_with_sql_internal(&database, &file_system, request)
+            .await
+            .unwrap();
+        let dashboard = response.dashboard.unwrap();
+
+        assert_eq!(response.item_sqls.len(), 1);
+        assert_eq!(dashboard.name, "shifts_dashboard");
+        assert_eq!(dashboard.items.len(), 1);
+        assert_eq!(dashboard.items.len(), response.item_sqls.len());
     }
 
     fn setup_file_mocks() -> (Writer, Rc<RefCell<HashMap<String, String>>>) {

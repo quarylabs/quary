@@ -8,11 +8,13 @@ import {
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
 import { TestResults } from '@quary/proto/quary/service/v1/test_results'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
+import { DashboardFile } from '@quary/proto/quary/service/v1/dashboard_file'
 import {
   add_limit_to_select,
   clean_up,
   initSync,
   parse_chart_file,
+  parse_dashboard_file,
   rpc_wrapper_with_database,
   rpc_wrapper_without_database,
   run_model_tests,
@@ -21,6 +23,7 @@ import {
 } from '../rust_wasm/quary_wasm_bindgen'
 import { ServicesFiles } from './servicesFiles'
 import { ServicesDatabase } from './servicesDatabase'
+import { DashboardDocument } from './dashboardCustomEditorDashboardDocument'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const wasm = require('../rust_wasm/quary_wasm_bindgen_bg.wasm')
@@ -84,6 +87,7 @@ export const rustWithDatabaseWasmServices = (
     removeColumnTestFromModelOrSourceColumnRequest: wrapper(
       client.RemoveColumnTestFromModelOrSourceColumn,
     ),
+    returnDashboardWithSql: wrapper(client.ReturnDashboardWithSql),
     generateSourceFiles: wrapper(client.GenerateSourceFiles),
     run_test: async (
       project_root: string,
@@ -222,6 +226,36 @@ export const rustWithoutDatabaseWasmServices = (files: ServicesFiles) => {
       try {
         const output = parse_chart_file(data)
         const file = ChartFile.decode(output)
+        return Ok(file)
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          return Err({
+            code: ErrorCodes.INTERNAL,
+            message: e.toString(),
+          })
+        }
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: JSON.stringify(e),
+        })
+      }
+    },
+    write_dashboard_file_to_yaml: (data: DashboardFile): Result<Uint8Array> => {
+      try {
+        const output = DashboardFile.encode(data).finish()
+        const yaml = write_chart_file(output)
+        return Ok(yaml)
+      } catch (e) {
+        return Err({
+          code: ErrorCodes.INTERNAL,
+          message: JSON.stringify(e),
+        })
+      }
+    },
+    parse_dashboard_file: (data: Uint8Array): Result<DashboardFile> => {
+      try {
+        const output = parse_dashboard_file(data)
+        const file = DashboardFile.decode(output)
         return Ok(file)
       } catch (e: unknown) {
         if (e instanceof Error) {

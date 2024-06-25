@@ -76,7 +76,7 @@ pub(crate) async fn parse_dashboard_files(
                 })
                 .collect::<Result<Vec<String>, String>>()?;
             let dashboard = Dashboard {
-                name: dashboard_file.name,
+                name: name.clone(),
                 title: dashboard_file.title,
                 description: dashboard_file.description,
                 tags: dashboard_file.tags,

@@ -11,11 +11,6 @@ import { Message, proto3 } from "@bufbuild/protobuf";
  */
 export class DashboardFile extends Message<DashboardFile> {
   /**
-   * @generated from field: string name = 1;
-   */
-  name = "";
-
-  /**
    * @generated from field: optional string title = 2;
    */
   title?: string;
@@ -46,7 +41,6 @@ export class DashboardFile extends Message<DashboardFile> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "quary.service.v1.DashboardFile";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 4, name: "tags", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
