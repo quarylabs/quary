@@ -2,7 +2,6 @@
 #![allow(clippy::indexing_slicing)]
 
 use crate::map_helpers::safe_adder_set;
-use crate::test_helpers::ToTest;
 use petgraph::algo::{is_cyclic_directed, toposort};
 use petgraph::dot::{Config, Dot};
 use petgraph::graph::NodeIndex;
@@ -10,7 +9,7 @@ use petgraph::prelude::EdgeRef;
 use petgraph::visit::{Dfs, Reversed};
 use petgraph::Graph;
 use quary_proto::test::TestType;
-use quary_proto::{Chart, Model, Project, Snapshot, Test};
+use quary_proto::{Chart, Project};
 use std::collections::{HashMap, HashSet};
 
 /// Edge represents an edge with (from, to) node names.
@@ -33,12 +32,8 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
         safe_adder_set(&mut taken, name.clone())?;
     }
 
-    // TODO This let mut can be removed when the tests are implemented, it isn't actually used and
-    //   only slows code down with clones
-    let mut snapshots: HashMap<String, Snapshot> = HashMap::new();
-    for (name, snapshot) in &project.snapshots {
+    for (name, _) in &project.snapshots {
         safe_adder_set(&mut taken, name.clone())?;
-        snapshots.insert(snapshot.name.clone(), snapshot.clone());
     }
     for (name, snapshot) in &project.snapshots {
         for reference in &snapshot.references {
@@ -54,12 +49,8 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
         }
     }
 
-    // TODO This let mut can be removed when the tests are implemented, it isn't actually used and
-    //   only slows code down with clones
-    let mut models: HashMap<String, Model> = HashMap::new();
-    for (name, model) in &project.models {
+    for (name, _) in &project.models {
         safe_adder_set(&mut taken, name.clone())?;
-        models.insert(model.name.clone(), model.clone());
     }
     for (name, model) in &project.models {
         for reference in &model.references {
@@ -75,16 +66,10 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
         }
     }
 
-    // TODO This let mut can be removed when the tests are implemented, it isn't actually used and
-    //   only slows code down with clones
-    let mut tests: HashMap<String, Test> = HashMap::new();
     for (name, test) in &project.tests {
         match &test.test_type {
             Some(TestType::Sql(test)) => {
                 safe_adder_set(&mut taken, name.clone())?;
-
-                tests.insert(name.clone(), test.to_test());
-
                 for reference in test.references.clone() {
                     if !taken.contains(&reference) {
                         return Err(format!(
