@@ -8,8 +8,10 @@
 import * as _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
 import { Struct } from "../../../google/protobuf/struct";
+import { Chart } from "./chart";
 import { ConnectionConfig } from "./connection_config";
 import { Dashboard } from "./dashboard";
+import { DashboardItem } from "./dashboard_file";
 import { Project } from "./project";
 import { ProjectDag } from "./project_dag";
 import { ColumnTest, ProjectFile } from "./project_file";
@@ -380,11 +382,14 @@ export interface ReturnDashboardWithSqlResponse {
   dashboard:
     | Dashboard
     | undefined;
-  /**
-   * item sql is the sql for each item in the dashboard in the same order as in the dashboard
-   * TODO Improve this type
-   */
-  itemSqls: string[];
+  /** item sql is the sql for each item in the dashboard in the same order as in the dashboard */
+  items: DashboardRenderingItem[];
+}
+
+export interface DashboardRenderingItem {
+  item: DashboardItem | undefined;
+  sql: string;
+  chart: Chart | undefined;
 }
 
 function createBaseGetProjectConfigRequest(): GetProjectConfigRequest {
@@ -3988,7 +3993,7 @@ export const ReturnDashboardWithSqlRequest = {
 };
 
 function createBaseReturnDashboardWithSqlResponse(): ReturnDashboardWithSqlResponse {
-  return { dashboard: undefined, itemSqls: [] };
+  return { dashboard: undefined, items: [] };
 }
 
 export const ReturnDashboardWithSqlResponse = {
@@ -3996,8 +4001,8 @@ export const ReturnDashboardWithSqlResponse = {
     if (message.dashboard !== undefined) {
       Dashboard.encode(message.dashboard, writer.uint32(10).fork()).ldelim();
     }
-    for (const v of message.itemSqls) {
-      writer.uint32(18).string(v!);
+    for (const v of message.items) {
+      DashboardRenderingItem.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -4021,7 +4026,7 @@ export const ReturnDashboardWithSqlResponse = {
             break;
           }
 
-          message.itemSqls.push(reader.string());
+          message.items.push(DashboardRenderingItem.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4035,7 +4040,7 @@ export const ReturnDashboardWithSqlResponse = {
   fromJSON(object: any): ReturnDashboardWithSqlResponse {
     return {
       dashboard: isSet(object.dashboard) ? Dashboard.fromJSON(object.dashboard) : undefined,
-      itemSqls: gt.Array.isArray(object?.itemSqls) ? object.itemSqls.map((e: any) => gt.String(e)) : [],
+      items: gt.Array.isArray(object?.items) ? object.items.map((e: any) => DashboardRenderingItem.fromJSON(e)) : [],
     };
   },
 
@@ -4044,8 +4049,8 @@ export const ReturnDashboardWithSqlResponse = {
     if (message.dashboard !== undefined) {
       obj.dashboard = Dashboard.toJSON(message.dashboard);
     }
-    if (message.itemSqls?.length) {
-      obj.itemSqls = message.itemSqls;
+    if (message.items?.length) {
+      obj.items = message.items.map((e) => DashboardRenderingItem.toJSON(e));
     }
     return obj;
   },
@@ -4060,7 +4065,98 @@ export const ReturnDashboardWithSqlResponse = {
     message.dashboard = (object.dashboard !== undefined && object.dashboard !== null)
       ? Dashboard.fromPartial(object.dashboard)
       : undefined;
-    message.itemSqls = object.itemSqls?.map((e) => e) || [];
+    message.items = object.items?.map((e) => DashboardRenderingItem.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseDashboardRenderingItem(): DashboardRenderingItem {
+  return { item: undefined, sql: "", chart: undefined };
+}
+
+export const DashboardRenderingItem = {
+  encode(message: DashboardRenderingItem, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.item !== undefined) {
+      DashboardItem.encode(message.item, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.sql !== "") {
+      writer.uint32(18).string(message.sql);
+    }
+    if (message.chart !== undefined) {
+      Chart.encode(message.chart, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DashboardRenderingItem {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDashboardRenderingItem();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.item = DashboardItem.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.sql = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.chart = Chart.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DashboardRenderingItem {
+    return {
+      item: isSet(object.item) ? DashboardItem.fromJSON(object.item) : undefined,
+      sql: isSet(object.sql) ? gt.String(object.sql) : "",
+      chart: isSet(object.chart) ? Chart.fromJSON(object.chart) : undefined,
+    };
+  },
+
+  toJSON(message: DashboardRenderingItem): unknown {
+    const obj: any = {};
+    if (message.item !== undefined) {
+      obj.item = DashboardItem.toJSON(message.item);
+    }
+    if (message.sql !== "") {
+      obj.sql = message.sql;
+    }
+    if (message.chart !== undefined) {
+      obj.chart = Chart.toJSON(message.chart);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DashboardRenderingItem>, I>>(base?: I): DashboardRenderingItem {
+    return DashboardRenderingItem.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DashboardRenderingItem>, I>>(object: I): DashboardRenderingItem {
+    const message = createBaseDashboardRenderingItem();
+    message.item = (object.item !== undefined && object.item !== null)
+      ? DashboardItem.fromPartial(object.item)
+      : undefined;
+    message.sql = object.sql ?? "";
+    message.chart = (object.chart !== undefined && object.chart !== null) ? Chart.fromPartial(object.chart) : undefined;
     return message;
   },
 };

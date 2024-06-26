@@ -34,28 +34,7 @@ use quary_proto::chart_file::AssetReference;
 use quary_proto::dashboard_item::Item;
 use quary_proto::project_file::{Model, Snapshot};
 use quary_proto::return_definition_locations_for_sql_response::Definition;
-use quary_proto::{
-    chart_file, dashboard_chart, AddColumnTestToModelOrSourceColumnRequest,
-    AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest,
-    AddColumnToModelOrSourceResponse, Chart, ChartFile, CreateModelChartFileRequest,
-    CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse,
-    Edge, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest,
-    GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse,
-    GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse,
-    IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, Node,
-    ParseProjectRequest, ParseProjectResponse, Project, ProjectDag, ProjectFile, ProjectFileColumn,
-    ProjectFileSource, RemoveColumnTestFromModelOrSourceColumnRequest,
-    RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse,
-    ReturnDashboardWithSqlRequest, ReturnDashboardWithSqlResponse, ReturnDataForDocViewRequest,
-    ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSqlRequest,
-    ReturnDefinitionLocationsForSqlResponse, ReturnFullProjectDagRequest,
-    ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest, ReturnFullSqlForAssetResponse,
-    ReturnSqlForInjectedModelRequest, ReturnSqlForInjectedModelResponse,
-    ReturnSqlForSeedsAndModelsRequest, ReturnSqlForSeedsAndModelsResponse,
-    StringifyProjectFileRequest, StringifyProjectFileResponse, Test, UpdateAssetDescriptionRequest,
-    UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest,
-    UpdateModelOrSourceColumnDescriptionResponse,
-};
+use quary_proto::{chart_file, dashboard_chart, AddColumnTestToModelOrSourceColumnRequest, AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest, AddColumnToModelOrSourceResponse, Chart, ChartFile, CreateModelChartFileRequest, CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse, Edge, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest, GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse, GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse, IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, Node, ParseProjectRequest, ParseProjectResponse, Project, ProjectDag, ProjectFile, ProjectFileColumn, ProjectFileSource, RemoveColumnTestFromModelOrSourceColumnRequest, RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse, ReturnDashboardWithSqlRequest, ReturnDashboardWithSqlResponse, ReturnDataForDocViewRequest, ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSqlRequest, ReturnDefinitionLocationsForSqlResponse, ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest, ReturnFullSqlForAssetResponse, ReturnSqlForInjectedModelRequest, ReturnSqlForInjectedModelResponse, ReturnSqlForSeedsAndModelsRequest, ReturnSqlForSeedsAndModelsResponse, StringifyProjectFileRequest, StringifyProjectFileResponse, Test, UpdateAssetDescriptionRequest, UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest, UpdateModelOrSourceColumnDescriptionResponse, DashboardRenderingItem, DashboardItem};
 use sqlinference::columns::get_columns_internal;
 use sqlinference::infer_tests::infer_tests;
 
@@ -1554,8 +1533,8 @@ async fn return_dashboard_with_sql_internal(
     let charts = dashboard
         .items
         .iter()
-        .map(|item| {
-            let item = item.item.as_ref().ok_or("No item provided".to_string())?;
+        .map(|dashboard_item| {
+            let item = dashboard_item.item.as_ref().ok_or("No item provided".to_string())?;
             match item {
                 Item::Chart(chart) => {
                     let chart = chart
@@ -1564,7 +1543,7 @@ async fn return_dashboard_with_sql_internal(
                         .ok_or("No chart provided".to_string())?;
                     match chart {
                         dashboard_chart::Chart::Reference(reference) => {
-                            Ok::<&String, String>(&reference.reference)
+                            Ok::<(&DashboardItem, &String), String>((dashboard_item, &reference.reference))
                         }
                     }
                 }
@@ -1572,12 +1551,12 @@ async fn return_dashboard_with_sql_internal(
         })
         .collect::<Result<Vec<_>, _>>()?;
 
-    let mut item_sqls = vec![];
-    for chart in charts {
+    let mut items : Vec<DashboardRenderingItem>  = vec![];
+    for (dashboard_item, chart_name) in charts {
         let chart = project
             .charts
-            .get(chart)
-            .ok_or(format!("Chart {} not found in project", chart))?;
+            .get(chart_name)
+            .ok_or(format!("Chart {} not found in project", chart_name))?;
         // TODO Implement cache
         let sql = return_full_sql_for_chart(
             file_system,
@@ -1587,11 +1566,16 @@ async fn return_dashboard_with_sql_internal(
             CacheView::DoNotUse(Default::default()),
         )
         .await?;
-        item_sqls.push(sql.full_sql);
+        
+        items.push(DashboardRenderingItem {
+            item: Some(dashboard_item.clone()),
+            chart: Some(chart.clone()),
+            sql: sql.full_sql,
+        });
     }
 
     Ok(ReturnDashboardWithSqlResponse {
-        item_sqls,
+        items,
         dashboard: Some(dashboard),
     })
 }
@@ -2319,10 +2303,13 @@ models:
             .unwrap();
         let dashboard = response.dashboard.unwrap();
 
-        assert_eq!(response.item_sqls.len(), 1);
+        assert_eq!(response.items.len(), 1);
         assert_eq!(dashboard.name, "shifts_dashboard");
-        assert_eq!(dashboard.items.len(), 1);
-        assert_eq!(dashboard.items.len(), response.item_sqls.len());
+        assert!(dashboard.items.get(0).unwrap().item.is_some());
+        assert_eq!(dashboard.items.len(), response.items.len());
+        assert!(response.items.get(0).unwrap().item.is_some());
+        assert!(response.items.get(0).unwrap().chart.is_some());
+        assert!(!response.items.get(0).unwrap().sql.is_empty());
     }
 
     fn setup_file_mocks() -> (Writer, Rc<RefCell<HashMap<String, String>>>) {

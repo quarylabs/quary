@@ -5,12 +5,7 @@ import {
   USE_GLOBAL_STATE_MESSAGE_TYPE_SET,
   View,
 } from '@shared/globalViewState'
-import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
-import {
-  ListAssetsRequest_AssetsToSkip,
-  ListAssetsResponse_Asset_AssetType,
-} from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
-import { DashboardFile } from '@quary/proto/quary/service/v1/dashboard_file'
+import { Err, ErrorCodes, isErr } from '@shared/result'
 import { disposeAll } from './dispose'
 import { HTML_STRING } from './panels'
 import { getServices, PreInitServices, preInitSetup } from './services'
@@ -18,25 +13,7 @@ import { WebviewCollection } from './chartCustomEditorWebviewCollection'
 import { DashboardDocument } from './dashboardCustomEditorDashboardDocument'
 
 /**
- * Provider for chart editors.
- *
- * Chart editors are used for `.chart.yaml` files.
- *
- * This implements:
- * - A custom web view for a `*.chart.yaml` file.
- * - Implementing save, undo, redo, and revert.
- * - Backup.
- *
- * State in the ChartEditorProvider is quite complicated because it has to manage three layers of state:
- * 1. The state of saved file data
- * 2. The state of the document in the editor
- * 3. The state of the webview
- *
- * Equally, to the dimension of state, there are different types of state that interact differently with the different layers:
- * 1. The state of the config part in the file that defines the sort of data
- * 2. The state of the config part in the file that defines the config of the chart
- * 3. The state of the loaded data
- * 4. The state of the assets that have been loaded
+ * Provider for dashboard editors
  */
 export class DashboardEditorProvider
   implements vscode.CustomEditorProvider<DashboardDocument>
@@ -137,28 +114,47 @@ export class DashboardEditorProvider
       }),
     )
     listeners.push(
-      document.onDidChangeContent((e) => {
+      document.onDidChangeContent(async () => {
         // Update all webviews when the document changes
         for (const webviewPanel of this.webviews.get(document.uri)) {
-          let dashboardFile = DashboardFile.create({})
-          if (e.content) {
-            const parsed = this._services.rust.parse_dashboard_file(e.content)
-            if (isErr(parsed)) {
-              return
-            }
-            dashboardFile = parsed.value
+          const services = await getServices(this._context)
+          const setupValues = await preInitSetup(services)
+          if (isErr(setupValues)) {
+            return this.postMessage(
+              webviewPanel,
+              USE_GLOBAL_STATE_MESSAGE_TYPE_SET,
+              {
+                type: 'error',
+                error: setupValues.error,
+              },
+            )
           }
-          const fileName = document.uri.fsPath.split('/').pop()
-
-          // return an error if the file name is undefined
-          if (!fileName) {
-            throw Err({
-              code: ErrorCodes.INTERNAL,
-              message: 'Unable to extract chart/file name from file system.',
-            })
+          const dashboardName = this.getDashboardmame(document)
+          const dashboardData = await services.rust.returnDashboardWithSql({
+            dashboardName,
+            projectRoot: setupValues.value.projectRoot,
+          })
+          if (isErr(dashboardData)) {
+            return this.postMessage(
+              webviewPanel,
+              USE_GLOBAL_STATE_MESSAGE_TYPE_SET,
+              {
+                type: 'error',
+                error: dashboardData.error,
+              },
+            )
           }
-          this.postSetData(webviewPanel, {
-            dashboardFile,
+          this.postMessage(webviewPanel, USE_GLOBAL_STATE_MESSAGE_TYPE_SET, {
+            type: 'dashboardEditor',
+            data: {
+              dashboard: dashboardData.value.dashboard!,
+              items: dashboardData.value.items.map((item) => ({
+                item,
+                result: {
+                  type: 'loading',
+                },
+              })),
+            },
           })
         }
       }),
@@ -252,49 +248,18 @@ export class DashboardEditorProvider
     panel.webview.postMessage({ type, payload })
   }
 
-  private getDashboardmame(): string {
-
-  }
-
-  private postSetData(
-    panel: vscode.WebviewPanel,
-    payload: DashboardEditorData,
-  ): void {
-    panel.webview.postMessage({
-      type: USE_GLOBAL_STATE_MESSAGE_TYPE_SET,
-      payload: {
-        type: 'dashboardEditor',
-        data: payload,
-      },
-    })
-  }
-
-  private async getAssets(): Promise<Result<string[]>> {
-    let allAssets: string[] = []
-    const services = await getServices(this._context)
-    const setupValues = await preInitSetup(services)
-    if (isErr(setupValues)) {
-      return setupValues
+  private getDashboardmame(document: DashboardDocument): string {
+    const doucmentUri = document.uri.fsPath.split('/').pop()
+    if (!doucmentUri) {
+      throw Err({
+        code: ErrorCodes.INTERNAL,
+        message: 'Unable to extract chart/file name from file system.',
+      })
     }
-    const returned = await services.rust.list_assets({
-      projectRoot: setupValues.value.projectRoot,
-      assetsToSkip: ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_DASHBOARDS,
-    })
-    if (isErr(returned)) {
-      return returned
-    }
-    allAssets = returned.value.assets
-      .filter(
-        (asset) =>
-          asset.assetType ===
-            ListAssetsResponse_Asset_AssetType.ASSET_TYPE_MODEL ||
-          asset.assetType ===
-            ListAssetsResponse_Asset_AssetType.ASSET_TYPE_SOURCE,
-      )
-      .map((asset) => asset.name)
-    allAssets = allAssets.sort()
-    return Ok(allAssets)
+    return doucmentUri.split('.')[0]
   }
+
+
 
   private async onMessage(
     webviewPanel: vscode.WebviewPanel,
@@ -305,19 +270,43 @@ export class DashboardEditorProvider
     switch (e.type) {
       case USE_GLOBAL_STATE_MESSAGE_TYPE_NOT_SET: {
         const services = await getServices(this._context)
-
+        const setupValues = await preInitSetup(services)
+        if (isErr(setupValues)) {
+          return this.postMessage(
+            webviewPanel,
+            USE_GLOBAL_STATE_MESSAGE_TYPE_SET,
+            {
+              type: 'error',
+              error: setupValues.error,
+            },
+          )
+        }
+        const dashboardName = this.getDashboardmame(document)
         const dashboardData = await services.rust.returnDashboardWithSql({
+          dashboardName,
+          projectRoot: setupValues.value.projectRoot,
         })
         if (isErr(dashboardData)) {
-          return this.postMessage(webviewPanel, USE_GLOBAL_STATE_MESSAGE_TYPE_SET, {
-            type: 'error',
-            error: dashboardData.error
-          })
+          return this.postMessage(
+            webviewPanel,
+            USE_GLOBAL_STATE_MESSAGE_TYPE_SET,
+            {
+              type: 'error',
+              error: dashboardData.error,
+            },
+          )
         }
+        // TODO Remove the ! after dashboardData.value.dashboard
         this.postMessage(webviewPanel, USE_GLOBAL_STATE_MESSAGE_TYPE_SET, {
           type: 'dashboardEditor',
           data: {
-            dashboardFile: dashboardData.value
+            dashboard: dashboardData.value.dashboard!,
+            items: dashboardData.value.items.map((item) => ({
+              item,
+              result: {
+                type: 'loading',
+              },
+            })),
           },
         })
         break

@@ -1,27 +1,38 @@
-import { Layout, Responsive, WidthProvider } from 'react-grid-layout'
+import { Layout, Layouts, Responsive, WidthProvider } from 'react-grid-layout'
 import _ from 'lodash'
 import { EventHandler, Component, SyntheticEvent } from 'react'
+import './react-grid-layout.css'
+import { DashboardEditorDataItem } from '@shared/globalViewState'
+import { Perspective } from '@ui/components/Perspective'
+import { ProgressRing } from '@ui/components/ProgressRing'
 
 interface Props {
   className: string
   cols: Record<string, number>
-  onLayoutChange: Function
+  onLayoutChange: (currentLayout: Layout[], allLayouts: Layouts) => void
   rowHeight: number
+  dashboardItems: DashboardEditorDataItem[]
+}
+
+export type ItemWithInfo = {
+  item: DashboardEditorDataItem
+  layout: Layout
 }
 
 interface State {
+  // TODO Need to constrain this string
   currentBreakpoint: string
   compactType: CompactType
   mounted: boolean
   resizeHandles: string[]
-  layouts: Record<string, Layout>
+  layouts: {
+    lg: Array<ItemWithInfo>
+  }
 }
 
 export type CompactType = 'horizontal' | 'vertical'
 
 const availableHandles = ['s', 'w', 'e', 'n', 'sw', 'nw', 'se', 'ne']
-
-const ResponsiveReactGridLayout = WidthProvider(Responsive)
 
 export default class Dashboard extends Component<Props, State> {
   static defaultProps: Props = {
@@ -29,40 +40,63 @@ export default class Dashboard extends Component<Props, State> {
     rowHeight: 30,
     onLayoutChange() {},
     cols: { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 },
+    dashboardItems: [],
   }
 
   state: State = {
     currentBreakpoint: 'lg',
     compactType: 'vertical',
-    resizeHandles: ['se'],
     mounted: false,
-    layouts: { lg: generateLayout(['se']) },
+    resizeHandles: ['se'],
+    layouts: {
+      lg: generateLayoutFromDashboardItems(this.props.dashboardItems),
+    },
   }
 
   componentDidMount() {
-    this.setState({ mounted: true })
-  }
-
-  generateDOM(): React.ReactNodeArray {
-    return _.map(this.state.layouts.lg, function (l, i) {
-      return (
-        <div key={i} className={l.static ? 'static' : ''}>
-          {l.static ? (
-            <span
-              className="text"
-              title="This item is static and cannot be removed or resized."
-            >
-              Static - {i}
-            </span>
-          ) : (
-            <span className="text">{i}</span>
-          )}
-        </div>
-      )
+    this.setState({
+      mounted: true,
     })
   }
 
-  onBreakpointChange: (Breakpoint) => void = (breakpoint) => {
+  generateDOM(): React.ReactNode[] {
+    return this.state.layouts.lg.map((l, i) => {
+      switch (l.item.result.type) {
+        case 'loading':
+          return (
+            <div key={i}>
+              <div className="flex justify-center pt-10">
+                <ProgressRing className="h-20 w-20" />
+              </div>
+            </div>
+          )
+        case 'error':
+          return (
+            <div key={i}>
+              <span className="text">
+                {JSON.stringify(l.item.result.error)}
+              </span>
+            </div>
+          )
+        case 'success':
+          return (
+            <div key={i}>
+              <Perspective
+                results={l.item.result.queryResult}
+                existingSettings={l.item.item.chart?.config}
+                openWithSettings={false}
+              />
+            </div>
+          )
+        case 'not loaded':
+          throw new Error('Not loaded should never happen')
+        default:
+          throw new Error('Unknown type')
+      }
+    })
+  }
+
+  onBreakpointChange: (breakpoint: string) => void = (breakpoint) => {
     this.setState({
       currentBreakpoint: breakpoint,
     })
@@ -74,7 +108,7 @@ export default class Dashboard extends Component<Props, State> {
       oldCompactType === 'horizontal'
         ? 'vertical'
         : oldCompactType === 'vertical'
-          ? null
+          ? 'vertical'
           : 'horizontal'
     this.setState({ compactType })
   }
@@ -84,17 +118,20 @@ export default class Dashboard extends Component<Props, State> {
       this.state.resizeHandles === availableHandles ? ['se'] : availableHandles
     this.setState({
       resizeHandles,
-      layouts: { lg: generateLayout(resizeHandles) },
+      layouts: {
+        lg: generateLayoutFromDashboardItems(this.props.dashboardItems),
+      },
     })
   }
 
-  onLayoutChange = (layout, layouts) => {
-    this.props.onLayoutChange(layout, layouts)
+  onLayoutChange = (currentLayout: Layout[], allLayouts: Layouts) => {
+    this.props.onLayoutChange(currentLayout, allLayouts)
   }
 
   onNewLayout: EventHandler<SyntheticEvent> = () => {
+    const layout = generateLayoutFromDashboardItems(this.props.dashboardItems)
     this.setState({
-      layouts: { lg: generateLayout(this.state.resizeHandles) },
+      layouts: { lg: layout },
     })
   }
 
@@ -126,7 +163,9 @@ export default class Dashboard extends Component<Props, State> {
         </button>
         <ResponsiveReactGridLayout
           {...this.props}
-          layouts={this.state.layouts}
+          layouts={{
+            lg: this.state.layouts.lg.map((l) => l.layout),
+          }}
           onBreakpointChange={this.onBreakpointChange}
           onLayoutChange={this.onLayoutChange}
           onDrop={this.onDrop}
@@ -137,6 +176,7 @@ export default class Dashboard extends Component<Props, State> {
           useCSSTransforms={this.state.mounted}
           compactType={this.state.compactType}
           preventCollision={!this.state.compactType}
+          /* eslint-disable-next-line react/no-children-prop */
           children={this.generateDOM()}
         />
       </div>
@@ -144,17 +184,47 @@ export default class Dashboard extends Component<Props, State> {
   }
 }
 
-function generateLayout(resizeHandles) {
-  return _.map(_.range(0, 25), function (item, i) {
-    const y = Math.ceil(Math.random() * 4) + 1
+const ResponsiveReactGridLayout = WidthProvider(Responsive)
+
+// function generateLayout(resizeHandles: string[]): Array<{
+//   x: number
+//   y: number
+//   w: number
+//   h: number
+//   i: string
+//   resizeHandles: string[]
+// }> {
+//   return _.map(_.range(0, 25), function (_, i) {
+//     const y = Math.ceil(Math.random() * 4) + 1
+//     return {
+//       x: Math.round(Math.random() * 5) * 2,
+//       y: Math.floor(i / 6) * y,
+//       w: 2,
+//       h: y,
+//       i: i.toString(),
+//       resizeHandles,
+//     }
+//   })
+// }
+
+function generateLayoutFromDashboardItems(
+  dashboardItems: DashboardEditorDataItem[],
+): Array<ItemWithInfo> {
+  return dashboardItems.map((item, i) => {
+    const innerItem = item.item.item
+    if (!innerItem) {
+      throw new Error('Item is missing')
+    }
     return {
-      x: Math.round(Math.random() * 5) * 2,
-      y: Math.floor(i / 6) * y,
-      w: 2,
-      h: y,
-      i: i.toString(),
-      static: Math.random() < 0.05,
-      resizeHandles,
+      item,
+      layout: {
+        x: innerItem.topLeftX,
+        y: innerItem.topLeftY,
+        w: innerItem.width,
+        h: innerItem.height,
+        i: i.toString(),
+        resizeHandles: ['se'],
+      },
     }
   })
 }

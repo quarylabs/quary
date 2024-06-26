@@ -3,6 +3,7 @@ use crate::rpc_proto_scaffolding::{database_query_generator_from_config, JsFileS
 use crate::uint8_reader::Uint8ArrayReader;
 use js_sys::{Function, Promise, Uint8Array};
 use quary_core::chart::{chart_file_from_yaml, chart_file_to_yaml};
+use quary_core::dashboard::{dashboard_file_from_yaml, dashboard_file_to_yaml};
 use quary_core::database_snowflake::validate_snowfalke_account_identifier;
 use quary_core::test_runner::{
     run_model_tests_internal, run_tests_internal, RunReturnResult, RunStatementFunc, RunTestError,
@@ -11,7 +12,6 @@ use quary_proto::TestRunner;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
-use quary_core::dashboard::{dashboard_file_from_yaml, dashboard_file_to_yaml};
 
 /// write chart file to Uint8Array string encodes a chart file in Uint8Array proto and returns it
 /// as yaml string.
@@ -40,7 +40,7 @@ pub fn write_dashboard_file(dashboard_file: Uint8Array) -> Result<Uint8Array, St
     Ok(Uint8Array::from(yaml.as_bytes()))
 }
 
-/// string to dashboard file parses a dashboard file in Uint8Array string and returns a Uint8Array 
+/// string to dashboard file parses a dashboard file in Uint8Array string and returns a Uint8Array
 /// dashboard file encoded in proto.
 #[wasm_bindgen]
 pub fn parse_dashboard_file(file: Uint8Array) -> Result<Uint8Array, String> {

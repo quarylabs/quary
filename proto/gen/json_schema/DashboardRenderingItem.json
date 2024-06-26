@@ -1,25 +1,24 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$ref": "#/definitions/ReturnDashboardWithSqlResponse",
+    "$ref": "#/definitions/DashboardRenderingItem",
     "definitions": {
-        "ReturnDashboardWithSqlResponse": {
+        "DashboardRenderingItem": {
             "properties": {
-                "dashboard": {
-                    "$ref": "#/definitions/quary.service.v1.Dashboard",
+                "item": {
+                    "$ref": "#/definitions/quary.service.v1.DashboardItem",
                     "additionalProperties": false
                 },
-                "items": {
-                    "items": {
-                        "$ref": "#/definitions/quary.service.v1.DashboardRenderingItem"
-                    },
-                    "additionalProperties": false,
-                    "type": "array",
-                    "description": "item sql is the sql for each item in the dashboard in the same order as in the dashboard"
+                "sql": {
+                    "type": "string"
+                },
+                "chart": {
+                    "$ref": "#/definitions/quary.service.v1.Chart",
+                    "additionalProperties": false
                 }
             },
             "additionalProperties": false,
             "type": "object",
-            "title": "Return Dashboard With Sql Response"
+            "title": "Dashboard Rendering Item"
         },
         "quary.service.v1.Chart": {
             "properties": {
@@ -83,39 +82,6 @@
             "type": "object",
             "title": "Asset Reference"
         },
-        "quary.service.v1.Dashboard": {
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "tags": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array",
-                    "description": "Tags are used to group different parts of the project together. For example, you could tag all models that are related to a specific department with the same tag."
-                },
-                "items": {
-                    "items": {
-                        "$ref": "#/definitions/quary.service.v1.DashboardItem"
-                    },
-                    "additionalProperties": false,
-                    "type": "array"
-                },
-                "file_path": {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": false,
-            "type": "object",
-            "title": "Dashboard"
-        },
         "quary.service.v1.DashboardChart": {
             "properties": {
                 "reference": {
@@ -159,24 +125,6 @@
             "additionalProperties": false,
             "type": "object",
             "title": "Dashboard Item"
-        },
-        "quary.service.v1.DashboardRenderingItem": {
-            "properties": {
-                "item": {
-                    "$ref": "#/definitions/quary.service.v1.DashboardItem",
-                    "additionalProperties": false
-                },
-                "sql": {
-                    "type": "string"
-                },
-                "chart": {
-                    "$ref": "#/definitions/quary.service.v1.Chart",
-                    "additionalProperties": false
-                }
-            },
-            "additionalProperties": false,
-            "type": "object",
-            "title": "Dashboard Rendering Item"
         }
     }
 }

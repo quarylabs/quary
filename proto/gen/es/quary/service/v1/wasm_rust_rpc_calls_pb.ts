@@ -13,6 +13,8 @@ import { Table } from "./table_pb.js";
 import { DatabaseSource } from "./types_pb.js";
 import { Range } from "./range_pb.js";
 import { Dashboard } from "./dashboard_pb.js";
+import { DashboardItem } from "./dashboard_file_pb.js";
+import { Chart } from "./chart_pb.js";
 
 /**
  * @generated from message quary.service.v1.GetProjectConfigRequest
@@ -2213,11 +2215,10 @@ export class ReturnDashboardWithSqlResponse extends Message<ReturnDashboardWithS
 
   /**
    * item sql is the sql for each item in the dashboard in the same order as in the dashboard
-   * TODO Improve this type
    *
-   * @generated from field: repeated string item_sqls = 2;
+   * @generated from field: repeated quary.service.v1.DashboardRenderingItem items = 2;
    */
-  itemSqls: string[] = [];
+  items: DashboardRenderingItem[] = [];
 
   constructor(data?: PartialMessage<ReturnDashboardWithSqlResponse>) {
     super();
@@ -2228,7 +2229,7 @@ export class ReturnDashboardWithSqlResponse extends Message<ReturnDashboardWithS
   static readonly typeName = "quary.service.v1.ReturnDashboardWithSqlResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "dashboard", kind: "message", T: Dashboard },
-    { no: 2, name: "item_sqls", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 2, name: "items", kind: "message", T: DashboardRenderingItem, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReturnDashboardWithSqlResponse {
@@ -2245,6 +2246,55 @@ export class ReturnDashboardWithSqlResponse extends Message<ReturnDashboardWithS
 
   static equals(a: ReturnDashboardWithSqlResponse | PlainMessage<ReturnDashboardWithSqlResponse> | undefined, b: ReturnDashboardWithSqlResponse | PlainMessage<ReturnDashboardWithSqlResponse> | undefined): boolean {
     return proto3.util.equals(ReturnDashboardWithSqlResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.DashboardRenderingItem
+ */
+export class DashboardRenderingItem extends Message<DashboardRenderingItem> {
+  /**
+   * @generated from field: quary.service.v1.DashboardItem item = 1;
+   */
+  item?: DashboardItem;
+
+  /**
+   * @generated from field: string sql = 2;
+   */
+  sql = "";
+
+  /**
+   * @generated from field: quary.service.v1.Chart chart = 3;
+   */
+  chart?: Chart;
+
+  constructor(data?: PartialMessage<DashboardRenderingItem>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.DashboardRenderingItem";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "item", kind: "message", T: DashboardItem },
+    { no: 2, name: "sql", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "chart", kind: "message", T: Chart },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DashboardRenderingItem {
+    return new DashboardRenderingItem().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DashboardRenderingItem {
+    return new DashboardRenderingItem().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DashboardRenderingItem {
+    return new DashboardRenderingItem().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DashboardRenderingItem | PlainMessage<DashboardRenderingItem> | undefined, b: DashboardRenderingItem | PlainMessage<DashboardRenderingItem> | undefined): boolean {
+    return proto3.util.equals(DashboardRenderingItem, a, b);
   }
 }
 

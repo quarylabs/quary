@@ -1,10 +1,13 @@
 /* eslint-disable camelcase */
+import * as vscode from 'vscode'
 import { ExtensionContext } from 'vscode'
 import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import { Dag, View } from '@shared/globalViewState'
 import { useCallBackBackEnd } from '@shared/callBacks'
-import * as vscode from 'vscode'
-import { ListAssetsResponse_Asset } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
+import {
+  ListAssetsRequest_AssetsToSkip,
+  ListAssetsResponse_Asset,
+} from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { Table } from '@quary/proto/quary/service/v1/table'
 import { rustWithoutDatabaseWasmServices } from './servicesRustWasm'
 import { preInitSetup, Services } from './services'
@@ -34,9 +37,8 @@ const getModelDetails = async ({
 > => {
   const modelsResponse = await services.rust.list_assets({
     projectRoot,
-    assetsToSkip: {
-      charts: true,
-    },
+    assetsToSkip:
+      ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS,
   })
   if (isErr(modelsResponse)) {
     return modelsResponse
