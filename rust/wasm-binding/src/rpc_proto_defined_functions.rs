@@ -1370,13 +1370,11 @@ async fn return_full_sql_for_chart(
     let source = chart.source.as_ref().ok_or("No source provided")?;
     let description = chart.description.clone();
     match source {
-        Source::RawSql(raw_sql) => {
-            return Ok(ReturnFullSqlForAssetResponse {
-                full_sql: raw_sql.clone(),
-                description,
-                dag: None,
-            })
-        }
+        Source::RawSql(raw_sql) => Ok(ReturnFullSqlForAssetResponse {
+            full_sql: raw_sql.clone(),
+            description,
+            dag: None,
+        }),
         Source::PreTemplatedSql(_) => {
             unimplemented!()
         }

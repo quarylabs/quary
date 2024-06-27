@@ -32,7 +32,7 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
         safe_adder_set(&mut taken, name.clone())?;
     }
 
-    for (name, _) in &project.snapshots {
+    for name in project.snapshots.keys() {
         safe_adder_set(&mut taken, name.clone())?;
     }
     for (name, snapshot) in &project.snapshots {
@@ -49,7 +49,7 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
         }
     }
 
-    for (name, _) in &project.models {
+    for name in project.models.keys() {
         safe_adder_set(&mut taken, name.clone())?;
     }
     for (name, model) in &project.models {
