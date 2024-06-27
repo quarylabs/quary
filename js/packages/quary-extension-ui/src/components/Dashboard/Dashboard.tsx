@@ -64,7 +64,7 @@ export default class Dashboard extends Component<Props, State> {
       switch (l.item.result.type) {
         case 'loading':
           return (
-            <div key={i}>
+            <div key={`${i}_loading`}>
               <div className="flex justify-center pt-10">
                 <ProgressRing className="h-20 w-20" />
               </div>
@@ -72,7 +72,7 @@ export default class Dashboard extends Component<Props, State> {
           )
         case 'error':
           return (
-            <div key={i}>
+              <div key={`${i}_error`}>
               <span className="text">
                 {JSON.stringify(l.item.result.error)}
               </span>
@@ -80,7 +80,7 @@ export default class Dashboard extends Component<Props, State> {
           )
         case 'success':
           return (
-            <div key={i}>
+              <div key={`${i}_success`}>
               <Perspective
                 results={l.item.result.queryResult}
                 existingSettings={l.item.item.chart?.config}
@@ -140,6 +140,7 @@ export default class Dashboard extends Component<Props, State> {
   }
 
   render(): React.ReactNode {
+    console.log('rerender dashboard')
     // eslint-disable-next-line no-unused-vars
     return (
       <div>

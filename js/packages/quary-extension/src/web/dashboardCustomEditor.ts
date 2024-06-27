@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import {
-  DashboardEditorData,
+  DashboardEditorData, DashboardEditorDataItem,
   USE_GLOBAL_STATE_MESSAGE_TYPE_NOT_SET,
   USE_GLOBAL_STATE_MESSAGE_TYPE_SET,
   View,
@@ -129,7 +129,7 @@ export class DashboardEditorProvider
               },
             )
           }
-          const dashboardName = this.getDashboardmame(document)
+          const dashboardName = this.getDashboardName(document)
           const dashboardData = await services.rust.returnDashboardWithSql({
             dashboardName,
             projectRoot: setupValues.value.projectRoot,
@@ -245,10 +245,11 @@ export class DashboardEditorProvider
     type: string,
     payload: View,
   ): void {
+    console.log('postMessage', type, payload)
     panel.webview.postMessage({ type, payload })
   }
 
-  private getDashboardmame(document: DashboardDocument): string {
+  private getDashboardName(document: DashboardDocument): string {
     const doucmentUri = document.uri.fsPath.split('/').pop()
     if (!doucmentUri) {
       throw Err({
@@ -281,7 +282,7 @@ export class DashboardEditorProvider
             },
           )
         }
-        const dashboardName = this.getDashboardmame(document)
+        const dashboardName = this.getDashboardName(document)
         const dashboardData = await services.rust.returnDashboardWithSql({
           dashboardName,
           projectRoot: setupValues.value.projectRoot,
@@ -296,19 +297,47 @@ export class DashboardEditorProvider
             },
           )
         }
+        const items: Array<DashboardEditorDataItem> = dashboardData.value.items.map((item) => ({
+          item,
+          result: {
+            type: 'loading',
+          },
+        }))
+        const dashboard = dashboardData.value.dashboard
+        if (!dashboard) {
+          throw new Error('Dashboard not found')
+        }
         // TODO Remove the ! after dashboardData.value.dashboard
         this.postMessage(webviewPanel, USE_GLOBAL_STATE_MESSAGE_TYPE_SET, {
           type: 'dashboardEditor',
           data: {
-            dashboard: dashboardData.value.dashboard!,
-            items: dashboardData.value.items.map((item) => ({
-              item,
-              result: {
-                type: 'loading',
-              },
-            })),
+            dashboard,
+            items,
           },
         })
+        for (const item of items) {
+          const result = await services.database.runStatement(
+            item.item.sql
+          )
+          if (isErr(result)) {
+            item.result = {
+              type: 'error' as const,
+              error: result.error,
+            }
+          } else {
+            item.result = {
+              type: 'success',
+              queryResult: result.value,
+            }
+          }
+          this.postMessage(webviewPanel, USE_GLOBAL_STATE_MESSAGE_TYPE_SET, {
+            type: 'dashboardEditor',
+            data: {
+              dashboard: dashboardData.value.dashboard!,
+              items,
+            },
+          })
+        }
         break
       }
       default: {

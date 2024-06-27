@@ -25,6 +25,8 @@ function App() {
     vscode.postMessage,
   )
 
+  console.log('received view', view)
+
   switch (view.type) {
     case 'loading':
       return <LoadingView />
