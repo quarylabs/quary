@@ -4,6 +4,7 @@ package quary.service.v1;
 
 import "quary/service/v1/chart.proto";
 import "quary/service/v1/connection_config.proto";
+import "quary/service/v1/dashboard.proto";
 import "quary/service/v1/project_file.proto";
 import "quary/service/v1/types.proto";
 
@@ -16,6 +17,7 @@ message Project {
   map<string, Source> sources = 6;
   map<string, Snapshot> snapshots = 9;
   map<string, Chart> charts = 10;
+  map<string, Dashboard> dashboards = 11;
   map<string, ProjectFile> project_files = 7;
   ConnectionConfig connection_config = 8;
 }

@@ -8,7 +8,10 @@
 import * as _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
 import { Struct } from "../../../google/protobuf/struct";
+import { Chart } from "./chart";
 import { ConnectionConfig } from "./connection_config";
+import { Dashboard } from "./dashboard";
+import { DashboardItem } from "./dashboard_file";
 import { Project } from "./project";
 import { ProjectDag } from "./project_dag";
 import { ColumnTest, ProjectFile } from "./project_file";
@@ -57,11 +60,52 @@ export interface StringifyProjectFileResponse {
 
 export interface ListAssetsRequest {
   projectRoot: string;
-  assetsToSkip: ListAssetsRequest_AssetsToSkip | undefined;
+  assetsToSkip: ListAssetsRequest_AssetsToSkip;
 }
 
-export interface ListAssetsRequest_AssetsToSkip {
-  charts: boolean;
+export enum ListAssetsRequest_AssetsToSkip {
+  ASSETS_TO_SKIP_UNSPECIFIED = 0,
+  ASSETS_TO_SKIP_NONE = 1,
+  ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS = 2,
+  ASSETS_TO_SKIP_DASHBOARDS = 3,
+  UNRECOGNIZED = -1,
+}
+
+export function listAssetsRequest_AssetsToSkipFromJSON(object: any): ListAssetsRequest_AssetsToSkip {
+  switch (object) {
+    case 0:
+    case "ASSETS_TO_SKIP_UNSPECIFIED":
+      return ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_UNSPECIFIED;
+    case 1:
+    case "ASSETS_TO_SKIP_NONE":
+      return ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_NONE;
+    case 2:
+    case "ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS":
+      return ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS;
+    case 3:
+    case "ASSETS_TO_SKIP_DASHBOARDS":
+      return ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_DASHBOARDS;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return ListAssetsRequest_AssetsToSkip.UNRECOGNIZED;
+  }
+}
+
+export function listAssetsRequest_AssetsToSkipToJSON(object: ListAssetsRequest_AssetsToSkip): string {
+  switch (object) {
+    case ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_UNSPECIFIED:
+      return "ASSETS_TO_SKIP_UNSPECIFIED";
+    case ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_NONE:
+      return "ASSETS_TO_SKIP_NONE";
+    case ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS:
+      return "ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS";
+    case ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_DASHBOARDS:
+      return "ASSETS_TO_SKIP_DASHBOARDS";
+    case ListAssetsRequest_AssetsToSkip.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
 }
 
 export interface ListAssetsResponse {
@@ -84,6 +128,7 @@ export enum ListAssetsResponse_Asset_AssetType {
   ASSET_TYPE_SOURCE = 3,
   ASSET_TYPE_SNAPSHOT = 4,
   ASSET_TYPE_CHART = 5,
+  ASSET_TYPE_DASHBOARD = 6,
   UNRECOGNIZED = -1,
 }
 
@@ -107,6 +152,9 @@ export function listAssetsResponse_Asset_AssetTypeFromJSON(object: any): ListAss
     case 5:
     case "ASSET_TYPE_CHART":
       return ListAssetsResponse_Asset_AssetType.ASSET_TYPE_CHART;
+    case 6:
+    case "ASSET_TYPE_DASHBOARD":
+      return ListAssetsResponse_Asset_AssetType.ASSET_TYPE_DASHBOARD;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -128,6 +176,8 @@ export function listAssetsResponse_Asset_AssetTypeToJSON(object: ListAssetsRespo
       return "ASSET_TYPE_SNAPSHOT";
     case ListAssetsResponse_Asset_AssetType.ASSET_TYPE_CHART:
       return "ASSET_TYPE_CHART";
+    case ListAssetsResponse_Asset_AssetType.ASSET_TYPE_DASHBOARD:
+      return "ASSET_TYPE_DASHBOARD";
     case ListAssetsResponse_Asset_AssetType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -320,6 +370,26 @@ export interface CreateModelChartFileRequest {
 
 export interface CreateModelChartFileResponse {
   chartFile: string;
+}
+
+/** TODO Implement caching */
+export interface ReturnDashboardWithSqlRequest {
+  projectRoot: string;
+  dashboardName: string;
+}
+
+export interface ReturnDashboardWithSqlResponse {
+  dashboard:
+    | Dashboard
+    | undefined;
+  /** item sql is the sql for each item in the dashboard in the same order as in the dashboard */
+  items: DashboardRenderingItem[];
+}
+
+export interface DashboardRenderingItem {
+  item: DashboardItem | undefined;
+  sql: string;
+  chart: Chart | undefined;
 }
 
 function createBaseGetProjectConfigRequest(): GetProjectConfigRequest {
@@ -863,7 +933,7 @@ export const StringifyProjectFileResponse = {
 };
 
 function createBaseListAssetsRequest(): ListAssetsRequest {
-  return { projectRoot: "", assetsToSkip: undefined };
+  return { projectRoot: "", assetsToSkip: 0 };
 }
 
 export const ListAssetsRequest = {
@@ -871,8 +941,8 @@ export const ListAssetsRequest = {
     if (message.projectRoot !== "") {
       writer.uint32(26).string(message.projectRoot);
     }
-    if (message.assetsToSkip !== undefined) {
-      ListAssetsRequest_AssetsToSkip.encode(message.assetsToSkip, writer.uint32(34).fork()).ldelim();
+    if (message.assetsToSkip !== 0) {
+      writer.uint32(32).int32(message.assetsToSkip);
     }
     return writer;
   },
@@ -892,11 +962,11 @@ export const ListAssetsRequest = {
           message.projectRoot = reader.string();
           continue;
         case 4:
-          if (tag !== 34) {
+          if (tag !== 32) {
             break;
           }
 
-          message.assetsToSkip = ListAssetsRequest_AssetsToSkip.decode(reader, reader.uint32());
+          message.assetsToSkip = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -910,9 +980,7 @@ export const ListAssetsRequest = {
   fromJSON(object: any): ListAssetsRequest {
     return {
       projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
-      assetsToSkip: isSet(object.assetsToSkip)
-        ? ListAssetsRequest_AssetsToSkip.fromJSON(object.assetsToSkip)
-        : undefined,
+      assetsToSkip: isSet(object.assetsToSkip) ? listAssetsRequest_AssetsToSkipFromJSON(object.assetsToSkip) : 0,
     };
   },
 
@@ -921,8 +989,8 @@ export const ListAssetsRequest = {
     if (message.projectRoot !== "") {
       obj.projectRoot = message.projectRoot;
     }
-    if (message.assetsToSkip !== undefined) {
-      obj.assetsToSkip = ListAssetsRequest_AssetsToSkip.toJSON(message.assetsToSkip);
+    if (message.assetsToSkip !== 0) {
+      obj.assetsToSkip = listAssetsRequest_AssetsToSkipToJSON(message.assetsToSkip);
     }
     return obj;
   },
@@ -933,68 +1001,7 @@ export const ListAssetsRequest = {
   fromPartial<I extends Exact<DeepPartial<ListAssetsRequest>, I>>(object: I): ListAssetsRequest {
     const message = createBaseListAssetsRequest();
     message.projectRoot = object.projectRoot ?? "";
-    message.assetsToSkip = (object.assetsToSkip !== undefined && object.assetsToSkip !== null)
-      ? ListAssetsRequest_AssetsToSkip.fromPartial(object.assetsToSkip)
-      : undefined;
-    return message;
-  },
-};
-
-function createBaseListAssetsRequest_AssetsToSkip(): ListAssetsRequest_AssetsToSkip {
-  return { charts: false };
-}
-
-export const ListAssetsRequest_AssetsToSkip = {
-  encode(message: ListAssetsRequest_AssetsToSkip, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.charts !== false) {
-      writer.uint32(8).bool(message.charts);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ListAssetsRequest_AssetsToSkip {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseListAssetsRequest_AssetsToSkip();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.charts = reader.bool();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ListAssetsRequest_AssetsToSkip {
-    return { charts: isSet(object.charts) ? gt.Boolean(object.charts) : false };
-  },
-
-  toJSON(message: ListAssetsRequest_AssetsToSkip): unknown {
-    const obj: any = {};
-    if (message.charts !== false) {
-      obj.charts = message.charts;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ListAssetsRequest_AssetsToSkip>, I>>(base?: I): ListAssetsRequest_AssetsToSkip {
-    return ListAssetsRequest_AssetsToSkip.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ListAssetsRequest_AssetsToSkip>, I>>(
-    object: I,
-  ): ListAssetsRequest_AssetsToSkip {
-    const message = createBaseListAssetsRequest_AssetsToSkip();
-    message.charts = object.charts ?? false;
+    message.assetsToSkip = object.assetsToSkip ?? 0;
     return message;
   },
 };
@@ -3909,6 +3916,251 @@ export const CreateModelChartFileResponse = {
   },
 };
 
+function createBaseReturnDashboardWithSqlRequest(): ReturnDashboardWithSqlRequest {
+  return { projectRoot: "", dashboardName: "" };
+}
+
+export const ReturnDashboardWithSqlRequest = {
+  encode(message: ReturnDashboardWithSqlRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.projectRoot !== "") {
+      writer.uint32(18).string(message.projectRoot);
+    }
+    if (message.dashboardName !== "") {
+      writer.uint32(26).string(message.dashboardName);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnDashboardWithSqlRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnDashboardWithSqlRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.projectRoot = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.dashboardName = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnDashboardWithSqlRequest {
+    return {
+      projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
+      dashboardName: isSet(object.dashboardName) ? gt.String(object.dashboardName) : "",
+    };
+  },
+
+  toJSON(message: ReturnDashboardWithSqlRequest): unknown {
+    const obj: any = {};
+    if (message.projectRoot !== "") {
+      obj.projectRoot = message.projectRoot;
+    }
+    if (message.dashboardName !== "") {
+      obj.dashboardName = message.dashboardName;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnDashboardWithSqlRequest>, I>>(base?: I): ReturnDashboardWithSqlRequest {
+    return ReturnDashboardWithSqlRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnDashboardWithSqlRequest>, I>>(
+    object: I,
+  ): ReturnDashboardWithSqlRequest {
+    const message = createBaseReturnDashboardWithSqlRequest();
+    message.projectRoot = object.projectRoot ?? "";
+    message.dashboardName = object.dashboardName ?? "";
+    return message;
+  },
+};
+
+function createBaseReturnDashboardWithSqlResponse(): ReturnDashboardWithSqlResponse {
+  return { dashboard: undefined, items: [] };
+}
+
+export const ReturnDashboardWithSqlResponse = {
+  encode(message: ReturnDashboardWithSqlResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.dashboard !== undefined) {
+      Dashboard.encode(message.dashboard, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.items) {
+      DashboardRenderingItem.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnDashboardWithSqlResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnDashboardWithSqlResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.dashboard = Dashboard.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.items.push(DashboardRenderingItem.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnDashboardWithSqlResponse {
+    return {
+      dashboard: isSet(object.dashboard) ? Dashboard.fromJSON(object.dashboard) : undefined,
+      items: gt.Array.isArray(object?.items) ? object.items.map((e: any) => DashboardRenderingItem.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ReturnDashboardWithSqlResponse): unknown {
+    const obj: any = {};
+    if (message.dashboard !== undefined) {
+      obj.dashboard = Dashboard.toJSON(message.dashboard);
+    }
+    if (message.items?.length) {
+      obj.items = message.items.map((e) => DashboardRenderingItem.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnDashboardWithSqlResponse>, I>>(base?: I): ReturnDashboardWithSqlResponse {
+    return ReturnDashboardWithSqlResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnDashboardWithSqlResponse>, I>>(
+    object: I,
+  ): ReturnDashboardWithSqlResponse {
+    const message = createBaseReturnDashboardWithSqlResponse();
+    message.dashboard = (object.dashboard !== undefined && object.dashboard !== null)
+      ? Dashboard.fromPartial(object.dashboard)
+      : undefined;
+    message.items = object.items?.map((e) => DashboardRenderingItem.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseDashboardRenderingItem(): DashboardRenderingItem {
+  return { item: undefined, sql: "", chart: undefined };
+}
+
+export const DashboardRenderingItem = {
+  encode(message: DashboardRenderingItem, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.item !== undefined) {
+      DashboardItem.encode(message.item, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.sql !== "") {
+      writer.uint32(18).string(message.sql);
+    }
+    if (message.chart !== undefined) {
+      Chart.encode(message.chart, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DashboardRenderingItem {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDashboardRenderingItem();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.item = DashboardItem.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.sql = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.chart = Chart.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DashboardRenderingItem {
+    return {
+      item: isSet(object.item) ? DashboardItem.fromJSON(object.item) : undefined,
+      sql: isSet(object.sql) ? gt.String(object.sql) : "",
+      chart: isSet(object.chart) ? Chart.fromJSON(object.chart) : undefined,
+    };
+  },
+
+  toJSON(message: DashboardRenderingItem): unknown {
+    const obj: any = {};
+    if (message.item !== undefined) {
+      obj.item = DashboardItem.toJSON(message.item);
+    }
+    if (message.sql !== "") {
+      obj.sql = message.sql;
+    }
+    if (message.chart !== undefined) {
+      obj.chart = Chart.toJSON(message.chart);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DashboardRenderingItem>, I>>(base?: I): DashboardRenderingItem {
+    return DashboardRenderingItem.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DashboardRenderingItem>, I>>(object: I): DashboardRenderingItem {
+    const message = createBaseDashboardRenderingItem();
+    message.item = (object.item !== undefined && object.item !== null)
+      ? DashboardItem.fromPartial(object.item)
+      : undefined;
+    message.sql = object.sql ?? "";
+    message.chart = (object.chart !== undefined && object.chart !== null) ? Chart.fromPartial(object.chart) : undefined;
+    return message;
+  },
+};
+
 /**
  * RustWithoutDatabaseService is the service that is used and where the database is not used and so not passed in as a
  * parameter in.
@@ -4070,6 +4322,11 @@ export interface RustWithDatabaseService {
   ReturnDefinitionLocationsForSQL(
     request: ReturnDefinitionLocationsForSQLRequest,
   ): Promise<ReturnDefinitionLocationsForSQLResponse>;
+  /**
+   * ReturnDashboardWithSql returns the components for the dashboard for the given dashboard name. It also returns the sql
+   * for each item in the dashboard.
+   */
+  ReturnDashboardWithSql(request: ReturnDashboardWithSqlRequest): Promise<ReturnDashboardWithSqlResponse>;
 }
 
 export const RustWithDatabaseServiceServiceName = "quary.service.v1.RustWithDatabaseService";
@@ -4096,6 +4353,7 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     this.RemoveColumnTestFromModelOrSourceColumn = this.RemoveColumnTestFromModelOrSourceColumn.bind(this);
     this.GenerateSourceFiles = this.GenerateSourceFiles.bind(this);
     this.ReturnDefinitionLocationsForSQL = this.ReturnDefinitionLocationsForSQL.bind(this);
+    this.ReturnDashboardWithSql = this.ReturnDashboardWithSql.bind(this);
   }
   ListAssets(request: ListAssetsRequest): Promise<ListAssetsResponse> {
     const data = ListAssetsRequest.encode(request).finish();
@@ -4205,6 +4463,12 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     const data = ReturnDefinitionLocationsForSQLRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "ReturnDefinitionLocationsForSQL", data);
     return promise.then((data) => ReturnDefinitionLocationsForSQLResponse.decode(_m0.Reader.create(data)));
+  }
+
+  ReturnDashboardWithSql(request: ReturnDashboardWithSqlRequest): Promise<ReturnDashboardWithSqlResponse> {
+    const data = ReturnDashboardWithSqlRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ReturnDashboardWithSql", data);
+    return promise.then((data) => ReturnDashboardWithSqlResponse.decode(_m0.Reader.create(data)));
   }
 }
 

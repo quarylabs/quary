@@ -7,7 +7,10 @@ import {
 } from '@shared/globalViewState'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import { Err, ErrorCodes, isErr, Ok, QuaryError, Result } from '@shared/result'
-import { ListAssetsResponse_Asset_AssetType } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
+import {
+  ListAssetsRequest_AssetsToSkip,
+  ListAssetsResponse_Asset_AssetType,
+} from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { disposeAll } from './dispose'
 import { HTML_STRING } from './panels'
 import { getServices, PreInitServices, preInitSetup } from './services'
@@ -277,9 +280,8 @@ export class ChartEditorProvider
     }
     const returned = await services.rust.list_assets({
       projectRoot: setupValues.value.projectRoot,
-      assetsToSkip: {
-        charts: true,
-      },
+      assetsToSkip:
+        ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS,
     })
     if (isErr(returned)) {
       return returned

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+import "quary/service/v1/dashboard_file.proto";
+
+option java_multiple_files = true;
+
+message Dashboard {
+  string name = 1;
+
+  optional string title = 2;
+  optional string description = 3;
+  // Tags are used to group different parts of the project together. For example, you could tag all models that are
+  // related to a specific department with the same tag.
+  repeated string tags = 4;
+
+  repeated DashboardItem items = 5;
+
+  string file_path = 6;
+}

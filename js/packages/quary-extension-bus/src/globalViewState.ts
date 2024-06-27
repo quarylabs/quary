@@ -1,6 +1,9 @@
 import { SqlLanguage } from './config'
 import { ProjectDag } from '@quary/proto/quary/service/v1/project_dag'
-import { ListAssetsResponse_Asset } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
+import {
+  DashboardRenderingItem,
+  ListAssetsResponse_Asset,
+} from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { Project } from '@quary/proto/quary/service/v1/project'
 import { TestRunner } from '@quary/proto/quary/service/v1/test_runner'
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
@@ -9,6 +12,7 @@ import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import { Table } from '@quary/proto/quary/service/v1/table'
 import { QuaryError } from './result'
+import { Dashboard } from '@quary/proto/quary/service/v1/dashboard'
 
 /**
  * The message type that is sent to the webview when the global state is set.
@@ -97,26 +101,42 @@ export type View =
       type: 'chartEditor'
       data: ChartEditorData
     }
+  | {
+      type: 'dashboardEditor'
+      data: DashboardEditorData
+    }
 
 export type ChartEditorData = {
   title: string
   chartFile?: ChartFile
   allAssets: string[]
-  results:
-    | {
-        type: 'not loaded'
-      }
-    | {
-        type: 'loading'
-      }
-    | {
-        type: 'error'
-        error: QuaryError
-      }
-    | {
-        type: 'success'
-        queryResult: QueryResult
-      }
+  results: ChartResult
+}
+
+type ChartResult =
+  | {
+      type: 'not loaded'
+    }
+  | {
+      type: 'loading'
+    }
+  | {
+      type: 'error'
+      error: QuaryError
+    }
+  | {
+      type: 'success'
+      queryResult: QueryResult
+    }
+
+export type DashboardEditorData = {
+  dashboard: Dashboard
+  items: DashboardEditorDataItem[]
+}
+
+export type DashboardEditorDataItem = {
+    item: DashboardRenderingItem
+    result: ChartResult
 }
 
 export type SqlDocumentationResultsView =

@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package quary.service.v1;
+
+option java_multiple_files = true;
+
+message DashboardFile {
+  optional string title = 2;
+  optional string description = 3;
+  // Tags are used to group different parts of the project together. For example, you could tag all models that are
+  // related to a specific department with the same tag.
+  repeated string tags = 4;
+
+  repeated DashboardItem items = 5;
+}
+
+message DashboardItem {
+  uint32 top_left_x = 1;
+  uint32 top_left_y = 2;
+  uint32 width = 3;
+  uint32 height = 4;
+
+  oneof item {
+    DashboardChart chart = 5;
+  }
+}
+
+message DashboardChart {
+  oneof chart {
+    DashboardChartReference reference = 1;
+  }
+}
+
+message DashboardChartReference {
+  string reference = 1;
+}

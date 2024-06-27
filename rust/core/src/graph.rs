@@ -8,8 +8,9 @@ use petgraph::graph::NodeIndex;
 use petgraph::prelude::EdgeRef;
 use petgraph::visit::{Dfs, Reversed};
 use petgraph::Graph;
+use quary_proto::dashboard_item::Item;
 use quary_proto::test::TestType;
-use quary_proto::{Chart, Project};
+use quary_proto::{dashboard_chart, Chart, Project};
 use std::collections::{HashMap, HashSet};
 
 /// Edge represents an edge with (from, to) node names.
@@ -141,6 +142,28 @@ pub fn project_to_graph(project: Project) -> Result<ProjectGraph, String> {
                 ));
             };
             edges.push((reference.clone(), chart.name.clone()))
+        }
+    }
+
+    for (name, _) in &project.dashboards {
+        safe_adder_set(&mut taken, name.clone())?;
+    }
+    for (name, dashboard) in &project.dashboards {
+        for item in &dashboard.items {
+            let item = &item.item.as_ref().ok_or("item has no item".to_string())?;
+            match item {
+                Item::Chart(chart) => {
+                    let chart = chart
+                        .chart
+                        .as_ref()
+                        .ok_or("chart has no chart".to_string())?;
+                    match chart {
+                        dashboard_chart::Chart::Reference(reference) => {
+                            edges.push((reference.reference.clone(), name.clone()))
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -532,11 +555,14 @@ impl QGraph {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use prost::bytes::Bytes;
+
+    use quary_proto::FileSystem;
+
     use crate::database_sqlite::DatabaseQueryGeneratorSqlite;
     use crate::project::parse_project;
-    use prost::bytes::Bytes;
-    use quary_proto::FileSystem;
+
+    use super::*;
 
     #[test]
     fn test_get_node_sorted() {

@@ -1,0 +1,50 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/DashboardItem",
+    "definitions": {
+        "DashboardItem": {
+            "properties": {
+                "top_left_x": {
+                    "type": "integer"
+                },
+                "top_left_y": {
+                    "type": "integer"
+                },
+                "width": {
+                    "type": "integer"
+                },
+                "height": {
+                    "type": "integer"
+                },
+                "chart": {
+                    "$ref": "#/definitions/quary.service.v1.DashboardChart",
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Dashboard Item"
+        },
+        "quary.service.v1.DashboardChart": {
+            "properties": {
+                "reference": {
+                    "$ref": "#/definitions/quary.service.v1.DashboardChartReference",
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Dashboard Chart"
+        },
+        "quary.service.v1.DashboardChartReference": {
+            "properties": {
+                "reference": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Dashboard Chart Reference"
+        }
+    }
+}

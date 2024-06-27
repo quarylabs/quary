@@ -1,0 +1,11 @@
+title: Shifts Dashboard
+description: Shifts Dashboard with all the shifts and their details.
+
+items:
+  - top_left_x: 0
+    top_left_y: 0
+    width: 3
+    height: 3
+    chart:
+      reference:
+        reference: shifts_by_month_bar

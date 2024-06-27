@@ -12,6 +12,9 @@ import { ProjectDag } from "./project_dag_pb.js";
 import { Table } from "./table_pb.js";
 import { DatabaseSource } from "./types_pb.js";
 import { Range } from "./range_pb.js";
+import { Dashboard } from "./dashboard_pb.js";
+import { DashboardItem } from "./dashboard_file_pb.js";
+import { Chart } from "./chart_pb.js";
 
 /**
  * @generated from message quary.service.v1.GetProjectConfigRequest
@@ -377,7 +380,7 @@ export class ListAssetsRequest extends Message<ListAssetsRequest> {
   /**
    * @generated from field: quary.service.v1.ListAssetsRequest.AssetsToSkip assets_to_skip = 4;
    */
-  assetsToSkip?: ListAssetsRequest_AssetsToSkip;
+  assetsToSkip = ListAssetsRequest_AssetsToSkip.UNSPECIFIED;
 
   constructor(data?: PartialMessage<ListAssetsRequest>) {
     super();
@@ -388,7 +391,7 @@ export class ListAssetsRequest extends Message<ListAssetsRequest> {
   static readonly typeName = "quary.service.v1.ListAssetsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 3, name: "project_root", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "assets_to_skip", kind: "message", T: ListAssetsRequest_AssetsToSkip },
+    { no: 4, name: "assets_to_skip", kind: "enum", T: proto3.getEnumType(ListAssetsRequest_AssetsToSkip) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListAssetsRequest {
@@ -409,41 +412,36 @@ export class ListAssetsRequest extends Message<ListAssetsRequest> {
 }
 
 /**
- * @generated from message quary.service.v1.ListAssetsRequest.AssetsToSkip
+ * @generated from enum quary.service.v1.ListAssetsRequest.AssetsToSkip
  */
-export class ListAssetsRequest_AssetsToSkip extends Message<ListAssetsRequest_AssetsToSkip> {
+export enum ListAssetsRequest_AssetsToSkip {
   /**
-   * @generated from field: bool charts = 1;
+   * @generated from enum value: ASSETS_TO_SKIP_UNSPECIFIED = 0;
    */
-  charts = false;
+  UNSPECIFIED = 0,
 
-  constructor(data?: PartialMessage<ListAssetsRequest_AssetsToSkip>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
+  /**
+   * @generated from enum value: ASSETS_TO_SKIP_NONE = 1;
+   */
+  NONE = 1,
 
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "quary.service.v1.ListAssetsRequest.AssetsToSkip";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "charts", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
+  /**
+   * @generated from enum value: ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS = 2;
+   */
+  CHARTS_AND_DASHBOARDS = 2,
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListAssetsRequest_AssetsToSkip {
-    return new ListAssetsRequest_AssetsToSkip().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListAssetsRequest_AssetsToSkip {
-    return new ListAssetsRequest_AssetsToSkip().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListAssetsRequest_AssetsToSkip {
-    return new ListAssetsRequest_AssetsToSkip().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListAssetsRequest_AssetsToSkip | PlainMessage<ListAssetsRequest_AssetsToSkip> | undefined, b: ListAssetsRequest_AssetsToSkip | PlainMessage<ListAssetsRequest_AssetsToSkip> | undefined): boolean {
-    return proto3.util.equals(ListAssetsRequest_AssetsToSkip, a, b);
-  }
+  /**
+   * @generated from enum value: ASSETS_TO_SKIP_DASHBOARDS = 3;
+   */
+  DASHBOARDS = 3,
 }
+// Retrieve enum metadata with: proto3.getEnumType(ListAssetsRequest_AssetsToSkip)
+proto3.util.setEnumType(ListAssetsRequest_AssetsToSkip, "quary.service.v1.ListAssetsRequest.AssetsToSkip", [
+  { no: 0, name: "ASSETS_TO_SKIP_UNSPECIFIED" },
+  { no: 1, name: "ASSETS_TO_SKIP_NONE" },
+  { no: 2, name: "ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS" },
+  { no: 3, name: "ASSETS_TO_SKIP_DASHBOARDS" },
+]);
 
 /**
  * @generated from message quary.service.v1.ListAssetsResponse
@@ -578,6 +576,11 @@ export enum ListAssetsResponse_Asset_AssetType {
    * @generated from enum value: ASSET_TYPE_CHART = 5;
    */
   CHART = 5,
+
+  /**
+   * @generated from enum value: ASSET_TYPE_DASHBOARD = 6;
+   */
+  DASHBOARD = 6,
 }
 // Retrieve enum metadata with: proto3.getEnumType(ListAssetsResponse_Asset_AssetType)
 proto3.util.setEnumType(ListAssetsResponse_Asset_AssetType, "quary.service.v1.ListAssetsResponse.Asset.AssetType", [
@@ -587,6 +590,7 @@ proto3.util.setEnumType(ListAssetsResponse_Asset_AssetType, "quary.service.v1.Li
   { no: 3, name: "ASSET_TYPE_SOURCE" },
   { no: 4, name: "ASSET_TYPE_SNAPSHOT" },
   { no: 5, name: "ASSET_TYPE_CHART" },
+  { no: 6, name: "ASSET_TYPE_DASHBOARD" },
 ]);
 
 /**
@@ -2152,6 +2156,145 @@ export class CreateModelChartFileResponse extends Message<CreateModelChartFileRe
 
   static equals(a: CreateModelChartFileResponse | PlainMessage<CreateModelChartFileResponse> | undefined, b: CreateModelChartFileResponse | PlainMessage<CreateModelChartFileResponse> | undefined): boolean {
     return proto3.util.equals(CreateModelChartFileResponse, a, b);
+  }
+}
+
+/**
+ * TODO Implement caching
+ *
+ * @generated from message quary.service.v1.ReturnDashboardWithSqlRequest
+ */
+export class ReturnDashboardWithSqlRequest extends Message<ReturnDashboardWithSqlRequest> {
+  /**
+   * @generated from field: string project_root = 2;
+   */
+  projectRoot = "";
+
+  /**
+   * @generated from field: string dashboard_name = 3;
+   */
+  dashboardName = "";
+
+  constructor(data?: PartialMessage<ReturnDashboardWithSqlRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.ReturnDashboardWithSqlRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 2, name: "project_root", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "dashboard_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReturnDashboardWithSqlRequest {
+    return new ReturnDashboardWithSqlRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReturnDashboardWithSqlRequest {
+    return new ReturnDashboardWithSqlRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReturnDashboardWithSqlRequest {
+    return new ReturnDashboardWithSqlRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReturnDashboardWithSqlRequest | PlainMessage<ReturnDashboardWithSqlRequest> | undefined, b: ReturnDashboardWithSqlRequest | PlainMessage<ReturnDashboardWithSqlRequest> | undefined): boolean {
+    return proto3.util.equals(ReturnDashboardWithSqlRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.ReturnDashboardWithSqlResponse
+ */
+export class ReturnDashboardWithSqlResponse extends Message<ReturnDashboardWithSqlResponse> {
+  /**
+   * @generated from field: quary.service.v1.Dashboard dashboard = 1;
+   */
+  dashboard?: Dashboard;
+
+  /**
+   * item sql is the sql for each item in the dashboard in the same order as in the dashboard
+   *
+   * @generated from field: repeated quary.service.v1.DashboardRenderingItem items = 2;
+   */
+  items: DashboardRenderingItem[] = [];
+
+  constructor(data?: PartialMessage<ReturnDashboardWithSqlResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.ReturnDashboardWithSqlResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "dashboard", kind: "message", T: Dashboard },
+    { no: 2, name: "items", kind: "message", T: DashboardRenderingItem, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReturnDashboardWithSqlResponse {
+    return new ReturnDashboardWithSqlResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReturnDashboardWithSqlResponse {
+    return new ReturnDashboardWithSqlResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReturnDashboardWithSqlResponse {
+    return new ReturnDashboardWithSqlResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReturnDashboardWithSqlResponse | PlainMessage<ReturnDashboardWithSqlResponse> | undefined, b: ReturnDashboardWithSqlResponse | PlainMessage<ReturnDashboardWithSqlResponse> | undefined): boolean {
+    return proto3.util.equals(ReturnDashboardWithSqlResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.DashboardRenderingItem
+ */
+export class DashboardRenderingItem extends Message<DashboardRenderingItem> {
+  /**
+   * @generated from field: quary.service.v1.DashboardItem item = 1;
+   */
+  item?: DashboardItem;
+
+  /**
+   * @generated from field: string sql = 2;
+   */
+  sql = "";
+
+  /**
+   * @generated from field: quary.service.v1.Chart chart = 3;
+   */
+  chart?: Chart;
+
+  constructor(data?: PartialMessage<DashboardRenderingItem>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.DashboardRenderingItem";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "item", kind: "message", T: DashboardItem },
+    { no: 2, name: "sql", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "chart", kind: "message", T: Chart },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DashboardRenderingItem {
+    return new DashboardRenderingItem().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DashboardRenderingItem {
+    return new DashboardRenderingItem().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DashboardRenderingItem {
+    return new DashboardRenderingItem().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DashboardRenderingItem | PlainMessage<DashboardRenderingItem> | undefined, b: DashboardRenderingItem | PlainMessage<DashboardRenderingItem> | undefined): boolean {
+    return proto3.util.equals(DashboardRenderingItem, a, b);
   }
 }
 

@@ -12,6 +12,7 @@ extern crate core;
 pub mod automatic_branching;
 pub mod chart;
 pub mod config;
+pub mod dashboard;
 pub mod database_bigquery;
 pub mod database_clickhouse;
 pub mod database_duckdb;
