@@ -164,18 +164,39 @@ pub async fn parse_project(
     database: &impl DatabaseQueryGenerator,
     project_root: &str,
 ) -> Result<Project, String> {
-    parse_project_with_skip(
-        filesystem,
-        database,
-        project_root,
-        AssetsToSkip { charts: false },
-    )
-    .await
+    parse_project_with_skip(filesystem, database, project_root, AssetsToSkip::None).await
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct AssetsToSkip {
-    pub charts: bool,
+pub enum AssetsToSkip {
+    None,
+    Charts,
+}
+
+impl TryFrom<i32> for AssetsToSkip {
+    type Error = String;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            1 => Ok(AssetsToSkip::None),
+            2 => Ok(AssetsToSkip::Charts),
+            _ => Err("Invalid value for AssetsToSkip".to_string()),
+        }
+    }
+}
+
+impl AssetsToSkip {
+    pub fn from_proto(
+        proto: &quary_proto::list_assets_request::AssetsToSkip,
+    ) -> Result<Self, String> {
+        match proto {
+            quary_proto::list_assets_request::AssetsToSkip::Unspecified => {
+                Err("Unspecified is not a valid value".to_string())
+            }
+            quary_proto::list_assets_request::AssetsToSkip::None => Ok(AssetsToSkip::None),
+            quary_proto::list_assets_request::AssetsToSkip::Charts => Ok(AssetsToSkip::Charts),
+        }
+    }
 }
 
 /// parse_project_with_skip parses a project with the ability to skip certain assets.
@@ -192,7 +213,7 @@ pub async fn parse_project_with_skip(
     let project_files = parse_project_files(filesystem, project_root, database).await?;
     let sources = parse_sources(&project_files).collect::<HashMap<_, _>>();
 
-    let charts: HashMap<String, Chart> = if !to_skip.charts {
+    let charts: HashMap<String, Chart> = if matches!(to_skip, AssetsToSkip::None) {
         let charts = parse_charts(filesystem, project_root).await?;
         // TODO Move to direct conversion to hashmaps in charts
         Ok::<_, String>(charts.into_iter().collect())
@@ -291,7 +312,7 @@ pub async fn parse_project_with_skip(
     }
 
     // Check that all references in charts refer to actual models/sources/snapshots
-    if !to_skip.charts {
+    if matches!(to_skip, AssetsToSkip::None) {
         for chart in charts.values() {
             for reference in &chart.references {
                 if !models.contains_key(reference)
@@ -3262,8 +3283,7 @@ models:
         assert!(project.is_err());
 
         let project =
-            parse_project_with_skip(&file_system, &database, "", AssetsToSkip { charts: true })
-                .await;
+            parse_project_with_skip(&file_system, &database, "", AssetsToSkip::Charts).await;
         assert!(project.is_ok());
     }
 

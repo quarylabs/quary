@@ -826,14 +826,12 @@ pub(crate) async fn list_assets_internal(
     file_system: &impl FileSystem,
     request: ListAssetsRequest,
 ) -> Result<ListAssetsResponse, String> {
-    let assets_to_skip = request.assets_to_skip.ok_or("No assets to skip provided")?;
+    let assets_to_skip = AssetsToSkip::try_from(request.assets_to_skip)?;
     let project = quary_core::project::parse_project_with_skip(
         file_system,
         database,
         &request.project_root,
-        AssetsToSkip {
-            charts: assets_to_skip.charts,
-        },
+        assets_to_skip,
     )
     .await?;
 
@@ -2180,7 +2178,7 @@ models:
 
         let request = ListAssetsRequest {
             project_root: "".to_string(),
-            assets_to_skip: Some(quary_proto::list_assets_request::AssetsToSkip { charts: true }),
+            assets_to_skip: quary_proto::list_assets_request::AssetsToSkip::Charts as i32,
         };
         let response = list_assets_internal(&database, &file_system, request)
             .await
@@ -2201,7 +2199,7 @@ models:
 
         let request = ListAssetsRequest {
             project_root: "".to_string(),
-            assets_to_skip: Some(quary_proto::list_assets_request::AssetsToSkip { charts: false }),
+            assets_to_skip: quary_proto::list_assets_request::AssetsToSkip::None as i32,
         };
         let response = list_assets_internal(&database, &file_system, request)
             .await
