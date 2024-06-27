@@ -7489,15 +7489,17 @@ impl serde::Serialize for ListAssetsRequest {
         if !self.project_root.is_empty() {
             len += 1;
         }
-        if self.assets_to_skip.is_some() {
+        if self.assets_to_skip != 0 {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.ListAssetsRequest", len)?;
         if !self.project_root.is_empty() {
             struct_ser.serialize_field("projectRoot", &self.project_root)?;
         }
-        if let Some(v) = self.assets_to_skip.as_ref() {
-            struct_ser.serialize_field("assetsToSkip", v)?;
+        if self.assets_to_skip != 0 {
+            let v = list_assets_request::AssetsToSkip::try_from(self.assets_to_skip)
+                .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.assets_to_skip)))?;
+            struct_ser.serialize_field("assetsToSkip", &v)?;
         }
         struct_ser.end()
     }
@@ -7575,13 +7577,13 @@ impl<'de> serde::Deserialize<'de> for ListAssetsRequest {
                             if assets_to_skip__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("assetsToSkip"));
                             }
-                            assets_to_skip__ = map_.next_value()?;
+                            assets_to_skip__ = Some(map_.next_value::<list_assets_request::AssetsToSkip>()? as i32);
                         }
                     }
                 }
                 Ok(ListAssetsRequest {
                     project_root: project_root__.unwrap_or_default(),
-                    assets_to_skip: assets_to_skip__,
+                    assets_to_skip: assets_to_skip__.unwrap_or_default(),
                 })
             }
         }
@@ -7594,16 +7596,12 @@ impl serde::Serialize for list_assets_request::AssetsToSkip {
     where
         S: serde::Serializer,
     {
-        use serde::ser::SerializeStruct;
-        let mut len = 0;
-        if self.charts {
-            len += 1;
-        }
-        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ListAssetsRequest.AssetsToSkip", len)?;
-        if self.charts {
-            struct_ser.serialize_field("charts", &self.charts)?;
-        }
-        struct_ser.end()
+        let variant = match self {
+            Self::Unspecified => "ASSETS_TO_SKIP_UNSPECIFIED",
+            Self::None => "ASSETS_TO_SKIP_NONE",
+            Self::Charts => "ASSETS_TO_SKIP_CHARTS",
+        };
+        serializer.serialize_str(variant)
     }
 }
 impl<'de> serde::Deserialize<'de> for list_assets_request::AssetsToSkip {
@@ -7613,70 +7611,57 @@ impl<'de> serde::Deserialize<'de> for list_assets_request::AssetsToSkip {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "charts",
+            "ASSETS_TO_SKIP_UNSPECIFIED",
+            "ASSETS_TO_SKIP_NONE",
+            "ASSETS_TO_SKIP_CHARTS",
         ];
 
-        #[allow(clippy::enum_variant_names)]
-        enum GeneratedField {
-            Charts,
-        }
-        impl<'de> serde::Deserialize<'de> for GeneratedField {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct GeneratedVisitor;
-
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-                    type Value = GeneratedField;
-
-                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(formatter, "expected one of: {:?}", &FIELDS)
-                    }
-
-                    #[allow(unused_variables)]
-                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match value {
-                            "charts" => Ok(GeneratedField::Charts),
-                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
-                        }
-                    }
-                }
-                deserializer.deserialize_identifier(GeneratedVisitor)
-            }
-        }
         struct GeneratedVisitor;
+
         impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
             type Value = list_assets_request::AssetsToSkip;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct quary.service.v1.ListAssetsRequest.AssetsToSkip")
+                write!(formatter, "expected one of: {:?}", &FIELDS)
             }
 
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<list_assets_request::AssetsToSkip, V::Error>
-                where
-                    V: serde::de::MapAccess<'de>,
+            fn visit_i64<E>(self, v: i64) -> std::result::Result<Self::Value, E>
+            where
+                E: serde::de::Error,
             {
-                let mut charts__ = None;
-                while let Some(k) = map_.next_key()? {
-                    match k {
-                        GeneratedField::Charts => {
-                            if charts__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("charts"));
-                            }
-                            charts__ = Some(map_.next_value()?);
-                        }
-                    }
+                i32::try_from(v)
+                    .ok()
+                    .and_then(|x| x.try_into().ok())
+                    .ok_or_else(|| {
+                        serde::de::Error::invalid_value(serde::de::Unexpected::Signed(v), &self)
+                    })
+            }
+
+            fn visit_u64<E>(self, v: u64) -> std::result::Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                i32::try_from(v)
+                    .ok()
+                    .and_then(|x| x.try_into().ok())
+                    .ok_or_else(|| {
+                        serde::de::Error::invalid_value(serde::de::Unexpected::Unsigned(v), &self)
+                    })
+            }
+
+            fn visit_str<E>(self, value: &str) -> std::result::Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                match value {
+                    "ASSETS_TO_SKIP_UNSPECIFIED" => Ok(list_assets_request::AssetsToSkip::Unspecified),
+                    "ASSETS_TO_SKIP_NONE" => Ok(list_assets_request::AssetsToSkip::None),
+                    "ASSETS_TO_SKIP_CHARTS" => Ok(list_assets_request::AssetsToSkip::Charts),
+                    _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),
                 }
-                Ok(list_assets_request::AssetsToSkip {
-                    charts: charts__.unwrap_or_default(),
-                })
             }
         }
-        deserializer.deserialize_struct("quary.service.v1.ListAssetsRequest.AssetsToSkip", FIELDS, GeneratedVisitor)
+        deserializer.deserialize_any(GeneratedVisitor)
     }
 }
 impl serde::Serialize for ListAssetsResponse {
