@@ -27,6 +27,15 @@
             "filenamePattern": "*.chart.yaml"
           }
         ]
+      },
+      {
+        "viewType": "quary.dashboardFile",
+        "displayName": "Dashboard File",
+        "selector": [
+          {
+            "filenamePattern": "*.dashboard.yaml"
+          }
+        ]
       }
     ],
     "commands": [

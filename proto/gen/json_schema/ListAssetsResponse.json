@@ -43,7 +43,9 @@
                         "ASSET_TYPE_SNAPSHOT",
                         4,
                         "ASSET_TYPE_CHART",
-                        5
+                        5,
+                        "ASSET_TYPE_DASHBOARD",
+                        6
                     ],
                     "oneOf": [
                         {

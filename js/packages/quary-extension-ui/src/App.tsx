@@ -16,6 +16,7 @@ import { ErrorView } from '@ui/views/ErrorView'
 import { ExecuteSQLView } from '@ui/views/ExecuteSQL'
 import { ImportSourcesView } from '@ui/views/ImportSourcesView'
 import { ChartEditorView } from '@ui/views/ChartEditorView'
+import { DashboardEditorView } from '@ui/views/DashboardEditorView'
 
 function App() {
   const [view] = useGlobalState()
@@ -109,6 +110,9 @@ function App() {
     }
     case 'chartEditor': {
       return <ChartEditorView data={view.data} />
+    }
+    case 'dashboardEditor': {
+      return <DashboardEditorView data={view.data} />
     }
     default:
       return <div>Invalid view type {JSON.stringify(view)}</div>

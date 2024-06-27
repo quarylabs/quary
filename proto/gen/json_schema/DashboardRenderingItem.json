@@ -1,0 +1,130 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/DashboardRenderingItem",
+    "definitions": {
+        "DashboardRenderingItem": {
+            "properties": {
+                "item": {
+                    "$ref": "#/definitions/quary.service.v1.DashboardItem",
+                    "additionalProperties": false
+                },
+                "sql": {
+                    "type": "string"
+                },
+                "chart": {
+                    "$ref": "#/definitions/quary.service.v1.Chart",
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Dashboard Rendering Item"
+        },
+        "quary.service.v1.Chart": {
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Name of the chart"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Description of the cart"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "Tags are used to group different parts of the project together. For example, you could tag all models that are related to a specific department with the same tag."
+                },
+                "file_path": {
+                    "type": "string",
+                    "description": "Path of the file"
+                },
+                "raw_sql": {
+                    "type": "string",
+                    "description": "raw sql that is passed to the database"
+                },
+                "pre_templated_sql": {
+                    "type": "string",
+                    "description": "sql that is passed to the database with templating through quary"
+                },
+                "reference": {
+                    "$ref": "#/definitions/quary.service.v1.Chart.AssetReference",
+                    "additionalProperties": false,
+                    "description": "reference to a pre-existing asset, model, source, seed, snapshot"
+                },
+                "config": {
+                    "additionalProperties": false,
+                    "type": "object",
+                    "description": "Configuration for the chart that is passed to perspective"
+                },
+                "references": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "References that this chart has, these can be models/sources/seeds/snapshots"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Chart",
+            "description": "Parsed chart that is in a project"
+        },
+        "quary.service.v1.Chart.AssetReference": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Asset Reference"
+        },
+        "quary.service.v1.DashboardChart": {
+            "properties": {
+                "reference": {
+                    "$ref": "#/definitions/quary.service.v1.DashboardChartReference",
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Dashboard Chart"
+        },
+        "quary.service.v1.DashboardChartReference": {
+            "properties": {
+                "reference": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Dashboard Chart Reference"
+        },
+        "quary.service.v1.DashboardItem": {
+            "properties": {
+                "top_left_x": {
+                    "type": "integer"
+                },
+                "top_left_y": {
+                    "type": "integer"
+                },
+                "width": {
+                    "type": "integer"
+                },
+                "height": {
+                    "type": "integer"
+                },
+                "chart": {
+                    "$ref": "#/definitions/quary.service.v1.DashboardChart",
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Dashboard Item"
+        }
+    }
+}

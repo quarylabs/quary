@@ -8,6 +8,7 @@
 import * as _m0 from "protobufjs/minimal";
 import { Chart } from "./chart";
 import { ConnectionConfig } from "./connection_config";
+import { Dashboard } from "./dashboard";
 import { ProjectFile } from "./project_file";
 import { Model, Seed, Snapshot, Source, Test } from "./types";
 
@@ -20,6 +21,7 @@ export interface Project {
   sources: { [key: string]: Source };
   snapshots: { [key: string]: Snapshot };
   charts: { [key: string]: Chart };
+  dashboards: { [key: string]: Dashboard };
   projectFiles: { [key: string]: ProjectFile };
   connectionConfig: ConnectionConfig | undefined;
 }
@@ -54,6 +56,11 @@ export interface Project_ChartsEntry {
   value: Chart | undefined;
 }
 
+export interface Project_DashboardsEntry {
+  key: string;
+  value: Dashboard | undefined;
+}
+
 export interface Project_ProjectFilesEntry {
   key: string;
   value: ProjectFile | undefined;
@@ -67,6 +74,7 @@ function createBaseProject(): Project {
     sources: {},
     snapshots: {},
     charts: {},
+    dashboards: {},
     projectFiles: {},
     connectionConfig: undefined,
   };
@@ -91,6 +99,9 @@ export const Project = {
     });
     Object.entries(message.charts).forEach(([key, value]) => {
       Project_ChartsEntry.encode({ key: key as any, value }, writer.uint32(82).fork()).ldelim();
+    });
+    Object.entries(message.dashboards).forEach(([key, value]) => {
+      Project_DashboardsEntry.encode({ key: key as any, value }, writer.uint32(90).fork()).ldelim();
     });
     Object.entries(message.projectFiles).forEach(([key, value]) => {
       Project_ProjectFilesEntry.encode({ key: key as any, value }, writer.uint32(58).fork()).ldelim();
@@ -168,6 +179,16 @@ export const Project = {
             message.charts[entry10.key] = entry10.value;
           }
           continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          const entry11 = Project_DashboardsEntry.decode(reader, reader.uint32());
+          if (entry11.value !== undefined) {
+            message.dashboards[entry11.key] = entry11.value;
+          }
+          continue;
         case 7:
           if (tag !== 58) {
             break;
@@ -229,6 +250,12 @@ export const Project = {
       charts: isObject(object.charts)
         ? Object.entries(object.charts).reduce<{ [key: string]: Chart }>((acc, [key, value]) => {
           acc[key] = Chart.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
+      dashboards: isObject(object.dashboards)
+        ? Object.entries(object.dashboards).reduce<{ [key: string]: Dashboard }>((acc, [key, value]) => {
+          acc[key] = Dashboard.fromJSON(value);
           return acc;
         }, {})
         : {},
@@ -298,6 +325,15 @@ export const Project = {
         });
       }
     }
+    if (message.dashboards) {
+      const entries = Object.entries(message.dashboards);
+      if (entries.length > 0) {
+        obj.dashboards = {};
+        entries.forEach(([k, v]) => {
+          obj.dashboards[k] = Dashboard.toJSON(v);
+        });
+      }
+    }
     if (message.projectFiles) {
       const entries = Object.entries(message.projectFiles);
       if (entries.length > 0) {
@@ -357,6 +393,15 @@ export const Project = {
       }
       return acc;
     }, {});
+    message.dashboards = Object.entries(object.dashboards ?? {}).reduce<{ [key: string]: Dashboard }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = Dashboard.fromPartial(value);
+        }
+        return acc;
+      },
+      {},
+    );
     message.projectFiles = Object.entries(object.projectFiles ?? {}).reduce<{ [key: string]: ProjectFile }>(
       (acc, [key, value]) => {
         if (value !== undefined) {
@@ -817,6 +862,82 @@ export const Project_ChartsEntry = {
     const message = createBaseProject_ChartsEntry();
     message.key = object.key ?? "";
     message.value = (object.value !== undefined && object.value !== null) ? Chart.fromPartial(object.value) : undefined;
+    return message;
+  },
+};
+
+function createBaseProject_DashboardsEntry(): Project_DashboardsEntry {
+  return { key: "", value: undefined };
+}
+
+export const Project_DashboardsEntry = {
+  encode(message: Project_DashboardsEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      Dashboard.encode(message.value, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Project_DashboardsEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProject_DashboardsEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = Dashboard.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Project_DashboardsEntry {
+    return {
+      key: isSet(object.key) ? gt.String(object.key) : "",
+      value: isSet(object.value) ? Dashboard.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: Project_DashboardsEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = Dashboard.toJSON(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Project_DashboardsEntry>, I>>(base?: I): Project_DashboardsEntry {
+    return Project_DashboardsEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Project_DashboardsEntry>, I>>(object: I): Project_DashboardsEntry {
+    const message = createBaseProject_DashboardsEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? Dashboard.fromPartial(object.value)
+      : undefined;
     return message;
   },
 };

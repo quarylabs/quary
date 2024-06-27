@@ -1,4 +1,6 @@
-use crate::rpc_proto_scaffolding::{JsFileSystem, Writer};
+use std::collections::{BTreeSet, HashMap, HashSet};
+use std::path::PathBuf;
+
 use quary_core::automatic_branching::{
     cache_view_name_to_table_name_and_hash,
     given_map_and_hash_map_return_sub_graph_all_cached_for_a_particular_model, is_cache_full_path,
@@ -29,33 +31,36 @@ use quary_core::sql_model_finder::sql_model_finder;
 use quary_proto::cache_view_information::CacheView;
 use quary_proto::chart::Source;
 use quary_proto::chart_file::AssetReference;
+use quary_proto::dashboard_item::Item;
 use quary_proto::project_file::{Model, Snapshot};
 use quary_proto::return_definition_locations_for_sql_response::Definition;
 use quary_proto::{
-    chart_file, AddColumnTestToModelOrSourceColumnRequest,
+    chart_file, dashboard_chart, AddColumnTestToModelOrSourceColumnRequest,
     AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest,
     AddColumnToModelOrSourceResponse, Chart, ChartFile, CreateModelChartFileRequest,
     CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse,
-    Edge, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest,
-    GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse,
-    GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse,
-    IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, Node,
-    ParseProjectRequest, ParseProjectResponse, Project, ProjectDag, ProjectFile, ProjectFileColumn,
-    ProjectFileSource, RemoveColumnTestFromModelOrSourceColumnRequest,
+    DashboardItem, DashboardRenderingItem, Edge, GenerateProjectFilesRequest,
+    GenerateProjectFilesResponse, GenerateSourceFilesRequest, GenerateSourceFilesResponse,
+    GetModelTableRequest, GetModelTableResponse, GetProjectConfigRequest, GetProjectConfigResponse,
+    InitFilesRequest, InitFilesResponse, IsPathEmptyRequest, IsPathEmptyResponse,
+    ListAssetsRequest, ListAssetsResponse, Node, ParseProjectRequest, ParseProjectResponse,
+    Project, ProjectDag, ProjectFile, ProjectFileColumn, ProjectFileSource,
+    RemoveColumnTestFromModelOrSourceColumnRequest,
     RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse,
-    ReturnDataForDocViewRequest, ReturnDataForDocViewResponse,
-    ReturnDefinitionLocationsForSqlRequest, ReturnDefinitionLocationsForSqlResponse,
-    ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest,
-    ReturnFullSqlForAssetResponse, ReturnSqlForInjectedModelRequest,
-    ReturnSqlForInjectedModelResponse, ReturnSqlForSeedsAndModelsRequest,
-    ReturnSqlForSeedsAndModelsResponse, StringifyProjectFileRequest, StringifyProjectFileResponse,
-    Test, UpdateAssetDescriptionRequest, UpdateAssetDescriptionResponse,
-    UpdateModelOrSourceColumnDescriptionRequest, UpdateModelOrSourceColumnDescriptionResponse,
+    ReturnDashboardWithSqlRequest, ReturnDashboardWithSqlResponse, ReturnDataForDocViewRequest,
+    ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSqlRequest,
+    ReturnDefinitionLocationsForSqlResponse, ReturnFullProjectDagRequest,
+    ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest, ReturnFullSqlForAssetResponse,
+    ReturnSqlForInjectedModelRequest, ReturnSqlForInjectedModelResponse,
+    ReturnSqlForSeedsAndModelsRequest, ReturnSqlForSeedsAndModelsResponse,
+    StringifyProjectFileRequest, StringifyProjectFileResponse, Test, UpdateAssetDescriptionRequest,
+    UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest,
+    UpdateModelOrSourceColumnDescriptionResponse,
 };
 use sqlinference::columns::get_columns_internal;
 use sqlinference::infer_tests::infer_tests;
-use std::collections::{BTreeSet, HashMap, HashSet};
-use std::path::PathBuf;
+
+use crate::rpc_proto_scaffolding::{JsFileSystem, Writer};
 
 pub(crate) async fn is_path_empty(
     _: Writer,
@@ -883,6 +888,17 @@ pub(crate) async fn list_assets_internal(
                 file_path: chart.file_path,
             }
         }))
+        .chain(project.dashboards.into_iter().map(|(name, dashboard)| {
+            quary_proto::list_assets_response::Asset {
+                name,
+                description: dashboard.description,
+                tags: dashboard.tags,
+                asset_type: i32::from(
+                    quary_proto::list_assets_response::asset::AssetType::Dashboard,
+                ),
+                file_path: dashboard.file_path,
+            }
+        }))
         .collect::<Vec<_>>();
 
     Ok(ListAssetsResponse { assets })
@@ -1509,10 +1525,96 @@ pub(crate) async fn return_sql_for_injected_model(
     Ok(ReturnSqlForInjectedModelResponse { sql })
 }
 
+pub(crate) async fn return_dashboard_with_sql(
+    database: impl DatabaseQueryGenerator,
+    _: Writer,
+    file_system: JsFileSystem,
+    request: ReturnDashboardWithSqlRequest,
+) -> Result<ReturnDashboardWithSqlResponse, String> {
+    return_dashboard_with_sql_internal(&database, &file_system, request).await
+}
+
+// TODO This can be optimised
+async fn return_dashboard_with_sql_internal(
+    database: &impl DatabaseQueryGenerator,
+    file_system: &impl FileSystem,
+    request: ReturnDashboardWithSqlRequest,
+) -> Result<ReturnDashboardWithSqlResponse, String> {
+    let project_root = request.project_root;
+    let project = quary_core::project::parse_project(file_system, database, &project_root).await?;
+
+    let dashboard = project
+        .dashboards
+        .get(&request.dashboard_name)
+        .cloned()
+        .ok_or(format!("Dashboard {} not found", request.dashboard_name))?;
+
+    // TODO Simple optimisation not running loop over function that parses whole project
+    let charts = dashboard
+        .items
+        .iter()
+        .map(|dashboard_item| {
+            let item = dashboard_item
+                .item
+                .as_ref()
+                .ok_or("No item provided".to_string())?;
+            match item {
+                Item::Chart(chart) => {
+                    let chart = chart
+                        .chart
+                        .as_ref()
+                        .ok_or("No chart provided".to_string())?;
+                    match chart {
+                        dashboard_chart::Chart::Reference(reference) => {
+                            Ok::<(&DashboardItem, &String), String>((
+                                dashboard_item,
+                                &reference.reference,
+                            ))
+                        }
+                    }
+                }
+            }
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let mut items: Vec<DashboardRenderingItem> = vec![];
+    for (dashboard_item, chart_name) in charts {
+        let chart = project
+            .charts
+            .get(chart_name)
+            .ok_or(format!("Chart {} not found in project", chart_name))?;
+        // TODO Implement cache
+        let sql = return_full_sql_for_chart(
+            file_system,
+            database,
+            project.clone(),
+            chart,
+            CacheView::DoNotUse(Default::default()),
+        )
+        .await?;
+
+        items.push(DashboardRenderingItem {
+            item: Some(dashboard_item.clone()),
+            chart: Some(chart.clone()),
+            sql: sql.full_sql,
+        });
+    }
+
+    Ok(ReturnDashboardWithSqlResponse {
+        items,
+        dashboard: Some(dashboard),
+    })
+}
+
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::cell::RefCell;
+    use std::collections::HashMap;
+    use std::rc::Rc;
+    use std::time::SystemTime;
+
     use chrono::{DateTime, Utc};
+
     use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
     use quary_core::database_redshift::DatabaseQueryGeneratorRedshift;
     use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
@@ -1520,10 +1622,8 @@ mod tests {
     use quary_core::init::DuckDBAsset;
     use quary_proto::table::TableType;
     use quary_proto::{CacheViewInformation, CacheViewInformationPaths, FileSystem};
-    use std::cell::RefCell;
-    use std::collections::HashMap;
-    use std::rc::Rc;
-    use std::time::SystemTime;
+
+    use super::*;
 
     // TODO Make all the others use this function
     fn files_to_file_system(files: Vec<(&str, &str)>) -> FileSystem {
@@ -2178,7 +2278,8 @@ models:
 
         let request = ListAssetsRequest {
             project_root: "".to_string(),
-            assets_to_skip: quary_proto::list_assets_request::AssetsToSkip::Charts as i32,
+            assets_to_skip: quary_proto::list_assets_request::AssetsToSkip::ChartsAndDashboards
+                .into(),
         };
         let response = list_assets_internal(&database, &file_system, request)
             .await
@@ -2199,7 +2300,7 @@ models:
 
         let request = ListAssetsRequest {
             project_root: "".to_string(),
-            assets_to_skip: quary_proto::list_assets_request::AssetsToSkip::None as i32,
+            assets_to_skip: quary_proto::list_assets_request::AssetsToSkip::None.into(),
         };
         let response = list_assets_internal(&database, &file_system, request)
             .await
@@ -2212,6 +2313,31 @@ models:
             .find(|asset| asset.name == "shifts_by_month_bar")
             .unwrap();
         assert!(chart.description.is_some());
+    }
+
+    // TODO Reimplement
+    #[tokio::test]
+    #[ignore]
+    async fn return_dashboard_with_sql_test() {
+        let database = DatabaseQueryGeneratorDuckDB::new(Some("schema".to_string()), None);
+        let file_system = DuckDBAsset {};
+
+        let request = ReturnDashboardWithSqlRequest {
+            project_root: "".to_string(),
+            dashboard_name: "shifts_dashboard".to_string(),
+        };
+        let response = return_dashboard_with_sql_internal(&database, &file_system, request)
+            .await
+            .unwrap();
+        let dashboard = response.dashboard.unwrap();
+
+        assert_eq!(response.items.len(), 1);
+        assert_eq!(dashboard.name, "shifts_dashboard");
+        assert!(dashboard.items.first().unwrap().item.is_some());
+        assert_eq!(dashboard.items.len(), response.items.len());
+        assert!(response.items.first().unwrap().item.is_some());
+        assert!(response.items.first().unwrap().chart.is_some());
+        assert!(!response.items.first().unwrap().sql.is_empty());
     }
 
     fn setup_file_mocks() -> (Writer, Rc<RefCell<HashMap<String, String>>>) {

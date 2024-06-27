@@ -4,7 +4,10 @@ package quary.service.v1;
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
+import "quary/service/v1/chart.proto";
 import "quary/service/v1/connection_config.proto";
+import "quary/service/v1/dashboard.proto";
+import "quary/service/v1/dashboard_file.proto";
 import "quary/service/v1/project.proto";
 import "quary/service/v1/project_dag.proto";
 import "quary/service/v1/project_file.proto";
@@ -88,6 +91,10 @@ service RustWithDatabaseService {
   // ReturnDefinitionLocationsForSQL takes in a SQL statement, looks for the models it references and returns location of those
   // definitions in the file as well as the file path for the definition.
   rpc ReturnDefinitionLocationsForSQL(ReturnDefinitionLocationsForSQLRequest) returns (ReturnDefinitionLocationsForSQLResponse);
+
+  // ReturnDashboardWithSql returns the components for the dashboard for the given dashboard name. It also returns the sql
+  // for each item in the dashboard.
+  rpc ReturnDashboardWithSql(ReturnDashboardWithSqlRequest) returns (ReturnDashboardWithSqlResponse);
 }
 
 message GetProjectConfigRequest {
@@ -128,7 +135,8 @@ message ListAssetsRequest {
   enum AssetsToSkip {
     ASSETS_TO_SKIP_UNSPECIFIED = 0;
     ASSETS_TO_SKIP_NONE = 1;
-    ASSETS_TO_SKIP_CHARTS = 2;
+    ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS = 2;
+    ASSETS_TO_SKIP_DASHBOARDS = 3;
   }
   AssetsToSkip assets_to_skip = 4;
 }
@@ -146,6 +154,7 @@ message ListAssetsResponse {
       ASSET_TYPE_SOURCE = 3;
       ASSET_TYPE_SNAPSHOT = 4;
       ASSET_TYPE_CHART = 5;
+      ASSET_TYPE_DASHBOARD = 6;
     }
     AssetType asset_type = 3;
     string file_path = 4;
@@ -338,4 +347,22 @@ message CreateModelChartFileRequest {
 
 message CreateModelChartFileResponse {
   string chart_file = 1;
+}
+
+// TODO Implement caching
+message ReturnDashboardWithSqlRequest {
+  string project_root = 2;
+  string dashboard_name = 3;
+}
+
+message ReturnDashboardWithSqlResponse {
+  Dashboard dashboard = 1;
+  // item sql is the sql for each item in the dashboard in the same order as in the dashboard
+  repeated DashboardRenderingItem items = 2;
+}
+
+message DashboardRenderingItem {
+  DashboardItem item = 1;
+  string sql = 2;
+  Chart chart = 3;
 }

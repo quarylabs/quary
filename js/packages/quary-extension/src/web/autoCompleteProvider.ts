@@ -1,9 +1,9 @@
 import * as vscode from 'vscode'
-import { isErr, Ok } from '@shared/result'
 import { DefinitionProvider, Uri } from 'vscode'
+import { isErr, Ok } from '@shared/result'
 import {
   ListAssetsRequest_AssetsToSkip,
-  ListAssetsResponse_Asset_AssetType
+  ListAssetsResponse_Asset_AssetType,
 } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { getServices, preInitSetup } from './services'
 
@@ -30,7 +30,8 @@ export const sqlAutocompleteProvider = (
       }
       const assets = await services.rust.list_assets({
         projectRoot: details.value.projectRoot,
-        assetsToSkip: ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS,
+        assetsToSkip:
+          ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS,
       })
       if (isErr(assets)) {
         return assets
@@ -107,7 +108,7 @@ export const sqlDefinitionProvider = (
       return []
     }
 
-    const locations = entries.value.definitions.map((location) => {
+    return entries.value.definitions.map((location) => {
       const start = new vscode.Position(
         location.range!.start!.line,
         location.range!.start!.character,
@@ -117,12 +118,10 @@ export const sqlDefinitionProvider = (
         location.range!.end!.character,
       )
       const range = new vscode.Range(start, end)
-
       const targetUri = Uri.joinPath(
         entries.value.projectRoot,
         location.targetFile,
       )
-
       return {
         originSelectionRange: range,
         targetUri,
@@ -132,7 +131,5 @@ export const sqlDefinitionProvider = (
         ),
       }
     })
-
-    return locations
   },
 })

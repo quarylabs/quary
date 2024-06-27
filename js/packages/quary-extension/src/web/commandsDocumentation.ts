@@ -1,9 +1,9 @@
 /* eslint-disable camelcase */
+import * as vscode from 'vscode'
 import { ExtensionContext } from 'vscode'
 import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import { Dag, View } from '@shared/globalViewState'
 import { useCallBackBackEnd } from '@shared/callBacks'
-import * as vscode from 'vscode'
 import {
   ListAssetsRequest_AssetsToSkip,
   ListAssetsResponse_Asset,
@@ -37,7 +37,8 @@ const getModelDetails = async ({
 > => {
   const modelsResponse = await services.rust.list_assets({
     projectRoot,
-    assetsToSkip: ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS,
+    assetsToSkip:
+      ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS,
   })
   if (isErr(modelsResponse)) {
     return modelsResponse
