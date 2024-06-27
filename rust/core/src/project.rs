@@ -1,6 +1,7 @@
 use crate::automatic_branching::derive_sha256_file_contents;
 use crate::chart::parse_charts;
 use crate::config::get_config_from_filesystem;
+use crate::dashboard::parse_dashboard_files;
 use crate::databases::{DatabaseConnection, DatabaseQueryGenerator};
 use crate::file_system::{convert_async_read_to_blocking_read, FileSystem};
 use crate::graph::{project_to_graph, Edge};
@@ -170,7 +171,8 @@ pub async fn parse_project(
 #[derive(Debug, Clone, PartialEq)]
 pub enum AssetsToSkip {
     None,
-    Charts,
+    ChartsAndDashboards,
+    Dashboards,
 }
 
 impl TryFrom<i32> for AssetsToSkip {
@@ -179,7 +181,8 @@ impl TryFrom<i32> for AssetsToSkip {
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         match value {
             1 => Ok(AssetsToSkip::None),
-            2 => Ok(AssetsToSkip::Charts),
+            2 => Ok(AssetsToSkip::ChartsAndDashboards),
+            3 => Ok(AssetsToSkip::Dashboards),
             _ => Err("Invalid value for AssetsToSkip".to_string()),
         }
     }
@@ -194,7 +197,12 @@ impl AssetsToSkip {
                 Err("Unspecified is not a valid value".to_string())
             }
             quary_proto::list_assets_request::AssetsToSkip::None => Ok(AssetsToSkip::None),
-            quary_proto::list_assets_request::AssetsToSkip::Charts => Ok(AssetsToSkip::Charts),
+            quary_proto::list_assets_request::AssetsToSkip::ChartsAndDashboards => {
+                Ok(AssetsToSkip::ChartsAndDashboards)
+            }
+            quary_proto::list_assets_request::AssetsToSkip::Dashboards => {
+                Ok(AssetsToSkip::Dashboards)
+            }
         }
     }
 }
@@ -213,13 +221,21 @@ pub async fn parse_project_with_skip(
     let project_files = parse_project_files(filesystem, project_root, database).await?;
     let sources = parse_sources(&project_files).collect::<HashMap<_, _>>();
 
-    let charts: HashMap<String, Chart> = if matches!(to_skip, AssetsToSkip::None) {
-        let charts = parse_charts(filesystem, project_root).await?;
-        // TODO Move to direct conversion to hashmaps in charts
-        Ok::<_, String>(charts.into_iter().collect())
-    } else {
-        Ok(HashMap::new())
-    }?;
+    let charts: HashMap<String, Chart> =
+        if to_skip == AssetsToSkip::None || to_skip == AssetsToSkip::Dashboards {
+            let charts = parse_charts(filesystem, project_root).await?;
+            // TODO Move to direct conversion to hashmaps in charts
+            Ok::<_, String>(charts.into_iter().collect())
+        } else {
+            Ok(HashMap::new())
+        }?;
+
+    let dashboards =
+        if to_skip == AssetsToSkip::ChartsAndDashboards || to_skip == AssetsToSkip::Dashboards {
+            Ok(BTreeMap::new())
+        } else {
+            parse_dashboard_files(filesystem, project_root).await
+        }?;
 
     // TODO: Think about implementing custom tests
     // let custom_tests = parse_custom_tests(&filesystem, &project_root)?;
@@ -312,19 +328,29 @@ pub async fn parse_project_with_skip(
     }
 
     // Check that all references in charts refer to actual models/sources/snapshots
-    if matches!(to_skip, AssetsToSkip::None) {
-        for chart in charts.values() {
-            for reference in &chart.references {
-                if !models.contains_key(reference)
-                    && !sources.contains_key(reference)
-                    && !seeds.contains_key(reference)
-                    && !snapshots.contains_key(reference)
-                {
-                    return Err(format!(
-                        "chart {:?} has reference to {:?} which is not a model, source or snapshot",
-                        chart, reference
-                    ));
-                }
+    for chart in charts.values() {
+        for reference in &chart.references {
+            if !models.contains_key(reference)
+                && !sources.contains_key(reference)
+                && !seeds.contains_key(reference)
+                && !snapshots.contains_key(reference)
+            {
+                return Err(format!(
+                    "chart {:?} has reference to {:?} which is not a model, source or snapshot",
+                    chart, reference
+                ));
+            }
+        }
+    }
+
+    // Check all dashboard references
+    for (name, (_, references)) in dashboards.iter() {
+        for reference in references {
+            if !charts.contains_key(reference) {
+                return Err(format!(
+                    "dashboard {:?} has reference to {:?} which is not a chart",
+                    name, reference
+                ));
             }
         }
     }
@@ -339,6 +365,10 @@ pub async fn parse_project_with_skip(
         tests: tests.into_iter().collect(),
         project_files,
         connection_config: Some(connection_config),
+        dashboards: dashboards
+            .into_iter()
+            .map(|(name, (dashboard, _))| (name, dashboard))
+            .collect(),
         charts,
     })
 }
@@ -845,7 +875,7 @@ pub async fn parse_project_files(
         project_root,
         PATH_FOR_MODELS,
         EXTENSION_YAML,
-        &[EXTENSION_CHART_YAML],
+        &[EXTENSION_CHART_YAML, EXTENSION_DASHBOARD_YAML],
     )
     .await?;
 
@@ -1807,6 +1837,7 @@ struct NodeWithName {
 const EXTENSION_CSV: &str = "csv";
 const EXTENSION_YAML: &str = "yaml";
 pub(crate) const EXTENSION_CHART_YAML: &str = ".chart.yaml";
+pub(crate) const EXTENSION_DASHBOARD_YAML: &str = ".dashboard.yaml";
 const EXTENSION_SQL: &str = "sql";
 const EXTENSION_SNAPSHOT_SQL: &str = ".snapshot.sql";
 
@@ -1983,7 +2014,9 @@ mod tests {
 
         assert!(!project.models.is_empty());
         assert!(project.models.contains_key("shifts"));
-        assert_eq!(1, project.charts.len())
+        assert_eq!(1, project.charts.len());
+        // TODO Re-add following test
+        // assert_eq!(project.dashboards.len(), 1);
     }
 
     #[tokio::test]
@@ -3282,8 +3315,13 @@ models:
         let project = parse_project(&file_system, &database, "").await;
         assert!(project.is_err());
 
-        let project =
-            parse_project_with_skip(&file_system, &database, "", AssetsToSkip::Charts).await;
+        let project = parse_project_with_skip(
+            &file_system,
+            &database,
+            "",
+            AssetsToSkip::ChartsAndDashboards,
+        )
+        .await;
         assert!(project.is_ok());
     }
 

@@ -13,8 +13,10 @@
                         0,
                         "ASSETS_TO_SKIP_NONE",
                         1,
-                        "ASSETS_TO_SKIP_CHARTS",
-                        2
+                        "ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS",
+                        2,
+                        "ASSETS_TO_SKIP_DASHBOARDS",
+                        3
                     ],
                     "oneOf": [
                         {

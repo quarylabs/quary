@@ -963,6 +963,7 @@ sources:
     fn given_map_and_hash_map_return_sub_graph_all_cached_for_a_particular_model_encompassing_example(
     ) {
         let project = Project {
+            dashboards: Default::default(),
             seeds: HashMap::from([
                 (
                     "seed_1".to_string(),

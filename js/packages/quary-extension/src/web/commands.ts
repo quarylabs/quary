@@ -1,19 +1,19 @@
 /* eslint-disable camelcase */
 import * as vscode from 'vscode'
-import {
-  isErr,
-  Result,
-  Ok,
-  Err,
-  collectResults,
-  ErrorCodes,
-  isQuaryError,
-} from '@shared/result'
 import { ExtensionContext, QuickPickItem } from 'vscode'
+import {
+  collectResults,
+  Err,
+  ErrorCodes,
+  isErr,
+  isQuaryError,
+  Ok,
+  Result,
+} from '@shared/result'
 import type { Analytics } from '@june-so/analytics-node'
 import {
   ListAssetsRequest_AssetsToSkip,
-  ListAssetsResponse_Asset_AssetType
+  ListAssetsResponse_Asset_AssetType,
 } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { TestRunner } from '@quary/proto/quary/service/v1/test_runner'
 import {
@@ -118,7 +118,8 @@ export const returnCommands = (
       // Check if the active file is a model
       const assets = await services.rust.list_assets({
         projectRoot,
-        assetsToSkip: ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS,
+        assetsToSkip:
+          ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS,
       })
       if (isErr(assets)) {
         return assets
@@ -314,7 +315,8 @@ export const returnCommands = (
       const { projectRoot } = details.value
       const assets = await services.rust.list_assets({
         projectRoot,
-        assetsToSkip: ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS,
+        assetsToSkip:
+          ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS,
       })
       if (isErr(assets)) {
         return assets
@@ -472,7 +474,8 @@ export const returnCommands = (
       // Check if the active file is a model
       const assets = await services.rust.list_assets({
         projectRoot,
-        assetsToSkip: ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS,
+        assetsToSkip:
+          ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS,
       })
       if (isErr(assets)) {
         return assets
@@ -520,7 +523,8 @@ export const returnCommands = (
       // Check if the active file is a model
       const assets = await services.rust.list_assets({
         projectRoot,
-        assetsToSkip: ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS,
+        assetsToSkip:
+          ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS,
       })
       if (isErr(assets)) {
         return assets

@@ -3,6 +3,7 @@ use crate::rpc_proto_scaffolding::{database_query_generator_from_config, JsFileS
 use crate::uint8_reader::Uint8ArrayReader;
 use js_sys::{Function, Promise, Uint8Array};
 use quary_core::chart::{chart_file_from_yaml, chart_file_to_yaml};
+use quary_core::dashboard::{dashboard_file_from_yaml, dashboard_file_to_yaml};
 use quary_core::database_snowflake::validate_snowfalke_account_identifier;
 use quary_core::test_runner::{
     run_model_tests_internal, run_tests_internal, RunReturnResult, RunStatementFunc, RunTestError,
@@ -27,6 +28,24 @@ pub fn write_chart_file(chart_file: Uint8Array) -> Result<Uint8Array, String> {
 pub fn parse_chart_file(file: Uint8Array) -> Result<Uint8Array, String> {
     let reader = Uint8ArrayReader::new(file);
     let chart_file = chart_file_from_yaml(reader)?;
+
+    encode(chart_file)
+}
+
+/// write dashboard file to Uint8Array string encodes a dashboard file in Uint8Array proto and returns it
+#[wasm_bindgen]
+pub fn write_dashboard_file(dashboard_file: Uint8Array) -> Result<Uint8Array, String> {
+    let chart_file = decode::<quary_proto::DashboardFile>(dashboard_file)?;
+    let yaml = dashboard_file_to_yaml(&chart_file)?;
+    Ok(Uint8Array::from(yaml.as_bytes()))
+}
+
+/// string to dashboard file parses a dashboard file in Uint8Array string and returns a Uint8Array
+/// dashboard file encoded in proto.
+#[wasm_bindgen]
+pub fn parse_dashboard_file(file: Uint8Array) -> Result<Uint8Array, String> {
+    let reader = Uint8ArrayReader::new(file);
+    let chart_file = dashboard_file_from_yaml(reader)?;
 
     encode(chart_file)
 }

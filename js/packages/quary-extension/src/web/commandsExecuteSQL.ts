@@ -1,19 +1,19 @@
 /* eslint-disable camelcase */
 import * as vscode from 'vscode'
-import {ExtensionContext} from 'vscode'
-import {Err, ErrorCodes, isErr, Ok, Result} from '@shared/result'
+import { ExtensionContext } from 'vscode'
+import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import * as Papa from 'papaparse'
-import {useCallBackBackEnd} from '@shared/callBacks'
+import { useCallBackBackEnd } from '@shared/callBacks'
 import {
   ListAssetsRequest_AssetsToSkip,
-  ListAssetsResponse_Asset
+  ListAssetsResponse_Asset,
 } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
-import {queryResultToColumnsValues} from '@shared/shared'
-import {rustWithoutDatabaseWasmServices} from './servicesRustWasm'
-import {getPreInitServices, Services} from './services'
-import {renderingFunction} from './commandsScaffolding'
-import {DEFAULT_LIMIT_FOR_SELECT} from './defaults'
-import {cacheViewBuilder} from './cacheViewBuilder'
+import { queryResultToColumnsValues } from '@shared/shared'
+import { rustWithoutDatabaseWasmServices } from './servicesRustWasm'
+import { getPreInitServices, Services } from './services'
+import { renderingFunction } from './commandsScaffolding'
+import { DEFAULT_LIMIT_FOR_SELECT } from './defaults'
+import { cacheViewBuilder } from './cacheViewBuilder'
 
 const getModelDetails = async ({
   services,
@@ -36,7 +36,8 @@ const getModelDetails = async ({
 > => {
   const assetsResponse = await services.rust.list_assets({
     projectRoot,
-    assetsToSkip: ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS,
+    assetsToSkip:
+      ListAssetsRequest_AssetsToSkip.ASSETS_TO_SKIP_CHARTS_AND_DASHBOARDS,
   })
   if (isErr(assetsResponse)) {
     return assetsResponse
