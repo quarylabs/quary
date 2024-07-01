@@ -27,7 +27,7 @@ chrono = "0.4.38"
 assert_cmd = "2"
 tempfile = "3"
 testcontainers = "0.18.0"
-testcontainers-modules = { version="0.6.1", features = ["postgres", "clickhouse"]}
+testcontainers-modules = { version="0.7.1", features = ["postgres", "clickhouse"]}
 
 [build-dependencies]
 regex = "1.10.5"
