@@ -7,4 +7,4 @@ rust-version = "1.79.0"
 [lib]
 
 [dependencies]
-sqlparser = { default-features = false, version = "0.45" }
+sqlparser = { default-features = false, version = "0.48" }
