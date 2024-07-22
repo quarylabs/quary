@@ -4,6 +4,7 @@ use std::io::Read;
 pub fn deserialize_project_file_from_yaml(read: impl Read) -> Result<ProjectFile, String> {
     serde_yaml::from_reader(read).map_err(|e| format!("reading yaml: {}", e))
 }
+
 pub fn serialize_project_file_to_yaml(project_file: ProjectFile) -> Result<String, String> {
     serde_yaml::to_string(&project_file).map_err(|e| format!("writing yaml: {}", e))
 }
@@ -25,7 +26,7 @@ mod tests {
     use super::*;
     use quary_proto::project_file::snapshot_strategy;
     use quary_proto::project_file::{Model, Snapshot, SnapshotStrategy, TimestampStrategy};
-    use quary_proto::{ProjectFileColumn, ProjectFileSource};
+    use quary_proto::{Index, ProjectFileColumn, ProjectFileSource};
     use std::io::Cursor;
 
     #[test]
@@ -42,7 +43,10 @@ mod tests {
                     description: Some("test description for column".to_string()),
                     tests: vec![],
                 }],
-                indexes: vec![],
+                indexes: vec![Index {
+                    columns: vec!["column test".to_string()],
+                    r#type: None,
+                }],
             }],
             sources: vec![ProjectFileSource {
                 name: "source_test".to_string(),

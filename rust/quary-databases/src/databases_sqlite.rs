@@ -1,8 +1,6 @@
 use async_trait::async_trait;
 use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
-use quary_core::databases::{
-    ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
-};
+use quary_core::databases::{ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, IndexWithDetails, QueryError, QueryResult};
 use quary_proto::TableAddress;
 use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::Column;
@@ -98,6 +96,10 @@ impl DatabaseConnection for Sqlite {
             .collect::<Vec<ColumnWithDetails>>();
 
         Ok(columns)
+    }
+
+    async fn list_indexes(&self, _table: &str) -> Result<Vec<IndexWithDetails>, String> {
+        todo!("X is unfamiliar with sqlite")
     }
 
     async fn exec(&self, query: &str) -> Result<(), String> {
@@ -425,8 +427,8 @@ mod tests {
             false,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         assert_eq!(
             results
@@ -502,8 +504,8 @@ mod tests {
             false,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         let failed_results = results
             .results
@@ -546,9 +548,9 @@ sources:
     description: description for source
     path: source_path
                         "#
-                    .to_string()
-                    .as_bytes()
-                    .to_vec(),
+                        .to_string()
+                        .as_bytes()
+                        .to_vec(),
                 ),
             },
         );
@@ -560,9 +562,9 @@ sources:
                     r#"
                     SELECT * FROM q.source_name_but_not_path
                     "#
-                    .to_string()
-                    .as_bytes()
-                    .to_vec(),
+                        .to_string()
+                        .as_bytes()
+                        .to_vec(),
                 ),
             },
         );
@@ -642,9 +644,9 @@ sources:
     description: description for source
     path: source_path
                         "#
-                    .to_string()
-                    .as_bytes()
-                    .to_vec(),
+                        .to_string()
+                        .as_bytes()
+                        .to_vec(),
                 ),
             },
         );
@@ -656,9 +658,9 @@ sources:
                     r#"
                     SELECT * FROM q.source_name_but_not_path
                     "#
-                    .to_string()
-                    .as_bytes()
-                    .to_vec(),
+                        .to_string()
+                        .as_bytes()
+                        .to_vec(),
                 ),
             },
         );
@@ -683,8 +685,8 @@ sources:
                 model_name,
                 None,
             )
-            .await
-            .unwrap();
+                .await
+                .unwrap();
 
             sqlite.exec(&sql).await.unwrap();
         }
@@ -709,9 +711,9 @@ models:
                         "#,
                         new_model
                     )
-                    .to_string()
-                    .as_bytes()
-                    .to_vec(),
+                        .to_string()
+                        .as_bytes()
+                        .to_vec(),
                 ),
             },
         );
@@ -723,9 +725,9 @@ models:
                     r#"
                     WITH shifts_intermediary AS (SELECT * FROM q.raw_shifts) SELECT * FROM shifts_intermediary
                     "#
-                    .to_string()
-                    .as_bytes()
-                    .to_vec(),
+                        .to_string()
+                        .as_bytes()
+                        .to_vec(),
                 ),
             },
         );
@@ -742,8 +744,8 @@ models:
             new_model,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         sqlite.exec(&sql).await.unwrap();
     }

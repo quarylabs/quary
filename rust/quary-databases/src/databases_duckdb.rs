@@ -2,9 +2,7 @@ use crate::database_arrow_helper::convert_array_to_vec_string;
 use duckdb::arrow::record_batch::RecordBatch;
 use duckdb::{params, Connection};
 use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
-use quary_core::databases::{
-    ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
-};
+use quary_core::databases::{ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, IndexWithDetails, QueryError, QueryResult};
 use quary_proto::TableAddress;
 use std::sync::{Arc, Mutex};
 
@@ -57,10 +55,10 @@ impl DuckDB {
 #[async_trait::async_trait]
 impl DatabaseConnection for DuckDB {
     async fn list_tables(&self) -> Result<Vec<TableAddress>, String> {
-        let results =  self.query("SELECT table_schema, table_name FROM information_schema.tables WHERE table_type='BASE TABLE' ORDER BY table_schema, table_name")
-                .await
-                .map_err(
-                    |e| format!("Failed to get tables from DuckDB: {:?}", e))?;
+        let results = self.query("SELECT table_schema, table_name FROM information_schema.tables WHERE table_type='BASE TABLE' ORDER BY table_schema, table_name")
+            .await
+            .map_err(
+                |e| format!("Failed to get tables from DuckDB: {:?}", e))?;
         Ok(results
             .rows
             .into_iter()
@@ -151,6 +149,10 @@ impl DatabaseConnection for DuckDB {
             })
             .collect::<Vec<_>>();
         Ok(columns)
+    }
+
+    async fn list_indexes(&self, _table: &str) -> Result<Vec<IndexWithDetails>, String> {
+        todo!("X is unfamiliar with duckdb")
     }
 
     async fn exec(&self, query: &str) -> Result<(), String> {
@@ -250,7 +252,7 @@ mod tests {
                     name: "name".to_string(),
                     data_type: Some("VARCHAR".to_string()),
                     ..Default::default()
-                }
+                },
             ]
         );
     }
@@ -497,17 +499,17 @@ GROUP BY id
 HAVING COUNT(*) > 1;",
                 ),
             ]
-            .into_iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v),
-                    },
-                )
-            })
-            .collect(),
+                .into_iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &database.query_generator(), "")
@@ -522,8 +524,8 @@ HAVING COUNT(*) > 1;",
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 
         assert!(!tests.is_empty());
@@ -610,17 +612,17 @@ GROUP BY id
 HAVING COUNT(*) > 1;",
                 ),
             ]
-            .into_iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v),
-                    },
-                )
-            })
-            .collect(),
+                .into_iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &database.query_generator(), "")
@@ -635,8 +637,8 @@ HAVING COUNT(*) > 1;",
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 
         assert!(!tests.is_empty());
@@ -679,17 +681,17 @@ sources:
 ",
                 ),
             ]
-            .iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v.to_string()),
-                    },
-                )
-            })
-            .collect(),
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v.to_string()),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &database.query_generator(), "")
@@ -702,8 +704,8 @@ sources:
             false,
             false,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         for sql in sqls {
             for sql in sql.1 {
                 database.exec(&sql).await.unwrap();
@@ -718,8 +720,8 @@ sources:
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         assert_eq!(tests.len(), 1);
 
         for (name, test) in tests.iter() {
@@ -770,17 +772,17 @@ snapshots:
 ",
                 ),
             ]
-            .iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v.to_string()),
-                    },
-                )
-            })
-            .collect(),
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v.to_string()),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(
@@ -788,8 +790,8 @@ snapshots:
             &DatabaseQueryGeneratorDuckDB::new(target_schema.clone(), None),
             "",
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         let snapshots_sql = project_and_fs_to_sql_for_snapshots(
             &project,
@@ -797,8 +799,8 @@ snapshots:
             &DatabaseQueryGeneratorDuckDB::new(target_schema.clone(), None),
             database.as_ref(),
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         for (_, sql) in snapshots_sql {
             for statement in sql {
                 database.exec(statement.as_str()).await.unwrap()
@@ -818,7 +820,7 @@ snapshots:
                 "updated_at",
                 "quary_valid_from",
                 "quary_valid_to",
-                "quary_scd_id"
+                "quary_scd_id",
             ]
         );
         assert_eq!(data.rows.len(), 2);
@@ -882,17 +884,17 @@ snapshots:
 ",
                 ),
             ]
-            .iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v.to_string()),
-                    },
-                )
-            })
-            .collect(),
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v.to_string()),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &db_generator, "")
@@ -905,8 +907,8 @@ snapshots:
             &db_generator,
             database.as_ref(),
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         for (_, sql) in snapshots_sql {
             for statement in sql {
                 database.exec(statement.as_str()).await.unwrap()
@@ -926,7 +928,7 @@ snapshots:
                 "updated_at",
                 "quary_valid_from",
                 "quary_valid_to",
-                "quary_scd_id"
+                "quary_scd_id",
             ]
         );
         assert_eq!(
@@ -952,9 +954,9 @@ snapshots:
         );
 
         database
-        .exec("UPDATE jaffle_shop.raw_orders SET status = 'completed', updated_at = '2023-01-01 02:00:00' WHERE order_id = 1")
-        .await
-        .unwrap();
+            .exec("UPDATE jaffle_shop.raw_orders SET status = 'completed', updated_at = '2023-01-01 02:00:00' WHERE order_id = 1")
+            .await
+            .unwrap();
 
         let datetime_str_updated = "2023-01-01 03:00:00";
 
@@ -977,8 +979,8 @@ snapshots:
             &db_generator_updated,
             database.as_ref(),
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         for (_, sql) in &snapshots_sql {
             for statement in sql {
@@ -1000,7 +1002,7 @@ snapshots:
                 "updated_at",
                 "quary_valid_from",
                 "quary_valid_to",
-                "quary_scd_id"
+                "quary_scd_id",
             ]
         );
         assert_eq!(
@@ -1114,17 +1116,17 @@ snapshots:
 ",
                 ),
             ]
-            .iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v.to_string()),
-                    },
-                )
-            })
-            .collect(),
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v.to_string()),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &db_generator, "")
@@ -1137,8 +1139,8 @@ snapshots:
             &db_generator,
             database.as_ref(),
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         for (_, sql) in snapshots_sql {
             for statement in sql {
                 database.exec(statement.as_str()).await.unwrap()
@@ -1159,7 +1161,7 @@ snapshots:
                 "updated_at",
                 "quary_valid_from",
                 "quary_valid_to",
-                "quary_scd_id"
+                "quary_scd_id",
             ]
         );
         assert_eq!(
@@ -1171,7 +1173,7 @@ snapshots:
                     "2023-01-01 00:00:00.000000 UTC",
                     "2023-01-01 01:00:00.000000 UTC",
                     "NULL",
-                    "77f50225cf5a52d15fecaa449be2dcc4"
+                    "77f50225cf5a52d15fecaa449be2dcc4",
                 ],
                 vec![
                     "2",
@@ -1179,15 +1181,15 @@ snapshots:
                     "2023-01-01 00:00:00.000000 UTC",
                     "2023-01-01 01:00:00.000000 UTC",
                     "NULL",
-                    "3bb5cc6bb5b432df7712d067f57a3780"
+                    "3bb5cc6bb5b432df7712d067f57a3780",
                 ],
             ]
         );
 
         database
-        .exec("UPDATE jaffle_shop.raw_orders SET status = 'completed', updated_at = '2023-01-01 02:00:00' WHERE order_id = 1")
-        .await
-        .unwrap();
+            .exec("UPDATE jaffle_shop.raw_orders SET status = 'completed', updated_at = '2023-01-01 02:00:00' WHERE order_id = 1")
+            .await
+            .unwrap();
 
         let datetime_str_updated = "2023-01-01 03:00:00";
 
@@ -1210,8 +1212,8 @@ snapshots:
             &db_generator_updated,
             database.as_ref(),
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         for (_, sql) in &snapshots_sql {
             for statement in sql {
@@ -1233,7 +1235,7 @@ snapshots:
                 "updated_at",
                 "quary_valid_from",
                 "quary_valid_to",
-                "quary_scd_id"
+                "quary_scd_id",
             ]
         );
         assert_eq!(
@@ -1245,7 +1247,7 @@ snapshots:
                     "2023-01-01 00:00:00.000000 UTC",
                     "2023-01-01 01:00:00.000000 UTC",
                     "2023-01-01 03:00:00.000000 UTC",
-                    "77f50225cf5a52d15fecaa449be2dcc4"
+                    "77f50225cf5a52d15fecaa449be2dcc4",
                 ],
                 vec![
                     "1",
@@ -1253,7 +1255,7 @@ snapshots:
                     "2023-01-01 02:00:00.000000 UTC",
                     "2023-01-01 03:00:00.000000 UTC",
                     "NULL",
-                    "f5c7798e30814925cd1a61e9e5ef6683"
+                    "f5c7798e30814925cd1a61e9e5ef6683",
                 ],
                 vec![
                     "2",
@@ -1261,7 +1263,7 @@ snapshots:
                     "2023-01-01 00:00:00.000000 UTC",
                     "2023-01-01 01:00:00.000000 UTC",
                     "NULL",
-                    "3bb5cc6bb5b432df7712d067f57a3780"
+                    "3bb5cc6bb5b432df7712d067f57a3780",
                 ],
             ]
         );
@@ -1328,7 +1330,7 @@ snapshots:
             vec![TableAddress {
                 name: "view1".to_string(),
                 full_path: "test_schema.view1".to_string(),
-            },]
+            }, ]
         );
     }
 }

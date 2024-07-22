@@ -6,10 +6,8 @@ use gcp_bigquery_client::Client;
 use google_cloud_auth::project::{create_token_source, Config};
 use google_cloud_auth::token_source::TokenSource;
 use quary_core::database_bigquery::DatabaseQueryGeneratorBigQuery;
-use quary_core::databases::{
-    ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
-};
-use quary_proto::TableAddress;
+use quary_core::databases::{ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, IndexWithDetails, QueryError, QueryResult};
+use quary_proto::{TableAddress};
 use std::fmt::Debug;
 use std::sync::Arc;
 use yup_oauth2::error::AuthErrorCode;
@@ -282,6 +280,10 @@ impl DatabaseConnection for BigQuery {
             })
             .collect::<Vec<_>>();
         Ok(columns)
+    }
+
+    async fn list_indexes(&self, _path: &str) -> Result<Vec<IndexWithDetails>, String> {
+        todo!("X is unfamiliar with bigquery")
     }
 
     async fn exec(&self, query: &str) -> Result<(), String> {

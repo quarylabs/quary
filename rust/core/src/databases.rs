@@ -363,6 +363,9 @@ pub trait DatabaseConnection: Debug {
     ///
     /// list_columns should also be able to return the columns for a full path to a table.
     async fn list_columns(&self, path: &str) -> Result<Vec<ColumnWithDetails>, String>;
+    /// list_indexes returns the indexes of a table.
+    /// If the table does not exist, an error is returned.
+    async fn list_indexes(&self, path: &str) -> Result<Vec<IndexWithDetails>, String>;
     /// exec executes a query that does not return any results. This is useful for executing DDL
     /// queries like CREATE TABLE, DROP TABLE, etc.
     async fn exec(&self, query: &str) -> Result<(), String>;
@@ -388,6 +391,15 @@ pub struct ColumnWithDetails {
     pub data_type: Option<String>,
     pub is_nullable: Option<bool>,
     pub is_unique: Option<bool>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct IndexWithDetails {
+    pub table_name: String,
+    pub index_name: String,
+    pub index_def: String,
+    pub columns: Vec<String>,
+    pub r#type: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]

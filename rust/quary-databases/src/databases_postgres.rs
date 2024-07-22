@@ -10,9 +10,7 @@ use sqlx::{Column, Pool, Row};
 use sqlx::{Error, TypeInfo};
 
 use quary_core::database_postgres::DatabaseQueryGeneratorPostgres;
-use quary_core::databases::{
-    ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
-};
+use quary_core::databases::{ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, IndexWithDetails, QueryError, QueryResult};
 use quary_proto::TableAddress;
 
 #[derive(Debug)]
@@ -44,12 +42,12 @@ impl Postgres {
             ("sslrootcert", ssl_root_cert),
             ("channel_binding", channel_binding),
         ])
-        .into_iter()
-        .filter_map(|(k, v)| v.map(|v| (k, v)))
-        .collect::<HashMap<&str, String>>()
-        .into_iter()
-        .map(|(k, v)| format!("{}={}", k, v))
-        .collect::<Vec<String>>();
+            .into_iter()
+            .filter_map(|(k, v)| v.map(|v| (k, v)))
+            .collect::<HashMap<&str, String>>()
+            .into_iter()
+            .map(|(k, v)| format!("{}={}", k, v))
+            .collect::<Vec<String>>();
 
         let params = if params.is_empty() {
             None
@@ -222,6 +220,50 @@ impl DatabaseConnection for Postgres {
         Ok(columns)
     }
 
+    async fn list_indexes(&self, table: &str) -> Result<Vec<IndexWithDetails>, String> {
+        let (schema, table) = match table.split('.').collect::<Vec<&str>>().as_slice() {
+            [schema, table] => Ok((schema.to_string(), table.to_string())),
+            [table] => Ok((self.schema.to_string(), table.to_string())),
+            _ => Err(format!(
+                "Table name {} does not contain the expected schema",
+                table
+            )),
+        }?;
+
+        let query = &format!("SELECT
+    tablename,
+    indexname,
+    indexdef
+FROM
+    pg_indexes
+WHERE
+    schemaname = '{}'
+ORDER BY
+    tablename,
+    indexname", schema);
+
+        let rows = sqlx::query(query).fetch_all(&self.pool).await.map_err(|e| e.to_string())?;
+
+        let indexes = rows
+            .into_iter()
+            .map(|row| {
+                let table_name = row.get(0);
+                let index_name: String = row.get(1);
+                let index_def: String = row.get(2);
+
+                IndexWithDetails {
+                    table_name,
+                    index_name,
+                    index_def,
+                    columns: vec![],
+                    r#type: None,
+                }
+            })
+            .collect();
+
+        Ok(indexes)
+    }
+
     async fn exec(&self, query: &str) -> Result<(), String> {
         let query = sqlx::query(query);
         query.execute(&self.pool).await.map_err(|e| e.to_string())?;
@@ -352,8 +394,8 @@ mod tests {
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         let filesystem = FileSystem {
             files: vec![
@@ -361,17 +403,17 @@ mod tests {
                 ("models/test_model.sql", "SELECT * FROM q.test_seed"),
                 ("seeds/test_seed.csv", "id,name\n1,test\n2,rubbish"),
             ]
-            .into_iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v),
-                    },
-                )
-            })
-            .collect(),
+                .into_iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&filesystem, &quary_postgres.query_generator(), "")
@@ -384,8 +426,8 @@ mod tests {
             false,
             false,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         for sql in &sqls {
             for sql in &sql.1 {
@@ -422,8 +464,8 @@ mod tests {
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         quary_postgres
             .exec("CREATE TABLE wrong_table (id INTEGER, name VARCHAR(255))")
@@ -496,7 +538,7 @@ mod tests {
                     data_type: Some("character varying".to_string()),
                     is_nullable: Some(true),
                     is_unique: Some(false),
-                }
+                },
             ],
             columns
         );
@@ -538,8 +580,8 @@ mod tests {
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         database.exec("CREATE SCHEMA transform").await.unwrap();
         database
@@ -576,13 +618,13 @@ mod tests {
                     data_type: Some("character varying".to_string()),
                     is_nullable: Some(true),
                     is_unique: Some(false),
-                }
+                },
             ]
         );
         let columns = database.list_columns("transform.test_table").await.unwrap();
         assert_eq!(
             columns,
-            vec![("id", "integer"), ("name_transform", "character varying"),]
+            vec![("id", "integer"), ("name_transform", "character varying")]
                 .into_iter()
                 .map(|(name, data_type)| {
                     ColumnWithDetails {
@@ -619,8 +661,8 @@ mod tests {
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         database.exec("CREATE SCHEMA other_schema").await.unwrap();
         database.exec("CREATE SCHEMA transform").await.unwrap();
@@ -682,17 +724,17 @@ models:
                     ",
                 ),
             ]
-            .into_iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v),
-                    },
-                )
-            })
-            .collect(),
+                .into_iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &database.query_generator(), "")
@@ -707,8 +749,8 @@ models:
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 
         assert!(!tests.is_empty());
@@ -742,8 +784,8 @@ models:
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         database.exec("CREATE SCHEMA other_schema").await.unwrap();
         database.exec("CREATE SCHEMA transform").await.unwrap();
@@ -807,17 +849,17 @@ models:
                     ",
                 ),
             ]
-            .into_iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v),
-                    },
-                )
-            })
-            .collect(),
+                .into_iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &database.query_generator(), "")
@@ -831,8 +873,8 @@ models:
             false,
             false,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         for sql in &sqls {
             for sql in &sql.1 {
                 database.exec(sql).await.unwrap();
@@ -853,8 +895,8 @@ models:
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 
         assert!(!tests.is_empty());
@@ -889,8 +931,8 @@ models:
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         database.exec("CREATE SCHEMA other_schema").await.unwrap();
         database.exec("CREATE SCHEMA transform").await.unwrap();
@@ -960,17 +1002,17 @@ models:
                     ",
                 ),
             ]
-            .into_iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v),
-                    },
-                )
-            })
-            .collect(),
+                .into_iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &database.query_generator(), "")
@@ -985,8 +1027,8 @@ models:
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 
         assert!(!tests.is_empty());
@@ -1020,8 +1062,8 @@ models:
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         database.exec("CREATE SCHEMA other_schema").await.unwrap();
         database.exec("CREATE SCHEMA transform").await.unwrap();
@@ -1095,8 +1137,8 @@ models:
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         database.exec("CREATE SCHEMA transform").await.unwrap();
         database
@@ -1135,7 +1177,7 @@ models:
                     data_type: Some("character varying".to_string()),
                     is_nullable: Some(true),
                     is_unique: Some(false),
-                }
+                },
             ]
         );
     }
@@ -1164,8 +1206,8 @@ models:
                 None,
                 None,
             )
-            .await
-            .unwrap(),
+                .await
+                .unwrap(),
         );
 
         database.exec("CREATE SCHEMA analytics").await.unwrap();
@@ -1205,17 +1247,17 @@ snapshots:
 ",
                 ),
             ]
-            .iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v.to_string()),
-                    },
-                )
-            })
-            .collect(),
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v.to_string()),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(
@@ -1223,8 +1265,8 @@ snapshots:
             &DatabaseQueryGeneratorPostgres::new(schema.to_string(), None),
             "",
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         let snapshots_sql = project_and_fs_to_sql_for_snapshots(
             &project,
@@ -1232,8 +1274,8 @@ snapshots:
             &DatabaseQueryGeneratorPostgres::new(schema.to_string(), None),
             database.as_ref(),
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         for (_, sql) in snapshots_sql {
             for statement in sql {
                 database.exec(statement.as_str()).await.unwrap()
@@ -1253,7 +1295,7 @@ snapshots:
                 "updated_at",
                 "quary_valid_from",
                 "quary_valid_to",
-                "quary_scd_id"
+                "quary_scd_id",
             ]
         );
         assert_eq!(data.rows.len(), 2);
@@ -1283,8 +1325,8 @@ snapshots:
                 None,
                 None,
             )
-            .await
-            .unwrap(),
+                .await
+                .unwrap(),
         );
 
         database.exec("CREATE SCHEMA analytics").await.unwrap();
@@ -1339,17 +1381,17 @@ snapshots:
 ",
                 ),
             ]
-            .iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v.to_string()),
-                    },
-                )
-            })
-            .collect(),
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v.to_string()),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &db_generator, "")
@@ -1362,8 +1404,8 @@ snapshots:
             &db_generator,
             database.as_ref(),
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         for (_, sql) in snapshots_sql {
             for statement in sql {
                 database.exec(statement.as_str()).await.unwrap()
@@ -1387,7 +1429,7 @@ snapshots:
                 "updated_at",
                 "quary_valid_from",
                 "quary_valid_to",
-                "quary_scd_id"
+                "quary_scd_id",
             ]
         );
         assert_eq!(
@@ -1399,7 +1441,7 @@ snapshots:
                     "2023-01-01T00:00:00",
                     "2023-01-01T01:00:00+00:00",
                     "NULL",
-                    "77f50225cf5a52d15fecaa449be2dcc4"
+                    "77f50225cf5a52d15fecaa449be2dcc4",
                 ],
                 vec![
                     "2",
@@ -1407,7 +1449,7 @@ snapshots:
                     "2023-01-01T00:00:00",
                     "2023-01-01T01:00:00+00:00",
                     "NULL",
-                    "3bb5cc6bb5b432df7712d067f57a3780"
+                    "3bb5cc6bb5b432df7712d067f57a3780",
                 ],
             ]
         );
@@ -1438,8 +1480,8 @@ snapshots:
             &db_generator_updated,
             database.as_ref(),
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         for (_, sql) in &snapshots_sql {
             for statement in sql {
@@ -1464,7 +1506,7 @@ snapshots:
                 "updated_at",
                 "quary_valid_from",
                 "quary_valid_to",
-                "quary_scd_id"
+                "quary_scd_id",
             ]
         );
         assert_eq!(
@@ -1476,7 +1518,7 @@ snapshots:
                     "2023-01-01T00:00:00",
                     "2023-01-01T01:00:00+00:00",
                     "2023-01-01T03:00:00+00:00",
-                    "77f50225cf5a52d15fecaa449be2dcc4"
+                    "77f50225cf5a52d15fecaa449be2dcc4",
                 ],
                 vec![
                     "1",
@@ -1484,7 +1526,7 @@ snapshots:
                     "2023-01-01T02:00:00",
                     "2023-01-01T03:00:00+00:00",
                     "NULL",
-                    "f5c7798e30814925cd1a61e9e5ef6683"
+                    "f5c7798e30814925cd1a61e9e5ef6683",
                 ],
                 vec![
                     "2",
@@ -1492,7 +1534,7 @@ snapshots:
                     "2023-01-01T00:00:00",
                     "2023-01-01T01:00:00+00:00",
                     "NULL",
-                    "3bb5cc6bb5b432df7712d067f57a3780"
+                    "3bb5cc6bb5b432df7712d067f57a3780",
                 ],
             ]
         );
@@ -1544,8 +1586,8 @@ snapshots:
                 None,
                 None,
             )
-            .await
-            .unwrap(),
+                .await
+                .unwrap(),
         );
         database.exec("CREATE SCHEMA analytics").await.unwrap();
         database.exec("CREATE SCHEMA jaffle_shop").await.unwrap();
@@ -1609,17 +1651,17 @@ models:
 ",
                 ),
             ]
-            .iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v.to_string()),
-                    },
-                )
-            })
-            .collect(),
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v.to_string()),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(
@@ -1627,8 +1669,8 @@ models:
             &DatabaseQueryGeneratorPostgres::new(schema.to_string(), None),
             "",
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         let tests = return_tests_sql(
             &DatabaseQueryGeneratorPostgres::new(schema.to_string(), None),
@@ -1638,8 +1680,8 @@ models:
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         assert!(!tests.is_empty());
 
         for (_, test) in tests.iter() {
