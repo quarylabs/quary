@@ -78,6 +78,7 @@ impl Model {
             materialization: None,
             columns,
             tests: vec![],
+            indexes: vec![],
         })
     }
 }

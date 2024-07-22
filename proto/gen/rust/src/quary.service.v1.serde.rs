@@ -7756,6 +7756,114 @@ impl<'de> serde::Deserialize<'de> for GetProjectConfigResponse {
         deserializer.deserialize_struct("quary.service.v1.GetProjectConfigResponse", FIELDS, GeneratedVisitor)
     }
 }
+impl serde::Serialize for Index {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if self.r#type.is_some() {
+            len += 1;
+        }
+        if !self.columns.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.Index", len)?;
+        if let Some(v) = self.r#type.as_ref() {
+            struct_ser.serialize_field("type", v)?;
+        }
+        if !self.columns.is_empty() {
+            struct_ser.serialize_field("columns", &self.columns)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for Index {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "type",
+            "columns",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Type,
+            Columns,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "type" => Ok(GeneratedField::Type),
+                            "columns" => Ok(GeneratedField::Columns),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = Index;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.Index")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<Index, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut r#type__ = None;
+                let mut columns__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Type => {
+                            if r#type__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("type"));
+                            }
+                            r#type__ = map_.next_value()?;
+                        }
+                        GeneratedField::Columns => {
+                            if columns__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("columns"));
+                            }
+                            columns__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(Index {
+                    r#type: r#type__,
+                    columns: columns__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.Index", FIELDS, GeneratedVisitor)
+    }
+}
 impl serde::Serialize for InferredChain {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
@@ -10956,6 +11064,9 @@ impl serde::Serialize for project_file::Model {
         if !self.columns.is_empty() {
             len += 1;
         }
+        if !self.indexes.is_empty() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.ProjectFile.Model", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
@@ -10975,6 +11086,9 @@ impl serde::Serialize for project_file::Model {
         if !self.columns.is_empty() {
             struct_ser.serialize_field("columns", &self.columns)?;
         }
+        if !self.indexes.is_empty() {
+            struct_ser.serialize_field("indexes", &self.indexes)?;
+        }
         struct_ser.end()
     }
 }
@@ -10991,6 +11105,7 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
             "materialization",
             "tests",
             "columns",
+            "indexes",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -11001,6 +11116,7 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
             Materialization,
             Tests,
             Columns,
+            Indexes,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -11028,6 +11144,7 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
                             "materialization" => Ok(GeneratedField::Materialization),
                             "tests" => Ok(GeneratedField::Tests),
                             "columns" => Ok(GeneratedField::Columns),
+                            "indexes" => Ok(GeneratedField::Indexes),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -11053,6 +11170,7 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
                 let mut materialization__ = None;
                 let mut tests__ = None;
                 let mut columns__ = None;
+                let mut indexes__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Name => {
@@ -11091,6 +11209,12 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
                             }
                             columns__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::Indexes => {
+                            if indexes__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("indexes"));
+                            }
+                            indexes__ = Some(map_.next_value()?);
+                        }
                     }
                 }
                 Ok(project_file::Model {
@@ -11100,6 +11224,7 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
                     materialization: materialization__,
                     tests: tests__.unwrap_or_default(),
                     columns: columns__.unwrap_or_default(),
+                    indexes: indexes__.unwrap_or_default(),
                 })
             }
         }

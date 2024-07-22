@@ -42,6 +42,7 @@ mod tests {
                     description: Some("test description for column".to_string()),
                     tests: vec![],
                 }],
+                indexes: vec![],
             }],
             sources: vec![ProjectFileSource {
                 name: "source_test".to_string(),

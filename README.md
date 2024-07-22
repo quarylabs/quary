@@ -102,6 +102,13 @@ If you run into any problems using Quary, please let us know. We want Quary to b
 confused, it is our fault, not yours. [Create an issue](https://github.com/quarylabs/quary/issues) and we'll be happy to
 help you out.
 
+## Development Tools
+
+In order to build this project, you need
+
+- [buf](https://buf.build/docs/installation)
+- [pnpm](https://pnpm.io/installation)
+
 ### Check out our other projects
 
 [SQRUFF](https://github.com/quarylabs/sqruff), a compact, high-speed SQL linter, engineered with Rust efficiency.

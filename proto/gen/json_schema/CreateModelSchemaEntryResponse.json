@@ -32,6 +32,23 @@
             "type": "object",
             "title": "Column Test"
         },
+        "quary.service.v1.Index": {
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "description": "defaults to b-tree, the most common on databases"
+                },
+                "columns": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Index"
+        },
         "quary.service.v1.ModelTest": {
             "properties": {
                 "type": {
@@ -105,6 +122,13 @@
                 "columns": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ProjectFileColumn"
+                    },
+                    "additionalProperties": false,
+                    "type": "array"
+                },
+                "indexes": {
+                    "items": {
+                        "$ref": "#/definitions/quary.service.v1.Index"
                     },
                     "additionalProperties": false,
                     "type": "array"

@@ -94,6 +94,11 @@ export class ProjectFile_Model extends Message<ProjectFile_Model> {
    */
   columns: ProjectFileColumn[] = [];
 
+  /**
+   * @generated from field: repeated quary.service.v1.Index indexes = 7;
+   */
+  indexes: Index[] = [];
+
   constructor(data?: PartialMessage<ProjectFile_Model>) {
     super();
     proto3.util.initPartial(data, this);
@@ -108,6 +113,7 @@ export class ProjectFile_Model extends Message<ProjectFile_Model> {
     { no: 4, name: "materialization", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 5, name: "tests", kind: "message", T: ModelTest, repeated: true },
     { no: 3, name: "columns", kind: "message", T: ProjectFileColumn, repeated: true },
+    { no: 7, name: "indexes", kind: "message", T: Index, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectFile_Model {
@@ -396,6 +402,51 @@ export class ProjectFileColumn extends Message<ProjectFileColumn> {
 
   static equals(a: ProjectFileColumn | PlainMessage<ProjectFileColumn> | undefined, b: ProjectFileColumn | PlainMessage<ProjectFileColumn> | undefined): boolean {
     return proto3.util.equals(ProjectFileColumn, a, b);
+  }
+}
+
+/**
+ * @generated from message quary.service.v1.Index
+ */
+export class Index extends Message<Index> {
+  /**
+   * defaults to b-tree, the most common on databases
+   *
+   * @generated from field: optional string type = 1;
+   */
+  type?: string;
+
+  /**
+   * @generated from field: repeated string columns = 2;
+   */
+  columns: string[] = [];
+
+  constructor(data?: PartialMessage<Index>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "quary.service.v1.Index";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 2, name: "columns", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Index {
+    return new Index().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Index {
+    return new Index().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Index {
+    return new Index().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Index | PlainMessage<Index> | undefined, b: Index | PlainMessage<Index> | undefined): boolean {
+    return proto3.util.equals(Index, a, b);
   }
 }
 

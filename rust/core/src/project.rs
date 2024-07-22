@@ -1954,6 +1954,7 @@ mod tests {
             tags: vec![],
             materialization: None,
             columns: vec![],
+            indexes: vec![],
         }]
         .into_iter()
         .map(|m| (m.name.clone(), m))
