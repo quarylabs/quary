@@ -1935,6 +1935,7 @@ dependencies = [
  "hyper 1.4.1",
  "hyper-util",
  "rustls 0.23.12",
+ "rustls-native-certs 0.7.1",
  "rustls-pki-types",
  "tokio",
  "tokio-rustls 0.26.0",
@@ -3126,7 +3127,7 @@ dependencies = [
  "regex",
  "serde_yaml",
  "tempfile",
- "testcontainers",
+ "testcontainers 0.20.1",
  "testcontainers-modules",
  "tokio",
 ]
@@ -3175,7 +3176,7 @@ dependencies = [
  "snowflake-api",
  "sqlx",
  "tempfile",
- "testcontainers",
+ "testcontainers 0.18.0",
  "testcontainers-modules",
  "tokio",
  "yup-oauth2",
@@ -3468,6 +3469,7 @@ dependencies = [
  "pin-project-lite",
  "quinn",
  "rustls 0.23.12",
+ "rustls-native-certs 0.7.1",
  "rustls-pemfile 2.1.2",
  "rustls-pki-types",
  "serde",
@@ -4622,12 +4624,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "testcontainers"
+version = "0.20.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "725cbe485aafddfd8b2d01665937c95498d894c07fabd9c4e06a53c7da4ccc56"
+dependencies = [
+ "async-trait",
+ "bollard",
+ "bollard-stubs",
+ "bytes",
+ "dirs",
+ "docker_credential",
+ "either",
+ "futures",
+ "log",
+ "memchr",
+ "parse-display",
+ "pin-project-lite",
+ "reqwest 0.12.5",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "url",
+]
+
+[[package]]
 name = "testcontainers-modules"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "322fe829905e734f38a73be07e200a25713fe4baa65074277af7b30dbc4ea487"
 dependencies = [
- "testcontainers",
+ "testcontainers 0.18.0",
 ]
 
 [[package]]
