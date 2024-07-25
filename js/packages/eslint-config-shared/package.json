@@ -4,10 +4,10 @@
   "private": true,
   "main": "index.js",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.13.0",
-    "@typescript-eslint/parser": "^7.13.0",
+    "@typescript-eslint/eslint-plugin": "^7.17.0",
+    "@typescript-eslint/parser": "^7.17.0",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-react": "^7.34.2",
+    "eslint-plugin-react": "^7.35.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-storybook": "^0.8.0"
   },
@@ -17,6 +17,6 @@
   },
   "dependencies": {
     "eslint": "^8.57.0",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.4"
   }
 }

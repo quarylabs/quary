@@ -57,7 +57,7 @@ const getModelDetails = async ({
     modelName: asset.name,
   })
   const table = !isErr(modelTableDetails)
-    ? modelTableDetails.value.table ?? null
+    ? (modelTableDetails.value.table ?? null)
     : null
   const cacheViewInformation = await cacheViewBuilder(services.database)
   if (isErr(cacheViewInformation)) {
