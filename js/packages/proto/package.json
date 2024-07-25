@@ -7,10 +7,10 @@
     "build": "rm -rf dist && tsc"
   },
   "dependencies": {
-    "@types/node": "^20.14.2",
+    "@types/node": "^20.14.12",
     "protobufjs": "^7.3.2"
   },
   "devDependencies": {
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.4"
   }
 }
