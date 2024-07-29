@@ -6,6 +6,7 @@
 
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
+import { Struct } from "../../../google/protobuf/struct";
 
 export const protobufPackage = "quary.service.v1";
 
@@ -122,6 +123,7 @@ export interface Model {
    * alphabetically.
    */
   references: string[];
+  databaseConfig?: { [key: string]: any } | undefined;
 }
 
 export interface Model_ModelColum {
@@ -1713,6 +1715,7 @@ function createBaseModel(): Model {
     materialization: undefined,
     columns: [],
     references: [],
+    databaseConfig: undefined,
   };
 }
 
@@ -1741,6 +1744,9 @@ export const Model = {
     }
     for (const v of message.references) {
       writer.uint32(50).string(v!);
+    }
+    if (message.databaseConfig !== undefined) {
+      Struct.encode(Struct.wrap(message.databaseConfig), writer.uint32(74).fork()).ldelim();
     }
     return writer;
   },
@@ -1808,6 +1814,13 @@ export const Model = {
 
           message.references.push(reader.string());
           continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.databaseConfig = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1827,6 +1840,7 @@ export const Model = {
       materialization: isSet(object.materialization) ? gt.String(object.materialization) : undefined,
       columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => Model_ModelColum.fromJSON(e)) : [],
       references: gt.Array.isArray(object?.references) ? object.references.map((e: any) => gt.String(e)) : [],
+      databaseConfig: isObject(object.databaseConfig) ? object.databaseConfig : undefined,
     };
   },
 
@@ -1856,6 +1870,9 @@ export const Model = {
     if (message.references?.length) {
       obj.references = message.references;
     }
+    if (message.databaseConfig !== undefined) {
+      obj.databaseConfig = message.databaseConfig;
+    }
     return obj;
   },
 
@@ -1872,6 +1889,7 @@ export const Model = {
     message.materialization = object.materialization ?? undefined;
     message.columns = object.columns?.map((e) => Model_ModelColum.fromPartial(e)) || [];
     message.references = object.references?.map((e) => e) || [];
+    message.databaseConfig = object.databaseConfig ?? undefined;
     return message;
   },
 };
@@ -2590,6 +2608,10 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

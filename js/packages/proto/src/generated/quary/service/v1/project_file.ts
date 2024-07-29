@@ -6,6 +6,7 @@
 
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
+import { Struct } from "../../../google/protobuf/struct";
 
 export const protobufPackage = "quary.service.v1";
 
@@ -28,6 +29,7 @@ export interface ProjectFile_Model {
   /** The materialization of the model, available types are specified by each database. */
   materialization?: string | undefined;
   tests: ModelTest[];
+  databaseConfig?: { [key: string]: any } | undefined;
   columns: ProjectFileColumn[];
 }
 
@@ -195,7 +197,15 @@ export const ProjectFile = {
 };
 
 function createBaseProjectFile_Model(): ProjectFile_Model {
-  return { name: "", tags: [], description: undefined, materialization: undefined, tests: [], columns: [] };
+  return {
+    name: "",
+    tags: [],
+    description: undefined,
+    materialization: undefined,
+    tests: [],
+    databaseConfig: undefined,
+    columns: [],
+  };
 }
 
 export const ProjectFile_Model = {
@@ -214,6 +224,9 @@ export const ProjectFile_Model = {
     }
     for (const v of message.tests) {
       ModelTest.encode(v!, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.databaseConfig !== undefined) {
+      Struct.encode(Struct.wrap(message.databaseConfig), writer.uint32(58).fork()).ldelim();
     }
     for (const v of message.columns) {
       ProjectFileColumn.encode(v!, writer.uint32(26).fork()).ldelim();
@@ -263,6 +276,13 @@ export const ProjectFile_Model = {
 
           message.tests.push(ModelTest.decode(reader, reader.uint32()));
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.databaseConfig = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          continue;
         case 3:
           if (tag !== 26) {
             break;
@@ -286,6 +306,7 @@ export const ProjectFile_Model = {
       description: isSet(object.description) ? gt.String(object.description) : undefined,
       materialization: isSet(object.materialization) ? gt.String(object.materialization) : undefined,
       tests: gt.Array.isArray(object?.tests) ? object.tests.map((e: any) => ModelTest.fromJSON(e)) : [],
+      databaseConfig: isObject(object.databaseConfig) ? object.databaseConfig : undefined,
       columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => ProjectFileColumn.fromJSON(e)) : [],
     };
   },
@@ -307,6 +328,9 @@ export const ProjectFile_Model = {
     if (message.tests?.length) {
       obj.tests = message.tests.map((e) => ModelTest.toJSON(e));
     }
+    if (message.databaseConfig !== undefined) {
+      obj.databaseConfig = message.databaseConfig;
+    }
     if (message.columns?.length) {
       obj.columns = message.columns.map((e) => ProjectFileColumn.toJSON(e));
     }
@@ -323,6 +347,7 @@ export const ProjectFile_Model = {
     message.description = object.description ?? undefined;
     message.materialization = object.materialization ?? undefined;
     message.tests = object.tests?.map((e) => ModelTest.fromPartial(e)) || [];
+    message.databaseConfig = object.databaseConfig ?? undefined;
     message.columns = object.columns?.map((e) => ProjectFileColumn.fromPartial(e)) || [];
     return message;
   },

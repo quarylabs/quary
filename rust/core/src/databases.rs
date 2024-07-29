@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use pbjson_types::Struct;
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use quary_proto::TableAddress;
 use sqlinference::dialect::Dialect;
@@ -52,7 +53,8 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
         object_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
-        _: &CacheStatus,
+        _database_config: &Option<Struct>,
+        _cache_status: &CacheStatus,
     ) -> Result<Option<Vec<String>>, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
@@ -173,12 +175,14 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
         object_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
+        database_config: &Option<Struct>,
         cache_status: &CacheStatus,
     ) -> Result<Option<Vec<String>>, String> {
         self.as_ref().models_create_query(
             object_name,
             original_select_statement,
             materialization_type,
+            database_config,
             cache_status,
         )
     }

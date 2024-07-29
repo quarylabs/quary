@@ -9513,6 +9513,9 @@ impl serde::Serialize for Model {
         if !self.references.is_empty() {
             len += 1;
         }
+        if self.database_config.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.Model", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
@@ -9538,6 +9541,9 @@ impl serde::Serialize for Model {
         if !self.references.is_empty() {
             struct_ser.serialize_field("references", &self.references)?;
         }
+        if let Some(v) = self.database_config.as_ref() {
+            struct_ser.serialize_field("databaseConfig", v)?;
+        }
         struct_ser.end()
     }
 }
@@ -9558,6 +9564,8 @@ impl<'de> serde::Deserialize<'de> for Model {
             "materialization",
             "columns",
             "references",
+            "database_config",
+            "databaseConfig",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -9570,6 +9578,7 @@ impl<'de> serde::Deserialize<'de> for Model {
             Materialization,
             Columns,
             References,
+            DatabaseConfig,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -9599,6 +9608,7 @@ impl<'de> serde::Deserialize<'de> for Model {
                             "materialization" => Ok(GeneratedField::Materialization),
                             "columns" => Ok(GeneratedField::Columns),
                             "references" => Ok(GeneratedField::References),
+                            "databaseConfig" | "database_config" => Ok(GeneratedField::DatabaseConfig),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -9626,6 +9636,7 @@ impl<'de> serde::Deserialize<'de> for Model {
                 let mut materialization__ = None;
                 let mut columns__ = None;
                 let mut references__ = None;
+                let mut database_config__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Name => {
@@ -9676,6 +9687,12 @@ impl<'de> serde::Deserialize<'de> for Model {
                             }
                             references__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::DatabaseConfig => {
+                            if database_config__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("databaseConfig"));
+                            }
+                            database_config__ = map_.next_value()?;
+                        }
                     }
                 }
                 Ok(Model {
@@ -9687,6 +9704,7 @@ impl<'de> serde::Deserialize<'de> for Model {
                     materialization: materialization__,
                     columns: columns__.unwrap_or_default(),
                     references: references__.unwrap_or_default(),
+                    database_config: database_config__,
                 })
             }
         }
@@ -10953,6 +10971,9 @@ impl serde::Serialize for project_file::Model {
         if !self.tests.is_empty() {
             len += 1;
         }
+        if self.database_config.is_some() {
+            len += 1;
+        }
         if !self.columns.is_empty() {
             len += 1;
         }
@@ -10972,6 +10993,9 @@ impl serde::Serialize for project_file::Model {
         if !self.tests.is_empty() {
             struct_ser.serialize_field("tests", &self.tests)?;
         }
+        if let Some(v) = self.database_config.as_ref() {
+            struct_ser.serialize_field("databaseConfig", v)?;
+        }
         if !self.columns.is_empty() {
             struct_ser.serialize_field("columns", &self.columns)?;
         }
@@ -10990,6 +11014,8 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
             "description",
             "materialization",
             "tests",
+            "database_config",
+            "databaseConfig",
             "columns",
         ];
 
@@ -11000,6 +11026,7 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
             Description,
             Materialization,
             Tests,
+            DatabaseConfig,
             Columns,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -11027,6 +11054,7 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
                             "description" => Ok(GeneratedField::Description),
                             "materialization" => Ok(GeneratedField::Materialization),
                             "tests" => Ok(GeneratedField::Tests),
+                            "databaseConfig" | "database_config" => Ok(GeneratedField::DatabaseConfig),
                             "columns" => Ok(GeneratedField::Columns),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
@@ -11052,6 +11080,7 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
                 let mut description__ = None;
                 let mut materialization__ = None;
                 let mut tests__ = None;
+                let mut database_config__ = None;
                 let mut columns__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
@@ -11085,6 +11114,12 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
                             }
                             tests__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::DatabaseConfig => {
+                            if database_config__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("databaseConfig"));
+                            }
+                            database_config__ = map_.next_value()?;
+                        }
                         GeneratedField::Columns => {
                             if columns__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("columns"));
@@ -11099,6 +11134,7 @@ impl<'de> serde::Deserialize<'de> for project_file::Model {
                     description: description__,
                     materialization: materialization__,
                     tests: tests__.unwrap_or_default(),
+                    database_config: database_config__,
                     columns: columns__.unwrap_or_default(),
                 })
             }

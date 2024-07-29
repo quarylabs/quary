@@ -99,6 +99,10 @@
                     "additionalProperties": false,
                     "type": "array"
                 },
+                "database_config": {
+                    "additionalProperties": false,
+                    "type": "object"
+                },
                 "columns": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.ProjectFileColumn"

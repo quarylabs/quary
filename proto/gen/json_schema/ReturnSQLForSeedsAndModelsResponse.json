@@ -372,6 +372,10 @@
                     },
                     "type": "array",
                     "description": "References to other models/seeds/snapshots that are used in the model. These are unique keys and sorted alphabetically."
+                },
+                "database_config": {
+                    "additionalProperties": false,
+                    "type": "object"
                 }
             },
             "additionalProperties": false,
@@ -527,6 +531,10 @@
                     },
                     "additionalProperties": false,
                     "type": "array"
+                },
+                "database_config": {
+                    "additionalProperties": false,
+                    "type": "object"
                 },
                 "columns": {
                     "items": {
