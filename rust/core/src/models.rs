@@ -87,7 +87,7 @@ fn return_sql_model_template(
     let create =
         database.models_create_query(name, select_statement, materialization, &cache_status)?;
     if let Some(create) = create {
-        vec.push(create);
+        vec.extend(create);
     }
     Ok(vec)
 }
