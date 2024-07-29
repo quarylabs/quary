@@ -45,8 +45,8 @@ pub async fn project_and_fs_to_query_sql_for_model_sql(
 /// returned.
 ///
 /// - `overrides` is a map of model name to the string that the reference should be replaced with if
-/// a model is used that is found in overrides, then the reference will be replaced with a
-/// `SELECT * FROM {found_value}` and any upstream references are dropped.
+///   a model is used that is found in overrides, then the reference will be replaced with a
+///   `SELECT * FROM {found_value}` and any upstream references are dropped.
 ///
 /// For example, if the dependencies are A -> B -> C and overrides is {B: "D"} then the returned
 /// A -> D.

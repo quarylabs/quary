@@ -440,7 +440,7 @@ async fn main_wrapped() -> Result<(), String> {
                                             }
                                             failed::Reason::Ran(results) => {
                                                 println!("    ran and returned results");
-                                                for result in &results.query_result {
+                                                while let Some(result) = &results.query_result {
                                                     println!("    {:?}", result.columns);
                                                 }
                                             }

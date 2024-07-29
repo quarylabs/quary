@@ -151,7 +151,7 @@ pub fn parse_dbt_project(
                         // write file to output director in /models/ and same path
                         let output_path = directory_to_write
                             .join("models")
-                            .join(entry.path().strip_prefix(&models_path.clone()).unwrap());
+                            .join(entry.path().strip_prefix(models_path.clone()).unwrap());
                         // read entry, pass it through translate_sql_file and paste
                         let reader = Cursor::new(
                             std::fs::read_to_string(entry.path())

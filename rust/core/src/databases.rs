@@ -277,6 +277,7 @@ pub trait SnapshotGenerator {
     /// - `unique_key`: The column that uniquely identify each row in the snapshot source table.
     /// - `strategy`: The snapshot strategy to be used (e.g., timestamp)
     /// - `now`: The current timestamp to be used in the simulated query.
+    ///
     /// TODO Find a way to remove the &self parameter
     fn generate_snapshot_query(
         &self,

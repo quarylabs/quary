@@ -506,6 +506,7 @@ pub fn create_path_map(
 /// - file1.sql
 /// - file2.sql
 /// - file3.snapshot.sql
+///
 /// The function would return a list of paths to file1.sql and file2.sql if the extension of
 /// interest is 'sql' and the ignore suffix is 'snapshot.sql'.
 pub(crate) async fn get_path_bufs(
@@ -1210,8 +1211,8 @@ fn parse_column_tests_for_model_or_source(
 /// returned.
 ///
 /// - `overrides` is a map of model name to the string that the reference should be replaced with if
-/// a model is used that is found in overrides, then the reference will be replaced with a
-/// `SELECT * FROM {found_value}` and any upstream references are dropped.
+///   a model is used that is found in overrides, then the reference will be replaced with a
+///   `SELECT * FROM {found_value}` and any upstream references are dropped.
 ///
 /// For example, if the dependencies are A -> B -> C and overrides is {B: "D"} then the returned
 /// A -> D.
