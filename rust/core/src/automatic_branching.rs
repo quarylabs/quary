@@ -1006,6 +1006,7 @@ sources:
                             "f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b"
                                 .to_string(),
                         materialization: None,
+                        database_config: None,
                         references: vec!["seed_1".to_string(), "source_1".to_string()],
                         description: None,
                         tags: vec![],
@@ -1021,6 +1022,7 @@ sources:
                             "00f34167b566208b3df2aebd093495f718a9d950e2dd7c7658977bb2734abff4"
                                 .to_string(),
                         materialization: None,
+                        database_config: None,
                         references: vec!["seed_2".to_string(), "source_2".to_string()],
                         description: None,
                         tags: vec![],
@@ -1036,6 +1038,7 @@ sources:
                             "f76a243c1d2b8bd70a95eb968c1b1e8d08931166a3cf63d24f9844ec07e029f6"
                                 .to_string(),
                         materialization: None,
+                        database_config: None,
                         references: vec!["seed_3".to_string(), "source_3".to_string()],
                         description: None,
                         tags: vec![],
@@ -1051,6 +1054,7 @@ sources:
                             "c3ac694382627234ebe1edad0f9cd75333ffbe8cf959a9c0d427625ab8e1172a"
                                 .to_string(),
                         materialization: None,
+                        database_config: None,
                         references: vec![
                             "model_1".to_string(),
                             "model_2".to_string(),

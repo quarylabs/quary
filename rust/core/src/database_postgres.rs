@@ -1,14 +1,18 @@
+use std::time::SystemTime;
+
+use chrono::{DateTime, Utc};
+#[cfg(target_arch = "wasm32")]
+use js_sys::Date;
+use pbjson_types::value::Kind;
+use pbjson_types::{Struct, Value};
+use quary_proto::snapshot::snapshot_strategy::StrategyType;
+use sqlinference::dialect::Dialect;
+
 use crate::databases::{
     base_for_seeds_create_table_specifying_text_type, CacheStatus, DatabaseQueryGenerator,
     MaterializationType, SnapshotGenerator, Timestamp, MATERIALIZATION_TYPE_MATERIALIZED_VIEW,
     MATERIALIZATION_TYPE_TABLE, MATERIALIZATION_TYPE_VIEW,
 };
-use chrono::{DateTime, Utc};
-#[cfg(target_arch = "wasm32")]
-use js_sys::Date;
-use quary_proto::snapshot::snapshot_strategy::StrategyType;
-use sqlinference::dialect::Dialect;
-use std::time::SystemTime;
 
 #[derive(Debug, Clone)]
 pub struct DatabaseQueryGeneratorPostgres {
@@ -73,24 +77,71 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         object_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
-        _: &CacheStatus,
+        database_config: &Option<Struct>,
+        _cache_status: &CacheStatus,
     ) -> Result<Option<Vec<String>>, String> {
+        let object_name_before_modification = object_name;
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
-        match materialization_type.as_deref() {
-            None => Ok(Some(vec![format!(
+        let config = match database_config {
+            Some(database_config) => {
+                let config = PostgresModelDatabaseConfig::try_from(database_config);
+                match config {
+                    Ok(config) => Ok(Some(config)),
+                    Err(error) => Err(error),
+                }
+            }
+            None => Ok(None),
+        }?;
+
+        match (materialization_type.as_deref(), config) {
+            (None, None) => Ok(Some(vec![format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             )])),
-            Some(MATERIALIZATION_TYPE_VIEW) => Ok(Some(vec![format!(
+            (Some(MATERIALIZATION_TYPE_VIEW), None) => Ok(Some(vec![format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
             )])),
-            Some(MATERIALIZATION_TYPE_TABLE) => Ok(Some(vec![format!(
+            (Some(MATERIALIZATION_TYPE_TABLE), None) => Ok(Some(vec![format!(
                 "CREATE TABLE {} AS {}",
                 object_name, original_select_statement
             )])),
-            Some(MATERIALIZATION_TYPE_MATERIALIZED_VIEW) => Ok(Some(vec![format!(
+            (Some(MATERIALIZATION_TYPE_TABLE), Some(config)) => {
+                let unlogged = if config.unlogged.unwrap_or(false) {
+                    "UNLOGGED "
+                } else {
+                    ""
+                };
+                let mut queries = vec![format!(
+                    "CREATE {}TABLE {} AS {}",
+                    unlogged, object_name, original_select_statement
+                )];
+                if let Some(indexes) = config.indexes {
+                    for index in indexes {
+                        let index_name = format!(
+                            "quary_index_{}_{}",
+                            object_name_before_modification,
+                            index.columns.join("_")
+                        );
+                        let unique = if index.unique.unwrap_or(false) {
+                            "UNIQUE "
+                        } else {
+                            ""
+                        };
+
+                        queries.push(format!(
+                            "CREATE {}INDEX {} ON {} ({})",
+                            unique,
+                            index_name,
+                            object_name,
+                            index.columns.join(", ")
+                        ));
+                    }
+                }
+                Ok(Some(queries))
+            }
+            (Some(MATERIALIZATION_TYPE_MATERIALIZED_VIEW), None) => Ok(Some(vec![format!(
                 "CREATE MATERIALIZED VIEW {} AS {}",
                 object_name, original_select_statement
             )])),
@@ -263,9 +314,102 @@ impl SnapshotGenerator for DatabaseQueryGeneratorPostgres {
     }
 }
 
+struct PostgresModelDatabaseConfig {
+    unlogged: Option<bool>,
+    indexes: Option<Vec<Index>>,
+}
+
+struct Index {
+    columns: Vec<String>,
+    unique: Option<bool>,
+}
+
+impl TryFrom<&Struct> for PostgresModelDatabaseConfig {
+    type Error = String;
+
+    fn try_from(value: &Struct) -> Result<Self, Self::Error> {
+        // check struct only has fields we expect
+        let allowed_fields = vec!["unlogged", "indexes"];
+        for field in value.fields.keys() {
+            if !allowed_fields.contains(&field.as_str()) {
+                return Err(format!("Unexpected field: {}", field));
+            }
+        }
+
+        let unlogged: Option<bool> = if let Some(unlogged) = value.fields.get("unlogged") {
+            match unlogged.kind {
+                Some(Kind::BoolValue(bool)) => Ok(Some(bool)),
+                _ => Err("Expected bool value".to_string()),
+            }
+        } else {
+            Ok(None)
+        }?;
+
+        let indexes: Option<Vec<Index>> = if let Some(indexes) = value.fields.get("indexes") {
+            match &indexes.kind {
+                Some(Kind::ListValue(list)) => {
+                    let indexes = list.values.iter().map(Index::try_from).collect();
+                    match indexes {
+                        Ok(indexes) => Ok(Some(indexes)),
+                        Err(error) => Err(error),
+                    }
+                }
+                _ => Err("Expected list value".to_string()),
+            }
+        } else {
+            Ok(None)
+        }?;
+
+        Ok(PostgresModelDatabaseConfig { unlogged, indexes })
+    }
+}
+
+impl TryFrom<&Value> for Index {
+    type Error = String;
+
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        match &value.kind {
+            None => Err("Missing value".to_string()),
+            Some(Kind::StructValue(index)) => {
+                let allowed_fields = vec!["columns", "unique"];
+                for field in index.fields.keys() {
+                    if !allowed_fields.contains(&field.as_str()) {
+                        return Err(format!("Unexpected field: {}", field));
+                    }
+                }
+                let columns: Vec<String> = if let Some(columns) = index.fields.get("columns") {
+                    match &columns.kind {
+                        Some(Kind::ListValue(list)) => list
+                            .values
+                            .iter()
+                            .map(|value| match &value.kind {
+                                Some(Kind::StringValue(string)) => Ok(string.to_string()),
+                                _ => Err("Expected string value".to_string()),
+                            })
+                            .collect(),
+                        _ => Err("Expected list value".to_string()),
+                    }
+                } else {
+                    Err("Missing columns field".to_string())
+                }?;
+                let unique: Option<bool> = if let Some(unique) = index.fields.get("unique") {
+                    match unique.kind {
+                        Some(Kind::BoolValue(bool)) => Ok(Some(bool)),
+                        _ => Err("Expected bool value".to_string()),
+                    }
+                } else {
+                    Ok(None)
+                }?;
+                Ok(Index { columns, unique })
+            }
+            _ => Err("Expected struct value".to_string()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::databases::DatabaseQueryGenerator;
+    use crate::databases::{CacheStatus, DatabaseQueryGenerator, MATERIALIZATION_TYPE_TABLE};
 
     #[test]
     fn test_get_current_timestamp() {
@@ -286,5 +430,222 @@ mod tests {
             now,
             "CAST('1970-01-01T00:00:00Z' AS TIMESTAMP WITH TIME ZONE)".to_string()
         );
+    }
+
+    #[test]
+    fn create_table_model_without_database_config() {
+        let postgres = super::DatabaseQueryGeneratorPostgres::new("schema".to_string(), None);
+        let query = postgres
+            .models_create_query(
+                "new_table",
+                "SELECT a, b FROM table",
+                &Some(MATERIALIZATION_TYPE_TABLE.to_string()),
+                &None,
+                &CacheStatus::NotMatching,
+            )
+            .unwrap();
+
+        assert_eq!(
+            query,
+            Some(vec![
+                "CREATE TABLE schema.new_table AS SELECT a, b FROM table".to_string()
+            ])
+        )
+    }
+
+    #[test]
+    fn create_table_model_with_unlogged() {
+        let postgres = super::DatabaseQueryGeneratorPostgres::new("schema".to_string(), None);
+        let config = pbjson_types::Struct {
+            fields: vec![(
+                "unlogged".to_string(),
+                pbjson_types::Value {
+                    kind: Some(pbjson_types::value::Kind::BoolValue(true)),
+                },
+            )]
+            .into_iter()
+            .collect(),
+        };
+        let query = postgres
+            .models_create_query(
+                "new_table",
+                "SELECT a, b FROM table",
+                &Some(MATERIALIZATION_TYPE_TABLE.to_string()),
+                &Some(config),
+                &CacheStatus::NotMatching,
+            )
+            .unwrap();
+
+        assert_eq!(
+            query,
+            Some(vec![
+                "CREATE UNLOGGED TABLE schema.new_table AS SELECT a, b FROM table".to_string()
+            ])
+        )
+    }
+
+    #[test]
+    fn create_table_model_single_index_not_unique() {
+        let postgres = super::DatabaseQueryGeneratorPostgres::new("schema".to_string(), None);
+        let config = pbjson_types::Struct {
+            fields: vec![(
+                "indexes".to_string(),
+                pbjson_types::Value {
+                    kind: Some(pbjson_types::value::Kind::ListValue(
+                        pbjson_types::ListValue {
+                            values: vec![pbjson_types::Value {
+                                kind: Some(pbjson_types::value::Kind::StructValue(
+                                    pbjson_types::Struct {
+                                        fields: vec![
+                                            (
+                                                "columns".to_string(),
+                                                pbjson_types::Value {
+                                                    kind: Some(pbjson_types::value::Kind::ListValue(
+                                                        pbjson_types::ListValue {
+                                                            values: vec![
+                                                                pbjson_types::Value {
+                                                                    kind: Some(
+                                                                        pbjson_types::value::Kind::StringValue(
+                                                                            "a".to_string(),
+                                                                        ),
+                                                                    ),
+                                                                },
+                                                            ],
+                                                        },
+                                                    )),
+                                                },
+                                            ),
+                                        ]
+                                        .into_iter()
+                                        .collect(),
+                                    },
+                                )),
+                            }],
+                        },
+                    )),
+                },
+            )]
+            .into_iter()
+            .collect(),
+        };
+        let query = postgres
+            .models_create_query(
+                "new_table",
+                "SELECT a, b FROM table",
+                &Some(MATERIALIZATION_TYPE_TABLE.to_string()),
+                &Some(config),
+                &CacheStatus::NotMatching,
+            )
+            .unwrap();
+        assert_eq!(
+            query,
+            Some(vec![
+                "CREATE TABLE schema.new_table AS SELECT a, b FROM table".to_string(),
+                "CREATE INDEX quary_index_new_table_a ON schema.new_table (a)".to_string()
+            ])
+        )
+    }
+
+    #[test]
+    fn create_table_model_with_indexes_two_column_unique() {
+        let postgres = super::DatabaseQueryGeneratorPostgres::new("schema".to_string(), None);
+        let config = pbjson_types::Struct {
+            fields: vec![(
+                "indexes".to_string(),
+                pbjson_types::Value {
+                    kind: Some(pbjson_types::value::Kind::ListValue(
+                        pbjson_types::ListValue {
+                            values: vec![pbjson_types::Value {
+                                kind: Some(pbjson_types::value::Kind::StructValue(
+                                    pbjson_types::Struct {
+                                        fields: vec![
+                                            (
+                                                "columns".to_string(),
+                                                pbjson_types::Value {
+                                                    kind: Some(pbjson_types::value::Kind::ListValue(
+                                                        pbjson_types::ListValue {
+                                                            values: vec![
+                                                                pbjson_types::Value {
+                                                                    kind: Some(
+                                                                        pbjson_types::value::Kind::StringValue(
+                                                                            "a".to_string(),
+                                                                        ),
+                                                                    ),
+                                                                },
+                                                                pbjson_types::Value {
+                                                                    kind: Some(
+                                                                        pbjson_types::value::Kind::StringValue(
+                                                                            "b".to_string(),
+                                                                        ),
+                                                                    ),
+                                                                },
+                                                            ],
+                                                        },
+                                                    )),
+                                                },
+                                            ),
+                                            (
+                                                "unique".to_string(),
+                                                pbjson_types::Value {
+                                                    kind: Some(pbjson_types::value::Kind::BoolValue(
+                                                        true,
+                                                    )),
+                                                },
+                                            ),
+                                        ]
+                                        .into_iter()
+                                        .collect(),
+                                    },
+                                )),
+                            }],
+                        },
+                    )),
+                },
+            )]
+            .into_iter()
+            .collect(),
+        };
+        let query = postgres
+            .models_create_query(
+                "new_table",
+                "SELECT a, b FROM table",
+                &Some(MATERIALIZATION_TYPE_TABLE.to_string()),
+                &Some(config),
+                &CacheStatus::NotMatching,
+            )
+            .unwrap();
+
+        assert_eq!(
+            query,
+            Some(vec![
+                "CREATE TABLE schema.new_table AS SELECT a, b FROM table".to_string(),
+                "CREATE UNIQUE INDEX quary_index_new_table_a_b ON schema.new_table (a, b)"
+                    .to_string(),
+            ])
+        )
+    }
+
+    #[test]
+    fn create_table_model_bad_field() {
+        let postgres = super::DatabaseQueryGeneratorPostgres::new("schema".to_string(), None);
+        let config = pbjson_types::Struct {
+            fields: vec![(
+                "bad_field".to_string(),
+                pbjson_types::Value {
+                    kind: Some(pbjson_types::value::Kind::BoolValue(true)),
+                },
+            )]
+            .into_iter()
+            .collect(),
+        };
+        let query = postgres.models_create_query(
+            "new_table",
+            "SELECT a, b FROM table",
+            &Some(MATERIALIZATION_TYPE_TABLE.to_string()),
+            &Some(config),
+            &CacheStatus::NotMatching,
+        );
+
+        assert_eq!(query, Err("Unexpected field: bad_field".to_string()))
     }
 }

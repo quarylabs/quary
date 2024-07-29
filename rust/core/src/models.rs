@@ -4,6 +4,7 @@ use crate::sql::return_reference_search;
 use futures::AsyncRead;
 use futures::AsyncReadExt;
 use once_cell::sync::Lazy;
+use pbjson_types::Struct;
 use regex::Regex;
 
 #[allow(clippy::unwrap_used)]
@@ -47,6 +48,10 @@ where
             &original_select_statement,
             connection_config,
         )?;
+    let model = project
+        .models
+        .get(view_name)
+        .ok_or(format!("Model {} not found in project", view_name))?;
     let reference_search =
         return_reference_search(config_schema_name).map_err(|e| e.to_string())?;
     let out_select =
@@ -56,6 +61,7 @@ where
         view_name,
         materialization,
         &out_select,
+        &model.database_config,
         CacheStatus::NotMatching,
     )?;
     Ok(sql_model_template)
@@ -77,6 +83,7 @@ fn return_sql_model_template(
     name: &str,
     materialization: &Option<String>,
     select_statement: &str,
+    model_database_config: &Option<Struct>,
     cache_status: CacheStatus,
 ) -> Result<Vec<String>, String> {
     let mut vec: Vec<String> = vec![];
@@ -84,8 +91,13 @@ fn return_sql_model_template(
     if let Some(drop) = drop {
         vec.push(drop);
     }
-    let create =
-        database.models_create_query(name, select_statement, materialization, &cache_status)?;
+    let create = database.models_create_query(
+        name,
+        select_statement,
+        materialization,
+        model_database_config,
+        &cache_status,
+    )?;
     if let Some(create) = create {
         vec.extend(create);
     }

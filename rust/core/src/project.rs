@@ -817,6 +817,9 @@ async fn parse_model(
     if references.contains(&name) {
         return Err(format!("model {} has a reference to itself", name));
     }
+    let database_config = model_definition
+        .map(|model| model.database_config.clone())
+        .unwrap_or(None);
 
     Ok(Model {
         name,
@@ -827,6 +830,7 @@ async fn parse_model(
         file_path: sql_path.to_string(),
         columns,
         references,
+        database_config,
     })
 }
 
@@ -1953,6 +1957,7 @@ mod tests {
             tests: vec![],
             tags: vec![],
             materialization: None,
+            database_config: None,
             columns: vec![],
         }]
         .into_iter()

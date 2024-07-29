@@ -1647,4 +1647,168 @@ models:
             assert_eq!(results.rows.len(), 0);
         }
     }
+
+    #[tokio::test]
+    async fn test_unlogged_unlogged_model_creation_and_index() {
+        let schema = "analytics";
+
+        let postgres = ContainerRequest::from(TestcontainersPostgres::default())
+            .start()
+            .await
+            .unwrap();
+        let pg_port = postgres.get_host_port_ipv4(5432).await.unwrap();
+        let database: Box<dyn DatabaseConnection> = Box::new(
+            Postgres::new(
+                "localhost",
+                Some(pg_port.to_string()),
+                "postgres",
+                "postgres",
+                "postgres",
+                schema,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
+            .await
+            .unwrap(),
+        );
+        database.exec("CREATE SCHEMA analytics").await.unwrap();
+        database.exec("CREATE SCHEMA jaffle_shop").await.unwrap();
+        database.exec("CREATE TABLE jaffle_shop.orders (order_id INTEGER, status VARCHAR(255), updated_at TIMESTAMP)").await.unwrap();
+        database.exec("INSERT INTO jaffle_shop.orders VALUES (1, 'in_progress', '2023-01-01 00:00:00'), (2, 'completed', '2023-01-01 00:00:00')").await.unwrap();
+
+        let file_system = FileSystem {
+            files: [
+                ("quary.yaml", "postgres: {schema: analytics}"),
+                ("models/stg_orders.sql", "SELECT * FROM q.raw_orders"),
+                ("models/stg_orders_2.sql", "SELECT * FROM q.raw_orders"),
+                (
+                    "models/schema.yaml",
+                    "
+sources:
+  - name: raw_orders
+    path: jaffle_shop.orders
+models:
+  - name: stg_orders
+    materialization: table
+    database_config: 
+      unlogged: true
+      indexes: 
+        - columns: 
+            - order_id
+            - status
+    tests:
+      - type: multi_column_unique
+        info:
+          columns: order_id,status
+    columns:
+      - name: order_id
+        tests:
+          - type: unique
+          - type: not_null
+          - type: gte
+            info:
+              column: order_id
+              value: 1
+          - type: gt
+            info:
+              column: order_id
+              value: 0
+          - type: lte
+            info:
+              column: order_id
+              value: \"500\"
+          - type: lt
+            info:
+              column: order_id
+              value: \"501\"
+      - name: status
+        tests:
+          - type: unique
+          - type: not_null
+          - type: accepted_values
+            info:
+              column: status
+              values: in_progress,completed
+  - name: stg_orders_2
+    materialization: table
+    database_config: 
+      unlogged: true
+      indexes: 
+        - unique: true
+          columns: 
+            - order_id
+    columns:
+      - name: order_id
+        tests:
+          - type: relationship
+            info:
+              column: order_id
+              model: stg_orders
+",
+                ),
+            ]
+            .iter()
+            .map(|(k, v)| {
+                (
+                    k.to_string(),
+                    File {
+                        name: k.to_string(),
+                        contents: Bytes::from(v.to_string()),
+                    },
+                )
+            })
+            .collect(),
+        };
+
+        let project = parse_project(
+            &file_system,
+            &DatabaseQueryGeneratorPostgres::new(schema.to_string(), None),
+            "",
+        )
+        .await
+        .unwrap();
+
+        let sqls = project_and_fs_to_sql_for_views(
+            &project,
+            &file_system,
+            &database.query_generator(),
+            false,
+            false,
+        )
+        .await
+        .unwrap();
+
+        for sql in &sqls {
+            for sql in &sql.1 {
+                database.exec(sql).await.unwrap();
+            }
+        }
+        // Run twice
+        for sql in &sqls {
+            for sql in &sql.1 {
+                database.exec(sql).await.unwrap();
+            }
+        }
+
+        let tests = return_tests_sql(
+            &DatabaseQueryGeneratorPostgres::new(schema.to_string(), None),
+            &project,
+            &file_system,
+            false,
+            None,
+            None,
+        )
+        .await
+        .unwrap();
+        assert!(!tests.is_empty());
+
+        for (_, test) in tests.iter() {
+            let results = database.query(test).await.unwrap();
+            assert_eq!(results.rows.len(), 0);
+        }
+    }
 }

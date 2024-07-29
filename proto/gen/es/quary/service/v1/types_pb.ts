@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3, Struct } from "@bufbuild/protobuf";
 
 /**
  * @generated from message quary.service.v1.Test
@@ -796,6 +796,11 @@ export class Model extends Message<Model> {
    */
   references: string[] = [];
 
+  /**
+   * @generated from field: optional google.protobuf.Struct database_config = 9;
+   */
+  databaseConfig?: Struct;
+
   constructor(data?: PartialMessage<Model>) {
     super();
     proto3.util.initPartial(data, this);
@@ -812,6 +817,7 @@ export class Model extends Message<Model> {
     { no: 8, name: "materialization", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 5, name: "columns", kind: "message", T: Model_ModelColum, repeated: true },
     { no: 6, name: "references", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 9, name: "database_config", kind: "message", T: Struct, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Model {

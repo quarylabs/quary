@@ -63,6 +63,7 @@ pub fn build_staging_schema_file_from_sources(
                         "Replace this with your description for {}",
                         source.name
                     )),
+                    database_config: None,
                     materialization: None,
                     tags: vec![],
                     tests: vec![],
@@ -207,6 +208,7 @@ mod tests {
                             "Replace this with your description for test_table".to_string()
                         ),
                         materialization: None,
+                        database_config: None,
                         tags: vec![],
                         tests: vec![],
                         columns: vec![
@@ -228,6 +230,7 @@ mod tests {
                             "Replace this with your description for demo_table".to_string()
                         ),
                         materialization: None,
+                        database_config: None,
                         tags: vec![],
                         tests: vec![],
                         columns: vec![
@@ -271,6 +274,7 @@ mod tests {
                     tags: vec![],
                     tests: vec![],
                     materialization: None,
+                    database_config: None,
                     columns: vec![],
                 }],
                 snapshots: vec![],
@@ -334,6 +338,7 @@ mod tests {
                         name: "test_456".to_string(),
                         description: None,
                         materialization: None,
+                        database_config: None,
                         tags: vec![],
                         tests: vec![],
                         columns: vec![]
@@ -343,6 +348,7 @@ mod tests {
                         description: Some(
                             "Replace this with your description for test_table".to_string()
                         ),
+                        database_config: None,
                         materialization: None,
                         tags: vec![],
                         tests: vec![],
@@ -365,6 +371,7 @@ mod tests {
                             "Replace this with your description for demo_table".to_string()
                         ),
                         materialization: None,
+                        database_config: None,
                         tags: vec![],
                         tests: vec![],
                         columns: vec![

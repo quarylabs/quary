@@ -238,6 +238,7 @@ async fn create_model_schema_entry_internal(
                     tests: vec![],
                     tags: vec![],
                     name: model_name.to_string(),
+                    database_config: None,
                     description: None,
                     materialization: None,
                     columns: vec![],

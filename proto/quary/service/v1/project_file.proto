@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package quary.service.v1;
 
+import "google/protobuf/struct.proto";
+
 option java_multiple_files = true;
 
 message ProjectFile {
@@ -18,6 +20,8 @@ message ProjectFile {
     // The materialization of the model, available types are specified by each database.
     optional string materialization = 4;
     repeated ModelTest tests = 5;
+
+    optional google.protobuf.Struct database_config = 7;
 
     repeated ProjectFileColumn columns = 3;
   }

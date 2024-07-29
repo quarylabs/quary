@@ -72,6 +72,7 @@ impl Model {
                 .collect()
         })?;
         Ok(quary_proto::project_file::Model {
+            database_config: None,
             name: self.name.clone(),
             description: self.description.clone(),
             tags: vec![],

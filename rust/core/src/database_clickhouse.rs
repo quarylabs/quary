@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 
 #[cfg(target_arch = "wasm32")]
 use js_sys::Date;
+use pbjson_types::Struct;
 use sqlinference::dialect::Dialect;
 
 use crate::databases::{
@@ -64,7 +65,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorClickhouse {
         object_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
-        _: &CacheStatus,
+        _database_config: &Option<Struct>,
+        _cache_status: &CacheStatus,
     ) -> Result<Option<Vec<String>>, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);

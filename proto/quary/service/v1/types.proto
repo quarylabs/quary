@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package quary.service.v1;
 
+import "google/protobuf/struct.proto";
+
 option java_multiple_files = true;
 
 // TODO Will eventually in the tests want to store more than the file_path but also the line location
@@ -124,6 +126,8 @@ message Model {
   // References to other models/seeds/snapshots that are used in the model. These are unique keys and sorted
   // alphabetically.
   repeated string references = 6;
+
+  optional google.protobuf.Struct database_config = 9;
 }
 
 message Snapshot {

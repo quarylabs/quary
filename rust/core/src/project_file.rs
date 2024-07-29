@@ -35,6 +35,7 @@ mod tests {
                 name: "model test".to_string(),
                 description: Some("test description for model".to_string()),
                 materialization: None,
+                database_config: None,
                 tests: vec![],
                 tags: vec![],
                 columns: vec![ProjectFileColumn {

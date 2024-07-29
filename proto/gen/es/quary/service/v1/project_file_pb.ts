@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3, Struct } from "@bufbuild/protobuf";
 
 /**
  * @generated from message quary.service.v1.ProjectFile
@@ -90,6 +90,11 @@ export class ProjectFile_Model extends Message<ProjectFile_Model> {
   tests: ModelTest[] = [];
 
   /**
+   * @generated from field: optional google.protobuf.Struct database_config = 7;
+   */
+  databaseConfig?: Struct;
+
+  /**
    * @generated from field: repeated quary.service.v1.ProjectFileColumn columns = 3;
    */
   columns: ProjectFileColumn[] = [];
@@ -107,6 +112,7 @@ export class ProjectFile_Model extends Message<ProjectFile_Model> {
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 4, name: "materialization", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 5, name: "tests", kind: "message", T: ModelTest, repeated: true },
+    { no: 7, name: "database_config", kind: "message", T: Struct, opt: true },
     { no: 3, name: "columns", kind: "message", T: ProjectFileColumn, repeated: true },
   ]);
 
