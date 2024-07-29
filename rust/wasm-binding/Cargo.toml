@@ -3,7 +3,7 @@ name = "quary-wasm-bindgen"
 version = "0.3.2"
 authors = ["Ben King <9087625+benfdking@users.noreply.github.com>"]
 edition = "2021"
-rust-version = "1.79.0"
+rust-version = "1.80.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
