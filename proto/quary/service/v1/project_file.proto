@@ -20,6 +20,8 @@ message ProjectFile {
     repeated ModelTest tests = 5;
 
     repeated ProjectFileColumn columns = 3;
+
+    repeated Index indexes = 7;
   }
 
   message Snapshot {
@@ -67,6 +69,13 @@ message ProjectFileColumn {
   string name = 1;
   optional string description = 2;
   repeated ColumnTest tests = 3;
+}
+
+message Index {
+  // defaults to b-tree, the most common on databases
+  optional string type = 1;
+
+  repeated string columns = 2;
 }
 
 message ColumnTest {

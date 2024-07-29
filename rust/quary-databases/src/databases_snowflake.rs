@@ -3,9 +3,7 @@ use async_trait::async_trait;
 use quary_core::database_snowflake::{
     validate_snowfalke_account_identifier, DatabaseQueryGeneratorSnowflake,
 };
-use quary_core::databases::{
-    ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
-};
+use quary_core::databases::{ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, IndexWithDetails, QueryError, QueryResult};
 use quary_proto::TableAddress;
 use regex::Regex;
 use snowflake_api::QueryResult::{Arrow, Json};
@@ -25,30 +23,34 @@ impl Debug for Snowflake {
 }
 
 const IS_VALID_ROLE_REGEX: &str = r"^[a-zA-Z_][a-zA-Z0-9_]*$";
+
 fn is_valid_role_name(name: &str) -> bool {
     #[allow(clippy::unwrap_used)]
-    let re = Regex::new(IS_VALID_ROLE_REGEX).unwrap();
+        let re = Regex::new(IS_VALID_ROLE_REGEX).unwrap();
     re.is_match(name)
 }
 
 const IS_VALID_USERNAME_REGEX: &str = r"^[a-zA-Z_][a-zA-Z0-9_.]*$";
+
 fn is_valid_username(name: &str) -> bool {
     #[allow(clippy::unwrap_used)]
-    let re = Regex::new(IS_VALID_USERNAME_REGEX).unwrap();
+        let re = Regex::new(IS_VALID_USERNAME_REGEX).unwrap();
     re.is_match(name)
 }
 
 const IS_VALID_SCHEMA_REGEX: &str = r"^[a-zA-Z_][a-zA-Z0-9_]*$";
+
 fn is_valid_schema_name(name: &str) -> bool {
     #[allow(clippy::unwrap_used)]
-    let re = Regex::new(IS_VALID_SCHEMA_REGEX).unwrap();
+        let re = Regex::new(IS_VALID_SCHEMA_REGEX).unwrap();
     re.is_match(name)
 }
 
 const IS_VALID_DATABASE_REGEX: &str = r"^[a-zA-Z_][a-zA-Z0-9_]*$";
+
 fn is_valid_database_name(name: &str) -> bool {
     #[allow(clippy::unwrap_used)]
-    let re = Regex::new(IS_VALID_DATABASE_REGEX).unwrap();
+        let re = Regex::new(IS_VALID_DATABASE_REGEX).unwrap();
     re.is_match(name)
 }
 
@@ -99,7 +101,7 @@ impl Snowflake {
             role,
             password,
         )
-        .map_err(|e| format!("Failed to create Snowflake client: {}", e))?;
+            .map_err(|e| format!("Failed to create Snowflake client: {}", e))?;
         Ok(Snowflake {
             client,
             database: database.to_string(),
@@ -169,7 +171,7 @@ impl DatabaseConnection for Snowflake {
                     "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_CATALOG = '{}' AND TABLE_SCHEMA = '{}'",
                     self.database, self.schema
                 )
-                .as_str(),
+                    .as_str(),
             )
             .await
             .map_err(|e| format!("Failed to list tables: {:?}", e))?;
@@ -195,7 +197,7 @@ impl DatabaseConnection for Snowflake {
                     "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'VIEW' AND TABLE_CATALOG = '{}' AND TABLE_SCHEMA = '{}'",
                     self.database, self.schema
                 )
-                .as_str(),
+                    .as_str(),
             )
             .await.map_err(|e| format!("Failed to list views: {:?}", e))?;
         Ok(results
@@ -220,7 +222,7 @@ impl DatabaseConnection for Snowflake {
                     "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{}'",
                     table
                 )
-                .as_str(),
+                    .as_str(),
             )
             .await
             .map_err(|e| format!("Failed to list columns: {:?}", e))?;
@@ -233,6 +235,10 @@ impl DatabaseConnection for Snowflake {
                 ..Default::default()
             })
             .collect::<Vec<ColumnWithDetails>>())
+    }
+
+    async fn list_indexes(&self, _table: &str) -> Result<Vec<IndexWithDetails>, String> {
+        todo!("X is unfamiliar with snowflake")
     }
 
     async fn exec(&self, sql: &str) -> Result<(), String> {
@@ -362,7 +368,7 @@ mod tests {
             None,
             "rubbish_details",
         )
-        .unwrap();
+            .unwrap();
 
         let tables = snowflake.list_tables().await.unwrap();
         println!("Tables: {:?}", tables);

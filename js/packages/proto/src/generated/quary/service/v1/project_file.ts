@@ -29,6 +29,7 @@ export interface ProjectFile_Model {
   materialization?: string | undefined;
   tests: ModelTest[];
   columns: ProjectFileColumn[];
+  indexes: Index[];
 }
 
 export interface ProjectFile_Snapshot {
@@ -81,6 +82,12 @@ export interface ProjectFileColumn {
   name: string;
   description?: string | undefined;
   tests: ColumnTest[];
+}
+
+export interface Index {
+  /** defaults to b-tree, the most common on databases */
+  type?: string | undefined;
+  columns: string[];
 }
 
 export interface ColumnTest {
@@ -195,7 +202,15 @@ export const ProjectFile = {
 };
 
 function createBaseProjectFile_Model(): ProjectFile_Model {
-  return { name: "", tags: [], description: undefined, materialization: undefined, tests: [], columns: [] };
+  return {
+    name: "",
+    tags: [],
+    description: undefined,
+    materialization: undefined,
+    tests: [],
+    columns: [],
+    indexes: [],
+  };
 }
 
 export const ProjectFile_Model = {
@@ -217,6 +232,9 @@ export const ProjectFile_Model = {
     }
     for (const v of message.columns) {
       ProjectFileColumn.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    for (const v of message.indexes) {
+      Index.encode(v!, writer.uint32(58).fork()).ldelim();
     }
     return writer;
   },
@@ -270,6 +288,13 @@ export const ProjectFile_Model = {
 
           message.columns.push(ProjectFileColumn.decode(reader, reader.uint32()));
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.indexes.push(Index.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -287,6 +312,7 @@ export const ProjectFile_Model = {
       materialization: isSet(object.materialization) ? gt.String(object.materialization) : undefined,
       tests: gt.Array.isArray(object?.tests) ? object.tests.map((e: any) => ModelTest.fromJSON(e)) : [],
       columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => ProjectFileColumn.fromJSON(e)) : [],
+      indexes: gt.Array.isArray(object?.indexes) ? object.indexes.map((e: any) => Index.fromJSON(e)) : [],
     };
   },
 
@@ -310,6 +336,9 @@ export const ProjectFile_Model = {
     if (message.columns?.length) {
       obj.columns = message.columns.map((e) => ProjectFileColumn.toJSON(e));
     }
+    if (message.indexes?.length) {
+      obj.indexes = message.indexes.map((e) => Index.toJSON(e));
+    }
     return obj;
   },
 
@@ -324,6 +353,7 @@ export const ProjectFile_Model = {
     message.materialization = object.materialization ?? undefined;
     message.tests = object.tests?.map((e) => ModelTest.fromPartial(e)) || [];
     message.columns = object.columns?.map((e) => ProjectFileColumn.fromPartial(e)) || [];
+    message.indexes = object.indexes?.map((e) => Index.fromPartial(e)) || [];
     return message;
   },
 };
@@ -802,6 +832,80 @@ export const ProjectFileColumn = {
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
     message.tests = object.tests?.map((e) => ColumnTest.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseIndex(): Index {
+  return { type: undefined, columns: [] };
+}
+
+export const Index = {
+  encode(message: Index, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.type !== undefined) {
+      writer.uint32(10).string(message.type);
+    }
+    for (const v of message.columns) {
+      writer.uint32(18).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Index {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseIndex();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.columns.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Index {
+    return {
+      type: isSet(object.type) ? gt.String(object.type) : undefined,
+      columns: gt.Array.isArray(object?.columns) ? object.columns.map((e: any) => gt.String(e)) : [],
+    };
+  },
+
+  toJSON(message: Index): unknown {
+    const obj: any = {};
+    if (message.type !== undefined) {
+      obj.type = message.type;
+    }
+    if (message.columns?.length) {
+      obj.columns = message.columns;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Index>, I>>(base?: I): Index {
+    return Index.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Index>, I>>(object: I): Index {
+    const message = createBaseIndex();
+    message.type = object.type ?? undefined;
+    message.columns = object.columns?.map((e) => e) || [];
     return message;
   },
 };

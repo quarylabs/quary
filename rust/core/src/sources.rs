@@ -76,6 +76,7 @@ pub fn build_staging_schema_file_from_sources(
                             tests: vec![],
                         })
                         .collect(),
+                    indexes: vec![]
                 }
             }))
             .collect(),
@@ -220,7 +221,8 @@ mod tests {
                                 description: None,
                                 tests: vec![]
                             }
-                        ]
+                        ],
+                        indexes: vec![]
                     },
                     project_file::Model {
                         name: "stg_demo_table".to_string(),
@@ -241,7 +243,8 @@ mod tests {
                                 description: None,
                                 tests: vec![]
                             }
-                        ]
+                        ],
+                        indexes: vec![]
                     }
                 ],
                 snapshots: vec![],
@@ -272,6 +275,7 @@ mod tests {
                     tests: vec![],
                     materialization: None,
                     columns: vec![],
+                    indexes: vec![],
                 }],
                 snapshots: vec![],
             },
@@ -336,7 +340,8 @@ mod tests {
                         materialization: None,
                         tags: vec![],
                         tests: vec![],
-                        columns: vec![]
+                        columns: vec![],
+                        indexes: vec![],
                     },
                     project_file::Model {
                         name: "stg_test_table".to_string(),
@@ -357,7 +362,8 @@ mod tests {
                                 description: None,
                                 tests: vec![]
                             }
-                        ]
+                        ],
+                        indexes: vec![]
                     },
                     project_file::Model {
                         name: "stg_demo_table".to_string(),
@@ -378,7 +384,8 @@ mod tests {
                                 description: None,
                                 tests: vec![]
                             }
-                        ]
+                        ],
+                        indexes: vec![]
                     }
                 ],
                 snapshots: vec![],

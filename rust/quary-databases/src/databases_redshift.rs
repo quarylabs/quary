@@ -8,6 +8,7 @@ use quary_core::{
 use quary_proto::TableAddress;
 use sqlx::Error;
 use std::fmt::Debug;
+use quary_core::databases::IndexWithDetails;
 
 use crate::databases_postgres::Postgres;
 
@@ -45,7 +46,7 @@ impl Redshift {
             channel_binding,
             Some(2), // Set extra_float_digits to 2 for Redshift
         )
-        .await?;
+            .await?;
         Ok(Self {
             postgres,
             schema: schema.to_string(),
@@ -76,6 +77,10 @@ impl DatabaseConnection for Redshift {
 
     async fn list_columns(&self, table: &str) -> Result<Vec<ColumnWithDetails>, String> {
         self.postgres.list_columns(table).await
+    }
+
+    async fn list_indexes(&self, table: &str) -> Result<Vec<IndexWithDetails>, String> {
+        self.postgres.list_indexes(table).await
     }
 
     async fn exec(&self, query: &str) -> Result<(), String> {
@@ -264,7 +269,7 @@ mod tests {
                     data_type: None,
                     is_nullable: Some(true),
                     is_unique: Some(false),
-                }
+                },
             ]
         );
         let columns = database.list_columns("transform.test_table").await.unwrap();
@@ -300,9 +305,9 @@ mod tests {
             .await
             .unwrap();
         database
-                .exec("CREATE TABLE IF NOT EXISTS other_schema.test_table (id INTEGER, name VARCHAR(255))")
-                .await
-                .unwrap();
+            .exec("CREATE TABLE IF NOT EXISTS other_schema.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
         database
             .exec("INSERT INTO other_schema.test_table VALUES (1, 'test'), (2, 'rubbish')")
             .await
@@ -357,17 +362,17 @@ mod tests {
                         ",
                 ),
             ]
-            .into_iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v),
-                    },
-                )
-            })
-            .collect(),
+                .into_iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &database.query_generator(), "")
@@ -382,8 +387,8 @@ mod tests {
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 
         assert!(!tests.is_empty());
@@ -413,9 +418,9 @@ mod tests {
             .await
             .unwrap();
         database
-                .exec("CREATE TABLE IF NOT EXISTS other_schema.test_table (id INTEGER, name VARCHAR(255))")
-                .await
-                .unwrap();
+            .exec("CREATE TABLE IF NOT EXISTS other_schema.test_table (id INTEGER, name VARCHAR(255))")
+            .await
+            .unwrap();
         database
             .exec("INSERT INTO other_schema.test_table VALUES (1, 'test'), (2, 'rubbish')")
             .await
@@ -472,17 +477,17 @@ mod tests {
                         ",
                 ),
             ]
-            .into_iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v),
-                    },
-                )
-            })
-            .collect(),
+                .into_iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &database.query_generator(), "")
@@ -496,8 +501,8 @@ mod tests {
             false,
             false,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         for sql in &sqls {
             for sql in &sql.1 {
                 database.exec(sql).await.unwrap();
@@ -518,8 +523,8 @@ mod tests {
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 
         assert!(!tests.is_empty());
@@ -633,7 +638,7 @@ mod tests {
                     data_type: None,
                     is_nullable: Some(true),
                     is_unique: Some(false),
-                }
+                },
             ]
         );
     }
@@ -669,15 +674,15 @@ mod tests {
 
         // Create orders table
         database
-                .exec("CREATE TABLE jaffle_shop.raw_orders (order_id INTEGER, status VARCHAR(255), updated_at TIMESTAMP)")
-                .await
-                .unwrap();
+            .exec("CREATE TABLE jaffle_shop.raw_orders (order_id INTEGER, status VARCHAR(255), updated_at TIMESTAMP)")
+            .await
+            .unwrap();
 
         // Insert some initial data
         database
-                .exec("INSERT INTO jaffle_shop.raw_orders VALUES (1, 'in_progress', '2023-01-01 00:00:00'), (2, 'completed', '2023-01-01 00:00:00')")
-                .await
-                .unwrap();
+            .exec("INSERT INTO jaffle_shop.raw_orders VALUES (1, 'in_progress', '2023-01-01 00:00:00'), (2, 'completed', '2023-01-01 00:00:00')")
+            .await
+            .unwrap();
 
         let file_system = FileSystem {
             files: [
@@ -701,17 +706,17 @@ mod tests {
     ",
                 ),
             ]
-            .iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v.to_string()),
-                    },
-                )
-            })
-            .collect(),
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v.to_string()),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &db_generator, "")
@@ -724,8 +729,8 @@ mod tests {
             &db_generator,
             database.as_ref(),
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         for (_, sql) in snapshots_sql {
             for statement in sql {
                 println!("{}", statement.as_str());
@@ -735,9 +740,9 @@ mod tests {
 
         // assert the data has been created correctly in the snapshot table
         let data = database
-                .query("SELECT order_id, status, updated_at, quary_valid_from, quary_valid_to, quary_scd_id FROM analytics.orders_snapshot ORDER BY order_id, quary_valid_from")
-                .await
-                .unwrap();
+            .query("SELECT order_id, status, updated_at, quary_valid_from, quary_valid_to, quary_scd_id FROM analytics.orders_snapshot ORDER BY order_id, quary_valid_from")
+            .await
+            .unwrap();
 
         assert_eq!(
             data.columns
@@ -750,7 +755,7 @@ mod tests {
                 "updated_at",
                 "quary_valid_from",
                 "quary_valid_to",
-                "quary_scd_id"
+                "quary_scd_id",
             ]
         );
         assert_eq!(
@@ -762,7 +767,7 @@ mod tests {
                     "2023-01-01T00:00:00",
                     "2023-01-01T01:00:00+00:00",
                     "NULL",
-                    "77f50225cf5a52d15fecaa449be2dcc4"
+                    "77f50225cf5a52d15fecaa449be2dcc4",
                 ],
                 vec![
                     "2",
@@ -770,15 +775,15 @@ mod tests {
                     "2023-01-01T00:00:00",
                     "2023-01-01T01:00:00+00:00",
                     "NULL",
-                    "3bb5cc6bb5b432df7712d067f57a3780"
+                    "3bb5cc6bb5b432df7712d067f57a3780",
                 ],
             ]
         );
 
         database
-                .exec("UPDATE jaffle_shop.raw_orders SET status = 'completed', updated_at = CAST('2023-01-01 02:00:00' AS TIMESTAMP) WHERE order_id = 1")
-                .await
-                .unwrap();
+            .exec("UPDATE jaffle_shop.raw_orders SET status = 'completed', updated_at = CAST('2023-01-01 02:00:00' AS TIMESTAMP) WHERE order_id = 1")
+            .await
+            .unwrap();
 
         let datetime_str_updated = "2023-01-01 03:00:00";
 
@@ -801,8 +806,8 @@ mod tests {
             &db_generator_updated,
             database.as_ref(),
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
 
         for (_, sql) in &snapshots_sql {
             for statement in sql {
@@ -812,9 +817,9 @@ mod tests {
 
         // assert the data has been created correctly in the snapshot table
         let data = database
-                .query("SELECT order_id, status, updated_at, quary_valid_from, quary_valid_to, quary_scd_id FROM analytics.orders_snapshot ORDER BY order_id, quary_valid_from")
-                .await
-                .unwrap();
+            .query("SELECT order_id, status, updated_at, quary_valid_from, quary_valid_to, quary_scd_id FROM analytics.orders_snapshot ORDER BY order_id, quary_valid_from")
+            .await
+            .unwrap();
 
         assert_eq!(
             data.columns
@@ -827,7 +832,7 @@ mod tests {
                 "updated_at",
                 "quary_valid_from",
                 "quary_valid_to",
-                "quary_scd_id"
+                "quary_scd_id",
             ]
         );
         assert_eq!(
@@ -839,7 +844,7 @@ mod tests {
                     "2023-01-01T00:00:00",
                     "2023-01-01T01:00:00+00:00",
                     "2023-01-01T03:00:00+00:00",
-                    "77f50225cf5a52d15fecaa449be2dcc4"
+                    "77f50225cf5a52d15fecaa449be2dcc4",
                 ],
                 vec![
                     "1",
@@ -847,7 +852,7 @@ mod tests {
                     "2023-01-01T02:00:00",
                     "2023-01-01T03:00:00+00:00",
                     "NULL",
-                    "f5c7798e30814925cd1a61e9e5ef6683"
+                    "f5c7798e30814925cd1a61e9e5ef6683",
                 ],
                 vec![
                     "2",
@@ -855,7 +860,7 @@ mod tests {
                     "2023-01-01T00:00:00",
                     "2023-01-01T01:00:00+00:00",
                     "NULL",
-                    "3bb5cc6bb5b432df7712d067f57a3780"
+                    "3bb5cc6bb5b432df7712d067f57a3780",
                 ],
             ]
         );

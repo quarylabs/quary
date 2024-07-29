@@ -241,6 +241,7 @@ async fn create_model_schema_entry_internal(
                     description: None,
                     materialization: None,
                     columns: vec![],
+                    indexes: vec![],
                 });
                 let stringified_project_file =
                     serialize_project_file_to_yaml(project_file.clone())?;

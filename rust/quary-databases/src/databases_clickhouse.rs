@@ -6,9 +6,7 @@ use clickhouse_rs::Pool;
 use futures_util::StreamExt;
 
 use quary_core::database_clickhouse::DatabaseQueryGeneratorClickhouse;
-use quary_core::databases::{
-    ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, QueryError, QueryResult,
-};
+use quary_core::databases::{ColumnWithDetails, DatabaseConnection, DatabaseQueryGenerator, IndexWithDetails, QueryError, QueryResult};
 use quary_proto::TableAddress;
 
 #[derive(Debug)]
@@ -172,6 +170,10 @@ ORDER BY position;",
             .collect::<Vec<_>>();
 
         Ok(results)
+    }
+
+    async fn list_indexes(&self, _path: &str) -> Result<Vec<IndexWithDetails>, String> {
+        todo!("X is unfamiliar with clickhouse")
     }
 
     async fn exec(&self, query: &str) -> Result<(), String> {
@@ -434,7 +436,7 @@ mod tests {
                     data_type: Some("String".to_string()),
                     is_nullable: None,
                     is_unique: None,
-                }
+                },
             ]
         );
         let columns = database.list_columns("transform.test_table").await.unwrap();
@@ -454,7 +456,7 @@ mod tests {
                     data_type: Some("String".to_string()),
                     is_nullable: None,
                     is_unique: None,
-                }
+                },
             ]
         );
     }
@@ -541,17 +543,17 @@ mod tests {
                         ",
                 ),
             ]
-            .into_iter()
-            .map(|(k, v)| {
-                (
-                    k.to_string(),
-                    File {
-                        name: k.to_string(),
-                        contents: Bytes::from(v),
-                    },
-                )
-            })
-            .collect(),
+                .into_iter()
+                .map(|(k, v)| {
+                    (
+                        k.to_string(),
+                        File {
+                            name: k.to_string(),
+                            contents: Bytes::from(v),
+                        },
+                    )
+                })
+                .collect(),
         };
 
         let project = parse_project(&file_system, &database.query_generator(), "")
@@ -566,8 +568,8 @@ mod tests {
             None,
             None,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         let tests = tests.iter().collect::<Vec<_>>();
 
         assert!(!tests.is_empty());
