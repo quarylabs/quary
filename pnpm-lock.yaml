@@ -144,8 +144,8 @@ importers:
         specifier: ^7.17.0
         version: 7.17.0(eslint@8.57.0)(typescript@5.5.4)
       '@vscode/test-web':
-        specifier: ^0.0.54
-        version: 0.0.54
+        specifier: ^0.0.56
+        version: 0.0.56
       '@vscode/vsce':
         specifier: ^2.31.1
         version: 2.31.1
@@ -2960,8 +2960,8 @@ packages:
   '@vitest/utils@1.6.0':
     resolution: {integrity: sha512-21cPiuGMoMZwiOHa2i4LXkMkMkCGzA+MVFV70jRwHo95dL4x/ts5GZhML1QWuy7yfp3WzK3lRvZi3JnXTYqrBw==}
 
-  '@vscode/test-web@0.0.54':
-    resolution: {integrity: sha512-LDdFFEzmnKQ96QmuRxK9kRhddQmwqyI/VOb6YhyPqOsbKBIM7uzTqpckoueOu9EEnvPSNQNoxqb426AakI8e5w==}
+  '@vscode/test-web@0.0.56':
+    resolution: {integrity: sha512-lR688n+D6A9odw+IZ5cU8CYr2YXLB61bGgyZpPVJe/sJy4/DYX5CAxPb7Wj9ZMYL41CTvWq5DeXtfCjlabPcYA==}
     engines: {node: '>=16'}
     hasBin: true
 
@@ -10757,11 +10757,12 @@ snapshots:
       loupe: 2.3.7
       pretty-format: 29.7.0
 
-  '@vscode/test-web@0.0.54':
+  '@vscode/test-web@0.0.56':
     dependencies:
       '@koa/cors': 5.0.0
       '@koa/router': 12.0.1
       '@playwright/browser-chromium': 1.45.3
+      glob: 10.4.5
       gunzip-maybe: 1.4.2
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.5
