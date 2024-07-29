@@ -254,7 +254,7 @@ ORDER BY position;",
         ))
     }
 
-    async fn table_exists(&self, path: &str) -> Result<Option<bool>, String> {
+    async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
         Ok(None)
     }
 }
