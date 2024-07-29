@@ -1,9 +1,10 @@
 [package]
 name = "quary-core"
-version = "0.3.3"
 authors = ["Ben King <9087625+benfdking@users.noreply.github.com>"]
-edition = "2021"
-rust-version = "1.80.0"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
