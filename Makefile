@@ -31,8 +31,8 @@ sql_fix_template: ## Fix the sql code
 
 .PHONY: sql_lint_template
 sql_lint_template: ## Lint the sql code
-	cd rust/core/src/init && sqlfluff lint .
-	cd rust/core/src/init_duckdb && sqlfluff lint .
+	cd rust/core/src/init && sqruff lint .
+	cd rust/core/src/init_duckdb && sqruff lint .
 
 .PHONY: rust_build
 rust_build: ## Builds the rust code

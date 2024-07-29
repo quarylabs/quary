@@ -121,13 +121,12 @@ jobs:
       - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
       - name: Check CI scripts
         run: cargo build
-  sqlfluff-template:
-    name: Lint template with SQLFluff
+  sqruff-template:
+    name: Lint template with sqruff
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # ratchet:actions/checkout@v4
-      - name: Install SQLFluff
-        run: pip install sqlfluff
+      - uses: quarylabs/install-sqruff-cli-action@7805329baf7cf340e849e254cddc782f08f2d36c # ratchet:quarylabs/install-sqruff-cli-action@main
       - name: Lint template
         run: make sql_lint_template
   check-versions-match:
