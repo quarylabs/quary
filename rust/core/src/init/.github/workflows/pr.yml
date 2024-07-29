@@ -9,15 +9,14 @@ concurrency:
   group: ${{ github.head_ref }}
   cancel-in-progress: true
 jobs:
-  sqlfluff-lint:
-    name: Lint template with SQLFluff
+  sqruff-lint:
+    name: Lint template with sqruff
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # ratchet:actions/checkout@v3
-      - name: Install SQLFluff
-        run: pip install sqlfluff
+      - uses: quarylabs/install-sqruff-cli-action@main
       - name: Lint template
-        run: sqlfluff lint --dialect sqlite .
+        run: sqruff lint .
   prettier-yaml:
     name: Lint/Format YAML with Prettier
     runs-on: ubuntu-latest

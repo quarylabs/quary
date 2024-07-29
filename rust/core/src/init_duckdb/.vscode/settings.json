@@ -3,6 +3,9 @@
   "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[sql]": {
+    "editor.defaultFormatter": "Quary.sqruff"
+  },
   "yaml.schemas": {
     "https://raw.githubusercontent.com/quarylabs/quary/main/proto/gen/json_schema/ConnectionConfig.json": "quary.yaml",
     "https://raw.githubusercontent.com/quarylabs/quary/main/proto/gen/json_schema/ChartFile.json": "models/**/*.chart.yaml",
