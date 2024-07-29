@@ -53,18 +53,18 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
         original_select_statement: &str,
         materialization_type: &Option<String>,
         _: &CacheStatus,
-    ) -> Result<Option<String>, String> {
+    ) -> Result<Option<Vec<String>>, String> {
         let object_name = self.return_full_path_requirement(object_name);
         let object_name = self.database_name_wrapper(&object_name);
         match materialization_type.as_deref() {
-            None => Ok(Some(format!(
+            None => Ok(Some(vec![format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
-            ))),
-            Some(MATERIALIZATION_TYPE_VIEW) => Ok(Some(format!(
+            )])),
+            Some(MATERIALIZATION_TYPE_VIEW) => Ok(Some(vec![format!(
                 "CREATE VIEW {} AS {}",
                 object_name, original_select_statement
-            ))),
+            )])),
             _ => Err("Unsupported materialization type".to_string()),
         }
     }
@@ -170,13 +170,13 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
 
     fn models_create_query(
         &self,
-        view_name: &str,
+        object_name: &str,
         original_select_statement: &str,
         materialization_type: &Option<String>,
         cache_status: &CacheStatus,
-    ) -> Result<Option<String>, String> {
+    ) -> Result<Option<Vec<String>>, String> {
         self.as_ref().models_create_query(
-            view_name,
+            object_name,
             original_select_statement,
             materialization_type,
             cache_status,
