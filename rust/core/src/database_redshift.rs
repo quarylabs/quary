@@ -32,7 +32,8 @@ impl DatabaseQueryGeneratorRedshift {
             config: FluffConfig::new(
                 [(
                     "core".into(),
-                    Value::Map([("dialect".into(), Value::String("redshift".into()))].into()),
+                    // FIXME: redshift -> ansi
+                    Value::Map([("dialect".into(), Value::String("ansi".into()))].into()),
                 )]
                 .into(),
                 None,
