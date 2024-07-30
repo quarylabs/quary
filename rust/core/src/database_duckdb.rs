@@ -6,7 +6,11 @@ use chrono::{DateTime, Utc};
 #[cfg(target_arch = "wasm32")]
 use js_sys::Date;
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
-use sqlinference::dialect::Dialect;
+use sqruff::core::{
+    config::{FluffConfig, Value},
+    parser::parser::Parser,
+};
+
 use std::time::SystemTime;
 
 #[derive(Debug, Clone)]
@@ -15,6 +19,7 @@ pub struct DatabaseQueryGeneratorDuckDB {
     /// override_now is used to override the current timestamp in the generated SQL. It is primarily
     /// used for testing purposes.
     override_now: Option<SystemTime>,
+    config: FluffConfig,
 }
 
 impl DatabaseQueryGeneratorDuckDB {
@@ -25,6 +30,15 @@ impl DatabaseQueryGeneratorDuckDB {
         DatabaseQueryGeneratorDuckDB {
             schema,
             override_now,
+            config: FluffConfig::new(
+                [(
+                    "core".into(),
+                    Value::Map([("dialect".into(), Value::String("duckdb".into()))].into()),
+                )]
+                .into(),
+                None,
+                None,
+            ),
         }
     }
 }
@@ -75,8 +89,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorDuckDB {
         )]
     }
 
-    fn get_dialect(&self) -> &Dialect {
-        &Dialect::DuckDB
+    fn get_dialect(&self) -> Parser {
+        Parser::new(&self.config, None)
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

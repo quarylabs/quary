@@ -13,7 +13,9 @@ crate-type = ["cdylib", "rlib"]
 prost = { default-features = false, version = "0.12" }
 sqlparser = { default-features = false, version = "0.45" }
 quary_proto = { path = "../../proto/gen/rust" }
-sqlinference = { path = "../sqlinference" }
+sqlinference = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-sqlinference" }
+sqruff = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-lib" }
+
 rust-embed = "8"
 csv = "1"
 petgraph = { version = "0.6", default-features = false }

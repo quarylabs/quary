@@ -347,7 +347,7 @@ async fn main_wrapped() -> Result<(), String> {
                 &query_generator,
                 &file_system,
                 &project,
-                query_generator.get_dialect(),
+                &query_generator.get_dialect(),
                 mode,
                 func,
                 test_args.full_source,

@@ -28,7 +28,7 @@ use quary_proto::{
     TestUnique,
 };
 use sqlinference::infer_tests::{get_column_with_source, ExtractedSelect};
-use sqlparser::dialect::Dialect;
+use sqruff::core::parser::parser::Parser;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 
@@ -48,7 +48,7 @@ pub fn build_column_description_map(
     project: &Project,
     model_sql: &str,
     modelling_prefix: &str,
-    dialect: &dyn Dialect,
+    dialect: &Parser<'_>,
 ) -> Result<HashMap<String, String>, String> {
     let extracted = get_column_with_source(dialect, model_sql);
     match extracted {
@@ -80,7 +80,7 @@ pub async fn build_column_description_map_for_model(
     project: &Project,
     modelling_prefix: &str,
     model: &str,
-    dialect: &dyn Dialect,
+    dialect: &Parser<'_>,
     file_system: &impl FileSystem,
 ) -> Result<HashMap<String, String>, String> {
     let model = project
@@ -2672,7 +2672,7 @@ sources:
 
     #[tokio::test]
     async fn test_parse_project_with_bad_reference_but_in_comment() {
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
 
         let file_system = quary_proto::FileSystem {
             files: vec![
@@ -2729,7 +2729,7 @@ sources:
 
     #[tokio::test]
     async fn test_parse_project_with_sql_beginning_with_q() {
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
 
         let file_system = quary_proto::FileSystem {
             files: vec![
@@ -2788,7 +2788,7 @@ sources:
 
     #[tokio::test]
     async fn test_parse_project_with_invalid_name_qqq() {
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
 
         let file_system = quary_proto::FileSystem {
             files: vec![
@@ -2818,7 +2818,7 @@ sources:
 
     #[tokio::test]
     async fn test_parse_project_with_invalid_name_space() {
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
 
         let file_system = quary_proto::FileSystem {
             files: vec![
@@ -2885,7 +2885,7 @@ sources:
 
     #[tokio::test]
     async fn test_parse_project_with_valid_materialization() {
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
 
         let file_system = quary_proto::FileSystem {
             files: vec![

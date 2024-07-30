@@ -1,8 +1,30 @@
-use crate::databases::{DatabaseQueryGenerator, SnapshotGenerator};
-use sqlinference::dialect::Dialect;
+use sqruff::core::{
+    config::{FluffConfig, Value},
+    parser::parser::Parser,
+};
 
-#[derive(Debug, Default)]
-pub struct DatabaseQueryGeneratorSqlite {}
+use crate::databases::{DatabaseQueryGenerator, SnapshotGenerator};
+
+#[derive(Debug)]
+pub struct DatabaseQueryGeneratorSqlite {
+    config: FluffConfig,
+}
+
+impl Default for DatabaseQueryGeneratorSqlite {
+    fn default() -> Self {
+        Self {
+            config: FluffConfig::new(
+                [(
+                    "core".into(),
+                    Value::Map([("dialect".into(), Value::String("sqlite".into()))].into()),
+                )]
+                .into(),
+                None,
+                None,
+            ),
+        }
+    }
+}
 
 impl DatabaseQueryGenerator for DatabaseQueryGeneratorSqlite {
     fn return_full_path_requirement(&self, table_name: &str) -> String {
@@ -39,8 +61,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorSqlite {
         vec![drop, create]
     }
 
-    fn get_dialect(&self) -> &Dialect {
-        &Dialect::SQLite
+    fn get_dialect(&self) -> Parser {
+        Parser::new(&self.config, None)
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {
@@ -72,7 +94,7 @@ mod tests {
 
     #[test]
     fn test_return_table_view_from_full_path() {
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let query = database.return_name_from_full_path("table_name");
         assert_eq!(query, Ok("table_name"));
 

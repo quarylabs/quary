@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use pbjson_types::Struct;
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use quary_proto::TableAddress;
-use sqlinference::dialect::Dialect;
+use sqruff::core::parser::parser::Parser;
 use std::fmt::Debug;
 
 /// CacheStatus defines whether the cache exists and matches the current model, if so it is possible
@@ -140,7 +140,7 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
     ) -> Vec<String>;
 
     /// get_dialect returns the dialect of the database.
-    fn get_dialect(&self) -> &Dialect;
+    fn get_dialect(&self) -> Parser;
 
     /// database_name_wrapper returns a full path or name wrapped in quotes that work for the specific database
     fn database_name_wrapper(&self, name: &str) -> String;
@@ -226,7 +226,7 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
             .automatic_cache_sql_create_statement(model, model_cache_name)
     }
 
-    fn get_dialect(&self) -> &Dialect {
+    fn get_dialect(&self) -> Parser {
         self.as_ref().get_dialect()
     }
 

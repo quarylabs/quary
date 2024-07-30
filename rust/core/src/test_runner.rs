@@ -8,7 +8,7 @@ use quary_proto::{
     failed, passed, FailedRunResults, InferredChain, InferredChainWithOperation, TestResult,
 };
 use quary_proto::{Project, TestResults, TestRunner};
-use sqlinference::dialect::Dialect;
+use sqruff::core::parser::parser::Parser;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::future::Future;
 use std::pin::Pin;
@@ -79,7 +79,7 @@ pub async fn run_tests_internal(
     database: &impl DatabaseQueryGenerator,
     file_system: &impl FileSystem,
     project: &Project,
-    dialect: &Dialect,
+    dialect: &Parser<'_>,
     test_runner: TestRunner,
     run_statement: RunStatementFunc,
     whether_to_include_model_to_source: bool,
