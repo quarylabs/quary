@@ -5,7 +5,6 @@ members = [
     "rust/core",
     "rust/dbt-converter",
     "rust/pbjson-types",
-    "rust/sqlinference",
     "rust/wasm-binding"
 ]
 resolver = "2"
