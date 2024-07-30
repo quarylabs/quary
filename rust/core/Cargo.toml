@@ -11,7 +11,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 prost = { default-features = false, version = "0.12" }
-sqlparser = { default-features = false, version = "0.45" }
+sqlparser = { default-features = false, version = "0.49" }
 quary_proto = { path = "../../proto/gen/rust" }
 sqlinference = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-sqlinference" }
 sqruff = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-lib" }
