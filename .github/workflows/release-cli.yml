@@ -41,7 +41,7 @@ jobs:
       - name: Set up Rust
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           profile: minimal
         if: ${{ !matrix.platform.cross }}
       - name: Install cross
@@ -84,7 +84,7 @@ jobs:
       - name: Set up Rust
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           profile: minimal
         if: ${{ !matrix.platform.cross }}
       - name: Build binary (*nix)
@@ -130,7 +130,7 @@ jobs:
       - name: Set up Rust
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           profile: minimal
         if: ${{ !matrix.platform.cross }}
       - run: rustup target add x86_64-apple-darwin
@@ -214,7 +214,7 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
       - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
       - run: cargo build --release
       - name: Extract version from tag
