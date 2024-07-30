@@ -942,14 +942,9 @@ pub(crate) async fn get_model_table_internal(
     let model_statement = model_map
         .get(&request.model_name)
         .ok_or(format!("Model {} not found", request.model_name))?;
-    let columns = get_columns_internal(&database.get_dialect(), model_statement)
+    let (columns, _) = get_columns_internal(&database.get_dialect(), model_statement)
         .ok()
-        .map(|(columns, _)| {
-            columns
-                .iter()
-                .map(|column| column.to_string())
-                .collect::<Vec<String>>()
-        });
+        .unzip();
     let inferred_tests: Option<Vec<sqlinference::test::Test>> = infer_tests(
         &database.get_dialect(),
         format!("{}.{}", DEFAULT_SCHEMA_PREFIX, request.model_name).as_str(),
