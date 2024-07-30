@@ -27,7 +27,7 @@ jobs:
           submodules: 'true'
       - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           target: wasm32-unknown-unknown
           override: true
           profile: minimal
