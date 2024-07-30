@@ -383,6 +383,7 @@ mod tests {
             &quary_postgres.query_generator(),
             false,
             false,
+            true,
         )
         .await
         .unwrap();
@@ -830,6 +831,7 @@ models:
             &database.query_generator(),
             false,
             false,
+            true,
         )
         .await
         .unwrap();
@@ -1778,6 +1780,7 @@ models:
             &database.query_generator(),
             false,
             false,
+            true,
         )
         .await
         .unwrap();

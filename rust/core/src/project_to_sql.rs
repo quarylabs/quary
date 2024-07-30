@@ -9,6 +9,7 @@ use crate::seeds::parse_table_schema_seeds;
 use crate::sql::return_reference_search;
 use quary_proto::{ConnectionConfig, Model, Project, Seed, Snapshot, Source};
 use std::collections::{BTreeSet, HashMap};
+use std::io::Read;
 use std::path::Path;
 
 /// project_and_fs_to_query_sql_for_model_sql wraps project_and_fs_to_query_sql but injects model
@@ -153,8 +154,12 @@ pub async fn project_and_fs_to_sql_for_views(
     project: &Project,
     file_system: &impl FileSystem,
     database: &impl DatabaseQueryGenerator,
+    // If true, only the models are returned, not the seeds.
     only_models: bool,
+    // If true, the seeds are created but the data is not included.
     do_not_include_seeds_data: bool,
+    // If true, the pre-run scripts are included in the output.
+    include_pre_run_scripts: bool,
 ) -> Result<Vec<(String, Vec<String>)>, String> {
     let graph = project_to_graph(project.clone())?;
     let sorted = graph.graph.get_node_sorted()?;
@@ -251,7 +256,56 @@ pub async fn project_and_fs_to_sql_for_views(
         .collect::<Result<_, _>>()?;
 
     seeds_out.append(&mut models);
+
+    // prepend the pre run scripts
+    if include_pre_run_scripts {
+        let pre_scripts = get_pre_scripts(
+            file_system,
+            project
+                .connection_config
+                .clone()
+                .ok_or("missing connection config, required to get pre run scripts".to_string())?
+                .pre_run_scripts
+                .clone(),
+        )
+        .await?;
+        seeds_out = pre_scripts
+            .into_iter()
+            .chain(seeds_out.into_iter())
+            .collect();
+    }
+
     Ok(seeds_out)
+}
+
+/// get_pre_scripts reads the pre scripts and returns them split by file and then by statements in a
+/// vector. The vector returned contains the file path with the calls.
+async fn get_pre_scripts(
+    file_system: &impl FileSystem,
+    paths: Vec<String>,
+) -> Result<Vec<(String, Vec<String>)>, String> {
+    let mut outs = vec![];
+    for path in paths {
+        let file = file_system
+            .read_file(&path)
+            .await
+            .map_err(|e| format!("failed to read file {:?} with error {:?}", path, e))?;
+        let file = convert_async_read_to_blocking_read(file).await;
+        let mut reader = std::io::BufReader::new(file);
+        let mut contents = String::new();
+        reader
+            .read_to_string(&mut contents)
+            .map_err(|e| format!("failed to read file {:?} with error {:?}", path, e))?;
+        // split, trim and remove empties
+        let statements = contents
+            .split(';')
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_string())
+            .collect();
+        outs.push((path, statements));
+    }
+    Ok(outs)
 }
 
 /// Generates SQL statements for snapshots based on the project and file system.
@@ -1297,7 +1351,7 @@ sources:
         ];
 
         let project = parse_project(&fs, &database, "").await.unwrap();
-        let sql = project_and_fs_to_sql_for_views(&project, &fs, &database, false, false)
+        let sql = project_and_fs_to_sql_for_views(&project, &fs, &database, false, false, false)
             .await
             .unwrap();
 
@@ -1362,7 +1416,7 @@ sources:
         ];
 
         let project = parse_project(&fs, &database, "").await.unwrap();
-        let sql = project_and_fs_to_sql_for_views(&project, &fs, &database, false, false)
+        let sql = project_and_fs_to_sql_for_views(&project, &fs, &database, false, false, false)
             .await
             .unwrap();
 
@@ -1383,6 +1437,7 @@ sources:
                     value: "value2".to_string(),
                 },
             ],
+            pre_run_scripts: vec![],
         };
 
         let sql = "SELECT
@@ -1557,5 +1612,123 @@ sources:
         result.unwrap_err().to_string(),
         "model \"shift_hours.chart.sql\" has reference to \"non_existent_model\" which is not a model, source or snapshot"
     );
+    }
+
+    // Tests: top-level script/nested script and script that is multiple statements
+    #[tokio::test]
+    async fn test_project_with_pre_scripts() {
+        let database = DatabaseQueryGeneratorSqlite::default();
+        let fs = quary_proto::FileSystem {
+            files: HashMap::from([
+                (
+                    "quary.yaml".to_string(),
+                    quary_proto::File {
+                        name: "quary.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(r"
+sqliteInMemory: {}
+pre_run_scripts:
+  - pre_script.sql
+  - nested/pre_script.sql
+  - multiple_statment_scritps.sql
+".as_bytes()),
+                    },
+                ),
+                (
+                    "models/stg_shifts.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/stg_shifts.sql".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "SELECT employee_id, shift_date, shift FROM q.raw_shifts",
+                        ),
+                    },
+                ),
+                (
+                    "models/shifts_transformed.sql".to_string(),
+                    quary_proto::File {
+                        name: "models/shifts_transformed.sql".to_string(),
+                        contents: prost::bytes::Bytes::from("SELECT * FROM q.stg_shifts"),
+                    },
+                ),
+                (
+                    "models/schema.yaml".to_string(),
+                    quary_proto::File {
+                        name: "models/schema.yaml".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "sources: [{name: raw_shifts, path: raw_shifts_real_table}]",
+                        ),
+                    },
+                ),
+                (
+                    "pre_script.sql".to_string(),
+                    quary_proto::File {
+                        name: "pre_script.sql".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "CREATE TABLE test_table (id INTEGER PRIMARY KEY, name TEXT);",
+                        ),
+                    },
+                ),
+                (
+                    "nested/pre_script.sql".to_string(),
+                    quary_proto::File {
+                        name: "nested/pre_script.sql".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "CREATE TABLE test_table_nested (id INTEGER PRIMARY KEY, name TEXT);",
+                        ),
+                    },
+                ),
+                (
+                    "multiple_statment_scritps.sql".to_string(),
+                    quary_proto::File {
+                        name: "multiple_statment_scritps.sql".to_string(),
+                        contents: prost::bytes::Bytes::from(
+                            "CREATE TABLE test_table_multiple_statements (id INTEGER PRIMARY KEY, name TEXT);\nCREATE TABLE test_table_multiple_statements_2 (id INTEGER PRIMARY KEY, name TEXT);",
+                        ),
+                    },
+                )
+            ]),
+        };
+
+        let expected_output = vec![
+            (
+                "pre_script.sql".to_string(),
+                vec![
+                    "CREATE TABLE test_table (id INTEGER PRIMARY KEY, name TEXT)".to_string()
+                ],
+            ),
+            (
+                "nested/pre_script.sql".to_string(),
+                vec![
+                    "CREATE TABLE test_table_nested (id INTEGER PRIMARY KEY, name TEXT)".to_string()
+                ],
+            ),
+            (
+                "multiple_statment_scritps.sql".to_string(),
+                vec![
+                    "CREATE TABLE test_table_multiple_statements (id INTEGER PRIMARY KEY, name TEXT)".to_string(),
+                    "CREATE TABLE test_table_multiple_statements_2 (id INTEGER PRIMARY KEY, name TEXT)".to_string()
+                ],
+            ),
+            (
+                "stg_shifts".to_string(),
+                vec![
+                    "DROP VIEW IF EXISTS `stg_shifts`".to_string(),
+                    "CREATE VIEW `stg_shifts` AS SELECT employee_id, shift_date, shift FROM `raw_shifts_real_table`".to_string()
+                ]
+            ),
+            (
+                "shifts_transformed".to_string(),
+                vec![
+                    "DROP VIEW IF EXISTS `shifts_transformed`".to_string(),
+                    "CREATE VIEW `shifts_transformed` AS SELECT * FROM `stg_shifts`".to_string()
+                ]
+            )
+        ];
+
+        let project = parse_project(&fs, &database, "").await.unwrap();
+        let sql = project_and_fs_to_sql_for_views(&project, &fs, &database, false, false, true)
+            .await
+            .unwrap();
+
+        assert_eq!(sql, expected_output)
     }
 }

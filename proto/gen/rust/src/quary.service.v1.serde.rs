@@ -3716,12 +3716,18 @@ impl serde::Serialize for ConnectionConfig {
         if !self.vars.is_empty() {
             len += 1;
         }
+        if !self.pre_run_scripts.is_empty() {
+            len += 1;
+        }
         if self.config.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("quary.service.v1.ConnectionConfig", len)?;
         if !self.vars.is_empty() {
             struct_ser.serialize_field("vars", &self.vars)?;
+        }
+        if !self.pre_run_scripts.is_empty() {
+            struct_ser.serialize_field("preRunScripts", &self.pre_run_scripts)?;
         }
         if let Some(v) = self.config.as_ref() {
             match v {
@@ -3765,6 +3771,8 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
     {
         const FIELDS: &[&str] = &[
             "vars",
+            "pre_run_scripts",
+            "preRunScripts",
             "duckdb",
             "duckdb_in_memory",
             "duckdbInMemory",
@@ -3782,6 +3790,7 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Vars,
+            PreRunScripts,
             Duckdb,
             DuckdbInMemory,
             Sqlite,
@@ -3813,6 +3822,7 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
                     {
                         match value {
                             "vars" => Ok(GeneratedField::Vars),
+                            "preRunScripts" | "pre_run_scripts" => Ok(GeneratedField::PreRunScripts),
                             "duckdb" => Ok(GeneratedField::Duckdb),
                             "duckdbInMemory" | "duckdb_in_memory" => Ok(GeneratedField::DuckdbInMemory),
                             "sqlite" => Ok(GeneratedField::Sqlite),
@@ -3842,6 +3852,7 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut vars__ = None;
+                let mut pre_run_scripts__ = None;
                 let mut config__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
@@ -3850,6 +3861,12 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
                                 return Err(serde::de::Error::duplicate_field("vars"));
                             }
                             vars__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::PreRunScripts => {
+                            if pre_run_scripts__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("preRunScripts"));
+                            }
+                            pre_run_scripts__ = Some(map_.next_value()?);
                         }
                         GeneratedField::Duckdb => {
                             if config__.is_some() {
@@ -3918,6 +3935,7 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
                 }
                 Ok(ConnectionConfig {
                     vars: vars__.unwrap_or_default(),
+                    pre_run_scripts: pre_run_scripts__.unwrap_or_default(),
                     config: config__,
                 })
             }

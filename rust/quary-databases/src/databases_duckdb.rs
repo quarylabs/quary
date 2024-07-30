@@ -701,6 +701,7 @@ sources:
             &database.query_generator(),
             false,
             false,
+            true,
         )
         .await
         .unwrap();

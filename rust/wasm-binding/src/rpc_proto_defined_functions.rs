@@ -1036,7 +1036,8 @@ pub(crate) async fn return_sql_for_seeds_and_models(
         quary_core::project::parse_project(&file_system, &database, &request.project_root).await?;
     // TODO Need to make this dynamic
     let sqls =
-        project_and_fs_to_sql_for_views(&project, &file_system, &database, false, false).await?;
+        project_and_fs_to_sql_for_views(&project, &file_system, &database, false, false, true)
+            .await?;
     let sql = sqls
         .iter()
         .flat_map(|(_, s)| s.clone())

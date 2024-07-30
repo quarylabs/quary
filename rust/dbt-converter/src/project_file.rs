@@ -164,12 +164,6 @@ struct Table {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Relationship {
-    to: String,
-    field: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 enum Test {
     Simple(String),

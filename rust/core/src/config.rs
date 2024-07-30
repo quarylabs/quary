@@ -65,6 +65,7 @@ mod tests {
         let config = get_config_from_filesystem(&fs, "").await.unwrap();
 
         let expected_config = ConnectionConfig {
+            pre_run_scripts: vec![],
             config: Some(connection_config::Config::BigQuery(
                 connection_config::ConnectionConfigBigQuery {
                     project_id: "test-project".to_string(),
@@ -104,6 +105,7 @@ mod tests {
             .unwrap();
 
         let expected_config = ConnectionConfig {
+            pre_run_scripts: vec![],
             config: Some(connection_config::Config::BigQuery(
                 connection_config::ConnectionConfigBigQuery {
                     project_id: "test-project".to_string(),
@@ -172,6 +174,7 @@ mod tests {
         };
 
         let expected_config = ConnectionConfig {
+            pre_run_scripts: vec![],
             config: Some(connection_config::Config::BigQuery(
                 expected_big_query_config,
             )),
@@ -188,6 +191,7 @@ mod tests {
             dataset_id: "test_dataset".to_string(),
         };
         let config = ConnectionConfig {
+            pre_run_scripts: vec![],
             config: Some(connection_config::Config::BigQuery(big_query_config)),
             vars: Vec::new(),
         };

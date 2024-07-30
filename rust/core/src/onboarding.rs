@@ -184,6 +184,7 @@ mod tests {
     #[tokio::test]
     async fn test_generate_onboarding_files() {
         let sqlite_config = ConnectionConfig {
+            pre_run_scripts: vec![],
             config: Some(connection_config::Config::SqliteInMemory(
                 ConnectionConfigSqLiteInMemory {},
             )),

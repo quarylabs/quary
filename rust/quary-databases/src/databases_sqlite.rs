@@ -324,10 +324,16 @@ mod tests {
             .await
             .unwrap();
 
-        let sqls =
-            project_and_fs_to_sql_for_views(&project, &file_system, &query_generator, false, false)
-                .await
-                .unwrap();
+        let sqls = project_and_fs_to_sql_for_views(
+            &project,
+            &file_system,
+            &query_generator,
+            false,
+            false,
+            true,
+        )
+        .await
+        .unwrap();
 
         assert!(!sqls.is_empty());
 
@@ -381,10 +387,16 @@ mod tests {
             .await
             .unwrap();
 
-        let sqls =
-            project_and_fs_to_sql_for_views(&project, &file_system, &query_generator, false, false)
-                .await
-                .unwrap();
+        let sqls = project_and_fs_to_sql_for_views(
+            &project,
+            &file_system,
+            &query_generator,
+            false,
+            false,
+            true,
+        )
+        .await
+        .unwrap();
 
         assert!(!sqls.is_empty());
 
@@ -458,10 +470,16 @@ mod tests {
             .await
             .unwrap();
 
-        let sqls =
-            project_and_fs_to_sql_for_views(&project, &file_system, &query_generator, false, false)
-                .await
-                .unwrap();
+        let sqls = project_and_fs_to_sql_for_views(
+            &project,
+            &file_system,
+            &query_generator,
+            false,
+            false,
+            true,
+        )
+        .await
+        .unwrap();
 
         assert!(!sqls.is_empty());
 
@@ -591,10 +609,16 @@ sources:
         );
 
         let query_generator = sqlite.query_generator();
-        let sqls =
-            project_and_fs_to_sql_for_views(&project, &file_system, &query_generator, false, false)
-                .await
-                .unwrap();
+        let sqls = project_and_fs_to_sql_for_views(
+            &project,
+            &file_system,
+            &query_generator,
+            false,
+            false,
+            true,
+        )
+        .await
+        .unwrap();
 
         // assert
         // assert can find new model

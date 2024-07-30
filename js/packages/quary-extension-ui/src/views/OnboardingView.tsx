@@ -267,6 +267,7 @@ const DatabaseSelection: React.FC<{
                     sqliteInMemory: {},
                   },
                   vars: [],
+                  preRunScripts: [],
                 })
                 break
               }
@@ -329,6 +330,7 @@ const ConfigurationDetails: React.FC<ConfigurationDetailsProps> = ({
             },
           },
           vars: [],
+          preRunScripts: [],
         }
       case DatabaseOnboardingOptions.SQLite:
         return {
@@ -339,6 +341,7 @@ const ConfigurationDetails: React.FC<ConfigurationDetailsProps> = ({
             },
           },
           vars: [],
+          preRunScripts: [],
         }
       case DatabaseOnboardingOptions.Snowflake:
         return {
@@ -351,6 +354,7 @@ const ConfigurationDetails: React.FC<ConfigurationDetailsProps> = ({
             },
           },
           vars: [],
+          preRunScripts: [],
         }
       default: {
         throw new Error(`invalid database type ${states.sourceDetails.type}`)

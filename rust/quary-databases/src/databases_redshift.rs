@@ -495,6 +495,7 @@ mod tests {
             &database.query_generator(),
             false,
             false,
+            true,
         )
         .await
         .unwrap();

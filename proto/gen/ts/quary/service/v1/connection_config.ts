@@ -28,6 +28,13 @@ export interface ConnectionConfig {
     | { $case: "clickhouse"; clickhouse: ConnectionConfig_ConnectionConfigClickHouse }
     | undefined;
   vars: Var[];
+  /**
+   * pre_run_scripts is a list of scripts that should be run before a run job against the database. This is useful for
+   * setting up the database for the run job. For example creating UDFs or installing plugins ...
+   * The scripts are run in order and should be idempotent.
+   * The list points to the location of the script in the project.
+   */
+  preRunScripts: string[];
 }
 
 export interface ConnectionConfig_ConnectionConfigSqLite {
@@ -149,7 +156,7 @@ export const Var = {
 };
 
 function createBaseConnectionConfig(): ConnectionConfig {
-  return { config: undefined, vars: [] };
+  return { config: undefined, vars: [], preRunScripts: [] };
 }
 
 export const ConnectionConfig = {
@@ -188,6 +195,9 @@ export const ConnectionConfig = {
     }
     for (const v of message.vars) {
       Var.encode(v!, writer.uint32(66).fork()).ldelim();
+    }
+    for (const v of message.preRunScripts) {
+      writer.uint32(90).string(v!);
     }
     return writer;
   },
@@ -296,6 +306,13 @@ export const ConnectionConfig = {
 
           message.vars.push(Var.decode(reader, reader.uint32()));
           continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.preRunScripts.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -333,6 +350,7 @@ export const ConnectionConfig = {
         ? { $case: "clickhouse", clickhouse: ConnectionConfig_ConnectionConfigClickHouse.fromJSON(object.clickhouse) }
         : undefined,
       vars: gt.Array.isArray(object?.vars) ? object.vars.map((e: any) => Var.fromJSON(e)) : [],
+      preRunScripts: gt.Array.isArray(object?.preRunScripts) ? object.preRunScripts.map((e: any) => gt.String(e)) : [],
     };
   },
 
@@ -367,6 +385,9 @@ export const ConnectionConfig = {
     }
     if (message.vars?.length) {
       obj.vars = message.vars.map((e) => Var.toJSON(e));
+    }
+    if (message.preRunScripts?.length) {
+      obj.preRunScripts = message.preRunScripts;
     }
     return obj;
   },
@@ -453,6 +474,7 @@ export const ConnectionConfig = {
       };
     }
     message.vars = object.vars?.map((e) => Var.fromPartial(e)) || [];
+    message.preRunScripts = object.preRunScripts?.map((e) => e) || [];
     return message;
   },
 };
