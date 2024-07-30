@@ -25,7 +25,8 @@ console_error_panic_hook = { version = "0.1", optional = true }
 prost = { default-features = false, version = "0.12" }
 js-sys = "0.3"
 quary_proto = { path = "../../proto/gen/rust" }
-sqlinference = { path = "../sqlinference" }
+sqlinference = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-sqlinference" }
+sqruff = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-lib" }
 async-trait = "0.1"
 wasm-bindgen-futures = "0.4"
 futures = { version = "0.3", features = ["async-await"], default-features = false }

@@ -7,15 +7,16 @@ use crate::sql_inference_translator::{map_test_to_sql_inference, map_tests_to_co
 use futures::AsyncReadExt;
 use prost::bytes::Bytes;
 use quary_proto::{ColumnTest, Edge, File, Project, Test};
-use sqlinference::dialect::Dialect;
+
 use sqlinference::infer_tests::{infer_tests, InferenceReason};
 use sqlinference::inference::{figure_out_skippable_tests, TestRunnerAction};
+use sqruff::core::parser::parser::Parser;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::PathBuf;
 
 /// infer_tests_internal returns a pointer of column to tests to put in a project file
 pub fn infer_tests_internal(
-    dialect: &Dialect,
+    dialect: &Parser<'_>,
     model_map: HashMap<String, String>,
     modelling_prefix: &str,
     model_of_interest: &str,
@@ -50,7 +51,7 @@ pub fn infer_tests_internal(
 }
 
 pub async fn infer_skippable_tests_internal(
-    dialect: &Dialect,
+    dialect: &Parser<'_>,
     project: &Project,
     file_system: &impl FileSystem,
 ) -> Result<HashMap<String, Inference>, String> {

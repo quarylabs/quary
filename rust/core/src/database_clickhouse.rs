@@ -5,7 +5,10 @@ use chrono::{DateTime, Utc};
 #[cfg(target_arch = "wasm32")]
 use js_sys::Date;
 use pbjson_types::Struct;
-use sqlinference::dialect::Dialect;
+use sqruff::core::{
+    config::{FluffConfig, Value},
+    parser::parser::Parser,
+};
 
 use crate::databases::{
     base_for_seeds_create_table_specifying_text_type, CacheStatus, DatabaseQueryGenerator,
@@ -18,6 +21,7 @@ pub struct DatabaseQueryGeneratorClickhouse {
     /// override_now is used to override the current timestamp in the generated SQL. It is primarily
     /// used for testing purposes.
     override_now: Option<SystemTime>,
+    config: FluffConfig,
 }
 
 impl DatabaseQueryGeneratorClickhouse {
@@ -28,6 +32,15 @@ impl DatabaseQueryGeneratorClickhouse {
         DatabaseQueryGeneratorClickhouse {
             schema,
             override_now,
+            config: FluffConfig::new(
+                [(
+                    "core".into(),
+                    Value::Map([("dialect".into(), Value::String("clickhouse".into()))].into()),
+                )]
+                .into(),
+                None,
+                None,
+            ),
         }
     }
 }
@@ -135,8 +148,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorClickhouse {
         )]
     }
 
-    fn get_dialect(&self) -> &Dialect {
-        &Dialect::Postgres
+    fn get_dialect(&self) -> Parser {
+        Parser::new(&self.config, None)
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

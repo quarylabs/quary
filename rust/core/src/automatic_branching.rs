@@ -358,7 +358,7 @@ mod tests {
     async fn test_derive_sha256_contents_of_init_compare_to_web_values() {
         let assets = init_to_file_system();
 
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
 
         let project = parse_project(&assets, &database, "").await.unwrap();
 
@@ -377,7 +377,7 @@ mod tests {
     const MODEL_OF_INTEREST: &str = "shifts_summary";
     /// get_hash_derive_model_hash is a helper function for testing the derive_model_hash function.
     async fn get_hash_derive_model_hash(fs: &impl FileSystem) -> String {
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let project = parse_project(fs, &database, "").await.unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
         derive_model_hash(&project, &graph, MODEL_OF_INTEREST).unwrap()
@@ -629,7 +629,7 @@ mod tests {
         let seed_of_interest = "raw_employees";
 
         let fs = Asset;
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite::default(), "")
             .await
             .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
@@ -645,7 +645,7 @@ mod tests {
         let seed_of_interest = "raw_employees";
 
         let fs = Asset;
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite::default(), "")
             .await
             .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
@@ -669,7 +669,7 @@ mod tests {
                 contents: prost::bytes::Bytes::from(new_csv_string),
             },
         );
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite::default(), "")
             .await
             .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
@@ -718,7 +718,7 @@ sources:
     #[tokio::test]
     async fn test_derive_model_hash_for_model_with_source_dont_change() {
         let (model, fs) = file_system_for_project_with_source();
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite::default(), "")
             .await
             .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
@@ -730,7 +730,7 @@ sources:
     #[tokio::test]
     async fn test_derive_model_hash_for_model_with_source_that_changes() {
         let (model, fs) = file_system_for_project_with_source();
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite::default(), "")
             .await
             .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
@@ -752,7 +752,7 @@ sources:
             },
         );
 
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite::default(), "")
             .await
             .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
@@ -764,7 +764,7 @@ sources:
     #[tokio::test]
     async fn test_derive_model_hash_for_source() {
         let (_, fs) = file_system_for_project_with_source();
-        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite {}, "")
+        let project = parse_project(&fs, &DatabaseQueryGeneratorSqlite::default(), "")
             .await
             .unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
@@ -777,7 +777,7 @@ sources:
 
     #[tokio::test]
     async fn test_derive_snapshot_hash() {
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         const SNAPSHOT_NAME: &str = "employees_snapshot";
 
         // case: Identical snapshot definition and configuration
@@ -900,7 +900,7 @@ sources:
     #[tokio::test]
     async fn test_is_cache_full_path_sqlite() {
         let fs = Asset;
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let project = parse_project(&fs, &database, "").await.unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
 
@@ -1174,7 +1174,7 @@ sources:
                 ),
             ]),
         };
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let project = parse_project(&fs, &database, "").await.unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
 
@@ -1230,7 +1230,7 @@ sources:
                 ),
             ]),
         };
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let project = parse_project(&fs, &database, "").await.unwrap();
         let graph = project_to_graph(project.clone()).unwrap();
 

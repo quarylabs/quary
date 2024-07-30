@@ -70,7 +70,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_parse_table_schema_seeds() {
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
 
         let table_name = "test";
         let reader = Box::new(futures::io::Cursor::new("a,b,c\n1,2,3\n4,5,6"));
@@ -91,7 +91,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_parse_table_schema_seeds_with_do_not_include_data() {
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
 
         let table_name = "test";
         let reader = Box::new(futures::io::Cursor::new("a,b,c\n1,2,3\n4,5,6"));
@@ -111,7 +111,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_parse_table_schema_seeds_with_different_lengths() {
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
 
         let table_name = "test";
         let reader = Box::new(futures::io::Cursor::new("a,b,c\n1,2,3\n4,5"));

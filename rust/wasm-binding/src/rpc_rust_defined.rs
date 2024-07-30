@@ -96,7 +96,7 @@ pub async fn run_tests(
         &database,
         &file_system,
         &project,
-        database.get_dialect(),
+        &database.get_dialect(),
         test_runner,
         func,
         false,

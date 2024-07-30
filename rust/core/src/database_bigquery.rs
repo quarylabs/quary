@@ -1,12 +1,17 @@
+use sqruff::core::{
+    config::{FluffConfig, Value},
+    parser::parser::Parser,
+};
+
 use crate::databases::{
     base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, SnapshotGenerator,
 };
-use sqlinference::dialect::Dialect;
 
 #[derive(Debug, Clone)]
 pub struct DatabaseQueryGeneratorBigQuery {
     project_id: String,
     dataset_id: String,
+    config: FluffConfig,
 }
 
 impl DatabaseQueryGeneratorBigQuery {
@@ -14,6 +19,15 @@ impl DatabaseQueryGeneratorBigQuery {
         DatabaseQueryGeneratorBigQuery {
             project_id,
             dataset_id,
+            config: FluffConfig::new(
+                [(
+                    "core".into(),
+                    Value::Map([("dialect".into(), Value::String("bigquery".into()))].into()),
+                )]
+                .into(),
+                None,
+                None,
+            ),
         }
     }
 }
@@ -60,8 +74,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorBigQuery {
         )]
     }
 
-    fn get_dialect(&self) -> &Dialect {
-        &Dialect::BigQuery
+    fn get_dialect(&self) -> Parser {
+        Parser::new(&self.config, None)
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

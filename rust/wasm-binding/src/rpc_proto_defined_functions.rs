@@ -936,13 +936,13 @@ pub(crate) async fn get_model_table_internal(
     let project_root = request.project_root;
 
     let project = quary_core::project::parse_project(file_system, database, &project_root).await?;
-    let dialect = database.get_dialect().get_dialect();
+    let dialect = database.get_dialect();
 
     let model_map = name_to_raw_model_map_internal(&project, file_system).await?;
     let model_statement = model_map
         .get(&request.model_name)
         .ok_or(format!("Model {} not found", request.model_name))?;
-    let columns = get_columns_internal(database.get_dialect(), model_statement)
+    let columns = get_columns_internal(&database.get_dialect(), model_statement)
         .ok()
         .map(|(columns, _)| {
             columns
@@ -951,7 +951,7 @@ pub(crate) async fn get_model_table_internal(
                 .collect::<Vec<String>>()
         });
     let inferred_tests: Option<Vec<sqlinference::test::Test>> = infer_tests(
-        database.get_dialect(),
+        &database.get_dialect(),
         format!("{}.{}", DEFAULT_SCHEMA_PREFIX, request.model_name).as_str(),
         model_statement,
         &project
@@ -966,7 +966,7 @@ pub(crate) async fn get_model_table_internal(
         &project,
         DEFAULT_SCHEMA_PREFIX,
         &request.model_name,
-        &*dialect,
+        &dialect,
         file_system,
     )
     .await
@@ -1649,7 +1649,7 @@ mod tests {
     async fn test_update_model_description_with_schema_present() {
         let (writer, written_files) = setup_file_mocks();
 
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let file_system = files_to_file_system(vec![
             ("quary.yaml", "sqliteInMemory: {}"),
             ("models/shifts.sql", "SELECT 1"),
@@ -1685,7 +1685,7 @@ mod tests {
     async fn test_update_asset_description_source_with_schema_present() {
         let (writer, written_files) = setup_file_mocks();
 
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let file_system = files_to_file_system(vec![
             ("quary.yaml", "sqliteInMemory: {}"),
             (
@@ -1719,7 +1719,7 @@ mod tests {
     async fn test_update_snapshot_description_with_schema_present() {
         let (writer, written_files) = setup_file_mocks();
 
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let file_system = files_to_file_system(vec![
             ("quary.yaml", "sqliteInMemory: {}"),
             ("models/orders_snapshot.snapshot.sql", "SELECT 1"),
@@ -1758,7 +1758,7 @@ mod tests {
     async fn test_update_model_description_without_schema_present() {
         let (writer, written_files) = setup_file_mocks();
 
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let file_system = FileSystem {
             files: vec![
                 (
@@ -1803,7 +1803,7 @@ mod tests {
     async fn test_update_model_description_with_schema_present_without_definition() {
         let (writer, written_files) = setup_file_mocks();
 
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let file_system = FileSystem {
             files: vec![
                 (
@@ -1859,7 +1859,7 @@ mod tests {
     async fn test_update_snapshot_description_without_schema_present() {
         let (writer, _) = setup_file_mocks();
 
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let file_system = FileSystem {
             files: vec![
                 (
@@ -1910,7 +1910,7 @@ mod tests {
     #[tokio::test]
     async fn test_update_asset_description_internal_without_schema_present() {
         let (writer, _) = setup_file_mocks();
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let file_system = FileSystem {
             files: vec![(
                 "quary.yaml".to_string(),
@@ -1941,7 +1941,7 @@ mod tests {
     async fn test_update_asset_description_internal_with_model_and_source_same_name() {
         let (writer, _) = setup_file_mocks();
 
-        let database = DatabaseQueryGeneratorSqlite {};
+        let database = DatabaseQueryGeneratorSqlite::default();
         let file_system = FileSystem {
             files: vec![
                 (

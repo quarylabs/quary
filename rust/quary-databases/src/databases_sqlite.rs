@@ -150,7 +150,7 @@ impl DatabaseConnection for Sqlite {
     }
 
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {
-        Box::new(DatabaseQueryGeneratorSqlite {})
+        Box::new(DatabaseQueryGeneratorSqlite::default())
     }
 
     async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
@@ -419,7 +419,7 @@ mod tests {
             &query_generator,
             &file_system,
             &project,
-            query_generator.get_dialect(),
+            &query_generator.get_dialect(),
             TestRunner::All,
             func,
             false,
@@ -496,7 +496,7 @@ mod tests {
             &query_generator,
             &file_system,
             &project,
-            query_generator.get_dialect(),
+            &query_generator.get_dialect(),
             TestRunner::Skip,
             func,
             false,
