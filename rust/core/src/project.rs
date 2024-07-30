@@ -2849,6 +2849,7 @@ sources:
     #[test]
     fn test_replace_variable_with_config_variables() {
         let connection_config = ConnectionConfig {
+            pre_run_scripts: vec![],
             config: Default::default(),
             vars: vec![
                 quary_proto::Var {

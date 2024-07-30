@@ -192,7 +192,7 @@ pub async fn render_schema_internal(
     file_system: &impl FileSystem,
 ) -> Result<String, String> {
     let schema =
-        project_and_fs_to_sql_for_views(&project, file_system, database, false, true).await?;
+        project_and_fs_to_sql_for_views(&project, file_system, database, false, true, true).await?;
 
     let schema = schema
         .iter()
@@ -216,7 +216,7 @@ pub async fn return_full_sql_for_new_model(
     // Add new model to the file system
     let mut path = PathBuf::from("/");
     path.push(PATH_FOR_MODELS);
-    path.push(&format!("{}.sql", &model_name));
+    path.push(format!("{}.sql", &model_name));
     let fp = path.to_str().ok_or("Failed to convert path to string")?;
     file_system.files.insert(
         fp.to_string(),

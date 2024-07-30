@@ -57,6 +57,13 @@
                     },
                     "additionalProperties": false,
                     "type": "array"
+                },
+                "pre_run_scripts": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "pre_run_scripts is a list of scripts that should be run before a run job against the database. This is useful for setting up the database for the run job. For example creating UDFs or installing plugins ... The scripts are run in order and should be idempotent. The list points to the location of the script in the project."
                 }
             },
             "additionalProperties": false,

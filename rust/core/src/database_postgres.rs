@@ -342,7 +342,7 @@ impl TryFrom<&Struct> for PostgresModelDatabaseConfig {
 
     fn try_from(value: &Struct) -> Result<Self, Self::Error> {
         // check struct only has fields we expect
-        let allowed_fields = vec!["unlogged", "indexes"];
+        let allowed_fields = ["unlogged", "indexes"];
         for field in value.fields.keys() {
             if !allowed_fields.contains(&field.as_str()) {
                 return Err(format!("Unexpected field: {}", field));
@@ -384,7 +384,7 @@ impl TryFrom<&Value> for Index {
         match &value.kind {
             None => Err("Missing value".to_string()),
             Some(Kind::StructValue(index)) => {
-                let allowed_fields = vec!["columns", "unique"];
+                let allowed_fields = ["columns", "unique"];
                 for field in index.fields.keys() {
                     if !allowed_fields.contains(&field.as_str()) {
                         return Err(format!("Unexpected field: {}", field));

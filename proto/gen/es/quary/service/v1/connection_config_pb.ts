@@ -119,6 +119,16 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
    */
   vars: Var[] = [];
 
+  /**
+   * pre_run_scripts is a list of scripts that should be run before a run job against the database. This is useful for
+   * setting up the database for the run job. For example creating UDFs or installing plugins ...
+   * The scripts are run in order and should be idempotent.
+   * The list points to the location of the script in the project.
+   *
+   * @generated from field: repeated string pre_run_scripts = 11;
+   */
+  preRunScripts: string[] = [];
+
   constructor(data?: PartialMessage<ConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -137,6 +147,7 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
     { no: 9, name: "redshift", kind: "message", T: ConnectionConfig_ConnectionConfigRedshift, oneof: "config" },
     { no: 10, name: "clickhouse", kind: "message", T: ConnectionConfig_ConnectionConfigClickHouse, oneof: "config" },
     { no: 8, name: "vars", kind: "message", T: Var, repeated: true },
+    { no: 11, name: "pre_run_scripts", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionConfig {

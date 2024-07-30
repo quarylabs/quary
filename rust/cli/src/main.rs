@@ -209,6 +209,7 @@ async fn main_wrapped() -> Result<(), String> {
                 &query_generator,
                 false,
                 false,
+                true,
             )
             .await?;
 

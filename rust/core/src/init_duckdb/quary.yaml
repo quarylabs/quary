@@ -1,1 +1,3 @@
 duckdbInMemory: {}
+pre_run_scripts:
+  - pre_run_script.sql
