@@ -129,6 +129,10 @@
                     "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigClickHouse",
                     "additionalProperties": false
                 },
+                "dremio": {
+                    "$ref": "#/definitions/quary.service.v1.ConnectionConfig.ConnectionConfigDremio",
+                    "additionalProperties": false
+                },
                 "vars": {
                     "items": {
                         "$ref": "#/definitions/quary.service.v1.Var"
@@ -171,6 +175,29 @@
             "additionalProperties": false,
             "type": "object",
             "title": "Connection Config Click House"
+        },
+        "quary.service.v1.ConnectionConfig.ConnectionConfigDremio": {
+            "properties": {
+                "object_storage_source": {
+                    "type": "string",
+                    "description": "Defaults to $scratch"
+                },
+                "object_storage_path": {
+                    "type": "string",
+                    "description": "Defaults to no_schema"
+                },
+                "dremio_space": {
+                    "type": "string",
+                    "description": "Defaults to @\u003cusername"
+                },
+                "dremio_space_folder": {
+                    "type": "string",
+                    "description": "Defaults to no_schema"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Connection Config Dremio"
         },
         "quary.service.v1.ConnectionConfig.ConnectionConfigDuckDB": {
             "properties": {

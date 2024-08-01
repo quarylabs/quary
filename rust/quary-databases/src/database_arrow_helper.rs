@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
-use duckdb::arrow::array::{array, Array};
+use duckdb::arrow::array::{array, Array, RecordBatch};
+use quary_core::databases::{QueryError, QueryResult};
 use std::sync::Arc;
 
 pub(crate) fn convert_array_to_vec_string(
@@ -88,4 +89,35 @@ pub(crate) fn convert_array_to_vec_string(
 
     // Example for a specific array type, e.g., StringArray
     Ok(rows)
+}
+
+pub(crate) fn record_batches_to_result(
+    query: &str,
+    rbs: Vec<RecordBatch>,
+) -> Result<QueryResult, QueryError> {
+    if rbs.is_empty() {
+        return Ok(QueryResult {
+            columns: vec![],
+            rows: vec![],
+        });
+    }
+
+    let columns = rbs[0]
+        .schema()
+        .fields()
+        .iter()
+        .map(|f| f.name().clone())
+        .collect::<Vec<String>>();
+
+    let mut rows = Vec::new();
+    for rb in &rbs {
+        let batch_rows = convert_array_to_vec_string(rb.columns())
+            .map_err(|e| QueryError::new(query.to_string(), e))?;
+        rows.extend(batch_rows);
+    }
+
+    Ok(QueryResult {
+        columns: columns.into_iter().map(|c| (c, None)).collect(),
+        rows,
+    })
 }

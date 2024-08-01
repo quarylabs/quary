@@ -11,6 +11,7 @@ rust-version.workspace = true
 quary-core = { path = "../core" }
 quary_proto = { path = "../../proto/gen/rust" }
 
+arrow-flight = { version = "52.2.0" , default-features = true, features = ["flight-sql-experimental"] }
 yup-oauth2 = { version = "9", default-features = false }
 tokio = { version = "1", features = ["full"] }
 sqlx = { version = "0.7.4", features = ["runtime-tokio-rustls", "sqlite", "postgres", "chrono", "bigdecimal"] }
@@ -24,6 +25,8 @@ duckdb = { version = "1.0.0", features = ["bundled"] }
 snowflake-api = "0.9.0"
 clickhouse-rs = "1.1.0-alpha.1"
 futures-util = "0.3.30"
+tonic = "0.11.0"
+base64 = "0.22.1"
 
 [dev-dependencies]
 assert_cmd = "2"

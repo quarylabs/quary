@@ -3758,6 +3758,9 @@ impl serde::Serialize for ConnectionConfig {
                 connection_config::Config::Clickhouse(v) => {
                     struct_ser.serialize_field("clickhouse", v)?;
                 }
+                connection_config::Config::Dremio(v) => {
+                    struct_ser.serialize_field("dremio", v)?;
+                }
             }
         }
         struct_ser.end()
@@ -3785,6 +3788,7 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
             "postgres",
             "redshift",
             "clickhouse",
+            "dremio",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -3800,6 +3804,7 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
             Postgres,
             Redshift,
             Clickhouse,
+            Dremio,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -3832,6 +3837,7 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
                             "postgres" => Ok(GeneratedField::Postgres),
                             "redshift" => Ok(GeneratedField::Redshift),
                             "clickhouse" => Ok(GeneratedField::Clickhouse),
+                            "dremio" => Ok(GeneratedField::Dremio),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -3929,6 +3935,13 @@ impl<'de> serde::Deserialize<'de> for ConnectionConfig {
                                 return Err(serde::de::Error::duplicate_field("clickhouse"));
                             }
                             config__ = map_.next_value::<::std::option::Option<_>>()?.map(connection_config::Config::Clickhouse)
+;
+                        }
+                        GeneratedField::Dremio => {
+                            if config__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("dremio"));
+                            }
+                            config__ = map_.next_value::<::std::option::Option<_>>()?.map(connection_config::Config::Dremio)
 ;
                         }
                     }
@@ -4142,6 +4155,152 @@ impl<'de> serde::Deserialize<'de> for connection_config::ConnectionConfigClickHo
             }
         }
         deserializer.deserialize_struct("quary.service.v1.ConnectionConfig.ConnectionConfigClickHouse", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for connection_config::ConnectionConfigDremio {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if self.object_storage_source.is_some() {
+            len += 1;
+        }
+        if self.object_storage_path.is_some() {
+            len += 1;
+        }
+        if self.dremio_space.is_some() {
+            len += 1;
+        }
+        if self.dremio_space_folder.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.ConnectionConfig.ConnectionConfigDremio", len)?;
+        if let Some(v) = self.object_storage_source.as_ref() {
+            struct_ser.serialize_field("objectStorageSource", v)?;
+        }
+        if let Some(v) = self.object_storage_path.as_ref() {
+            struct_ser.serialize_field("objectStoragePath", v)?;
+        }
+        if let Some(v) = self.dremio_space.as_ref() {
+            struct_ser.serialize_field("dremioSpace", v)?;
+        }
+        if let Some(v) = self.dremio_space_folder.as_ref() {
+            struct_ser.serialize_field("dremioSpaceFolder", v)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for connection_config::ConnectionConfigDremio {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "object_storage_source",
+            "objectStorageSource",
+            "object_storage_path",
+            "objectStoragePath",
+            "dremio_space",
+            "dremioSpace",
+            "dremio_space_folder",
+            "dremioSpaceFolder",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            ObjectStorageSource,
+            ObjectStoragePath,
+            DremioSpace,
+            DremioSpaceFolder,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "objectStorageSource" | "object_storage_source" => Ok(GeneratedField::ObjectStorageSource),
+                            "objectStoragePath" | "object_storage_path" => Ok(GeneratedField::ObjectStoragePath),
+                            "dremioSpace" | "dremio_space" => Ok(GeneratedField::DremioSpace),
+                            "dremioSpaceFolder" | "dremio_space_folder" => Ok(GeneratedField::DremioSpaceFolder),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = connection_config::ConnectionConfigDremio;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.ConnectionConfig.ConnectionConfigDremio")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<connection_config::ConnectionConfigDremio, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut object_storage_source__ = None;
+                let mut object_storage_path__ = None;
+                let mut dremio_space__ = None;
+                let mut dremio_space_folder__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::ObjectStorageSource => {
+                            if object_storage_source__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("objectStorageSource"));
+                            }
+                            object_storage_source__ = map_.next_value()?;
+                        }
+                        GeneratedField::ObjectStoragePath => {
+                            if object_storage_path__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("objectStoragePath"));
+                            }
+                            object_storage_path__ = map_.next_value()?;
+                        }
+                        GeneratedField::DremioSpace => {
+                            if dremio_space__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("dremioSpace"));
+                            }
+                            dremio_space__ = map_.next_value()?;
+                        }
+                        GeneratedField::DremioSpaceFolder => {
+                            if dremio_space_folder__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("dremioSpaceFolder"));
+                            }
+                            dremio_space_folder__ = map_.next_value()?;
+                        }
+                    }
+                }
+                Ok(connection_config::ConnectionConfigDremio {
+                    object_storage_source: object_storage_source__,
+                    object_storage_path: object_storage_path__,
+                    dremio_space: dremio_space__,
+                    dremio_space_folder: dremio_space_folder__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.ConnectionConfig.ConnectionConfigDremio", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for connection_config::ConnectionConfigDuckDb {

@@ -1,4 +1,4 @@
-use crate::database_arrow_helper::convert_array_to_vec_string;
+use crate::database_arrow_helper::{convert_array_to_vec_string, record_batches_to_result};
 use duckdb::arrow::record_batch::RecordBatch;
 use duckdb::{params, Connection};
 use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
@@ -182,31 +182,7 @@ impl DatabaseConnection for DuckDB {
             })?
             .collect();
 
-        if rbs.is_empty() {
-            return Ok(QueryResult {
-                columns: vec![],
-                rows: vec![],
-            });
-        }
-
-        let columns = rbs[0]
-            .schema()
-            .fields()
-            .iter()
-            .map(|f| f.name().clone())
-            .collect::<Vec<String>>();
-
-        let mut rows = Vec::new();
-        for rb in &rbs {
-            let batch_rows = convert_array_to_vec_string(rb.columns())
-                .map_err(|e| QueryError::new(query.to_string(), e))?;
-            rows.extend(batch_rows);
-        }
-
-        Ok(QueryResult {
-            columns: columns.into_iter().map(|c| (c, None)).collect(),
-            rows,
-        })
+        record_batches_to_result(query, rbs)
     }
 
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {

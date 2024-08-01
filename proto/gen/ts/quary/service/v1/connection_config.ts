@@ -26,6 +26,7 @@ export interface ConnectionConfig {
     | { $case: "postgres"; postgres: ConnectionConfig_ConnectionConfigPostgres }
     | { $case: "redshift"; redshift: ConnectionConfig_ConnectionConfigRedshift }
     | { $case: "clickhouse"; clickhouse: ConnectionConfig_ConnectionConfigClickHouse }
+    | { $case: "dremio"; dremio: ConnectionConfig_ConnectionConfigDremio }
     | undefined;
   vars: Var[];
   /**
@@ -79,6 +80,23 @@ export interface ConnectionConfig_ConnectionConfigSnowflake {
 
 export interface ConnectionConfig_ConnectionConfigClickHouse {
   database: string;
+}
+
+export interface ConnectionConfig_ConnectionConfigDremio {
+  /** Defaults to $scratch */
+  objectStorageSource?:
+    | string
+    | undefined;
+  /** Defaults to no_schema */
+  objectStoragePath?:
+    | string
+    | undefined;
+  /** Defaults to @<username */
+  dremioSpace?:
+    | string
+    | undefined;
+  /** Defaults to no_schema */
+  dremioSpaceFolder?: string | undefined;
 }
 
 function createBaseVar(): Var {
@@ -192,6 +210,9 @@ export const ConnectionConfig = {
         ConnectionConfig_ConnectionConfigClickHouse.encode(message.config.clickhouse, writer.uint32(82).fork())
           .ldelim();
         break;
+      case "dremio":
+        ConnectionConfig_ConnectionConfigDremio.encode(message.config.dremio, writer.uint32(98).fork()).ldelim();
+        break;
     }
     for (const v of message.vars) {
       Var.encode(v!, writer.uint32(66).fork()).ldelim();
@@ -299,6 +320,16 @@ export const ConnectionConfig = {
             clickhouse: ConnectionConfig_ConnectionConfigClickHouse.decode(reader, reader.uint32()),
           };
           continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.config = {
+            $case: "dremio",
+            dremio: ConnectionConfig_ConnectionConfigDremio.decode(reader, reader.uint32()),
+          };
+          continue;
         case 8:
           if (tag !== 66) {
             break;
@@ -348,6 +379,8 @@ export const ConnectionConfig = {
         ? { $case: "redshift", redshift: ConnectionConfig_ConnectionConfigRedshift.fromJSON(object.redshift) }
         : isSet(object.clickhouse)
         ? { $case: "clickhouse", clickhouse: ConnectionConfig_ConnectionConfigClickHouse.fromJSON(object.clickhouse) }
+        : isSet(object.dremio)
+        ? { $case: "dremio", dremio: ConnectionConfig_ConnectionConfigDremio.fromJSON(object.dremio) }
         : undefined,
       vars: gt.Array.isArray(object?.vars) ? object.vars.map((e: any) => Var.fromJSON(e)) : [],
       preRunScripts: gt.Array.isArray(object?.preRunScripts) ? object.preRunScripts.map((e: any) => gt.String(e)) : [],
@@ -382,6 +415,9 @@ export const ConnectionConfig = {
     }
     if (message.config?.$case === "clickhouse") {
       obj.clickhouse = ConnectionConfig_ConnectionConfigClickHouse.toJSON(message.config.clickhouse);
+    }
+    if (message.config?.$case === "dremio") {
+      obj.dremio = ConnectionConfig_ConnectionConfigDremio.toJSON(message.config.dremio);
     }
     if (message.vars?.length) {
       obj.vars = message.vars.map((e) => Var.toJSON(e));
@@ -471,6 +507,12 @@ export const ConnectionConfig = {
       message.config = {
         $case: "clickhouse",
         clickhouse: ConnectionConfig_ConnectionConfigClickHouse.fromPartial(object.config.clickhouse),
+      };
+    }
+    if (object.config?.$case === "dremio" && object.config?.dremio !== undefined && object.config?.dremio !== null) {
+      message.config = {
+        $case: "dremio",
+        dremio: ConnectionConfig_ConnectionConfigDremio.fromPartial(object.config.dremio),
       };
     }
     message.vars = object.vars?.map((e) => Var.fromPartial(e)) || [];
@@ -1139,6 +1181,119 @@ export const ConnectionConfig_ConnectionConfigClickHouse = {
   ): ConnectionConfig_ConnectionConfigClickHouse {
     const message = createBaseConnectionConfig_ConnectionConfigClickHouse();
     message.database = object.database ?? "";
+    return message;
+  },
+};
+
+function createBaseConnectionConfig_ConnectionConfigDremio(): ConnectionConfig_ConnectionConfigDremio {
+  return {
+    objectStorageSource: undefined,
+    objectStoragePath: undefined,
+    dremioSpace: undefined,
+    dremioSpaceFolder: undefined,
+  };
+}
+
+export const ConnectionConfig_ConnectionConfigDremio = {
+  encode(message: ConnectionConfig_ConnectionConfigDremio, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.objectStorageSource !== undefined) {
+      writer.uint32(10).string(message.objectStorageSource);
+    }
+    if (message.objectStoragePath !== undefined) {
+      writer.uint32(18).string(message.objectStoragePath);
+    }
+    if (message.dremioSpace !== undefined) {
+      writer.uint32(26).string(message.dremioSpace);
+    }
+    if (message.dremioSpaceFolder !== undefined) {
+      writer.uint32(34).string(message.dremioSpaceFolder);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ConnectionConfig_ConnectionConfigDremio {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseConnectionConfig_ConnectionConfigDremio();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.objectStorageSource = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.objectStoragePath = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.dremioSpace = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.dremioSpaceFolder = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ConnectionConfig_ConnectionConfigDremio {
+    return {
+      objectStorageSource: isSet(object.objectStorageSource) ? gt.String(object.objectStorageSource) : undefined,
+      objectStoragePath: isSet(object.objectStoragePath) ? gt.String(object.objectStoragePath) : undefined,
+      dremioSpace: isSet(object.dremioSpace) ? gt.String(object.dremioSpace) : undefined,
+      dremioSpaceFolder: isSet(object.dremioSpaceFolder) ? gt.String(object.dremioSpaceFolder) : undefined,
+    };
+  },
+
+  toJSON(message: ConnectionConfig_ConnectionConfigDremio): unknown {
+    const obj: any = {};
+    if (message.objectStorageSource !== undefined) {
+      obj.objectStorageSource = message.objectStorageSource;
+    }
+    if (message.objectStoragePath !== undefined) {
+      obj.objectStoragePath = message.objectStoragePath;
+    }
+    if (message.dremioSpace !== undefined) {
+      obj.dremioSpace = message.dremioSpace;
+    }
+    if (message.dremioSpaceFolder !== undefined) {
+      obj.dremioSpaceFolder = message.dremioSpaceFolder;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ConnectionConfig_ConnectionConfigDremio>, I>>(
+    base?: I,
+  ): ConnectionConfig_ConnectionConfigDremio {
+    return ConnectionConfig_ConnectionConfigDremio.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ConnectionConfig_ConnectionConfigDremio>, I>>(
+    object: I,
+  ): ConnectionConfig_ConnectionConfigDremio {
+    const message = createBaseConnectionConfig_ConnectionConfigDremio();
+    message.objectStorageSource = object.objectStorageSource ?? undefined;
+    message.objectStoragePath = object.objectStoragePath ?? undefined;
+    message.dremioSpace = object.dremioSpace ?? undefined;
+    message.dremioSpaceFolder = object.dremioSpaceFolder ?? undefined;
     return message;
   },
 };
