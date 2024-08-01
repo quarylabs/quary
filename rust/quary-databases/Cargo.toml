@@ -13,7 +13,7 @@ quary_proto = { path = "../../proto/gen/rust" }
 
 yup-oauth2 = { version = "9", default-features = false }
 tokio = { version = "1", features = ["full"] }
-sqlx = { version = "0.7.4", features = ["runtime-tokio-rustls", "sqlite", "postgres", "chrono", "bigdecimal"] }
+sqlx = { version = "0.8.0", features = ["runtime-tokio-rustls", "sqlite", "postgres", "chrono", "bigdecimal"] }
 async-trait = "0.1.80"
 gcp-bigquery-client = "0.20.0"
 google-cloud-auth = { version = "0.15.0", default-features = false, features = ["external-account", "rustls-tls"] }
