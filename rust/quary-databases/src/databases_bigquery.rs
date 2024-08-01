@@ -82,7 +82,9 @@ impl BigQuery {
     ) -> Result<Self, String> {
         if let Some(access_token) = access_token {
             let authenticator = AccessTokenProviderHolder::new(access_token);
-            let client = Client::from_authenticator(Arc::new(authenticator));
+            let client = Client::from_authenticator(Arc::new(authenticator)).await.map_err(
+                |e| format!("Failed to create BigQuery client: {}", e),
+            )?;
             Ok(BigQuery {
                 client,
                 project_id,
@@ -110,7 +112,9 @@ impl BigQuery {
 
             let authenticator = AccessTokenProvider::new(token_source);
 
-            let client = Client::from_authenticator(Arc::new(authenticator));
+            let client = Client::from_authenticator(Arc::new(authenticator)).await.map_err(
+                |e| format!("Failed to create BigQuery client: {}", e),
+            )?;
 
             Ok(BigQuery {
                 client,
