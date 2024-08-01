@@ -21,6 +21,7 @@ message ConnectionConfig {
     ConnectionConfigPostgres postgres = 7;
     ConnectionConfigRedshift redshift = 9;
     ConnectionConfigClickHouse clickhouse = 10;
+    ConnectionConfigDremio dremio = 12;
   }
 
   repeated Var vars = 8;
@@ -70,5 +71,16 @@ message ConnectionConfig {
 
   message ConnectionConfigClickHouse {
     string database = 1;
+  }
+
+  message ConnectionConfigDremio {
+    // Defaults to $scratch
+    optional string object_storage_source = 1;
+    // Defaults to no_schema
+    optional string object_storage_path = 2;
+    // Defaults to @<username
+    optional string dremio_space = 3;
+    // Defaults to no_schema
+    optional string dremio_space_folder = 4;
   }
 }

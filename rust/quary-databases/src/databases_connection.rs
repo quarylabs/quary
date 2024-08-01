@@ -1,5 +1,6 @@
 use crate::databases_bigquery::BigQuery;
 use crate::databases_clickhouse::Clickhouse;
+use crate::databases_dremio::DremioAuth;
 use crate::databases_postgres::Postgres;
 use crate::databases_redshift::Redshift;
 use crate::databases_snowflake;
@@ -11,8 +12,9 @@ use quary_core::database_snowflake::DatabaseQueryGeneratorSnowflake;
 use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
 use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator};
 use quary_proto::connection_config::Config::{
-    BigQuery as BigQueryConfig, Clickhouse as ClickhouseConfig, Duckdb, DuckdbInMemory,
-    Postgres as PostgresConfig, Redshift as RedshiftConfig, Snowflake, Sqlite, SqliteInMemory,
+    BigQuery as BigQueryConfig, Clickhouse as ClickhouseConfig, Dremio as DremioConfig, Duckdb,
+    DuckdbInMemory, Postgres as PostgresConfig, Redshift as RedshiftConfig, Snowflake, Sqlite,
+    SqliteInMemory,
 };
 use std::{env, fs};
 
@@ -225,6 +227,34 @@ pub async fn database_from_config(
             )
             .await
             .map_err(|e| e.to_string())?;
+            Ok(Box::new(database))
+        }
+        DremioConfig(config) => {
+            let host = env::var("DREMIO_HOST")
+                .map_err(|_| "DREMIO_HOST must be set to connect to Dremio".to_string())?;
+            let port = env::var("DREMIO_PORT")
+                .map_err(|_| "DREMIO_PORT must be set to connect to Dremio".to_string())?;
+            let use_ssl = env::var("DREMIO_USE_SSL")
+                .map_err(|_| "DREMIO_USE_SSL must be set to connect to Dremio".to_string())?;
+            let username = env::var("DREMIO_USER")
+                .map_err(|_| "DREMIO_USER must be set to connect to Dremio".to_string())?;
+            let password = env::var("DREMIO_PASSWORD")
+                .map_err(|_| "DREMIO_PASSWORD must be set to connect to Dremio".to_string())?;
+
+            let auth = if let Ok(personal_access_token) = env::var("DREMIO_PERSONAL_ACCESS_TOKEN") {
+                DremioAuth::UsernamePersonalAccessToken(username, personal_access_token)
+            } else {
+                DremioAuth::UsernamePassword(username, password)
+            };
+
+            let database = crate::databases_dremio::Dremio::new(
+                config,
+                auth,
+                use_ssl.parse().unwrap(),
+                host,
+                port,
+            )
+            .await?;
             Ok(Box::new(database))
         }
     }

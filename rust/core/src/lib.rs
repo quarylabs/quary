@@ -15,6 +15,7 @@ pub mod config;
 pub mod dashboard;
 pub mod database_bigquery;
 pub mod database_clickhouse;
+pub mod database_dremio;
 pub mod database_duckdb;
 pub mod database_postgres;
 pub mod database_redshift;

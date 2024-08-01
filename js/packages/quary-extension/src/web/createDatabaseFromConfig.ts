@@ -20,6 +20,7 @@ import {
 import { ServicesDatabaseRedshiftNode } from './servicesDatabaseRedshiftNode'
 import { ServicesDatabasePostgresNode } from './servicesDatabasePostgresNode'
 import { ServicesDatabaseClickhouseNode } from './servicesDatabaseClickhouseNode'
+import { ServicesDatabaseDremioNode } from './servicesDatabaseDremioNode'
 
 /**
  * Creates a database instance from a given configuration.
@@ -212,6 +213,37 @@ export const databaseFromConfig = async (
             schema,
           )
           return Ok(postgres)
+        }
+        default:
+          return Err({
+            code: ErrorCodes.INTERNAL,
+            message: `Unknown UIKind: ${vscode.env.uiKind}`,
+          })
+      }
+    }
+    case 'dremio': {
+      switch (vscode.env.uiKind) {
+        case vscode.UIKind.Web: {
+          return Err({
+            code: ErrorCodes.INVALID_ARGUMENT,
+            message: 'Dremio is not supported in the web extension',
+          })
+        }
+        case vscode.UIKind.Desktop: {
+          const {
+            objectStoragePath,
+            dremioSpace,
+            dremioSpaceFolder,
+            objectStorageSource,
+          } = config.config.dremio
+          const dremio = new ServicesDatabaseDremioNode(
+            getTerminal(),
+            objectStorageSource,
+            objectStoragePath,
+            dremioSpace,
+            dremioSpaceFolder,
+          )
+          return Ok(dremio)
         }
         default:
           return Err({

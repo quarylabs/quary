@@ -43,3 +43,4 @@ export type SqlLanguage =
   | 'duckdb'
   | 'postgresql'
   | 'clickhouse'
+  | 'dremio'
