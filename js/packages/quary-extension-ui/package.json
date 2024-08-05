@@ -57,7 +57,7 @@
     "@quary/eslint-config-shared": "workspace:*",
     "@storybook/addon-a11y": "^8.2.6",
     "@storybook/addon-docs": "^8.2.6",
-    "@storybook/addon-essentials": "^8.2.6",
+    "@storybook/addon-essentials": "^8.2.7",
     "@storybook/react": "^8.2.6",
     "@storybook/react-vite": "^8.2.6",
     "@types/dagre": "^0.7.52",
