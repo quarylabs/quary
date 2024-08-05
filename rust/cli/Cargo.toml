@@ -31,4 +31,4 @@ testcontainers = "0.21.0"
 testcontainers-modules = { version= "0.9.0", features = ["postgres", "clickhouse"]}
 
 [build-dependencies]
-regex = "1.10.5"
+regex = "1.10.6"
