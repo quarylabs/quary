@@ -1316,7 +1316,7 @@ checksum = "e8566979429cf69b49a5c740c60791108e86440e8be149bbea4fe54d2c32d6e2"
 
 [[package]]
 name = "dbt-converter"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "quary_proto",
  "regex",
@@ -3581,7 +3581,7 @@ dependencies = [
 
 [[package]]
 name = "quary"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "assert_cmd",
  "async-trait",
@@ -3607,7 +3607,7 @@ dependencies = [
 
 [[package]]
 name = "quary-core"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "async-trait",
  "chrono",
@@ -3632,7 +3632,7 @@ dependencies = [
 
 [[package]]
 name = "quary-databases"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "arrow-flight",
  "assert_cmd",
@@ -3660,7 +3660,7 @@ dependencies = [
 
 [[package]]
 name = "quary-wasm-bindgen"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "async-trait",
  "chrono",
