@@ -12,11 +12,14 @@ pub struct DatabaseQueryGeneratorDremio {
     config: FluffConfig,
 }
 
+const SPACE_DEAFULT: &str = "@user";
+const FOLDER_PATH_DEFAULT: &str = "no_schema";
+
 impl DatabaseQueryGeneratorDremio {
-    pub fn new(space: String, folder_path: String) -> Self {
+    pub fn new(space: Option<String>, folder_path: Option<String>) -> Self {
         Self {
-            space,
-            folder_path,
+            space: space.unwrap_or_else(|| SPACE_DEAFULT.to_string()),
+            folder_path: folder_path.unwrap_or_else(|| FOLDER_PATH_DEFAULT.to_string()),
             config: FluffConfig::new(
                 [(
                     "core".into(),
@@ -87,8 +90,10 @@ mod tests {
     #[test]
     fn return_name_from_full_path() {
         // TODO Need to add test cases for "SPACE"."FODLER_PATH".table_name
-        let database =
-            DatabaseQueryGeneratorDremio::new("SPACE".to_string(), "FOLDER_PATH".to_string());
+        let database = DatabaseQueryGeneratorDremio::new(
+            Some("SPACE".to_string()),
+            Some("FOLDER_PATH".to_string()),
+        );
 
         let query =
             database.return_name_from_full_path("SPACE.FOLDER_PATH.qqq_shifts_summary_fbas143");
@@ -97,8 +102,10 @@ mod tests {
 
     #[test]
     fn return_full_name_requirement() {
-        let database =
-            DatabaseQueryGeneratorDremio::new("SPACE".to_string(), "FOLDER_PATH".to_string());
+        let database = DatabaseQueryGeneratorDremio::new(
+            Some("SPACE".to_string()),
+            Some("FOLDER_PATH".to_string()),
+        );
         let query = database.return_full_path_requirement("qqq_shifts_summary_fbas143");
         assert_eq!(
             query,
@@ -108,8 +115,10 @@ mod tests {
 
     #[test]
     fn test_automatic_cache_sql_create_statement() {
-        let database =
-            DatabaseQueryGeneratorDremio::new("SPACE".to_string(), "FOLDER_PATH".to_string());
+        let database = DatabaseQueryGeneratorDremio::new(
+            Some("SPACE".to_string()),
+            Some("FOLDER_PATH".to_string()),
+        );
         let model = "shifts_summary";
         let model_cache_name = "qqq_shifts_summary_fbas143";
         let sql = database.automatic_cache_sql_create_statement(model, model_cache_name);
@@ -122,8 +131,10 @@ mod tests {
 
     #[test]
     fn test_return_table_view_from_full_path() {
-        let database =
-            DatabaseQueryGeneratorDremio::new("SPACE".to_string(), "FOLDER_PATH".to_string());
+        let database = DatabaseQueryGeneratorDremio::new(
+            Some("SPACE".to_string()),
+            Some("FOLDER_PATH".to_string()),
+        );
         let query =
             database.return_name_from_full_path("SPACE.FOLDER_PATH.qqq_shifts_summary_fbas143");
         assert_eq!(query, Ok("qqq_shifts_summary_fbas143"));

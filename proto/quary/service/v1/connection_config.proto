@@ -78,7 +78,7 @@ message ConnectionConfig {
     optional string object_storage_source = 1;
     // Defaults to no_schema
     optional string object_storage_path = 2;
-    // Defaults to @<username
+    // Defaults to @<username>
     optional string dremio_space = 3;
     // Defaults to no_schema
     optional string dremio_space_folder = 4;

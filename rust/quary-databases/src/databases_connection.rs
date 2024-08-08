@@ -5,12 +5,15 @@ use crate::databases_postgres::Postgres;
 use crate::databases_redshift::Redshift;
 use crate::databases_snowflake;
 use quary_core::database_bigquery::DatabaseQueryGeneratorBigQuery;
+use quary_core::database_clickhouse::DatabaseQueryGeneratorClickhouse;
+use quary_core::database_dremio::DatabaseQueryGeneratorDremio;
 use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
 use quary_core::database_postgres::DatabaseQueryGeneratorPostgres;
 use quary_core::database_redshift::DatabaseQueryGeneratorRedshift;
 use quary_core::database_snowflake::DatabaseQueryGeneratorSnowflake;
 use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
 use quary_core::databases::{DatabaseConnection, DatabaseQueryGenerator};
+use quary_proto::connection_config::Config;
 use quary_proto::connection_config::Config::{
     BigQuery as BigQueryConfig, Clickhouse as ClickhouseConfig, Dremio as DremioConfig, Duckdb,
     DuckdbInMemory, Postgres as PostgresConfig, Redshift as RedshiftConfig, Snowflake, Sqlite,
@@ -263,40 +266,48 @@ pub async fn database_from_config(
 pub fn database_query_generator_from_config(
     config: quary_proto::ConnectionConfig,
 ) -> Result<Box<dyn DatabaseQueryGenerator>, String> {
-    match config.config {
-        Some(SqliteInMemory(_)) => {
+    let config = config.config.ok_or("No config provided".to_string())?;
+    match config {
+        SqliteInMemory(_) => {
             let database = DatabaseQueryGeneratorSqlite::default();
             Ok(Box::new(database))
         }
-        Some(Sqlite(_)) => {
+        Sqlite(_) => {
             let database = DatabaseQueryGeneratorSqlite::default();
             Ok(Box::new(database))
         }
-        Some(BigQueryConfig(config)) => {
+        BigQueryConfig(config) => {
             let database =
                 DatabaseQueryGeneratorBigQuery::new(config.project_id, config.dataset_id);
             Ok(Box::new(database))
         }
-        Some(Snowflake(config)) => Ok(Box::new(DatabaseQueryGeneratorSnowflake::new(
+        Snowflake(config) => Ok(Box::new(DatabaseQueryGeneratorSnowflake::new(
             config.database,
             config.schema,
         ))),
-        Some(Duckdb(config)) => Ok(Box::new(DatabaseQueryGeneratorDuckDB::new(
+        Duckdb(config) => Ok(Box::new(DatabaseQueryGeneratorDuckDB::new(
             config.schema,
             None,
         ))),
-        Some(DuckdbInMemory(config)) => Ok(Box::new(DatabaseQueryGeneratorDuckDB::new(
+        DuckdbInMemory(config) => Ok(Box::new(DatabaseQueryGeneratorDuckDB::new(
             config.schema,
             None,
         ))),
-        Some(PostgresConfig(config)) => Ok(Box::new(DatabaseQueryGeneratorPostgres::new(
+        PostgresConfig(config) => Ok(Box::new(DatabaseQueryGeneratorPostgres::new(
             config.schema,
             None,
         ))),
-        Some(RedshiftConfig(config)) => Ok(Box::new(DatabaseQueryGeneratorRedshift::new(
+        RedshiftConfig(config) => Ok(Box::new(DatabaseQueryGeneratorRedshift::new(
             config.schema,
             None,
         ))),
-        _ => Err("not implemented".to_string()),
+        Config::Clickhouse(config) => Ok(Box::new(DatabaseQueryGeneratorClickhouse::new(
+            config.database,
+            None,
+        ))),
+        Config::Dremio(config) => Ok(Box::new(DatabaseQueryGeneratorDremio::new(
+            config.dremio_space,
+            config.dremio_space_folder,
+        ))),
     }
 }

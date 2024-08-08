@@ -34,10 +34,8 @@ impl Dremio {
         host: String,
         port: String,
     ) -> Result<Self, String> {
-        let dremio = DatabaseQueryGeneratorDremio::new(
-            config.dremio_space.clone().unwrap(),
-            config.dremio_space_folder.clone().unwrap(),
-        );
+        let dremio =
+            DatabaseQueryGeneratorDremio::new(config.dremio_space, config.dremio_space_folder);
         Ok(Dremio {
             dremio,
             auth,

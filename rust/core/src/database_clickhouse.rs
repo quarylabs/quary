@@ -17,7 +17,7 @@ use crate::databases::{
 
 #[derive(Debug, Clone)]
 pub struct DatabaseQueryGeneratorClickhouse {
-    schema: String,
+    database: String,
     /// override_now is used to override the current timestamp in the generated SQL. It is primarily
     /// used for testing purposes.
     override_now: Option<SystemTime>,
@@ -26,11 +26,11 @@ pub struct DatabaseQueryGeneratorClickhouse {
 
 impl DatabaseQueryGeneratorClickhouse {
     pub fn new(
-        schema: String,
+        database: String,
         override_now: Option<SystemTime>,
     ) -> DatabaseQueryGeneratorClickhouse {
         DatabaseQueryGeneratorClickhouse {
-            schema,
+            database,
             override_now,
             config: FluffConfig::new(
                 [(
@@ -113,19 +113,19 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorClickhouse {
     }
 
     fn return_full_path_requirement(&self, table_name: &str) -> String {
-        format!("{}.{}", self.schema, table_name)
+        format!("{}.{}", self.database, table_name)
     }
 
     fn return_name_from_full_path<'a>(&self, full_path: &'a str) -> Result<&'a str, String> {
         let split = full_path.split('.').collect::<Vec<&str>>();
         match split.as_slice() {
             [schema, table_name] => {
-                if schema == &self.schema {
+                if schema == &self.database {
                     Ok(table_name)
                 } else {
                     Err(format!(
                         "Schema {} does not match expected value {}",
-                        schema, self.schema
+                        schema, self.database
                     ))
                 }
             }
