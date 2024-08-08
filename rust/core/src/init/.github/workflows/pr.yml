@@ -24,3 +24,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - run: npx prettier --check '**/*.yaml'
+  quary-compile:
+    name: Compile the Quary project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # ratchet:actions/checkout@v3
+      - uses: quarylabs/install-quary-cli-action@main
+      - run: quary compile
