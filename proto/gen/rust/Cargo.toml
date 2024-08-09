@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-prost = { version = "0.12", default-features = false }
+prost = { version = "0.13", default-features = false }
 pbjson = "0.6"
 serde = { version = "1.0", default-features = false }
 pbjson-types = { version = "0.6", path = "../../../rust/pbjson-types" }
