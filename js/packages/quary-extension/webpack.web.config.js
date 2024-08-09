@@ -51,6 +51,7 @@ module.exports = (
         request: false,
         buffer: require.resolve('buffer'),
         vm: require.resolve('vm-browserify'),
+        os: false,
       },
     },
     module: {
