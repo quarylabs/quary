@@ -52,9 +52,19 @@ impl FileSystem for OverrideFileSystem<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::file_system::MockFileSystem;
     use futures::AsyncReadExt;
+    use mockall::mock;
     use mockall::predicate::*;
+
+    mock! {
+        FileSystem {}
+
+        #[async_trait::async_trait]
+        impl FileSystem for FileSystem {
+            async fn read_file(&self, path: &str) -> Result<Box<dyn AsyncRead + Send + Unpin>, io::Error>;
+            async fn list_all_files_recursively(&self, path: &str) -> Result<Vec<String>, String>;
+        }
+    }
 
     #[tokio::test]
     async fn test_override_file_system() {
