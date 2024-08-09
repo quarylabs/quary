@@ -1,4 +1,4 @@
-use crate::database_arrow_helper::{convert_array_to_vec_string, record_batches_to_result};
+use crate::database_arrow_helper::record_batches_to_result;
 use duckdb::arrow::record_batch::RecordBatch;
 use duckdb::{params, Connection};
 use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
