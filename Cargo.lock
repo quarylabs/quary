@@ -271,8 +271,8 @@ dependencies = [
  "futures",
  "once_cell",
  "paste",
- "prost",
- "prost-types",
+ "prost 0.12.6",
+ "prost-types 0.12.6",
  "tokio",
  "tonic",
 ]
@@ -2316,15 +2316,6 @@ checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
 
 [[package]]
 name = "itertools"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
@@ -2998,14 +2989,14 @@ dependencies = [
 
 [[package]]
 name = "pbjson-build"
-version = "0.6.2"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2580e33f2292d34be285c5bc3dba5259542b083cfad6037b6d70345f24dcb735"
+checksum = "6eea3058763d6e656105d1403cb04e0a41b7bbac6362d413e7c33be0c32279c9"
 dependencies = [
- "heck 0.4.1",
- "itertools 0.11.0",
- "prost",
- "prost-types",
+ "heck 0.5.0",
+ "itertools 0.13.0",
+ "prost 0.13.1",
+ "prost-types 0.13.1",
 ]
 
 [[package]]
@@ -3016,7 +3007,7 @@ dependencies = [
  "chrono",
  "pbjson",
  "pbjson-build",
- "prost",
+ "prost 0.12.6",
  "prost-build",
  "serde",
  "serde_json",
@@ -3286,7 +3277,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "deb1435c188b76130da55f17a466d252ff7b1418b2ad3e037d127b94e3411f29"
 dependencies = [
  "bytes",
- "prost-derive",
+ "prost-derive 0.12.6",
+]
+
+[[package]]
+name = "prost"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e13db3d3fde688c61e2446b4d843bc27a7e8af269a69440c0308021dc92333cc"
+dependencies = [
+ "bytes",
+ "prost-derive 0.13.1",
 ]
 
 [[package]]
@@ -3303,8 +3304,8 @@ dependencies = [
  "once_cell",
  "petgraph",
  "prettyplease",
- "prost",
- "prost-types",
+ "prost 0.12.6",
+ "prost-types 0.12.6",
  "regex",
  "syn 2.0.72",
  "tempfile",
@@ -3324,12 +3325,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "prost-derive"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18bec9b0adc4eba778b33684b7ba3e7137789434769ee3ce3930463ef904cfca"
+dependencies = [
+ "anyhow",
+ "itertools 0.13.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.72",
+]
+
+[[package]]
 name = "prost-types"
 version = "0.12.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9091c90b0a32608e984ff2fa4091273cbdd755d54935c51d520887f4a1dbd5b0"
 dependencies = [
- "prost",
+ "prost 0.12.6",
+]
+
+[[package]]
+name = "prost-types"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cee5168b05f49d4b0ca581206eb14a7b22fafd963efe729ac48eb03266e25cc2"
+dependencies = [
+ "prost 0.13.1",
 ]
 
 [[package]]
@@ -3366,7 +3389,7 @@ dependencies = [
  "duckdb",
  "futures",
  "indicatif",
- "prost",
+ "prost 0.12.6",
  "quary-core",
  "quary-databases",
  "quary_proto",
@@ -3392,7 +3415,7 @@ dependencies = [
  "once_cell",
  "pbjson-types",
  "petgraph",
- "prost",
+ "prost 0.12.6",
  "quary_proto",
  "regex",
  "rust-embed",
@@ -3417,7 +3440,7 @@ dependencies = [
  "futures-util",
  "gcp-bigquery-client",
  "google-cloud-auth",
- "prost",
+ "prost 0.12.6",
  "quary-core",
  "quary_proto",
  "regex",
@@ -3440,7 +3463,7 @@ dependencies = [
  "console_error_panic_hook",
  "futures",
  "js-sys",
- "prost",
+ "prost 0.12.6",
  "quary-core",
  "quary_proto",
  "send_wrapper",
@@ -3458,7 +3481,7 @@ version = "0.1.0"
 dependencies = [
  "pbjson",
  "pbjson-types",
- "prost",
+ "prost 0.12.6",
  "serde",
 ]
 
@@ -5112,7 +5135,7 @@ dependencies = [
  "hyper-timeout",
  "percent-encoding",
  "pin-project",
- "prost",
+ "prost 0.12.6",
  "tokio",
  "tokio-stream",
  "tower",
