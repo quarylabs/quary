@@ -95,8 +95,8 @@ importers:
         specifier: ^4.0.2
         version: 4.0.2(webpack@5.93.0(webpack-cli@5.1.4))
       sql.js:
-        specifier: 1.10.3
-        version: 1.10.3
+        specifier: 1.11.0
+        version: 1.11.0
       stream-browserify:
         specifier: ^3.0.0
         version: 3.0.0
@@ -175,7 +175,7 @@ importers:
         version: 0.8.0(eslint@8.57.0)(typescript@5.5.4)
       jest:
         specifier: ^29.7.0
-        version: 29.7.0(@types/node@22.1.0)
+        version: 29.7.0(@types/node@20.14.14)
       jest-mock-vscode:
         specifier: ^3.0.5
         version: 3.0.5
@@ -187,7 +187,7 @@ importers:
         version: 0.11.10
       ts-jest:
         specifier: ^29.2.4
-        version: 29.2.4(@babel/core@7.25.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@22.1.0))(typescript@5.5.4)
+        version: 29.2.4(@babel/core@7.25.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@20.14.14))(typescript@5.5.4)
       ts-loader:
         specifier: ^9.5.1
         version: 9.5.1(typescript@5.5.4)(webpack@5.93.0(webpack-cli@5.1.4))
@@ -218,10 +218,10 @@ importers:
         version: 1.57.5
       jest:
         specifier: ^29.7.0
-        version: 29.7.0(@types/node@20.14.14)
+        version: 29.7.0(@types/node@22.1.0)
       ts-jest:
         specifier: ^29.2.4
-        version: 29.2.4(@babel/core@7.25.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@20.14.14))(typescript@5.5.4)
+        version: 29.2.4(@babel/core@7.25.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@22.1.0))(typescript@5.5.4)
       typescript:
         specifier: ^5.5.4
         version: 5.5.4
@@ -6739,8 +6739,8 @@ packages:
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
 
-  sql.js@1.10.3:
-    resolution: {integrity: sha512-H46aWtQkdyjZwFQgraUruy5h/DyJBbAK3EA/WEMqiqF6PGPfKBSKBj/er3dVyYqVIoYfRf5TFM/loEjtQIrqJg==}
+  sql.js@1.11.0:
+    resolution: {integrity: sha512-GsLUDU3vhOo14Pd5ME0y2te49JQyby6HuoCuadevEV+CGgTUjmYRrm7B7lhRyzOgrmcWmspUfyjNb6sOAEqdsA==}
 
   stack-utils@2.0.6:
     resolution: {integrity: sha512-XlkWvfIm6RmsWtNJx+uqtKLS8eqFbxUg0ZzLXqY0caEy9l7hruX8IpiDnjsLavoBgqCCR71TqWO8MaXYheJ3RQ==}
@@ -15369,7 +15369,7 @@ snapshots:
 
   sprintf-js@1.0.3: {}
 
-  sql.js@1.10.3: {}
+  sql.js@1.11.0: {}
 
   stack-utils@2.0.6:
     dependencies:
