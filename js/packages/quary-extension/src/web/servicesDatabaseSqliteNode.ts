@@ -6,11 +6,13 @@ import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
 import {
   CLIDatabaseService,
   CLIDatabaseServiceWrapper,
+} from './servicesDatabase'
+import { TerminalExecutor } from './terminalExecutor'
+import {
   ModifiedConnectionConfig,
   ServicesDatabase,
   SourcesLister,
-} from './servicesDatabase'
-import { TerminalExecutor } from './terminalExecutor'
+} from '@shared/database'
 
 const DefaultSqliteDatabaseDependentSetting = {
   runQueriesByDefault: true,

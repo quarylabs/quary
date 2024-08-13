@@ -9,11 +9,11 @@ import {
   ListAssetsResponse_Asset,
 } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { Table } from '@quary/proto/quary/service/v1/table'
+import { cacheViewBuilder } from '@shared/databaseShared'
 import { rustWithoutDatabaseWasmServices } from './servicesRustWasm'
 import { preInitSetup, Services } from './services'
 import { renderingFunction } from './commandsScaffolding'
 import { DEFAULT_LIMIT_FOR_SELECT } from './defaults'
-import { cacheViewBuilder } from './cacheViewBuilder'
 
 const getModelDetails = async ({
   services,
@@ -59,7 +59,10 @@ const getModelDetails = async ({
   const table = !isErr(modelTableDetails)
     ? (modelTableDetails.value.table ?? null)
     : null
-  const cacheViewInformation = await cacheViewBuilder(services.database)
+  const cacheViewInformation = await cacheViewBuilder(
+    services.database.returnDatabaseConfiguration(),
+    services.database.listViews,
+  )
   if (isErr(cacheViewInformation)) {
     return cacheViewInformation
   }

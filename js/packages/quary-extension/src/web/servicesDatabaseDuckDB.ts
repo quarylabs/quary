@@ -5,8 +5,8 @@ import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { columnsValuesToQueryResult } from '@shared/shared'
 import { TableAddress } from '@quary/proto/quary/service/v1/table_address'
 import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
-import { ModifiedConnectionConfig, ServicesDatabase } from './servicesDatabase'
 import { ServicesFiles } from './servicesFiles'
+import { ModifiedConnectionConfig, ServicesDatabase } from '@shared/database'
 
 const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles()
 
