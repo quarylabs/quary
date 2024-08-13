@@ -13,7 +13,7 @@ import { rustWithoutDatabaseWasmServices } from './servicesRustWasm'
 import { getPreInitServices, Services } from './services'
 import { renderingFunction } from './commandsScaffolding'
 import { DEFAULT_LIMIT_FOR_SELECT } from './defaults'
-import { cacheViewBuilder } from './cacheViewBuilder'
+import { cacheViewBuilder } from '@shared/databaseShared'
 
 const getModelDetails = async ({
   services,
@@ -52,7 +52,10 @@ const getModelDetails = async ({
     })
   }
 
-  const cacheViewInformation = await cacheViewBuilder(services.database)
+  const cacheViewInformation = await cacheViewBuilder(
+    services.database.returnDatabaseConfiguration(),
+    services.database.listViews,
+  )
   if (isErr(cacheViewInformation)) {
     return cacheViewInformation
   }

@@ -22,7 +22,7 @@ import {
   write_chart_file,
 } from '../rust_wasm/quary_wasm_bindgen'
 import { ServicesFiles } from './servicesFiles'
-import { ServicesDatabase } from './servicesDatabase'
+import { ServicesDatabase } from '@shared/database'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const wasm = require('../rust_wasm/quary_wasm_bindgen_bg.wasm')

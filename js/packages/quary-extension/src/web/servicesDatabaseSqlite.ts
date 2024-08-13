@@ -6,13 +6,12 @@ import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { columnsValuesToQueryResult } from '@shared/shared'
 import { TableAddress } from '@quary/proto/quary/service/v1/table_address'
 import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
+import { Reader, Writer } from './servicesDatabase'
 import {
   ModifiedConnectionConfig,
-  Reader,
   ServicesDatabase,
   SourcesLister,
-  Writer,
-} from './servicesDatabase'
+} from '@shared/database'
 
 abstract class Sqlite implements SourcesLister {
   protected db: sql.Database

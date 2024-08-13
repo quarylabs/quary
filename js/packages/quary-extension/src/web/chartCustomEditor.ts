@@ -11,12 +11,12 @@ import {
   ListAssetsRequest_AssetsToSkip,
   ListAssetsResponse_Asset_AssetType,
 } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
+import { cacheViewBuilder } from '@shared/databaseShared'
 import { disposeAll } from './dispose'
 import { HTML_STRING } from './panels'
 import { getServices, PreInitServices, preInitSetup } from './services'
 import { WebviewCollection } from './chartCustomEditorWebviewCollection'
 import { ChartDocument } from './chartCustomEditorChartDocument'
-import { cacheViewBuilder } from './cacheViewBuilder'
 
 /**
  * Provider for chart editors.
@@ -448,7 +448,10 @@ export class ChartEditorProvider
             if (isErr(preInitSetupResult)) {
               return handleError(preInitSetupResult.error, allAssets)
             }
-            const cacheView = await cacheViewBuilder(services.database)
+            const cacheView = await cacheViewBuilder(
+              services.database.returnDatabaseConfiguration(),
+              services.database.listViews,
+            )
             if (isErr(cacheView)) {
               return handleError(cacheView.error, allAssets)
             }
