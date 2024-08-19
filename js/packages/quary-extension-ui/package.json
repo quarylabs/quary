@@ -59,7 +59,7 @@
     "@storybook/addon-docs": "^8.2.8",
     "@storybook/addon-essentials": "^8.2.8",
     "@storybook/react": "^8.2.8",
-    "@storybook/react-vite": "^8.2.8",
+    "@storybook/react-vite": "^8.2.9",
     "@types/dagre": "^0.7.52",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
