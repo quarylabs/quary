@@ -14,7 +14,7 @@ exclude = ["protos/*"]
 bytes = "1.6"
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 pbjson = { version = "0.6" }
-prost = "0.12"
+prost = "0.13"
 serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]
