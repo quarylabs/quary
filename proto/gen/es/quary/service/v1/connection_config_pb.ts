@@ -338,7 +338,7 @@ export type ConnectionConfig_ConnectionConfigDremio = Message<"quary.service.v1.
   objectStoragePath?: string;
 
   /**
-   * Defaults to @<username
+   * Defaults to @<username>
    *
    * @generated from field: optional string dremio_space = 3;
    */

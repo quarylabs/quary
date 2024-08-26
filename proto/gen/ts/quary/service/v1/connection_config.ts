@@ -91,7 +91,7 @@ export interface ConnectionConfig_ConnectionConfigDremio {
   objectStoragePath?:
     | string
     | undefined;
-  /** Defaults to @<username */
+  /** Defaults to @<username> */
   dremioSpace?:
     | string
     | undefined;

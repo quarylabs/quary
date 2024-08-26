@@ -7003,6 +7003,7 @@ impl serde::Serialize for File {
         }
         if !self.contents.is_empty() {
             #[allow(clippy::needless_borrow)]
+            #[allow(clippy::needless_borrows_for_generic_args)]
             struct_ser.serialize_field("contents", pbjson::private::base64::encode(&self.contents).as_str())?;
         }
         struct_ser.end()
