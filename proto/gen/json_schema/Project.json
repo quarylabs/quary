@@ -244,7 +244,7 @@
                 },
                 "dremio_space": {
                     "type": "string",
-                    "description": "Defaults to @\u003cusername"
+                    "description": "Defaults to @\u003cusername\u003e"
                 },
                 "dremio_space_folder": {
                     "type": "string",
