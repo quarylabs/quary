@@ -3,15 +3,18 @@ import {
   BigQueryDataset,
   BigQueryJobReference,
   BigQueryJobResults,
-  BigQueryJobStatus, BigQueryProject, BigQueryTable, BigQueryTableSchema,
+  BigQueryJobStatus,
+  BigQueryProject,
+  BigQueryTable,
+  BigQueryTableSchema,
 } from '@quary/proto/quary/service/v1/connection_response'
 import { columnsValuesToQueryResult } from './shared'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
-import {ModifiedConnectionConfig, ServicesDatabase} from "./database";
-import {DatabaseDependentSettings, SqlLanguage} from "./config";
-import vscode from "vscode";
-import {TableAddress} from "@quary/proto/quary/service/v1/table_address";
-import {ProjectFileSource} from "@quary/proto/quary/service/v1/project_file";
+import { ModifiedConnectionConfig, ServicesDatabase } from './database'
+import { DatabaseDependentSettings, SqlLanguage } from './config'
+import vscode from 'vscode'
+import { TableAddress } from '@quary/proto/quary/service/v1/table_address'
+import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
 
 export async function makeBigQueryRequest<T>(
   accessToken: string,
@@ -169,9 +172,9 @@ interface BigQueryOptions {
 
 export abstract class BigQueryBase {
   protected async makeBigQueryRequest<T>(
-      url: string,
-      method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
-      body?: object,
+    url: string,
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
+    body?: object,
   ): Promise<Result<T>> {
     const accessToken = await this.getAccessToken()
     if (isErr(accessToken)) {
@@ -182,11 +185,11 @@ export abstract class BigQueryBase {
 
   protected async getAccessToken(): Promise<Result<string>> {
     const session = await vscode.authentication.getSession(
-        'quaryBigQuery',
-        [],
-        {
-          createIfNone: true,
-        },
+      'quaryBigQuery',
+      [],
+      {
+        createIfNone: true,
+      },
     )
     if (!session) {
       return Err({
@@ -209,12 +212,12 @@ export abstract class BigQueryBase {
   }
 
   async listDatasetsRoot(
-      projectId: string,
+    projectId: string,
   ): Promise<Result<BigQueryDataset[]>> {
     const response = await this.makeBigQueryRequest<{
       datasets: BigQueryDataset[]
     }>(
-        `https://bigquery.googleapis.com/bigquery/v2/projects/${projectId}/datasets`,
+      `https://bigquery.googleapis.com/bigquery/v2/projects/${projectId}/datasets`,
     )
     if (isErr(response)) {
       return response
@@ -223,13 +226,13 @@ export abstract class BigQueryBase {
   }
 
   async listTablesRoot(
-      projectId: string,
-      datasetId: string,
+    projectId: string,
+    datasetId: string,
   ): Promise<Result<TableAddress[]>> {
     const response = await this.makeBigQueryRequest<{
       tables: BigQueryTable[]
     }>(
-        `https://bigquery.googleapis.com/bigquery/v2/projects/${projectId}/datasets/${datasetId}/tables`,
+      `https://bigquery.googleapis.com/bigquery/v2/projects/${projectId}/datasets/${datasetId}/tables`,
     )
     if (isErr(response)) {
       return response
@@ -239,15 +242,15 @@ export abstract class BigQueryBase {
         return Ok([])
       }
       return Ok(
-          response.value.tables.reduce((acc: TableAddress[], table) => {
-            if (table.type === 'TABLE' && table.tableReference?.tableId) {
-              acc.push({
-                name: table.tableReference.tableId,
-                fullPath: `${projectId}.${datasetId}.${table.tableReference.tableId}`,
-              })
-            }
-            return acc
-          }, []),
+        response.value.tables.reduce((acc: TableAddress[], table) => {
+          if (table.type === 'TABLE' && table.tableReference?.tableId) {
+            acc.push({
+              name: table.tableReference.tableId,
+              fullPath: `${projectId}.${datasetId}.${table.tableReference.tableId}`,
+            })
+          }
+          return acc
+        }, []),
       )
     } catch (error) {
       if (error instanceof Error) {
@@ -264,13 +267,13 @@ export abstract class BigQueryBase {
   }
 
   async listViewsRoot(
-      projectId: string,
-      datasetId: string,
+    projectId: string,
+    datasetId: string,
   ): Promise<Result<TableAddress[]>> {
     const response = await this.makeBigQueryRequest<{
       tables: BigQueryTable[]
     }>(
-        `https://bigquery.googleapis.com/bigquery/v2/projects/${projectId}/datasets/${datasetId}/tables`,
+      `https://bigquery.googleapis.com/bigquery/v2/projects/${projectId}/datasets/${datasetId}/tables`,
     )
     if (isErr(response)) {
       return response
@@ -280,19 +283,19 @@ export abstract class BigQueryBase {
         return Ok([])
       }
       return Ok(
-          response.value.tables.reduce((acc: TableAddress[], table) => {
-            if (table.type === 'VIEW' && table.tableReference?.tableId) {
-              acc.push({
-                name: table.tableReference.tableId,
-                fullPath: `${projectId}.${datasetId}.${table.tableReference.tableId}`,
-              })
-            }
-            return acc
-          }, []),
+        response.value.tables.reduce((acc: TableAddress[], table) => {
+          if (table.type === 'VIEW' && table.tableReference?.tableId) {
+            acc.push({
+              name: table.tableReference.tableId,
+              fullPath: `${projectId}.${datasetId}.${table.tableReference.tableId}`,
+            })
+          }
+          return acc
+        }, []),
       )
     } catch (error) {
       const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error occurred'
+        error instanceof Error ? error.message : 'Unknown error occurred'
       return Err({
         code: ErrorCodes.INTERNAL,
         message: `Failed to parse BigQuery views: ${errorMessage}`,
@@ -301,14 +304,14 @@ export abstract class BigQueryBase {
   }
 
   async listColumnsRoot(
-      tableName: string,
-      projectId: string,
-      datasetId: string,
+    tableName: string,
+    projectId: string,
+    datasetId: string,
   ) {
     const response = await this.makeBigQueryRequest<{
       schema: BigQueryTableSchema
     }>(
-        `https://bigquery.googleapis.com/bigquery/v2/projects/${projectId}/datasets/${datasetId}/tables/${tableName}`,
+      `https://bigquery.googleapis.com/bigquery/v2/projects/${projectId}/datasets/${datasetId}/tables/${tableName}`,
     )
 
     if (isErr(response)) {
@@ -337,49 +340,49 @@ export abstract class BigQueryBase {
       }
 
       const datasetPromises = resolveExternalDatasets.value.map(
-          async (dataset) => {
-            if (dataset.datasetReference === undefined) {
-              throw new Error(`unexpected datasets for undefined ${project.id}`)
-            }
+        async (dataset) => {
+          if (dataset.datasetReference === undefined) {
+            throw new Error(`unexpected datasets for undefined ${project.id}`)
+          }
 
-            const resolveExternalTables = await this.listTablesRoot(
+          const resolveExternalTables = await this.listTablesRoot(
+            dataset.datasetReference?.projectId,
+            dataset.datasetReference?.datasetId,
+          )
+          if (isErr(resolveExternalTables)) {
+            throw resolveExternalTables.error
+          }
+
+          const tablePromises = resolveExternalTables.value.map(
+            async (table) => {
+              if (dataset.datasetReference === undefined) {
+                throw new Error(`unexpected tables for undefined ${project.id}`)
+              }
+              const resolveTableColumns = await this.listColumnsRoot(
+                table.name,
                 dataset.datasetReference?.projectId,
                 dataset.datasetReference?.datasetId,
-            )
-            if (isErr(resolveExternalTables)) {
-              throw resolveExternalTables.error
-            }
+              )
+              if (isErr(resolveTableColumns)) {
+                throw resolveTableColumns.error
+              }
 
-            const tablePromises = resolveExternalTables.value.map(
-                async (table) => {
-                  if (dataset.datasetReference === undefined) {
-                    throw new Error(`unexpected tables for undefined ${project.id}`)
-                  }
-                  const resolveTableColumns = await this.listColumnsRoot(
-                      table.name,
-                      dataset.datasetReference?.projectId,
-                      dataset.datasetReference?.datasetId,
-                  )
-                  if (isErr(resolveTableColumns)) {
-                    throw resolveTableColumns.error
-                  }
+              const source: ProjectFileSource = {
+                name: table.name,
+                tests: [],
+                tags: [],
+                path: `${dataset.datasetReference?.projectId}.${dataset.datasetReference?.datasetId}.${table.name}`,
+                columns: resolveTableColumns.value.map((column) => ({
+                  name: column,
+                  tests: [],
+                })),
+              }
+              results.push(source)
+            },
+          )
 
-                  const source: ProjectFileSource = {
-                    name: table.name,
-                    tests: [],
-                    tags: [],
-                    path: `${dataset.datasetReference?.projectId}.${dataset.datasetReference?.datasetId}.${table.name}`,
-                    columns: resolveTableColumns.value.map((column) => ({
-                      name: column,
-                      tests: [],
-                    })),
-                  }
-                  results.push(source)
-                },
-            )
-
-            await Promise.all(tablePromises)
-          },
+          await Promise.all(tablePromises)
+        },
       )
 
       await Promise.all(datasetPromises)
