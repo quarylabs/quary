@@ -35,6 +35,9 @@ export type Callbacks = {
     column: string
     columnTest: ColumnTest
   }
+  documentationViewRemoveColumn: {
+    column: string
+  }
   onboardingViewGenerateProject: ConnectionConfig
   onboardingViewRestartFlow: null
   onboardingViewSelectDatabase: OnboardingViewDatabaseType

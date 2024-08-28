@@ -206,6 +206,7 @@ export const runDocumentationOnModel = async (
           'documentationViewAddColumnTest',
           'documentationViewRemoveColumnTest',
           'documentationViewUpdateColumnDescription',
+          'documentationViewRemoveColumn',
         ],
         {
           documentationViewLoad,
@@ -308,6 +309,24 @@ export const runDocumentationOnModel = async (
             }
             await documentationViewLoad()
           },
+          documentationViewRemoveColumn: async ({ column }) => {
+            const details = await preInitSetup(services)
+            if (isErr(details)) {
+              throw new Error('Error setting up documentation')
+            }
+            const { projectRoot } = details.value
+            const returned = await services.rust.removeObjectColumn({
+              projectRoot,
+              object: modelName,
+              column,
+            })
+            if (isErr(returned)) {
+              services.notifications.showErrorMessage(
+                `Error remove column: ${returned.error.message}`,
+              )
+            }
+            await documentationViewLoad()
+          },
           documentationViewAddColumn: async ({ column }) => {
             const details = await preInitSetup(services)
             if (isErr(details)) {
@@ -369,7 +388,7 @@ export const runDocumentationOnModel = async (
               )
             if (isErr(removeColumnTestResult)) {
               services.notifications.showErrorMessage(
-                `Error removing column test: ${removeColumnTestResult.error}`,
+                `Error removing column test: ${removeColumnTestResult.error.message}`,
               )
             }
 

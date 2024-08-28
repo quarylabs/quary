@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddColumnTestToModelOrSourceColumnRequest, AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest, AddColumnToModelOrSourceResponse, CreateModelChartFileRequest, CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest, GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse, GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse, IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, ParseProjectRequest, ParseProjectResponse, RemoveColumnTestFromModelOrSourceColumnRequest, RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse, ReturnDashboardWithSqlRequest, ReturnDashboardWithSqlResponse, ReturnDataForDocViewRequest, ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSQLRequest, ReturnDefinitionLocationsForSQLResponse, ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest, ReturnFullSqlForAssetResponse, ReturnSQLForInjectedModelRequest, ReturnSQLForInjectedModelResponse, ReturnSQLForSeedsAndModelsRequest, ReturnSQLForSeedsAndModelsResponse, StringifyProjectFileRequest, StringifyProjectFileResponse, UpdateAssetDescriptionRequest, UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest, UpdateModelOrSourceColumnDescriptionResponse } from "./wasm_rust_rpc_calls_pb.js";
+import { AddColumnTestToModelOrSourceColumnRequest, AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest, AddColumnToModelOrSourceResponse, CreateModelChartFileRequest, CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest, GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse, GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse, IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, ParseProjectRequest, ParseProjectResponse, RemoveColumnTestFromModelOrSourceColumnRequest, RemoveColumnTestFromModelOrSourceColumnResponse, RemoveObjectColumnRequest, RemoveObjectColumnResponse, RenderSchemaRequest, RenderSchemaResponse, ReturnDashboardWithSqlRequest, ReturnDashboardWithSqlResponse, ReturnDataForDocViewRequest, ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSQLRequest, ReturnDefinitionLocationsForSQLResponse, ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest, ReturnFullSqlForAssetResponse, ReturnSQLForInjectedModelRequest, ReturnSQLForInjectedModelResponse, ReturnSQLForSeedsAndModelsRequest, ReturnSQLForSeedsAndModelsResponse, StringifyProjectFileRequest, StringifyProjectFileResponse, UpdateAssetDescriptionRequest, UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest, UpdateModelOrSourceColumnDescriptionResponse } from "./wasm_rust_rpc_calls_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -239,6 +239,17 @@ export const RustWithDatabaseService = {
       name: "AddColumnToModelOrSource",
       I: AddColumnToModelOrSourceRequest,
       O: AddColumnToModelOrSourceResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * RemoveObjectColumn removes the given model column from a specified model or source.
+     *
+     * @generated from rpc quary.service.v1.RustWithDatabaseService.RemoveObjectColumn
+     */
+    removeObjectColumn: {
+      name: "RemoveObjectColumn",
+      I: RemoveObjectColumnRequest,
+      O: RemoveObjectColumnResponse,
       kind: MethodKind.Unary,
     },
     /**

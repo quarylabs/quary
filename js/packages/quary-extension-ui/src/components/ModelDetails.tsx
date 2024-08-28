@@ -4,6 +4,7 @@ import {
   PlusCircledIcon,
   Pencil2Icon,
   CrossCircledIcon,
+  MinusCircledIcon,
   CheckCircledIcon,
 } from '@radix-ui/react-icons'
 import { ColumnTest } from '@quary/proto/quary/service/v1/project_file'
@@ -27,6 +28,7 @@ import { Table as TableComponent } from './Table'
 interface Props {
   table: Table
   addColumn?: (column: string) => void
+  removeColumn?: (column: string) => void
   addDescription?: (column: string, description: string) => void
   addColumnTest?: (column: string, columnTest: ColumnTest) => void
   removeColumnTest?: (column: string, columnTest: ColumnTest) => void
@@ -35,6 +37,7 @@ interface Props {
 export const ModelDetails: React.FC<Props> = ({
   table,
   addColumn,
+  removeColumn,
   addColumnTest,
   addDescription,
   removeColumnTest,
@@ -68,7 +71,14 @@ export const ModelDetails: React.FC<Props> = ({
                 }
               : undefined
             return RowWrapper({
-              title: <InferredAndPresentTitle title={title} />,
+              title: (
+                <PresentInDefinition
+                  title={title}
+                  onClickRemove={
+                    removeColumn ? () => removeColumn(title) : undefined
+                  }
+                />
+              ),
               columnTitle: title,
               tests,
               description,
@@ -96,7 +106,14 @@ export const ModelDetails: React.FC<Props> = ({
                 }
               : undefined
             return RowWrapper({
-              title: <p>{title}</p>,
+              title: (
+                <PresentInDefinition
+                  title={title}
+                  onClickRemove={
+                    removeColumn ? () => removeColumn(title) : undefined
+                  }
+                />
+              ),
               tests,
               columnTitle: title,
               description,
@@ -217,9 +234,13 @@ const InferredTitle: React.FC<{ title: string; addColumn?: () => void }> = ({
   </div>
 )
 
-const InferredAndPresentTitle: React.FC<{ title: string }> = ({ title }) => (
-  <div className="flex flex-wrap items-center justify-center">
+const PresentInDefinition: React.FC<{
+  title: string
+  onClickRemove?: () => void
+}> = ({ title, onClickRemove }) => (
+  <div className="flex items-center justify-center">
     <p className="flex-grow whitespace-nowrap">{title}️</p>
+    {onClickRemove ? <RemoveButton onClick={onClickRemove} /> : null}
   </div>
 )
 
@@ -544,4 +565,22 @@ const InferredDescription: React.FC<{
       <Badge variant="secondary">Inferred</Badge>
     )}
   </div>
+)
+
+const RemoveButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+  <TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger>
+        <Badge onClick={onClick} variant="secondary">
+          <div className="flex items-center gap-1">
+            <MinusCircledIcon className="h-3 w-3" />
+            Remove
+          </div>
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Remove column from list</p>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
 )

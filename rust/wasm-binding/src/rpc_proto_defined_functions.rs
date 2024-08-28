@@ -46,7 +46,8 @@ use quary_proto::{
     ListAssetsRequest, ListAssetsResponse, Node, ParseProjectRequest, ParseProjectResponse,
     Project, ProjectDag, ProjectFile, ProjectFileColumn, ProjectFileSource,
     RemoveColumnTestFromModelOrSourceColumnRequest,
-    RemoveColumnTestFromModelOrSourceColumnResponse, RenderSchemaRequest, RenderSchemaResponse,
+    RemoveColumnTestFromModelOrSourceColumnResponse, RemoveObjectColumnRequest,
+    RemoveObjectColumnResponse, RenderSchemaRequest, RenderSchemaResponse,
     ReturnDashboardWithSqlRequest, ReturnDashboardWithSqlResponse, ReturnDataForDocViewRequest,
     ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSqlRequest,
     ReturnDefinitionLocationsForSqlResponse, ReturnFullProjectDagRequest,
@@ -403,13 +404,89 @@ async fn update_asset_description_internal(
     Ok(UpdateAssetDescriptionResponse {})
 }
 
+pub(crate) async fn remove_object_column(
+    database: impl DatabaseQueryGenerator,
+    writer: Writer,
+    file_system: JsFileSystem,
+    request: RemoveObjectColumnRequest,
+) -> Result<RemoveObjectColumnResponse, String> {
+    remove_column_from_objet_internal(&database, &writer, &file_system, request).await
+}
+
+async fn remove_column_from_objet_internal(
+    database: &impl DatabaseQueryGenerator,
+    writer: &Writer,
+    file_system: &impl FileSystem,
+    request: RemoveObjectColumnRequest,
+) -> Result<RemoveObjectColumnResponse, String> {
+    let project_root = request.project_root;
+    let project = quary_core::project::parse_project(file_system, database, &project_root).await?;
+    let model_name = request.object;
+
+    let (file_path, project_file) = match (
+        project.sources.get(&model_name),
+        project.models.get(&model_name),
+    ) {
+        (Some(_), None) => {
+            let project_files = parse_project_files(file_system, &project_root, database).await?;
+            let (file_path, project_file) =
+                find_source_in_project_files(project_files, &model_name)
+                    .ok_or(format!("Source {} not found in project files", model_name))?;
+
+            let mut project_file = project_file.clone();
+            let source = project_file
+                .sources
+                .iter_mut()
+                .find(|source| source.name == model_name)
+                .ok_or(format!("Source {} not found in project files", model_name))?;
+            let column_index = source
+                .columns
+                .iter()
+                .position(|column| column.name == request.column)
+                .ok_or(format!(
+                    "Column {} not found in source {}",
+                    request.column, model_name
+                ))?;
+            source.columns.remove(column_index);
+            Ok((file_path.to_string(), project_file))
+        }
+        (None, Some(_)) => {
+            let project_files = parse_project_files(file_system, &project_root, database).await?;
+            let (file_path, project_file) = find_model_in_project_files(project_files, &model_name)
+                .ok_or(format!("Model {} not found in project files", model_name))?;
+
+            let mut project_file = project_file.clone();
+            let model = project_file
+                .models
+                .iter_mut()
+                .find(|source| source.name == model_name)
+                .ok_or(format!("Source {} not found in project files", model_name))?;
+            let column_index = model
+                .columns
+                .iter()
+                .position(|column| column.name == request.column)
+                .ok_or(format!(
+                    "Column {} not found in source {}",
+                    request.column, model_name
+                ))?;
+            model.columns.remove(column_index);
+            Ok((file_path.to_string(), project_file))
+        }
+        _ => Err("Invalid: model and source with same name".to_string()),
+    }?;
+
+    let project_file = serialize_project_file_to_yaml(project_file)?;
+    writer(file_path.to_string(), project_file).await?;
+    Ok(RemoveObjectColumnResponse {})
+}
+
 pub(crate) async fn add_column_to_model_or_source(
     database: impl DatabaseQueryGenerator,
     writer: Writer,
     file_system: JsFileSystem,
     request: AddColumnToModelOrSourceRequest,
 ) -> Result<AddColumnToModelOrSourceResponse, String> {
-    add_column_to_model_or_source_internal(&database, &writer, &file_system, request).await?
+    add_column_to_model_or_source_internal(&database, &writer, &file_system, request).await
 }
 
 async fn add_column_to_model_or_source_internal(
@@ -417,7 +494,7 @@ async fn add_column_to_model_or_source_internal(
     writer: &Writer,
     file_system: &impl FileSystem,
     request: AddColumnToModelOrSourceRequest,
-) -> Result<Result<AddColumnToModelOrSourceResponse, String>, String> {
+) -> Result<AddColumnToModelOrSourceResponse, String> {
     let project_root = request.project_root;
     let project = quary_core::project::parse_project(file_system, database, &project_root).await?;
     let model_name = request.model_or_source_name;
@@ -513,7 +590,7 @@ async fn add_column_to_model_or_source_internal(
 
     let project_file = serialize_project_file_to_yaml(project_file)?;
     writer(file_path.to_string(), project_file).await?;
-    Ok(Ok(AddColumnToModelOrSourceResponse {}))
+    Ok(AddColumnToModelOrSourceResponse {})
 }
 
 pub(crate) async fn update_model_source_column_description(
@@ -1639,6 +1716,85 @@ mod tests {
                 })
                 .collect(),
         }
+    }
+
+    #[tokio::test]
+    async fn test_remove_column_source() {
+        let (writer, written_files) = setup_file_mocks();
+
+        let database = DatabaseQueryGeneratorSqlite::default();
+        let file_system = files_to_file_system(vec![
+            ("quary.yaml", "sqliteInMemory: {}"),
+            (
+                "models/staging/schema.yaml",
+                r#"
+sources: 
+  - name: raw_shifts
+    path: raw_shifts_real_table
+    columns:
+      - name: id
+        description: id of shift
+        "#,
+            ),
+        ]);
+
+        let request = RemoveObjectColumnRequest {
+            project_root: "".to_string(),
+            object: "raw_shifts".to_string(),
+            column: "id".to_string(),
+        };
+
+        remove_column_from_objet_internal(&database, &writer, &file_system, request)
+            .await
+            .unwrap();
+
+        let binding = written_files.borrow();
+        let updated_content = binding
+            .get(&"models/staging/schema.yaml".to_string())
+            .unwrap();
+
+        assert_eq!(
+            updated_content,
+            "sources:\n- name: raw_shifts\n  path: raw_shifts_real_table\n"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_remove_column_model() {
+        let (writer, written_files) = setup_file_mocks();
+
+        let database = DatabaseQueryGeneratorSqlite::default();
+        let file_system = files_to_file_system(vec![
+            ("quary.yaml", "sqliteInMemory: {}"),
+            ("models/staging/raw_shifts.sql", "SELECT 1"),
+            (
+                "models/staging/schema.yaml",
+                r#"
+models: 
+  - name: raw_shifts
+    columns:
+      - name: id
+        description: id of shift
+        "#,
+            ),
+        ]);
+
+        let request = RemoveObjectColumnRequest {
+            project_root: "".to_string(),
+            object: "raw_shifts".to_string(),
+            column: "id".to_string(),
+        };
+
+        remove_column_from_objet_internal(&database, &writer, &file_system, request)
+            .await
+            .unwrap();
+
+        let binding = written_files.borrow();
+        let updated_content = binding
+            .get(&"models/staging/schema.yaml".to_string())
+            .unwrap();
+
+        assert_eq!(updated_content, "models:\n- name: raw_shifts\n");
     }
 
     #[tokio::test]
