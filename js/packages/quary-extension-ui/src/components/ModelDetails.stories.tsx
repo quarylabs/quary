@@ -14,6 +14,7 @@ const argTypes = {
   addColumnTest: { action: 'addColumnTest' },
   removeColumnTest: { action: 'removeColumnTest' },
   addDescription: { action: 'addDescription' },
+  removeColumn: { action: 'removeColumn' },
 }
 
 const args = {

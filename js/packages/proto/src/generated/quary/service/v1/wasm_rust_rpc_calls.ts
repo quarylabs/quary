@@ -392,6 +392,15 @@ export interface DashboardRenderingItem {
   chart: Chart | undefined;
 }
 
+export interface RemoveObjectColumnRequest {
+  projectRoot: string;
+  object: string;
+  column: string;
+}
+
+export interface RemoveObjectColumnResponse {
+}
+
 function createBaseGetProjectConfigRequest(): GetProjectConfigRequest {
   return { projectRoot: "" };
 }
@@ -4161,6 +4170,138 @@ export const DashboardRenderingItem = {
   },
 };
 
+function createBaseRemoveObjectColumnRequest(): RemoveObjectColumnRequest {
+  return { projectRoot: "", object: "", column: "" };
+}
+
+export const RemoveObjectColumnRequest = {
+  encode(message: RemoveObjectColumnRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.projectRoot !== "") {
+      writer.uint32(10).string(message.projectRoot);
+    }
+    if (message.object !== "") {
+      writer.uint32(18).string(message.object);
+    }
+    if (message.column !== "") {
+      writer.uint32(26).string(message.column);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): RemoveObjectColumnRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRemoveObjectColumnRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.projectRoot = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.object = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.column = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RemoveObjectColumnRequest {
+    return {
+      projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
+      object: isSet(object.object) ? gt.String(object.object) : "",
+      column: isSet(object.column) ? gt.String(object.column) : "",
+    };
+  },
+
+  toJSON(message: RemoveObjectColumnRequest): unknown {
+    const obj: any = {};
+    if (message.projectRoot !== "") {
+      obj.projectRoot = message.projectRoot;
+    }
+    if (message.object !== "") {
+      obj.object = message.object;
+    }
+    if (message.column !== "") {
+      obj.column = message.column;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RemoveObjectColumnRequest>, I>>(base?: I): RemoveObjectColumnRequest {
+    return RemoveObjectColumnRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<RemoveObjectColumnRequest>, I>>(object: I): RemoveObjectColumnRequest {
+    const message = createBaseRemoveObjectColumnRequest();
+    message.projectRoot = object.projectRoot ?? "";
+    message.object = object.object ?? "";
+    message.column = object.column ?? "";
+    return message;
+  },
+};
+
+function createBaseRemoveObjectColumnResponse(): RemoveObjectColumnResponse {
+  return {};
+}
+
+export const RemoveObjectColumnResponse = {
+  encode(_: RemoveObjectColumnResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): RemoveObjectColumnResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRemoveObjectColumnResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): RemoveObjectColumnResponse {
+    return {};
+  },
+
+  toJSON(_: RemoveObjectColumnResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RemoveObjectColumnResponse>, I>>(base?: I): RemoveObjectColumnResponse {
+    return RemoveObjectColumnResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<RemoveObjectColumnResponse>, I>>(_: I): RemoveObjectColumnResponse {
+    const message = createBaseRemoveObjectColumnResponse();
+    return message;
+  },
+};
+
 /**
  * RustWithoutDatabaseService is the service that is used and where the database is not used and so not passed in as a
  * parameter in.
@@ -4292,6 +4433,8 @@ export interface RustWithDatabaseService {
    * returns nothing.
    */
   AddColumnToModelOrSource(request: AddColumnToModelOrSourceRequest): Promise<AddColumnToModelOrSourceResponse>;
+  /** RemoveObjectColumn removes the given model column from a specified model or source. */
+  RemoveObjectColumn(request: RemoveObjectColumnRequest): Promise<RemoveObjectColumnResponse>;
   /**
    * UpdateModelOrSourceColumnDescription sets the description for the given column. If the column, model, source definition doesn't
    * exist, this calls AddColumnToModelOrSource and then adds the description.
@@ -4348,6 +4491,7 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     this.CreateModelSchemaEntry = this.CreateModelSchemaEntry.bind(this);
     this.UpdateAssetDescription = this.UpdateAssetDescription.bind(this);
     this.AddColumnToModelOrSource = this.AddColumnToModelOrSource.bind(this);
+    this.RemoveObjectColumn = this.RemoveObjectColumn.bind(this);
     this.UpdateModelOrSourceColumnDescription = this.UpdateModelOrSourceColumnDescription.bind(this);
     this.AddColumnTestToModelOrSourceColumn = this.AddColumnTestToModelOrSourceColumn.bind(this);
     this.RemoveColumnTestFromModelOrSourceColumn = this.RemoveColumnTestFromModelOrSourceColumn.bind(this);
@@ -4425,6 +4569,12 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     const data = AddColumnToModelOrSourceRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "AddColumnToModelOrSource", data);
     return promise.then((data) => AddColumnToModelOrSourceResponse.decode(_m0.Reader.create(data)));
+  }
+
+  RemoveObjectColumn(request: RemoveObjectColumnRequest): Promise<RemoveObjectColumnResponse> {
+    const data = RemoveObjectColumnRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "RemoveObjectColumn", data);
+    return promise.then((data) => RemoveObjectColumnResponse.decode(_m0.Reader.create(data)));
   }
 
   UpdateModelOrSourceColumnDescription(

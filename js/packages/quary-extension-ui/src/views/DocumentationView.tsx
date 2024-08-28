@@ -70,6 +70,7 @@ export const DocumentationView: React.FC<Props> = ({
     documentationViewAddColumnTest,
     documentationViewRemoveColumnTest,
     documentationViewUpdateColumnDescription,
+    documentationViewRemoveColumn,
   } = useCallBackFrontEnd(
     [
       'documentationViewRunSqlQuery',
@@ -78,6 +79,7 @@ export const DocumentationView: React.FC<Props> = ({
       'documentationViewAddToSchema',
       'documentationViewUpdateDescription',
       'documentationViewAddColumn',
+      'documentationViewRemoveColumn',
       'documentationViewAddColumnTest',
       'documentationViewRemoveColumnTest',
       'documentationViewUpdateColumnDescription',
@@ -225,6 +227,11 @@ export const DocumentationView: React.FC<Props> = ({
               documentationViewUpdateColumnDescription({
                 column,
                 description,
+              })
+            }}
+            removeColumn={(column) => {
+              documentationViewRemoveColumn({
+                column,
               })
             }}
           />

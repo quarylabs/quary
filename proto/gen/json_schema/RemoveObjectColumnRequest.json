@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/RemoveObjectColumnRequest",
+    "definitions": {
+        "RemoveObjectColumnRequest": {
+            "properties": {
+                "project_root": {
+                    "type": "string"
+                },
+                "object": {
+                    "type": "string"
+                },
+                "column": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Remove Object Column Request"
+        }
+    }
+}

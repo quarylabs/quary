@@ -12692,6 +12692,203 @@ impl<'de> serde::Deserialize<'de> for RemoveColumnTestFromModelOrSourceColumnRes
         deserializer.deserialize_struct("quary.service.v1.RemoveColumnTestFromModelOrSourceColumnResponse", FIELDS, GeneratedVisitor)
     }
 }
+impl serde::Serialize for RemoveObjectColumnRequest {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.project_root.is_empty() {
+            len += 1;
+        }
+        if !self.object.is_empty() {
+            len += 1;
+        }
+        if !self.column.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("quary.service.v1.RemoveObjectColumnRequest", len)?;
+        if !self.project_root.is_empty() {
+            struct_ser.serialize_field("projectRoot", &self.project_root)?;
+        }
+        if !self.object.is_empty() {
+            struct_ser.serialize_field("object", &self.object)?;
+        }
+        if !self.column.is_empty() {
+            struct_ser.serialize_field("column", &self.column)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for RemoveObjectColumnRequest {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "project_root",
+            "projectRoot",
+            "object",
+            "column",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            ProjectRoot,
+            Object,
+            Column,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "projectRoot" | "project_root" => Ok(GeneratedField::ProjectRoot),
+                            "object" => Ok(GeneratedField::Object),
+                            "column" => Ok(GeneratedField::Column),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = RemoveObjectColumnRequest;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.RemoveObjectColumnRequest")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<RemoveObjectColumnRequest, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut project_root__ = None;
+                let mut object__ = None;
+                let mut column__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::ProjectRoot => {
+                            if project_root__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("projectRoot"));
+                            }
+                            project_root__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Object => {
+                            if object__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("object"));
+                            }
+                            object__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Column => {
+                            if column__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("column"));
+                            }
+                            column__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(RemoveObjectColumnRequest {
+                    project_root: project_root__.unwrap_or_default(),
+                    object: object__.unwrap_or_default(),
+                    column: column__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.RemoveObjectColumnRequest", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for RemoveObjectColumnResponse {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let len = 0;
+        let struct_ser = serializer.serialize_struct("quary.service.v1.RemoveObjectColumnResponse", len)?;
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for RemoveObjectColumnResponse {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                            Err(serde::de::Error::unknown_field(value, FIELDS))
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = RemoveObjectColumnResponse;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct quary.service.v1.RemoveObjectColumnResponse")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<RemoveObjectColumnResponse, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                while map_.next_key::<GeneratedField>()?.is_some() {
+                    let _ = map_.next_value::<serde::de::IgnoredAny>()?;
+                }
+                Ok(RemoveObjectColumnResponse {
+                })
+            }
+        }
+        deserializer.deserialize_struct("quary.service.v1.RemoveObjectColumnResponse", FIELDS, GeneratedVisitor)
+    }
+}
 impl serde::Serialize for RenderSchemaRequest {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>

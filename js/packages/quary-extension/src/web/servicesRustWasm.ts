@@ -77,6 +77,7 @@ export const rustWithDatabaseWasmServices = (
       client.UpdateModelOrSourceColumnDescription,
     ),
     addColumnToModelOrSource: wrapper(client.AddColumnToModelOrSource),
+    removeObjectColumn: wrapper(client.RemoveObjectColumn),
     addColumnTestToModelOrSourceColumnRequest: wrapper(
       client.AddColumnTestToModelOrSourceColumn,
     ),

@@ -77,6 +77,8 @@ service RustWithDatabaseService {
   // AddColumnToModelOrSource adds a column to the given model schema definition. If the column already exists, this
   // returns nothing.
   rpc AddColumnToModelOrSource(AddColumnToModelOrSourceRequest) returns (AddColumnToModelOrSourceResponse);
+  // RemoveObjectColumn removes the given model column from a specified model or source.
+  rpc RemoveObjectColumn(RemoveObjectColumnRequest) returns (RemoveObjectColumnResponse);
   // UpdateModelOrSourceColumnDescription sets the description for the given column. If the column, model, source definition doesn't
   // exist, this calls AddColumnToModelOrSource and then adds the description.
   rpc UpdateModelOrSourceColumnDescription(UpdateModelOrSourceColumnDescriptionRequest) returns (UpdateModelOrSourceColumnDescriptionResponse);
@@ -366,3 +368,11 @@ message DashboardRenderingItem {
   string sql = 2;
   Chart chart = 3;
 }
+
+message RemoveObjectColumnRequest {
+  string project_root = 1;
+  string object = 2;
+  string column = 3;
+}
+
+message RemoveObjectColumnResponse {}
