@@ -9,6 +9,7 @@ import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_confi
 import { TestResults } from '@quary/proto/quary/service/v1/test_results'
 import { ChartFile } from '@quary/proto/quary/service/v1/chart_file'
 import { DashboardFile } from '@quary/proto/quary/service/v1/dashboard_file'
+import { ServicesDatabase } from '@shared/database'
 import {
   add_limit_to_select,
   clean_up,
@@ -22,7 +23,6 @@ import {
   write_chart_file,
 } from '../rust_wasm/quary_wasm_bindgen'
 import { ServicesFiles } from './servicesFiles'
-import { ServicesDatabase } from '@shared/database'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const wasm = require('../rust_wasm/quary_wasm_bindgen_bg.wasm')

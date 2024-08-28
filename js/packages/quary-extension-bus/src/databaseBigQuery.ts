@@ -12,7 +12,7 @@ import { columnsValuesToQueryResult } from './shared'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { ModifiedConnectionConfig, ServicesDatabase } from './database'
 import { DatabaseDependentSettings, SqlLanguage } from './config'
-import vscode from 'vscode'
+import * as vscode from 'vscode'
 import { TableAddress } from '@quary/proto/quary/service/v1/table_address'
 import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
 
