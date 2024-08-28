@@ -507,8 +507,8 @@ const DescriptionCell: React.FC<{
                     : undefined
                 }
               >
-                No Description
                 {addDescription ? <Pencil2Icon className="h-4 w-4" /> : null}
+                No Description
               </Badge>
             </div>
           )}
