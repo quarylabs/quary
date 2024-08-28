@@ -9,11 +9,11 @@ import {
   ListAssetsResponse_Asset,
 } from '@quary/proto/quary/service/v1/wasm_rust_rpc_calls'
 import { queryResultToColumnsValues } from '@shared/shared'
+import { cacheViewBuilder } from '@shared/databaseShared'
 import { rustWithoutDatabaseWasmServices } from './servicesRustWasm'
 import { getPreInitServices, Services } from './services'
 import { renderingFunction } from './commandsScaffolding'
 import { DEFAULT_LIMIT_FOR_SELECT } from './defaults'
-import { cacheViewBuilder } from '@shared/databaseShared'
 
 const getModelDetails = async ({
   services,

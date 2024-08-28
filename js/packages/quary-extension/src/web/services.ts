@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
 import { isErr, Result, Ok } from '@shared/result'
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
+import { ServicesDatabase } from '@shared/database'
 import { ServicesFiles, vsCodeWebFiles } from './servicesFiles'
 import {
   ServicesNotification,
@@ -15,7 +16,6 @@ import {
   rustWithDatabaseWasmServices,
   rustWithoutDatabaseWasmServices,
 } from './servicesRustWasm'
-import { ServicesDatabase } from '@shared/database'
 
 export interface Services {
   fileSystem: ServicesFiles

@@ -4,15 +4,15 @@ import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { CLIRPCServiceClientImpl } from '@quary/proto/quary/service/v1/cli_rpc_calls'
 import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
 import {
-  CLIDatabaseService,
-  CLIDatabaseServiceWrapper,
-} from './servicesDatabase'
-import { TerminalExecutor } from './terminalExecutor'
-import {
   ModifiedConnectionConfig,
   ServicesDatabase,
   SourcesLister,
 } from '@shared/database'
+import {
+  CLIDatabaseService,
+  CLIDatabaseServiceWrapper,
+} from './servicesDatabase'
+import { TerminalExecutor } from './terminalExecutor'
 
 const DefaultSqliteDatabaseDependentSetting = {
   runQueriesByDefault: true,
