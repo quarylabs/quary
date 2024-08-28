@@ -1,11 +1,11 @@
-import {collectResults, Err, ErrorCodes, isErr, Ok, Result} from './result'
+import { collectResults, Err, ErrorCodes, isErr, Ok, Result } from './result'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
 import { columnsValuesToQueryResult } from './shared'
-import {TableAddress} from "@quary/proto/quary/service/v1/table_address";
-import {ProjectFileSource} from "@quary/proto/quary/service/v1/project_file";
-import {ModifiedConnectionConfig, ServicesDatabase} from "./database";
-import {DatabaseDependentSettings, SqlLanguage} from "./config";
-import vscode from "vscode";
+import { TableAddress } from '@quary/proto/quary/service/v1/table_address'
+import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
+import { ModifiedConnectionConfig, ServicesDatabase } from './database'
+import { DatabaseDependentSettings, SqlLanguage } from './config'
+import vscode from 'vscode'
 
 export async function makeSnowflakeRequest<T>(
   accessToken: string,
@@ -125,11 +125,11 @@ abstract class SnowflakeBase {
 
   protected async getAccessToken(): Promise<Result<string>> {
     const session = await vscode.authentication.getSession(
-        'quarySnowflake',
-        [this.accountUrl, this.clientId, this.clientSecret, this.role],
-        {
-          createIfNone: true,
-        },
+      'quarySnowflake',
+      [this.accountUrl, this.clientId, this.clientSecret, this.role],
+      {
+        createIfNone: true,
+      },
     )
     if (!session) {
       return Err({
@@ -149,8 +149,8 @@ abstract class SnowflakeBase {
     }
     const { data } = listDatabasesResponse.value as { data: string[][] }
     const databaseNames = data
-        .map((db: string[]) => db[1])
-        .map((db: string) => db.toLowerCase())
+      .map((db: string[]) => db[1])
+      .map((db: string) => db.toLowerCase())
     return Ok(databaseNames)
   }
 
@@ -163,14 +163,14 @@ abstract class SnowflakeBase {
     }
     const { data } = listSchemasResponse.value as { data: string[][] }
     const schemaNames = data
-        .map((db: string[]) => db[1])
-        .map((db) => db.toLowerCase())
+      .map((db: string[]) => db[1])
+      .map((db) => db.toLowerCase())
     return Ok(schemaNames)
   }
 
   async listTablesRoot(
-      database: string,
-      schema: string,
+    database: string,
+    schema: string,
   ): Promise<Result<TableAddress[]>> {
     const listTablesResponse = await this.makeSnowflakeRequest({
       statement: `SHOW TABLES IN SCHEMA ${database}.${schema}`,
@@ -180,16 +180,16 @@ abstract class SnowflakeBase {
     }
     const { data } = listTablesResponse.value as { data: string[][] }
     return Ok(
-        data.map((db: string[]) => ({
-          name: db[1].toLowerCase(),
-          fullPath: `${db[2]}.${db[3]}.${db[1]}`,
-        })),
+      data.map((db: string[]) => ({
+        name: db[1].toLowerCase(),
+        fullPath: `${db[2]}.${db[3]}.${db[1]}`,
+      })),
     )
   }
 
   async listViewsRoot(
-      database: string,
-      schema: string,
+    database: string,
+    schema: string,
   ): Promise<Result<TableAddress[]>> {
     return Ok([{ name: database, fullPath: schema }]) //TODO: implement properly (returns incorrect values)
   }
@@ -220,38 +220,38 @@ abstract class SnowflakeBase {
       const schemas = listSchemasResponse.value
 
       return Promise.all(
-          schemas.map(async (schema) => {
-            const listTablesResponse = await this.listTablesRoot(database, schema)
-            if (isErr(listTablesResponse)) {
-              return [listTablesResponse]
-            }
-            const tables = listTablesResponse.value
+        schemas.map(async (schema) => {
+          const listTablesResponse = await this.listTablesRoot(database, schema)
+          if (isErr(listTablesResponse)) {
+            return [listTablesResponse]
+          }
+          const tables = listTablesResponse.value
 
-            return Promise.all(
-                tables.map(async (table): Promise<Result<ProjectFileSource>> => {
-                  const listColumnsResponse = await this.listColumnsRoot(
-                      database,
-                      schema,
-                      table.name,
-                  )
-                  if (isErr(listColumnsResponse)) {
-                    return listColumnsResponse
-                  }
-                  const columns = listColumnsResponse.value
+          return Promise.all(
+            tables.map(async (table): Promise<Result<ProjectFileSource>> => {
+              const listColumnsResponse = await this.listColumnsRoot(
+                database,
+                schema,
+                table.name,
+              )
+              if (isErr(listColumnsResponse)) {
+                return listColumnsResponse
+              }
+              const columns = listColumnsResponse.value
 
-                  return Ok({
-                    name: table.name,
-                    path: `${database}.${schema}.${table.name}`,
-                    tests: [],
-                    tags: [],
-                    columns: columns.map((column) => ({
-                      name: column,
-                      tests: [],
-                    })),
-                  })
-                }),
-            )
-          }),
+              return Ok({
+                name: table.name,
+                path: `${database}.${schema}.${table.name}`,
+                tests: [],
+                tags: [],
+                columns: columns.map((column) => ({
+                  name: column,
+                  tests: [],
+                })),
+              })
+            }),
+          )
+        }),
       )
     })
 
@@ -285,15 +285,15 @@ abstract class SnowflakeBase {
     const schemaResults = await Promise.all(schemaPromises)
 
     return Ok(
-        schemaResults.reduce(
-            (acc, { database, schemas }) => {
-              acc[database] = schemas
-              return acc
-            },
-            {} as {
-              [database: string]: string[]
-            },
-        ),
+      schemaResults.reduce(
+        (acc, { database, schemas }) => {
+          acc[database] = schemas
+          return acc
+        },
+        {} as {
+          [database: string]: string[]
+        },
+      ),
     )
   }
 }
@@ -348,12 +348,12 @@ export class Snowflake extends SnowflakeBase implements ServicesDatabase {
       return accessToken
     }
     return snowflakeRunStatement(
-        accessToken.value,
-        this.accountUrl,
-        this.database,
-        this.schema,
-        this.warehouse,
-        statement,
+      accessToken.value,
+      this.accountUrl,
+      this.database,
+      this.schema,
+      this.warehouse,
+      statement,
     )
   }
 
@@ -372,4 +372,3 @@ export class Snowflake extends SnowflakeBase implements ServicesDatabase {
     }
   }
 }
-

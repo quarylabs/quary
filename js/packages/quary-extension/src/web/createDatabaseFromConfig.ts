@@ -2,7 +2,7 @@ import * as vscode from 'vscode'
 import { Err, ErrorCodes, isErr, Ok, Result } from '@shared/result'
 import { ConnectionConfig } from '@quary/proto/quary/service/v1/connection_config'
 import { ServicesDatabase } from '@shared/database'
-import {BigQueryOAuth} from "@shared/databaseBigQuery"
+import { BigQueryOAuth } from '@shared/databaseBigQuery'
 import { InMemorySqlite, PathBasedSqlite } from './servicesDatabaseSqlite'
 import { servicesDatabaseBigQueryNode } from './servicesDatabaseBigQueryNode'
 import { Snowflake } from './servicesDatabaseSnowflake'
