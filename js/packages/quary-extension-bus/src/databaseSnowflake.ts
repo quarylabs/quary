@@ -102,7 +102,7 @@ interface SnowflakeBaseOptions {
   role: string
 }
 
-abstract class SnowflakeBase {
+export abstract class SnowflakeBase {
   protected accountUrl: string
   protected clientId: string
   protected clientSecret: string
