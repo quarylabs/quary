@@ -11,7 +11,7 @@ import {
 import { TerminalExecutor } from './terminalExecutor'
 
 const DefaultDatabaseDependentSettings = {
-  runQueriesByDefault: true,
+  runQueriesByDefault: false,
   lookForCacheViews: false,
   importSourcesAfterOnboarding: false,
 }

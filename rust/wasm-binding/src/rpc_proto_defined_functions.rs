@@ -1554,7 +1554,7 @@ pub(crate) async fn return_definition_locations_for_sql(
                                 .unwrap_or(&file_path)
                                 .to_string();
                             Some(Definition {
-                                range: Some(range.clone()),
+                                range: Some(*range),
                                 target_model: model.name.to_string(),
                                 target_file: file_path.to_string(),
                             })
@@ -1566,7 +1566,7 @@ pub(crate) async fn return_definition_locations_for_sql(
                                 .unwrap_or(&file_path)
                                 .to_string();
                             Some(Definition {
-                                range: Some(range.clone()),
+                                range: Some(*range),
                                 target_model: seed.name.to_string(),
                                 target_file: file_path.to_string(),
                             })

@@ -401,6 +401,39 @@ export interface RemoveObjectColumnRequest {
 export interface RemoveObjectColumnResponse {
 }
 
+export interface ReturnExplainModelPromptRequest {
+  projectRoot: string;
+  modelName: string;
+  userPrompt: string;
+}
+
+export interface ReturnExplainModelPromptResponse {
+  agentPrompt: string;
+  userPrompt: string;
+}
+
+export interface ReturnGenerateModelPromptRequest {
+  projectRoot: string;
+  prompt: string;
+  references: string[];
+}
+
+export interface ReturnGenerateModelPromptResponse {
+  agentPrompt: string;
+  userPrompt: string;
+}
+
+export interface ReturnEditModelPromptRequest {
+  projectRoot: string;
+  modelName: string;
+  prompt: string;
+}
+
+export interface ReturnEditModelPromptResponse {
+  agentPrompt: string;
+  userPrompt: string;
+}
+
 function createBaseGetProjectConfigRequest(): GetProjectConfigRequest {
   return { projectRoot: "" };
 }
@@ -4302,6 +4335,511 @@ export const RemoveObjectColumnResponse = {
   },
 };
 
+function createBaseReturnExplainModelPromptRequest(): ReturnExplainModelPromptRequest {
+  return { projectRoot: "", modelName: "", userPrompt: "" };
+}
+
+export const ReturnExplainModelPromptRequest = {
+  encode(message: ReturnExplainModelPromptRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.projectRoot !== "") {
+      writer.uint32(10).string(message.projectRoot);
+    }
+    if (message.modelName !== "") {
+      writer.uint32(18).string(message.modelName);
+    }
+    if (message.userPrompt !== "") {
+      writer.uint32(26).string(message.userPrompt);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnExplainModelPromptRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnExplainModelPromptRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.projectRoot = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.modelName = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.userPrompt = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnExplainModelPromptRequest {
+    return {
+      projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
+      modelName: isSet(object.modelName) ? gt.String(object.modelName) : "",
+      userPrompt: isSet(object.userPrompt) ? gt.String(object.userPrompt) : "",
+    };
+  },
+
+  toJSON(message: ReturnExplainModelPromptRequest): unknown {
+    const obj: any = {};
+    if (message.projectRoot !== "") {
+      obj.projectRoot = message.projectRoot;
+    }
+    if (message.modelName !== "") {
+      obj.modelName = message.modelName;
+    }
+    if (message.userPrompt !== "") {
+      obj.userPrompt = message.userPrompt;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnExplainModelPromptRequest>, I>>(base?: I): ReturnExplainModelPromptRequest {
+    return ReturnExplainModelPromptRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnExplainModelPromptRequest>, I>>(
+    object: I,
+  ): ReturnExplainModelPromptRequest {
+    const message = createBaseReturnExplainModelPromptRequest();
+    message.projectRoot = object.projectRoot ?? "";
+    message.modelName = object.modelName ?? "";
+    message.userPrompt = object.userPrompt ?? "";
+    return message;
+  },
+};
+
+function createBaseReturnExplainModelPromptResponse(): ReturnExplainModelPromptResponse {
+  return { agentPrompt: "", userPrompt: "" };
+}
+
+export const ReturnExplainModelPromptResponse = {
+  encode(message: ReturnExplainModelPromptResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.agentPrompt !== "") {
+      writer.uint32(10).string(message.agentPrompt);
+    }
+    if (message.userPrompt !== "") {
+      writer.uint32(18).string(message.userPrompt);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnExplainModelPromptResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnExplainModelPromptResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.agentPrompt = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userPrompt = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnExplainModelPromptResponse {
+    return {
+      agentPrompt: isSet(object.agentPrompt) ? gt.String(object.agentPrompt) : "",
+      userPrompt: isSet(object.userPrompt) ? gt.String(object.userPrompt) : "",
+    };
+  },
+
+  toJSON(message: ReturnExplainModelPromptResponse): unknown {
+    const obj: any = {};
+    if (message.agentPrompt !== "") {
+      obj.agentPrompt = message.agentPrompt;
+    }
+    if (message.userPrompt !== "") {
+      obj.userPrompt = message.userPrompt;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnExplainModelPromptResponse>, I>>(
+    base?: I,
+  ): ReturnExplainModelPromptResponse {
+    return ReturnExplainModelPromptResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnExplainModelPromptResponse>, I>>(
+    object: I,
+  ): ReturnExplainModelPromptResponse {
+    const message = createBaseReturnExplainModelPromptResponse();
+    message.agentPrompt = object.agentPrompt ?? "";
+    message.userPrompt = object.userPrompt ?? "";
+    return message;
+  },
+};
+
+function createBaseReturnGenerateModelPromptRequest(): ReturnGenerateModelPromptRequest {
+  return { projectRoot: "", prompt: "", references: [] };
+}
+
+export const ReturnGenerateModelPromptRequest = {
+  encode(message: ReturnGenerateModelPromptRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.projectRoot !== "") {
+      writer.uint32(10).string(message.projectRoot);
+    }
+    if (message.prompt !== "") {
+      writer.uint32(18).string(message.prompt);
+    }
+    for (const v of message.references) {
+      writer.uint32(26).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnGenerateModelPromptRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnGenerateModelPromptRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.projectRoot = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.prompt = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.references.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnGenerateModelPromptRequest {
+    return {
+      projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
+      prompt: isSet(object.prompt) ? gt.String(object.prompt) : "",
+      references: gt.Array.isArray(object?.references) ? object.references.map((e: any) => gt.String(e)) : [],
+    };
+  },
+
+  toJSON(message: ReturnGenerateModelPromptRequest): unknown {
+    const obj: any = {};
+    if (message.projectRoot !== "") {
+      obj.projectRoot = message.projectRoot;
+    }
+    if (message.prompt !== "") {
+      obj.prompt = message.prompt;
+    }
+    if (message.references?.length) {
+      obj.references = message.references;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnGenerateModelPromptRequest>, I>>(
+    base?: I,
+  ): ReturnGenerateModelPromptRequest {
+    return ReturnGenerateModelPromptRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnGenerateModelPromptRequest>, I>>(
+    object: I,
+  ): ReturnGenerateModelPromptRequest {
+    const message = createBaseReturnGenerateModelPromptRequest();
+    message.projectRoot = object.projectRoot ?? "";
+    message.prompt = object.prompt ?? "";
+    message.references = object.references?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseReturnGenerateModelPromptResponse(): ReturnGenerateModelPromptResponse {
+  return { agentPrompt: "", userPrompt: "" };
+}
+
+export const ReturnGenerateModelPromptResponse = {
+  encode(message: ReturnGenerateModelPromptResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.agentPrompt !== "") {
+      writer.uint32(10).string(message.agentPrompt);
+    }
+    if (message.userPrompt !== "") {
+      writer.uint32(18).string(message.userPrompt);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnGenerateModelPromptResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnGenerateModelPromptResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.agentPrompt = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userPrompt = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnGenerateModelPromptResponse {
+    return {
+      agentPrompt: isSet(object.agentPrompt) ? gt.String(object.agentPrompt) : "",
+      userPrompt: isSet(object.userPrompt) ? gt.String(object.userPrompt) : "",
+    };
+  },
+
+  toJSON(message: ReturnGenerateModelPromptResponse): unknown {
+    const obj: any = {};
+    if (message.agentPrompt !== "") {
+      obj.agentPrompt = message.agentPrompt;
+    }
+    if (message.userPrompt !== "") {
+      obj.userPrompt = message.userPrompt;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnGenerateModelPromptResponse>, I>>(
+    base?: I,
+  ): ReturnGenerateModelPromptResponse {
+    return ReturnGenerateModelPromptResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnGenerateModelPromptResponse>, I>>(
+    object: I,
+  ): ReturnGenerateModelPromptResponse {
+    const message = createBaseReturnGenerateModelPromptResponse();
+    message.agentPrompt = object.agentPrompt ?? "";
+    message.userPrompt = object.userPrompt ?? "";
+    return message;
+  },
+};
+
+function createBaseReturnEditModelPromptRequest(): ReturnEditModelPromptRequest {
+  return { projectRoot: "", modelName: "", prompt: "" };
+}
+
+export const ReturnEditModelPromptRequest = {
+  encode(message: ReturnEditModelPromptRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.projectRoot !== "") {
+      writer.uint32(10).string(message.projectRoot);
+    }
+    if (message.modelName !== "") {
+      writer.uint32(18).string(message.modelName);
+    }
+    if (message.prompt !== "") {
+      writer.uint32(26).string(message.prompt);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnEditModelPromptRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnEditModelPromptRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.projectRoot = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.modelName = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.prompt = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnEditModelPromptRequest {
+    return {
+      projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
+      modelName: isSet(object.modelName) ? gt.String(object.modelName) : "",
+      prompt: isSet(object.prompt) ? gt.String(object.prompt) : "",
+    };
+  },
+
+  toJSON(message: ReturnEditModelPromptRequest): unknown {
+    const obj: any = {};
+    if (message.projectRoot !== "") {
+      obj.projectRoot = message.projectRoot;
+    }
+    if (message.modelName !== "") {
+      obj.modelName = message.modelName;
+    }
+    if (message.prompt !== "") {
+      obj.prompt = message.prompt;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnEditModelPromptRequest>, I>>(base?: I): ReturnEditModelPromptRequest {
+    return ReturnEditModelPromptRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnEditModelPromptRequest>, I>>(object: I): ReturnEditModelPromptRequest {
+    const message = createBaseReturnEditModelPromptRequest();
+    message.projectRoot = object.projectRoot ?? "";
+    message.modelName = object.modelName ?? "";
+    message.prompt = object.prompt ?? "";
+    return message;
+  },
+};
+
+function createBaseReturnEditModelPromptResponse(): ReturnEditModelPromptResponse {
+  return { agentPrompt: "", userPrompt: "" };
+}
+
+export const ReturnEditModelPromptResponse = {
+  encode(message: ReturnEditModelPromptResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.agentPrompt !== "") {
+      writer.uint32(10).string(message.agentPrompt);
+    }
+    if (message.userPrompt !== "") {
+      writer.uint32(18).string(message.userPrompt);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnEditModelPromptResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnEditModelPromptResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.agentPrompt = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userPrompt = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnEditModelPromptResponse {
+    return {
+      agentPrompt: isSet(object.agentPrompt) ? gt.String(object.agentPrompt) : "",
+      userPrompt: isSet(object.userPrompt) ? gt.String(object.userPrompt) : "",
+    };
+  },
+
+  toJSON(message: ReturnEditModelPromptResponse): unknown {
+    const obj: any = {};
+    if (message.agentPrompt !== "") {
+      obj.agentPrompt = message.agentPrompt;
+    }
+    if (message.userPrompt !== "") {
+      obj.userPrompt = message.userPrompt;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnEditModelPromptResponse>, I>>(base?: I): ReturnEditModelPromptResponse {
+    return ReturnEditModelPromptResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnEditModelPromptResponse>, I>>(
+    object: I,
+  ): ReturnEditModelPromptResponse {
+    const message = createBaseReturnEditModelPromptResponse();
+    message.agentPrompt = object.agentPrompt ?? "";
+    message.userPrompt = object.userPrompt ?? "";
+    return message;
+  },
+};
+
 /**
  * RustWithoutDatabaseService is the service that is used and where the database is not used and so not passed in as a
  * parameter in.
@@ -4470,6 +5008,21 @@ export interface RustWithDatabaseService {
    * for each item in the dashboard.
    */
   ReturnDashboardWithSql(request: ReturnDashboardWithSqlRequest): Promise<ReturnDashboardWithSqlResponse>;
+  /**
+   * AI-Focused methods
+   * ReturnExplainQueryPrompt returns the prompt for the explain query.
+   */
+  ReturnExplainModelPrompt(request: ReturnExplainModelPromptRequest): Promise<ReturnExplainModelPromptResponse>;
+  /**
+   * ReturnGenerateModelPrompt returns the prompt to send to AI to generate a model, it contains the prompt as well as
+   * any references to files that the model should be based on.
+   */
+  ReturnGenerateModelPrompt(request: ReturnGenerateModelPromptRequest): Promise<ReturnGenerateModelPromptResponse>;
+  /**
+   * ReturnEditModelPrompt returns the prompt to send to AI to edit a model, it contains the prompt as well as the model
+   * referenced.
+   */
+  ReturnEditModelPrompt(request: ReturnEditModelPromptRequest): Promise<ReturnEditModelPromptResponse>;
 }
 
 export const RustWithDatabaseServiceServiceName = "quary.service.v1.RustWithDatabaseService";
@@ -4498,6 +5051,9 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     this.GenerateSourceFiles = this.GenerateSourceFiles.bind(this);
     this.ReturnDefinitionLocationsForSQL = this.ReturnDefinitionLocationsForSQL.bind(this);
     this.ReturnDashboardWithSql = this.ReturnDashboardWithSql.bind(this);
+    this.ReturnExplainModelPrompt = this.ReturnExplainModelPrompt.bind(this);
+    this.ReturnGenerateModelPrompt = this.ReturnGenerateModelPrompt.bind(this);
+    this.ReturnEditModelPrompt = this.ReturnEditModelPrompt.bind(this);
   }
   ListAssets(request: ListAssetsRequest): Promise<ListAssetsResponse> {
     const data = ListAssetsRequest.encode(request).finish();
@@ -4619,6 +5175,24 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     const data = ReturnDashboardWithSqlRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "ReturnDashboardWithSql", data);
     return promise.then((data) => ReturnDashboardWithSqlResponse.decode(_m0.Reader.create(data)));
+  }
+
+  ReturnExplainModelPrompt(request: ReturnExplainModelPromptRequest): Promise<ReturnExplainModelPromptResponse> {
+    const data = ReturnExplainModelPromptRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ReturnExplainModelPrompt", data);
+    return promise.then((data) => ReturnExplainModelPromptResponse.decode(_m0.Reader.create(data)));
+  }
+
+  ReturnGenerateModelPrompt(request: ReturnGenerateModelPromptRequest): Promise<ReturnGenerateModelPromptResponse> {
+    const data = ReturnGenerateModelPromptRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ReturnGenerateModelPrompt", data);
+    return promise.then((data) => ReturnGenerateModelPromptResponse.decode(_m0.Reader.create(data)));
+  }
+
+  ReturnEditModelPrompt(request: ReturnEditModelPromptRequest): Promise<ReturnEditModelPromptResponse> {
+    const data = ReturnEditModelPromptRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ReturnEditModelPrompt", data);
+    return promise.then((data) => ReturnEditModelPromptResponse.decode(_m0.Reader.create(data)));
   }
 }
 

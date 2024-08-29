@@ -27,6 +27,10 @@ impl Default for DatabaseQueryGeneratorSqlite {
 }
 
 impl DatabaseQueryGenerator for DatabaseQueryGeneratorSqlite {
+    fn get_name(&self) -> &'static str {
+        "sqlite"
+    }
+
     fn return_full_path_requirement(&self, table_name: &str) -> String {
         table_name.to_string()
     }

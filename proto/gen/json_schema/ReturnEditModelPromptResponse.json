@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ReturnEditModelPromptResponse",
+    "definitions": {
+        "ReturnEditModelPromptResponse": {
+            "properties": {
+                "agent_prompt": {
+                    "type": "string"
+                },
+                "user_prompt": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Return Edit Model Prompt Response"
+        }
+    }
+}

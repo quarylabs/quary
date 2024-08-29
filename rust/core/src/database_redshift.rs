@@ -44,6 +44,10 @@ impl DatabaseQueryGeneratorRedshift {
 }
 
 impl DatabaseQueryGenerator for DatabaseQueryGeneratorRedshift {
+    fn get_name(&self) -> &'static str {
+        "redshift"
+    }
+
     fn supported_materialization_types(&self) -> &'static [&'static str] {
         &[
             MATERIALIZATION_TYPE_VIEW,

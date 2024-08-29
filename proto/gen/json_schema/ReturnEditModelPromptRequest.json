@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ReturnEditModelPromptRequest",
+    "definitions": {
+        "ReturnEditModelPromptRequest": {
+            "properties": {
+                "project_root": {
+                    "type": "string"
+                },
+                "model_name": {
+                    "type": "string"
+                },
+                "prompt": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Return Edit Model Prompt Request"
+        }
+    }
+}

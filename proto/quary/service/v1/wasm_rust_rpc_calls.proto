@@ -93,10 +93,19 @@ service RustWithDatabaseService {
   // ReturnDefinitionLocationsForSQL takes in a SQL statement, looks for the models it references and returns location of those
   // definitions in the file as well as the file path for the definition.
   rpc ReturnDefinitionLocationsForSQL(ReturnDefinitionLocationsForSQLRequest) returns (ReturnDefinitionLocationsForSQLResponse);
-
   // ReturnDashboardWithSql returns the components for the dashboard for the given dashboard name. It also returns the sql
   // for each item in the dashboard.
   rpc ReturnDashboardWithSql(ReturnDashboardWithSqlRequest) returns (ReturnDashboardWithSqlResponse);
+
+  // AI-Focused methods
+  // ReturnExplainQueryPrompt returns the prompt for the explain query.
+  rpc ReturnExplainModelPrompt(ReturnExplainModelPromptRequest) returns (ReturnExplainModelPromptResponse);
+  // ReturnGenerateModelPrompt returns the prompt to send to AI to generate a model, it contains the prompt as well as
+  // any references to files that the model should be based on.
+  rpc ReturnGenerateModelPrompt(ReturnGenerateModelPromptRequest) returns (ReturnGenerateModelPromptResponse);
+  // ReturnEditModelPrompt returns the prompt to send to AI to edit a model, it contains the prompt as well as the model
+  // referenced.
+  rpc ReturnEditModelPrompt(ReturnEditModelPromptRequest) returns (ReturnEditModelPromptResponse);
 }
 
 message GetProjectConfigRequest {
@@ -376,3 +385,36 @@ message RemoveObjectColumnRequest {
 }
 
 message RemoveObjectColumnResponse {}
+
+message ReturnExplainModelPromptRequest {
+  string project_root = 1;
+  string model_name = 2;
+  string user_prompt = 3;
+}
+
+message ReturnExplainModelPromptResponse {
+  string agent_prompt = 1;
+  string user_prompt = 2;
+}
+
+message ReturnGenerateModelPromptRequest {
+  string project_root = 1;
+  string prompt = 2;
+  repeated string references = 3;
+}
+
+message ReturnGenerateModelPromptResponse {
+  string agent_prompt = 1;
+  string user_prompt = 2;
+}
+
+message ReturnEditModelPromptRequest {
+  string project_root = 1;
+  string model_name = 2;
+  string prompt = 3;
+}
+
+message ReturnEditModelPromptResponse {
+  string agent_prompt = 1;
+  string user_prompt = 2;
+}

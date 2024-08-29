@@ -33,6 +33,10 @@ impl DatabaseQueryGeneratorBigQuery {
 }
 
 impl DatabaseQueryGenerator for DatabaseQueryGeneratorBigQuery {
+    fn get_name(&self) -> &'static str {
+        "bigquery"
+    }
+
     fn seeds_create_table_query(&self, table_name: &str, columns: &[String]) -> String {
         let table_name = self.return_full_path_requirement(table_name);
         base_for_seeds_create_table_specifying_text_type("STRING", table_name.as_str(), columns)
