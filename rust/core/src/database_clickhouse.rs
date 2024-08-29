@@ -46,6 +46,10 @@ impl DatabaseQueryGeneratorClickhouse {
 }
 
 impl DatabaseQueryGenerator for DatabaseQueryGeneratorClickhouse {
+    fn get_name(&self) -> &'static str {
+        "clickhouse"
+    }
+
     fn supported_materialization_types(&self) -> &'static [&'static str] {
         &[MATERIALIZATION_TYPE_VIEW, MATERIALIZATION_TYPE_TABLE]
     }

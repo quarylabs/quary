@@ -35,6 +35,10 @@ impl DatabaseQueryGeneratorSnowflake {
 }
 
 impl DatabaseQueryGenerator for DatabaseQueryGeneratorSnowflake {
+    fn get_name(&self) -> &'static str {
+        "snowflake"
+    }
+
     fn supported_materialization_types(&self) -> &'static [&'static str] {
         &[MATERIALIZATION_TYPE_VIEW, MATERIALIZATION_TYPE_TABLE]
     }

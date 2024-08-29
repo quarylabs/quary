@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddColumnTestToModelOrSourceColumnRequest, AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest, AddColumnToModelOrSourceResponse, CreateModelChartFileRequest, CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest, GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse, GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse, IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, ParseProjectRequest, ParseProjectResponse, RemoveColumnTestFromModelOrSourceColumnRequest, RemoveColumnTestFromModelOrSourceColumnResponse, RemoveObjectColumnRequest, RemoveObjectColumnResponse, RenderSchemaRequest, RenderSchemaResponse, ReturnDashboardWithSqlRequest, ReturnDashboardWithSqlResponse, ReturnDataForDocViewRequest, ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSQLRequest, ReturnDefinitionLocationsForSQLResponse, ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest, ReturnFullSqlForAssetResponse, ReturnSQLForInjectedModelRequest, ReturnSQLForInjectedModelResponse, ReturnSQLForSeedsAndModelsRequest, ReturnSQLForSeedsAndModelsResponse, StringifyProjectFileRequest, StringifyProjectFileResponse, UpdateAssetDescriptionRequest, UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest, UpdateModelOrSourceColumnDescriptionResponse } from "./wasm_rust_rpc_calls_pb.js";
+import { AddColumnTestToModelOrSourceColumnRequest, AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest, AddColumnToModelOrSourceResponse, CreateModelChartFileRequest, CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest, GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse, GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse, IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, ParseProjectRequest, ParseProjectResponse, RemoveColumnTestFromModelOrSourceColumnRequest, RemoveColumnTestFromModelOrSourceColumnResponse, RemoveObjectColumnRequest, RemoveObjectColumnResponse, RenderSchemaRequest, RenderSchemaResponse, ReturnDashboardWithSqlRequest, ReturnDashboardWithSqlResponse, ReturnDataForDocViewRequest, ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSQLRequest, ReturnDefinitionLocationsForSQLResponse, ReturnEditModelPromptRequest, ReturnEditModelPromptResponse, ReturnExplainModelPromptRequest, ReturnExplainModelPromptResponse, ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest, ReturnFullSqlForAssetResponse, ReturnGenerateModelPromptRequest, ReturnGenerateModelPromptResponse, ReturnSQLForInjectedModelRequest, ReturnSQLForInjectedModelResponse, ReturnSQLForSeedsAndModelsRequest, ReturnSQLForSeedsAndModelsResponse, StringifyProjectFileRequest, StringifyProjectFileResponse, UpdateAssetDescriptionRequest, UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest, UpdateModelOrSourceColumnDescriptionResponse } from "./wasm_rust_rpc_calls_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -321,6 +321,42 @@ export const RustWithDatabaseService = {
       name: "ReturnDashboardWithSql",
       I: ReturnDashboardWithSqlRequest,
       O: ReturnDashboardWithSqlResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * AI-Focused methods
+     * ReturnExplainQueryPrompt returns the prompt for the explain query.
+     *
+     * @generated from rpc quary.service.v1.RustWithDatabaseService.ReturnExplainModelPrompt
+     */
+    returnExplainModelPrompt: {
+      name: "ReturnExplainModelPrompt",
+      I: ReturnExplainModelPromptRequest,
+      O: ReturnExplainModelPromptResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * ReturnGenerateModelPrompt returns the prompt to send to AI to generate a model, it contains the prompt as well as
+     * any references to files that the model should be based on.
+     *
+     * @generated from rpc quary.service.v1.RustWithDatabaseService.ReturnGenerateModelPrompt
+     */
+    returnGenerateModelPrompt: {
+      name: "ReturnGenerateModelPrompt",
+      I: ReturnGenerateModelPromptRequest,
+      O: ReturnGenerateModelPromptResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * ReturnEditModelPrompt returns the prompt to send to AI to edit a model, it contains the prompt as well as the model
+     * referenced.
+     *
+     * @generated from rpc quary.service.v1.RustWithDatabaseService.ReturnEditModelPrompt
+     */
+    returnEditModelPrompt: {
+      name: "ReturnEditModelPrompt",
+      I: ReturnEditModelPromptRequest,
+      O: ReturnEditModelPromptResponse,
       kind: MethodKind.Unary,
     },
   }

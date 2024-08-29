@@ -8,6 +8,9 @@ use crate::rpc_proto_defined_functions::{
     return_sql_for_injected_model, return_sql_for_seeds_and_models, stringify_project_file,
     update_asset_description, update_model_source_column_description,
 };
+use crate::rpc_proto_prompt_functions_edit::return_edit_model_prompt;
+use crate::rpc_proto_prompt_functions_explain::return_explain_model_prompt;
+use crate::rpc_proto_prompt_functions_generate::return_generate_model_prompt;
 use crate::rpc_proto_scaffolding::{
     create_file_writer, database_query_generator_from_config, wrapper, wrapper_without_db,
 };
@@ -55,6 +58,9 @@ pub async fn rpc_wrapper_with_database(
         "ReturnSQLForInjectedModel" => Ok(wrapper(return_sql_for_injected_model)),
         "ReturnDashboardWithSql" => Ok(wrapper(return_dashboard_with_sql)),
         "RemoveObjectColumn" => Ok(wrapper(remove_object_column)),
+        "ReturnExplainModelPrompt" => Ok(wrapper(return_explain_model_prompt)),
+        "ReturnGenerateModelPrompt" => Ok(wrapper(return_generate_model_prompt)),
+        "ReturnEditModelPrompt" => Ok(wrapper(return_edit_model_prompt)),
         _ => Err(format!("Unknown method: {}", method)),
     }?;
 

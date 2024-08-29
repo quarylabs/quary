@@ -87,6 +87,9 @@ export const rustWithDatabaseWasmServices = (
     removeColumnTestFromModelOrSourceColumnRequest: wrapper(
       client.RemoveColumnTestFromModelOrSourceColumn,
     ),
+    returnExplainModelPrompt: wrapper(client.ReturnExplainModelPrompt),
+    returnGenerateModelPrompt: wrapper(client.ReturnGenerateModelPrompt),
+    returnEditModelPrompt: wrapper(client.ReturnEditModelPrompt),
     returnDashboardWithSql: wrapper(client.ReturnDashboardWithSql),
     generateSourceFiles: wrapper(client.GenerateSourceFiles),
     run_test: async (

@@ -34,6 +34,10 @@ impl DatabaseQueryGeneratorDremio {
 }
 
 impl DatabaseQueryGenerator for DatabaseQueryGeneratorDremio {
+    fn get_name(&self) -> &'static str {
+        "dremio"
+    }
+
     fn return_full_path_requirement(&self, table_name: &str) -> String {
         format!(
             "\"{}\".\"{}\".\"{}\"",

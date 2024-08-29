@@ -45,6 +45,10 @@ impl DatabaseQueryGeneratorPostgres {
 }
 
 impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
+    fn get_name(&self) -> &'static str {
+        "postgres"
+    }
+
     fn supported_materialization_types(&self) -> &'static [MaterializationType] {
         &[
             MATERIALIZATION_TYPE_VIEW,

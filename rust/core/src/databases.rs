@@ -13,6 +13,9 @@ pub enum CacheStatus {
 }
 
 pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
+    /// get_name returns the name of the database
+    fn get_name(&self) -> &'static str;
+
     /// default_materialization_type returns the default materialization type that the database
     /// implements
     fn default_materalization_type(&self) -> MaterializationType {
@@ -236,6 +239,10 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
 
     fn get_current_timestamp(&self) -> String {
         self.as_ref().get_current_timestamp()
+    }
+
+    fn get_name(&self) -> &'static str {
+        self.as_ref().get_name()
     }
 }
 

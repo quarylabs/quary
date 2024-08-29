@@ -30,6 +30,9 @@ sqruff = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-li
 async-trait = "0.1"
 wasm-bindgen-futures = "0.4"
 futures = { version = "0.3", features = ["async-await"], default-features = false }
+minijinja = "2.2.0"
+serde_yaml = "0.9.34+deprecated"
+serde = { version = "1.0.209", features = ["derive"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"

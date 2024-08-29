@@ -2546,6 +2546,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "minijinja"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d7d3e3a3eece1fa4618237ad41e1de855ced47eab705cec1c9a920e1d1c5aad"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3352,10 +3361,13 @@ dependencies = [
  "console_error_panic_hook",
  "futures",
  "js-sys",
+ "minijinja",
  "prost",
  "quary-core",
  "quary_proto",
  "send_wrapper",
+ "serde",
+ "serde_yaml",
  "sqruff-lib",
  "sqruff-sqlinference",
  "tokio",

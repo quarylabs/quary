@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ReturnExplainModelPromptRequest",
+    "definitions": {
+        "ReturnExplainModelPromptRequest": {
+            "properties": {
+                "project_root": {
+                    "type": "string"
+                },
+                "model_name": {
+                    "type": "string"
+                },
+                "user_prompt": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Return Explain Model Prompt Request"
+        }
+    }
+}

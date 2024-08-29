@@ -18,6 +18,28 @@
   "main": "./dist/node/extension.js",
   "browser": "./dist/web/extension.js",
   "contributes": {
+    "chatParticipants": [
+      {
+        "id": "quary-extension.quary",
+        "name": "quary",
+        "fullName": "Quary",
+        "description": "Quary is a BI & analytics tool for engineers",
+        "commands": [
+          {
+            "name": "explain",
+            "description": "Explain a specified or open model."
+          },
+          {
+            "name": "generate",
+            "desciption": "Generate model"
+          },
+          {
+            "name": "edit",
+            "description": "Edit a model"
+          }
+        ]
+      }
+    ],
     "customEditors": [
       {
         "viewType": "quary.chartFile",
