@@ -5,7 +5,6 @@ import { ServicesDatabase } from '@shared/database'
 import { BigQueryOAuth } from '@shared/databaseBigQuery'
 import { InMemorySqlite, PathBasedSqlite } from './servicesDatabaseSqlite'
 import { servicesDatabaseBigQueryNode } from './servicesDatabaseBigQueryNode'
-import { Snowflake } from './servicesDatabaseSnowflake'
 import { ServicesDatabaseDuckDBInMemory } from './servicesDatabaseDuckDB'
 import { ServicesFiles } from './servicesFiles'
 import { TerminalExecutor } from './terminalExecutor'
@@ -21,6 +20,7 @@ import { ServicesDatabaseRedshiftNode } from './servicesDatabaseRedshiftNode'
 import { ServicesDatabasePostgresNode } from './servicesDatabasePostgresNode'
 import { ServicesDatabaseClickhouseNode } from './servicesDatabaseClickhouseNode'
 import { ServicesDatabaseDremioNode } from './servicesDatabaseDremioNode'
+import { Snowflake } from '@shared/databaseSnowflake'
 
 /**
  * Creates a database instance from a given configuration.
