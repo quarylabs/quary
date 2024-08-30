@@ -171,11 +171,11 @@ interface BigQueryOptions {
 }
 
 export abstract class BigQueryBase {
-  protected async makeBigQueryRequest<T>(
+  protected makeBigQueryRequest = async <T>(
     url: string,
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
     body?: object,
-  ): Promise<Result<T>> {
+  ): Promise<Result<T>> => {
     const accessToken = await this.getAccessToken()
     if (isErr(accessToken)) {
       return accessToken
@@ -183,7 +183,7 @@ export abstract class BigQueryBase {
     return makeBigQueryRequest(accessToken.value, url, method, body)
   }
 
-  protected async getAccessToken(): Promise<Result<string>> {
+  protected getAccessToken = async (): Promise<Result<string>> => {
     const session = await vscode.authentication.getSession(
       'quaryBigQuery',
       [],
@@ -200,7 +200,7 @@ export abstract class BigQueryBase {
     return Ok(session.accessToken)
   }
 
-  async listProjects(): Promise<Result<BigQueryProject[]>> {
+  listProjects = async (): Promise<Result<BigQueryProject[]>> => {
     const response = await this.makeBigQueryRequest<{
       projects: BigQueryProject[]
     }>(`https://bigquery.googleapis.com/bigquery/v2/projects`)
@@ -211,9 +211,9 @@ export abstract class BigQueryBase {
     return Ok(response.value.projects)
   }
 
-  async listDatasetsRoot(
+  listDatasetsRoot = async (
     projectId: string,
-  ): Promise<Result<BigQueryDataset[]>> {
+  ): Promise<Result<BigQueryDataset[]>> => {
     const response = await this.makeBigQueryRequest<{
       datasets: BigQueryDataset[]
     }>(
@@ -225,10 +225,10 @@ export abstract class BigQueryBase {
     return Ok(response.value.datasets || [])
   }
 
-  async listTablesRoot(
+  listTablesRoot = async (
     projectId: string,
     datasetId: string,
-  ): Promise<Result<TableAddress[]>> {
+  ): Promise<Result<TableAddress[]>> => {
     const response = await this.makeBigQueryRequest<{
       tables: BigQueryTable[]
     }>(
@@ -266,10 +266,10 @@ export abstract class BigQueryBase {
     }
   }
 
-  async listViewsRoot(
+  listViewsRoot = async (
     projectId: string,
     datasetId: string,
-  ): Promise<Result<TableAddress[]>> {
+  ): Promise<Result<TableAddress[]>> => {
     const response = await this.makeBigQueryRequest<{
       tables: BigQueryTable[]
     }>(
@@ -303,11 +303,11 @@ export abstract class BigQueryBase {
     }
   }
 
-  async listColumnsRoot(
+  listColumnsRoot = async (
     tableName: string,
     projectId: string,
     datasetId: string,
-  ) {
+  ) => {
     const response = await this.makeBigQueryRequest<{
       schema: BigQueryTableSchema
     }>(
@@ -324,7 +324,7 @@ export abstract class BigQueryBase {
   }
 
   // This function only lists Tables in a BigQuery account - Datasets and Projects without tables will not be returned.
-  async listSources(): Promise<Result<ProjectFileSource[]>> {
+  listSources = async (): Promise<Result<ProjectFileSource[]>> => {
     const resolveExternalProjects = await this.listProjects()
     if (isErr(resolveExternalProjects)) {
       return Err(resolveExternalProjects.error)
@@ -406,6 +406,7 @@ export class BigQueryOAuth extends BigQueryBase implements ServicesDatabase {
 
   constructor(options: BigQueryOptions) {
     super()
+    this.listColumnsRoot = this.listColumnsRoot.bind(this)
     this.projectId = options.projectId
     this.datasetId = options.datasetId
   }
@@ -424,19 +425,19 @@ export class BigQueryOAuth extends BigQueryBase implements ServicesDatabase {
     return `${this.projectId}.${this.datasetId}`
   }
 
-  async listTables() {
+  listTables = async () => {
     return this.listTablesRoot(this.projectId, this.datasetId)
   }
 
-  async listViews() {
+  listViews = async () => {
     return this.listViewsRoot(this.projectId, this.datasetId)
   }
 
-  async listColumns(tableName: string) {
+  listColumns = async (tableName: string) => {
     return this.listColumnsRoot(tableName, this.projectId, this.datasetId)
   }
 
-  async runStatement(query: string) {
+  runStatement = async (query: string) => {
     const accessToken = await this.getAccessToken()
     if (isErr(accessToken)) {
       return accessToken
