@@ -115,7 +115,9 @@ export abstract class SnowflakeBase {
     this.role = options.role
   }
 
-  protected async makeSnowflakeRequest<T>(body?: object): Promise<Result<T>> {
+  protected makeSnowflakeRequest = async <T>(
+    body?: object,
+  ): Promise<Result<T>> => {
     const accessToken = await this.getAccessToken()
     if (isErr(accessToken)) {
       return accessToken
@@ -123,7 +125,7 @@ export abstract class SnowflakeBase {
     return makeSnowflakeRequest(accessToken.value, this.accountUrl, body)
   }
 
-  protected async getAccessToken(): Promise<Result<string>> {
+  protected getAccessToken = async (): Promise<Result<string>> => {
     const session = await vscode.authentication.getSession(
       'quarySnowflake',
       [this.accountUrl, this.clientId, this.clientSecret, this.role],
@@ -140,7 +142,7 @@ export abstract class SnowflakeBase {
     return Ok(session.accessToken)
   }
 
-  async listDatabases(): Promise<Result<string[]>> {
+  listDatabases = async (): Promise<Result<string[]>> => {
     const listDatabasesResponse = await this.makeSnowflakeRequest({
       statement: 'SHOW DATABASES',
     })
@@ -168,10 +170,10 @@ export abstract class SnowflakeBase {
     return Ok(schemaNames)
   }
 
-  async listTablesRoot(
+  listTablesRoot = async (
     database: string,
     schema: string,
-  ): Promise<Result<TableAddress[]>> {
+  ): Promise<Result<TableAddress[]>> => {
     const listTablesResponse = await this.makeSnowflakeRequest({
       statement: `SHOW TABLES IN SCHEMA ${database}.${schema}`,
     })
@@ -205,7 +207,7 @@ export abstract class SnowflakeBase {
     return Ok(data.map((db: string[]) => db[0]))
   }
 
-  async listSources(): Promise<Result<ProjectFileSource[]>> {
+  listSources = async (): Promise<Result<ProjectFileSource[]>> => {
     const listDatabasesResult = await this.listDatabases()
     if (isErr(listDatabasesResult)) {
       return listDatabasesResult
@@ -264,7 +266,7 @@ export abstract class SnowflakeBase {
     return out
   }
 
-  async listDatabasesAndSchemas() {
+  listDatabasesAndSchemas = async () => {
     const listDatabasesResult = await this.listDatabases()
     if (isErr(listDatabasesResult)) {
       return listDatabasesResult
@@ -330,19 +332,19 @@ export class Snowflake extends SnowflakeBase implements ServicesDatabase {
     return `${this.database}.${this.schema}`
   }
 
-  async listTables() {
+  listTables = async () => {
     return this.listTablesRoot(this.database, this.schema)
   }
 
-  async listViews() {
+  listViews = async () => {
     return this.listViewsRoot(this.database, this.schema)
   }
 
-  async listColumns(tableName: string) {
+  listColumns = async (tableName: string) => {
     return this.listColumnsRoot(tableName, this.database, this.schema)
   }
 
-  async runStatement(statement: string) {
+  runStatement = async (statement: string) => {
     const accessToken = await this.getAccessToken()
     if (isErr(accessToken)) {
       return accessToken
