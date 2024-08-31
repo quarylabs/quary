@@ -27,8 +27,8 @@ duckdb = { version = "1.0.0", features = ["bundled"] }
 chrono = "0.4.38"
 assert_cmd = "2"
 tempfile = "3"
-testcontainers = "0.21.0"
-testcontainers-modules = { version= "0.9.0", features = ["postgres", "clickhouse"]}
+testcontainers = "0.22.0"
+testcontainers-modules = { version= "0.10.0", features = ["postgres", "clickhouse"]}
 
 [build-dependencies]
 regex = "1.10.6"

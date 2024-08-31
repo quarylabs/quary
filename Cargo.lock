@@ -4513,7 +4513,7 @@ dependencies = [
 [[package]]
 name = "sqruff-lib"
 version = "0.14.0"
-source = "git+https://github.com/quarylabs/sqruff.git#51b17de20056e49df629dd6bce35d53f18806344"
+source = "git+https://github.com/quarylabs/sqruff.git#7a85a3834da6d7ecbf5a8403c9d08393385c2b43"
 dependencies = [
  "ahash 0.8.11",
  "anstyle",
@@ -4547,7 +4547,7 @@ dependencies = [
 [[package]]
 name = "sqruff-sqlinference"
 version = "0.14.0"
-source = "git+https://github.com/quarylabs/sqruff.git#51b17de20056e49df629dd6bce35d53f18806344"
+source = "git+https://github.com/quarylabs/sqruff.git#7a85a3834da6d7ecbf5a8403c9d08393385c2b43"
 dependencies = [
  "sqruff-lib",
 ]
@@ -4732,9 +4732,9 @@ checksum = "3369f5ac52d5eb6ab48c6b4ffdc8efbcad6b89c765749064ba298f2c68a16a76"
 
 [[package]]
 name = "testcontainers"
-version = "0.21.1"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f7d80fe0008971413157e67062150cbf508b92f0eb525b9f49de1aec4267f24"
+checksum = "2ef8374cea2c164699681ecc39316c3e1d953831a7a5721e36c7736d974e15fa"
 dependencies = [
  "async-trait",
  "bollard",
@@ -4761,9 +4761,9 @@ dependencies = [
 
 [[package]]
 name = "testcontainers-modules"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "868e8e818fe37b8ed4c21ac72185206b48e8767b5ad3836d7ec0e5c9386e19a2"
+checksum = "359d9a225791e1b9f60aab01f9ae9471898b9b9904b5db192104a71e96785079"
 dependencies = [
  "testcontainers",
 ]
