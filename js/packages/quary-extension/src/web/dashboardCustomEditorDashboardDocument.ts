@@ -8,7 +8,7 @@ import { PreInitServices } from './services'
 /**
  * Define the types of edits that can be made to the document.
  */
-interface Edit extends DashboardFile {}
+type Edit = DashboardFile
 
 interface DashboardDocumentDelegate {
   getFileData(): Promise<Uint8Array>

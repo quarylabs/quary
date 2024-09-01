@@ -61,19 +61,6 @@ module.exports = {
       },
     ],
 
-    '@typescript-eslint/member-delimiter-style': [
-      'warn',
-      {
-        multiline: {
-          delimiter: 'none',
-          requireLast: false,
-        },
-        singleline: {
-          delimiter: 'semi',
-          requireLast: false,
-        },
-      },
-    ],
     '@typescript-eslint/no-unused-vars': 'warn',
 
     'react/function-component-definition': ['off'],

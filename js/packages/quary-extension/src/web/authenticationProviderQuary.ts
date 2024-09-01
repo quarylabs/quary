@@ -196,6 +196,7 @@ export class AuthenticationProviderQuary
       }
 
       return Ok(await response.json())
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       return Err('Network error during login')
     }
