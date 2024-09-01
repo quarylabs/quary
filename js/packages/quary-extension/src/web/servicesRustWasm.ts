@@ -24,7 +24,7 @@ import {
 } from '../rust_wasm/quary_wasm_bindgen'
 import { ServicesFiles } from './servicesFiles'
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const wasm = require('../rust_wasm/quary_wasm_bindgen_bg.wasm')
 
 const init = () => {

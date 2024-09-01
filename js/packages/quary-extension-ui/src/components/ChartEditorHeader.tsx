@@ -258,6 +258,7 @@ const mapChartFileSourceToForm = (
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const FormSchema = z.union([
   z.object({
     type: z.literal('rawSql'),

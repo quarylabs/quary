@@ -9,8 +9,8 @@ import { PreInitServices } from './services'
 /**
  * Define the types of edits that can be made to the document.
  */
-interface ChartEdit extends Pick<ChartFile, 'config'> {}
-interface SourceEdit extends Pick<ChartFile, 'source'> {}
+type ChartEdit = Pick<ChartFile, 'config'>
+type SourceEdit = Pick<ChartFile, 'source'>
 
 interface ChartDocumentDelegate {
   getFileData(): Promise<Uint8Array>

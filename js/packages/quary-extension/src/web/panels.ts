@@ -1,10 +1,11 @@
 import { WebviewPanel } from 'vscode'
 import * as vscode from 'vscode'
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const JS_STRING = require('../ui/assets/index.js.txt').default
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const CSS_STRING = require('../ui/assets/index.css.txt').default
+
 export const HTML_STRING = `<!DOCTYPE html>
 <html lang="en">
 <head>

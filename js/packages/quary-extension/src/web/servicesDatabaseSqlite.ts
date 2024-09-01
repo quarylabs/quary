@@ -213,7 +213,8 @@ export class PathBasedSqlite extends Sqlite implements ServicesDatabase {
     try {
       const read = await fileReader(fullPath)
       buffer = Buffer.from(read)
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e) {
       buffer = Buffer.from('')
       await writer(fullPath, buffer)
     }
