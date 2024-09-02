@@ -17,7 +17,7 @@
   "dependencies": {
     "@dagrejs/dagre": "^1.1.4",
     "@finos/perspective": "^2.10.1",
-    "@finos/perspective-viewer": "^2.10.1",
+    "@finos/perspective-viewer": "^3.0.2",
     "@finos/perspective-viewer-d3fc": "^2.10.1",
     "@finos/perspective-viewer-datagrid": "^3.0.2",
     "@githubocto/tailwind-vscode": "^1.0.5",
