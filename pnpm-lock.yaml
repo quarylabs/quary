@@ -238,8 +238,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       '@finos/perspective-viewer-d3fc':
-        specifier: ^2.10.1
-        version: 2.10.1(d3-brush@3.0.0)(d3-dispatch@3.0.1)(d3-fetch@3.0.1)(d3-path@3.1.0)(d3-random@3.0.1)(d3-scale-chromatic@3.1.0)(d3-scale@4.0.2)(d3-shape@3.2.0)(d3-time@3.1.0)(d3-zoom@3.0.0)
+        specifier: ^3.0.2
+        version: 3.0.2(d3-brush@3.0.0)(d3-dispatch@3.0.1)(d3-fetch@3.0.1)(d3-path@3.1.0)(d3-random@3.0.1)(d3-scale-chromatic@3.1.0)(d3-scale@4.0.2)(d3-shape@3.2.0)(d3-time@3.1.0)(d3-zoom@3.0.0)
       '@finos/perspective-viewer-datagrid':
         specifier: ^3.0.2
         version: 3.0.2
@@ -1446,8 +1446,8 @@ packages:
     resolution: {integrity: sha512-Ys+3g2TaW7gADOJzPt83SJtCDhMjndcDMFVQ/Tj9iA1BfJzFKD9mAUXT3OenpuPHbI6P/myECxRJrofUsDx/5g==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@finos/perspective-viewer-d3fc@2.10.1':
-    resolution: {integrity: sha512-penH8+6S/tOzwGAywVL1pAPAYTDRr50CL7t5tYUUpc1+w5LgVyW/J55xHCz86WkrOH8qLy62OEGqDegP5uxF8A==}
+  '@finos/perspective-viewer-d3fc@3.0.2':
+    resolution: {integrity: sha512-XvK7Ji2l9ZZ4jbrfonFH8hYlK4IVzzrodOq1fJ0dPoyNKRb01nR/GIr2lRej6JAoOsGIxBhrRyIPe0XfabinXQ==}
 
   '@finos/perspective-viewer-datagrid@3.0.2':
     resolution: {integrity: sha512-6reiqesRFD7sKMK89Ai/j9uih8zORvA/Yrx28eZnFPdkMo/LYzMwojNKap1EeyIec0acszUVj4Of+Z2JVBBszw==}
@@ -8882,10 +8882,10 @@ snapshots:
 
   '@eslint/js@8.57.0': {}
 
-  '@finos/perspective-viewer-d3fc@2.10.1(d3-brush@3.0.0)(d3-dispatch@3.0.1)(d3-fetch@3.0.1)(d3-path@3.1.0)(d3-random@3.0.1)(d3-scale-chromatic@3.1.0)(d3-scale@4.0.2)(d3-shape@3.2.0)(d3-time@3.1.0)(d3-zoom@3.0.0)':
+  '@finos/perspective-viewer-d3fc@3.0.2(d3-brush@3.0.0)(d3-dispatch@3.0.1)(d3-fetch@3.0.1)(d3-path@3.1.0)(d3-random@3.0.1)(d3-scale-chromatic@3.1.0)(d3-scale@4.0.2)(d3-shape@3.2.0)(d3-time@3.1.0)(d3-zoom@3.0.0)':
     dependencies:
-      '@finos/perspective': 2.10.1
-      '@finos/perspective-viewer': 2.10.1
+      '@finos/perspective': 3.0.2
+      '@finos/perspective-viewer': 3.0.2
       chroma-js: 1.4.1
       d3: 7.9.0
       d3-array: 3.2.4
