@@ -222,9 +222,19 @@ async fn create_model_schema_entry_internal(
                 path.push(model.file_path.as_str());
                 path.pop();
 
+                let mut path = PathBuf::from(&project_root);
+                path.push(model.file_path.as_str());
+                let file = path.file_stem().ok_or("Failed to get file stem")?;
+
                 // Make the schema.yaml file be in there
-                let mut schema_path = path.clone();
-                schema_path.push("schema.yaml");
+                let mut schema_path = PathBuf::from(&project_root);
+                schema_path.push(model.file_path.as_str());
+                schema_path.pop();
+                schema_path.push(format!(
+                    "{}.yaml",
+                    file.to_str()
+                        .ok_or("Failed to convert file stem to string")?
+                ));
                 let string_schema_path = schema_path
                     .to_str()
                     .ok_or("Failed to convert path to string")?
@@ -1943,7 +1953,7 @@ models:
             .unwrap();
 
         let binding = written_files.borrow();
-        let updated_content = binding.get(&"models/schema.yaml".to_string()).unwrap();
+        let updated_content = binding.get(&"models/shifts.yaml".to_string()).unwrap();
 
         assert_eq!(
             updated_content,
@@ -1976,11 +1986,7 @@ models:
                     "models/schema.yaml".to_string(),
                     quary_proto::File {
                         name: "models/schema.yaml".to_string(),
-                        contents: prost::bytes::Bytes::from(
-                            "
-                            models:
-                            ",
-                        ),
+                        contents: prost::bytes::Bytes::from(""),
                     },
                 ),
             ]
@@ -1999,7 +2005,7 @@ models:
             .unwrap();
 
         let binding = written_files.borrow();
-        let updated_content = binding.get(&"models/schema.yaml".to_string()).unwrap();
+        let updated_content = binding.get(&"models/shifts.yaml".to_string()).unwrap();
 
         assert_eq!(
             updated_content,
