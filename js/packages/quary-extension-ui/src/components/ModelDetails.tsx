@@ -392,7 +392,7 @@ const TestWrapper: React.FC<{
   removeColumnTest?: (columnTest: ColumnTest) => void
 }> = ({ tests, columnTitle, addColumnTest, removeColumnTest }) => (
   <div className="flex items-center">
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-1.5" key={JSON.stringify(tests)}>
       {tests.map((tableTest) => (
         <TestBadge
           key={`${columnTitle}-test-${tableTest.test?.$case}`}
