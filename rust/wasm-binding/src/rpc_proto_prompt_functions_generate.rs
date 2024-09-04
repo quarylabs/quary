@@ -90,7 +90,8 @@ Additional metadata for {{ reference.model_name }}:
 
 {% endfor %}
 
-Provide the SQL query that would retrieve the data based on the natural language request. The SQL query should be valid for the database type {{ database_type }}. 
+Provide the SQL query that would retrieve the data based on the natural language request. In addition to generating the SQL code,
+please provide a brief explanation of the query. The SQL query should be valid for the database type {{ database_type }}.
 The provided tables are available in the `q.` schema. To access tehm use the `q.` prefix, for example `q.table_name`.
 
 A few general rules about the SQL queries you generate:
@@ -98,6 +99,7 @@ A few general rules about the SQL queries you generate:
 - The output must be a SELECT statement.
 - The output must be a valid SQL query for the database type {{ database_type }}.
 - Prefer CTEs over subqueries.
+- In SELECT statements where you join two tables, when referring to columns, use the table alias.
 - Prefer JOINs over subqueries.
 - Use aliases for columns where the name is not clear or ambiguous, like on aggregate functions.
 "#;

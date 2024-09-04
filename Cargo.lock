@@ -4529,7 +4529,7 @@ dependencies = [
 [[package]]
 name = "sqruff-lib"
 version = "0.15.7"
-source = "git+https://github.com/quarylabs/sqruff.git#1d582dd7099ffba900a3af1a389dd09630007e9c"
+source = "git+https://github.com/quarylabs/sqruff.git#77ea9e2e4b94cbd86426d92076f7bda32d8efecb"
 dependencies = [
  "ahash 0.8.11",
  "anstyle",
@@ -4563,7 +4563,7 @@ dependencies = [
 [[package]]
 name = "sqruff-sqlinference"
 version = "0.15.7"
-source = "git+https://github.com/quarylabs/sqruff.git#1d582dd7099ffba900a3af1a389dd09630007e9c"
+source = "git+https://github.com/quarylabs/sqruff.git#77ea9e2e4b94cbd86426d92076f7bda32d8efecb"
 dependencies = [
  "sqruff-lib",
 ]
