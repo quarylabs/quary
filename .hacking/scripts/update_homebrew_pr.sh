@@ -7,7 +7,7 @@ set -e
 HOMEBREW_ACCESS_TOKEN=$1
 
 # Extract version from Cargo.toml
-VERSION="v$(grep "^version" rust/cli/Cargo.toml | awk -F '"' '{print $2}')"
+VERSION="v$(grep "^version" Cargo.toml | awk -F '"' '{print $2}')"
 echo "VERSION: $VERSION"
 
 REPOSITORY="quarylabs/quary"
