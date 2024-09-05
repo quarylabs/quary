@@ -10,13 +10,12 @@ import {
 } from '@quary/proto/quary/service/v1/connection_response'
 import { columnsValuesToQueryResult } from './shared'
 import { QueryResult } from '@quary/proto/quary/service/v1/query_result'
-import { ModifiedConnectionConfig, ServicesDatabase } from './database'
-import { DatabaseDependentSettings, SqlLanguage } from './config'
-import * as vscode from 'vscode'
 import { TableAddress } from '@quary/proto/quary/service/v1/table_address'
 import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
+import { SqlLanguage } from './config'
+import { ModifiedConnectionConfig, ServicesDatabase } from './database'
 
-export async function makeBigQueryRequest<T>(
+async function makeBigQueryRequest<T>(
   accessToken: string,
   url: string,
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
@@ -92,7 +91,7 @@ export async function makeBigQueryRequest<T>(
   }
 }
 
-export const runBigQueryStatement = async (
+const runBigQueryStatement = async (
   accessToken: string,
   query: string,
   projectId: string,
@@ -165,7 +164,7 @@ export const runBigQueryStatement = async (
   return Ok(out)
 }
 
-interface BigQueryOptions {
+export interface BigQueryOptions {
   projectId: string
   datasetId: string
 }
@@ -183,22 +182,7 @@ export abstract class BigQueryBase {
     return makeBigQueryRequest(accessToken.value, url, method, body)
   }
 
-  protected getAccessToken = async (): Promise<Result<string>> => {
-    const session = await vscode.authentication.getSession(
-      'quaryBigQuery',
-      [],
-      {
-        createIfNone: true,
-      },
-    )
-    if (!session) {
-      return Err({
-        code: ErrorCodes.INTERNAL,
-        message: 'Failed to get BigQuery session',
-      })
-    }
-    return Ok(session.accessToken)
-  }
+  abstract getAccessToken(): Promise<Result<string>>
 
   listProjects = async (): Promise<Result<BigQueryProject[]>> => {
     const response = await this.makeBigQueryRequest<{
@@ -400,18 +384,20 @@ export abstract class BigQueryBase {
   }
 }
 
-export class BigQueryOAuth extends BigQueryBase implements ServicesDatabase {
-  private readonly projectId: string
-  private readonly datasetId: string
+export abstract class BigQueryBaseWithLocation
+  extends BigQueryBase
+  implements ServicesDatabase
+{
+  readonly projectId: string
+  readonly datasetId: string
 
-  constructor(options: BigQueryOptions) {
+  protected constructor(props: BigQueryOptions) {
     super()
-    this.listColumnsRoot = this.listColumnsRoot.bind(this)
-    this.projectId = options.projectId
-    this.datasetId = options.datasetId
+    this.projectId = props.projectId
+    this.datasetId = props.datasetId
   }
 
-  returnDatabaseConfiguration: () => DatabaseDependentSettings = () => ({
+  returnDatabaseConfiguration = () => ({
     runQueriesByDefault: false,
     lookForCacheViews: true,
     importSourcesAfterOnboarding: true,
@@ -425,17 +411,12 @@ export class BigQueryOAuth extends BigQueryBase implements ServicesDatabase {
     return `${this.projectId}.${this.datasetId}`
   }
 
-  listTables = async () => {
-    return this.listTablesRoot(this.projectId, this.datasetId)
-  }
+  listTables = async () => this.listTablesRoot(this.projectId, this.datasetId)
 
-  listViews = async () => {
-    return this.listViewsRoot(this.projectId, this.datasetId)
-  }
+  listViews = async () => this.listViewsRoot(this.projectId, this.datasetId)
 
-  listColumns = async (tableName: string) => {
-    return this.listColumnsRoot(tableName, this.projectId, this.datasetId)
-  }
+  listColumns = async (tableName: string) =>
+    this.listColumnsRoot(tableName, this.projectId, this.datasetId)
 
   runStatement = async (query: string) => {
     const accessToken = await this.getAccessToken()
