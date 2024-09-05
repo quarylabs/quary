@@ -52,10 +52,7 @@ const getModelDetails = async ({
     })
   }
 
-  const cacheViewInformation = await cacheViewBuilder(
-    services.database.returnDatabaseConfiguration(),
-    services.database.listViews,
-  )
+  const cacheViewInformation = await cacheViewBuilder(services.database)
   if (isErr(cacheViewInformation)) {
     return cacheViewInformation
   }
