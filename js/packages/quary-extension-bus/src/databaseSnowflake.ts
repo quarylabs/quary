@@ -5,9 +5,8 @@ import { TableAddress } from '@quary/proto/quary/service/v1/table_address'
 import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
 import { ModifiedConnectionConfig, ServicesDatabase } from './database'
 import { DatabaseDependentSettings, SqlLanguage } from './config'
-import * as vscode from 'vscode'
 
-export async function makeSnowflakeRequest<T>(
+async function makeSnowflakeRequest<T>(
   accessToken: string,
   accountUrl: string,
   body?: object,
@@ -55,7 +54,7 @@ export async function makeSnowflakeRequest<T>(
   }
 }
 
-export async function snowflakeRunStatement(
+async function snowflakeRunStatement(
   accessToken: string,
   accountUrl: string,
   database: string,
@@ -95,7 +94,7 @@ export async function snowflakeRunStatement(
   return Ok(out)
 }
 
-interface SnowflakeBaseOptions {
+export interface SnowflakeBaseOptions {
   accountUrl: string
   clientId: string
   clientSecret: string
@@ -115,6 +114,8 @@ export abstract class SnowflakeBase {
     this.role = options.role
   }
 
+  abstract getAccessToken: () => Promise<Result<string>>
+
   protected makeSnowflakeRequest = async <T>(
     body?: object,
   ): Promise<Result<T>> => {
@@ -123,23 +124,6 @@ export abstract class SnowflakeBase {
       return accessToken
     }
     return makeSnowflakeRequest(accessToken.value, this.accountUrl, body)
-  }
-
-  protected getAccessToken = async (): Promise<Result<string>> => {
-    const session = await vscode.authentication.getSession(
-      'quarySnowflake',
-      [this.accountUrl, this.clientId, this.clientSecret, this.role],
-      {
-        createIfNone: true,
-      },
-    )
-    if (!session) {
-      return Err({
-        code: ErrorCodes.INTERNAL,
-        message: 'Unable to authenticate with Snowflake.',
-      })
-    }
-    return Ok(session.accessToken)
   }
 
   listDatabases = async (): Promise<Result<string[]>> => {
@@ -300,16 +284,13 @@ export abstract class SnowflakeBase {
   }
 }
 
-interface SnowflakeOptions extends SnowflakeBaseOptions {
-  database: string
-  schema: string
-  warehouse: string
-}
-
-export class Snowflake extends SnowflakeBase implements ServicesDatabase {
-  private readonly database: string
-  private readonly schema: string
-  private readonly warehouse: string
+export abstract class SnowflakeBaseWithLocation
+  extends SnowflakeBase
+  implements ServicesDatabase
+{
+  protected database: string
+  protected schema: string
+  protected warehouse: string
 
   constructor(options: SnowflakeOptions) {
     super(options)
@@ -317,6 +298,8 @@ export class Snowflake extends SnowflakeBase implements ServicesDatabase {
     this.schema = options.schema
     this.warehouse = options.warehouse
   }
+
+  abstract getAccessToken: () => Promise<Result<string>>
 
   returnDatabaseConfiguration: () => DatabaseDependentSettings = () => ({
     runQueriesByDefault: false,
@@ -332,17 +315,12 @@ export class Snowflake extends SnowflakeBase implements ServicesDatabase {
     return `${this.database}.${this.schema}`
   }
 
-  listTables = async () => {
-    return this.listTablesRoot(this.database, this.schema)
-  }
+  listTables = async () => this.listTablesRoot(this.database, this.schema)
 
-  listViews = async () => {
-    return this.listViewsRoot(this.database, this.schema)
-  }
+  listViews = async () => this.listViewsRoot(this.database, this.schema)
 
-  listColumns = async (tableName: string) => {
-    return this.listColumnsRoot(tableName, this.database, this.schema)
-  }
+  listColumns = async (tableName: string) =>
+    this.listColumnsRoot(tableName, this.database, this.schema)
 
   runStatement = async (statement: string) => {
     const accessToken = await this.getAccessToken()
@@ -373,4 +351,10 @@ export class Snowflake extends SnowflakeBase implements ServicesDatabase {
       },
     }
   }
+}
+
+export interface SnowflakeOptions extends SnowflakeBaseOptions {
+  database: string
+  schema: string
+  warehouse: string
 }
