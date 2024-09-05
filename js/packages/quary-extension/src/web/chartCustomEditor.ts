@@ -448,10 +448,7 @@ export class ChartEditorProvider
             if (isErr(preInitSetupResult)) {
               return handleError(preInitSetupResult.error, allAssets)
             }
-            const cacheView = await cacheViewBuilder(
-              services.database.returnDatabaseConfiguration(),
-              services.database.listViews,
-            )
+            const cacheView = await cacheViewBuilder(services.database)
             if (isErr(cacheView)) {
               return handleError(cacheView.error, allAssets)
             }
