@@ -15,7 +15,7 @@ import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
 import { SqlLanguage } from './config'
 import { ModifiedConnectionConfig, ServicesDatabase } from './database'
 
-async function makeBigQueryRequest<T>(
+export async function makeBigQueryRequest<T>(
   accessToken: string,
   url: string,
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
@@ -91,7 +91,7 @@ async function makeBigQueryRequest<T>(
   }
 }
 
-const runBigQueryStatement = async (
+export const runBigQueryStatement = async (
   accessToken: string,
   query: string,
   projectId: string,

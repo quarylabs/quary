@@ -6,7 +6,7 @@ import { ProjectFileSource } from '@quary/proto/quary/service/v1/project_file'
 import { ModifiedConnectionConfig, ServicesDatabase } from './database'
 import { DatabaseDependentSettings, SqlLanguage } from './config'
 
-async function makeSnowflakeRequest<T>(
+export async function makeSnowflakeRequest<T>(
   accessToken: string,
   accountUrl: string,
   body?: object,
@@ -54,7 +54,7 @@ async function makeSnowflakeRequest<T>(
   }
 }
 
-async function snowflakeRunStatement(
+export async function snowflakeRunStatement(
   accessToken: string,
   accountUrl: string,
   database: string,
