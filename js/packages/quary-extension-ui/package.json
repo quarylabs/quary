@@ -19,7 +19,7 @@
     "@finos/perspective": "^2.10.1",
     "@finos/perspective-viewer": "^2.10.1",
     "@finos/perspective-viewer-d3fc": "^2.10.1",
-    "@finos/perspective-viewer-datagrid": "^2.10.1",
+    "@finos/perspective-viewer-datagrid": "^3.0.3",
     "@githubocto/tailwind-vscode": "^1.0.5",
     "@heroicons/react": "^2.1.5",
     "@radix-ui/react-checkbox": "^1.1.1",
