@@ -1692,13 +1692,12 @@ async fn return_dashboard_with_sql_internal(
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::collections::HashMap;
-    use std::rc::Rc;
     use std::time::SystemTime;
 
     use chrono::{DateTime, Utc};
 
+    use super::*;
+    use crate::rpc_helpers_test::{files_to_file_system, setup_file_mocks};
     use quary_core::database_duckdb::DatabaseQueryGeneratorDuckDB;
     use quary_core::database_redshift::DatabaseQueryGeneratorRedshift;
     use quary_core::database_sqlite::DatabaseQueryGeneratorSqlite;
@@ -1706,27 +1705,6 @@ mod tests {
     use quary_core::init::DuckDBAsset;
     use quary_proto::table::TableType;
     use quary_proto::{CacheViewInformation, CacheViewInformationPaths, FileSystem};
-
-    use super::*;
-
-    // TODO Make all the others use this function
-    fn files_to_file_system(files: Vec<(&str, &str)>) -> FileSystem {
-        FileSystem {
-            files: files
-                .into_iter()
-                .map(|(name, contents)| {
-                    let contents = contents.to_string();
-                    (
-                        name.to_string(),
-                        quary_proto::File {
-                            name: name.to_string(),
-                            contents: prost::bytes::Bytes::from(contents),
-                        },
-                    )
-                })
-                .collect(),
-        }
-    }
 
     #[tokio::test]
     async fn test_remove_column_source() {
@@ -2497,17 +2475,5 @@ models:
         assert!(response.items.first().unwrap().item.is_some());
         assert!(response.items.first().unwrap().chart.is_some());
         assert!(!response.items.first().unwrap().sql.is_empty());
-    }
-
-    fn setup_file_mocks() -> (Writer, Rc<RefCell<HashMap<String, String>>>) {
-        let written_files = Rc::new(RefCell::new(HashMap::new()));
-        let writer: Writer = Box::new({
-            let written_files = Rc::clone(&written_files);
-            move |path, content| {
-                written_files.borrow_mut().insert(path, content);
-                Box::pin(async move { Ok(()) })
-            }
-        });
-        (writer, written_files)
     }
 }

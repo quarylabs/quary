@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
-import { isErr, Ok, Result } from '@shared/result'
+import { isErr, Result } from '@shared/result'
 import { getServices, preInitSetup } from './services'
+import { chatReturnFinalChat } from './chatHelpers'
 
 export const chatEdit = async (
   extensionContext: vscode.ExtensionContext,
@@ -43,19 +44,5 @@ export const chatEdit = async (
     modelName,
     prompt: request.prompt,
   })
-  if (isErr(prompt)) {
-    return prompt
-  }
-
-  const craftedPrompt = [
-    vscode.LanguageModelChatMessage.Assistant(prompt.value.agentPrompt),
-    vscode.LanguageModelChatMessage.User(prompt.value.userPrompt),
-  ]
-  const modelRequest = await model.sendRequest(craftedPrompt, {}, token)
-
-  for await (const fragment of modelRequest.text) {
-    stream.push(new vscode.ChatResponseMarkdownPart(fragment))
-  }
-
-  return Ok(undefined)
+  return chatReturnFinalChat(prompt, model, token, stream)
 }

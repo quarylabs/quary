@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ReturnGenerateModelPromptToSearchForModelsRequest",
+    "definitions": {
+        "ReturnGenerateModelPromptToSearchForModelsRequest": {
+            "properties": {
+                "project_root": {
+                    "type": "string"
+                },
+                "prompt": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Return Generate Model Prompt To Search For Models Request"
+        }
+    }
+}

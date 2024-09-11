@@ -89,6 +89,9 @@ export const rustWithDatabaseWasmServices = (
     ),
     returnExplainModelPrompt: wrapper(client.ReturnExplainModelPrompt),
     returnGenerateModelPrompt: wrapper(client.ReturnGenerateModelPrompt),
+    returnGenerateModelPromptToSearchForModels: wrapper(
+      client.ReturnGenerateModelPromptToSearchForModels,
+    ),
     returnEditModelPrompt: wrapper(client.ReturnEditModelPrompt),
     returnDashboardWithSql: wrapper(client.ReturnDashboardWithSql),
     generateSourceFiles: wrapper(client.GenerateSourceFiles),

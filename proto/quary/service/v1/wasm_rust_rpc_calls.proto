@@ -100,6 +100,9 @@ service RustWithDatabaseService {
   // AI-Focused methods
   // ReturnExplainQueryPrompt returns the prompt for the explain query.
   rpc ReturnExplainModelPrompt(ReturnExplainModelPromptRequest) returns (ReturnExplainModelPromptResponse);
+  // ReturnGenerateModelPromptToSearchForModels returns the prompt to send to AI to search for models that may be relevant
+  // to the prompt. It should be called if the user is asking to generate a model and no models have been specified.
+  rpc ReturnGenerateModelPromptToSearchForModels(ReturnGenerateModelPromptToSearchForModelsRequest) returns (ReturnGenerateModelPromptToSearchForModelsResponse);
   // ReturnGenerateModelPrompt returns the prompt to send to AI to generate a model, it contains the prompt as well as
   // any references to files that the model should be based on.
   rpc ReturnGenerateModelPrompt(ReturnGenerateModelPromptRequest) returns (ReturnGenerateModelPromptResponse);
@@ -404,6 +407,16 @@ message ReturnGenerateModelPromptRequest {
 }
 
 message ReturnGenerateModelPromptResponse {
+  string agent_prompt = 1;
+  string user_prompt = 2;
+}
+
+message ReturnGenerateModelPromptToSearchForModelsRequest {
+  string project_root = 1;
+  string prompt = 2;
+}
+
+message ReturnGenerateModelPromptToSearchForModelsResponse {
   string agent_prompt = 1;
   string user_prompt = 2;
 }
