@@ -4,5 +4,5 @@ breaking:
     - FILE
 lint:
   use:
-    - DEFAULT
+    - STANDARD
     - PACKAGE_NO_IMPORT_CYCLE
