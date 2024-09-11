@@ -11,6 +11,7 @@ use crate::rpc_proto_defined_functions::{
 use crate::rpc_proto_prompt_functions_edit::return_edit_model_prompt;
 use crate::rpc_proto_prompt_functions_explain::return_explain_model_prompt;
 use crate::rpc_proto_prompt_functions_generate::return_generate_model_prompt;
+use crate::rpc_proto_prompt_functions_generate_to_search::return_generate_model_prompt_to_search_for_models;
 use crate::rpc_proto_scaffolding::{
     create_file_writer, database_query_generator_from_config, wrapper, wrapper_without_db,
 };
@@ -60,6 +61,9 @@ pub async fn rpc_wrapper_with_database(
         "RemoveObjectColumn" => Ok(wrapper(remove_object_column)),
         "ReturnExplainModelPrompt" => Ok(wrapper(return_explain_model_prompt)),
         "ReturnGenerateModelPrompt" => Ok(wrapper(return_generate_model_prompt)),
+        "ReturnGenerateModelPromptToSearchForModels" => {
+            Ok(wrapper(return_generate_model_prompt_to_search_for_models))
+        }
         "ReturnEditModelPrompt" => Ok(wrapper(return_edit_model_prompt)),
         _ => Err(format!("Unknown method: {}", method)),
     }?;

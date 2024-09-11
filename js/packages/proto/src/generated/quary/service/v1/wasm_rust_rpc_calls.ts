@@ -423,6 +423,16 @@ export interface ReturnGenerateModelPromptResponse {
   userPrompt: string;
 }
 
+export interface ReturnGenerateModelPromptToSearchForModelsRequest {
+  projectRoot: string;
+  prompt: string;
+}
+
+export interface ReturnGenerateModelPromptToSearchForModelsResponse {
+  agentPrompt: string;
+  userPrompt: string;
+}
+
 export interface ReturnEditModelPromptRequest {
   projectRoot: string;
   modelName: string;
@@ -4675,6 +4685,168 @@ export const ReturnGenerateModelPromptResponse = {
   },
 };
 
+function createBaseReturnGenerateModelPromptToSearchForModelsRequest(): ReturnGenerateModelPromptToSearchForModelsRequest {
+  return { projectRoot: "", prompt: "" };
+}
+
+export const ReturnGenerateModelPromptToSearchForModelsRequest = {
+  encode(
+    message: ReturnGenerateModelPromptToSearchForModelsRequest,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.projectRoot !== "") {
+      writer.uint32(10).string(message.projectRoot);
+    }
+    if (message.prompt !== "") {
+      writer.uint32(18).string(message.prompt);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnGenerateModelPromptToSearchForModelsRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnGenerateModelPromptToSearchForModelsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.projectRoot = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.prompt = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnGenerateModelPromptToSearchForModelsRequest {
+    return {
+      projectRoot: isSet(object.projectRoot) ? gt.String(object.projectRoot) : "",
+      prompt: isSet(object.prompt) ? gt.String(object.prompt) : "",
+    };
+  },
+
+  toJSON(message: ReturnGenerateModelPromptToSearchForModelsRequest): unknown {
+    const obj: any = {};
+    if (message.projectRoot !== "") {
+      obj.projectRoot = message.projectRoot;
+    }
+    if (message.prompt !== "") {
+      obj.prompt = message.prompt;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnGenerateModelPromptToSearchForModelsRequest>, I>>(
+    base?: I,
+  ): ReturnGenerateModelPromptToSearchForModelsRequest {
+    return ReturnGenerateModelPromptToSearchForModelsRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnGenerateModelPromptToSearchForModelsRequest>, I>>(
+    object: I,
+  ): ReturnGenerateModelPromptToSearchForModelsRequest {
+    const message = createBaseReturnGenerateModelPromptToSearchForModelsRequest();
+    message.projectRoot = object.projectRoot ?? "";
+    message.prompt = object.prompt ?? "";
+    return message;
+  },
+};
+
+function createBaseReturnGenerateModelPromptToSearchForModelsResponse(): ReturnGenerateModelPromptToSearchForModelsResponse {
+  return { agentPrompt: "", userPrompt: "" };
+}
+
+export const ReturnGenerateModelPromptToSearchForModelsResponse = {
+  encode(
+    message: ReturnGenerateModelPromptToSearchForModelsResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.agentPrompt !== "") {
+      writer.uint32(10).string(message.agentPrompt);
+    }
+    if (message.userPrompt !== "") {
+      writer.uint32(18).string(message.userPrompt);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ReturnGenerateModelPromptToSearchForModelsResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseReturnGenerateModelPromptToSearchForModelsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.agentPrompt = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userPrompt = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ReturnGenerateModelPromptToSearchForModelsResponse {
+    return {
+      agentPrompt: isSet(object.agentPrompt) ? gt.String(object.agentPrompt) : "",
+      userPrompt: isSet(object.userPrompt) ? gt.String(object.userPrompt) : "",
+    };
+  },
+
+  toJSON(message: ReturnGenerateModelPromptToSearchForModelsResponse): unknown {
+    const obj: any = {};
+    if (message.agentPrompt !== "") {
+      obj.agentPrompt = message.agentPrompt;
+    }
+    if (message.userPrompt !== "") {
+      obj.userPrompt = message.userPrompt;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ReturnGenerateModelPromptToSearchForModelsResponse>, I>>(
+    base?: I,
+  ): ReturnGenerateModelPromptToSearchForModelsResponse {
+    return ReturnGenerateModelPromptToSearchForModelsResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ReturnGenerateModelPromptToSearchForModelsResponse>, I>>(
+    object: I,
+  ): ReturnGenerateModelPromptToSearchForModelsResponse {
+    const message = createBaseReturnGenerateModelPromptToSearchForModelsResponse();
+    message.agentPrompt = object.agentPrompt ?? "";
+    message.userPrompt = object.userPrompt ?? "";
+    return message;
+  },
+};
+
 function createBaseReturnEditModelPromptRequest(): ReturnEditModelPromptRequest {
   return { projectRoot: "", modelName: "", prompt: "" };
 }
@@ -5014,6 +5186,13 @@ export interface RustWithDatabaseService {
    */
   ReturnExplainModelPrompt(request: ReturnExplainModelPromptRequest): Promise<ReturnExplainModelPromptResponse>;
   /**
+   * ReturnGenerateModelPromptToSearchForModels returns the prompt to send to AI to search for models that may be relevant
+   * to the prompt. It should be called if the user is asking to generate a model and no models have been specified.
+   */
+  ReturnGenerateModelPromptToSearchForModels(
+    request: ReturnGenerateModelPromptToSearchForModelsRequest,
+  ): Promise<ReturnGenerateModelPromptToSearchForModelsResponse>;
+  /**
    * ReturnGenerateModelPrompt returns the prompt to send to AI to generate a model, it contains the prompt as well as
    * any references to files that the model should be based on.
    */
@@ -5052,6 +5231,7 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     this.ReturnDefinitionLocationsForSQL = this.ReturnDefinitionLocationsForSQL.bind(this);
     this.ReturnDashboardWithSql = this.ReturnDashboardWithSql.bind(this);
     this.ReturnExplainModelPrompt = this.ReturnExplainModelPrompt.bind(this);
+    this.ReturnGenerateModelPromptToSearchForModels = this.ReturnGenerateModelPromptToSearchForModels.bind(this);
     this.ReturnGenerateModelPrompt = this.ReturnGenerateModelPrompt.bind(this);
     this.ReturnEditModelPrompt = this.ReturnEditModelPrompt.bind(this);
   }
@@ -5181,6 +5361,14 @@ export class RustWithDatabaseServiceClientImpl implements RustWithDatabaseServic
     const data = ReturnExplainModelPromptRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "ReturnExplainModelPrompt", data);
     return promise.then((data) => ReturnExplainModelPromptResponse.decode(_m0.Reader.create(data)));
+  }
+
+  ReturnGenerateModelPromptToSearchForModels(
+    request: ReturnGenerateModelPromptToSearchForModelsRequest,
+  ): Promise<ReturnGenerateModelPromptToSearchForModelsResponse> {
+    const data = ReturnGenerateModelPromptToSearchForModelsRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ReturnGenerateModelPromptToSearchForModels", data);
+    return promise.then((data) => ReturnGenerateModelPromptToSearchForModelsResponse.decode(_m0.Reader.create(data)));
   }
 
   ReturnGenerateModelPrompt(request: ReturnGenerateModelPromptRequest): Promise<ReturnGenerateModelPromptResponse> {

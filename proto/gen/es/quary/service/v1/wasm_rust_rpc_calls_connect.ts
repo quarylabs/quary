@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddColumnTestToModelOrSourceColumnRequest, AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest, AddColumnToModelOrSourceResponse, CreateModelChartFileRequest, CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest, GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse, GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse, IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, ParseProjectRequest, ParseProjectResponse, RemoveColumnTestFromModelOrSourceColumnRequest, RemoveColumnTestFromModelOrSourceColumnResponse, RemoveObjectColumnRequest, RemoveObjectColumnResponse, RenderSchemaRequest, RenderSchemaResponse, ReturnDashboardWithSqlRequest, ReturnDashboardWithSqlResponse, ReturnDataForDocViewRequest, ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSQLRequest, ReturnDefinitionLocationsForSQLResponse, ReturnEditModelPromptRequest, ReturnEditModelPromptResponse, ReturnExplainModelPromptRequest, ReturnExplainModelPromptResponse, ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest, ReturnFullSqlForAssetResponse, ReturnGenerateModelPromptRequest, ReturnGenerateModelPromptResponse, ReturnSQLForInjectedModelRequest, ReturnSQLForInjectedModelResponse, ReturnSQLForSeedsAndModelsRequest, ReturnSQLForSeedsAndModelsResponse, StringifyProjectFileRequest, StringifyProjectFileResponse, UpdateAssetDescriptionRequest, UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest, UpdateModelOrSourceColumnDescriptionResponse } from "./wasm_rust_rpc_calls_pb.js";
+import { AddColumnTestToModelOrSourceColumnRequest, AddColumnTestToModelOrSourceColumnResponse, AddColumnToModelOrSourceRequest, AddColumnToModelOrSourceResponse, CreateModelChartFileRequest, CreateModelChartFileResponse, CreateModelSchemaEntryRequest, CreateModelSchemaEntryResponse, GenerateProjectFilesRequest, GenerateProjectFilesResponse, GenerateSourceFilesRequest, GenerateSourceFilesResponse, GetModelTableRequest, GetModelTableResponse, GetProjectConfigRequest, GetProjectConfigResponse, InitFilesRequest, InitFilesResponse, IsPathEmptyRequest, IsPathEmptyResponse, ListAssetsRequest, ListAssetsResponse, ParseProjectRequest, ParseProjectResponse, RemoveColumnTestFromModelOrSourceColumnRequest, RemoveColumnTestFromModelOrSourceColumnResponse, RemoveObjectColumnRequest, RemoveObjectColumnResponse, RenderSchemaRequest, RenderSchemaResponse, ReturnDashboardWithSqlRequest, ReturnDashboardWithSqlResponse, ReturnDataForDocViewRequest, ReturnDataForDocViewResponse, ReturnDefinitionLocationsForSQLRequest, ReturnDefinitionLocationsForSQLResponse, ReturnEditModelPromptRequest, ReturnEditModelPromptResponse, ReturnExplainModelPromptRequest, ReturnExplainModelPromptResponse, ReturnFullProjectDagRequest, ReturnFullProjectDagResponse, ReturnFullSqlForAssetRequest, ReturnFullSqlForAssetResponse, ReturnGenerateModelPromptRequest, ReturnGenerateModelPromptResponse, ReturnGenerateModelPromptToSearchForModelsRequest, ReturnGenerateModelPromptToSearchForModelsResponse, ReturnSQLForInjectedModelRequest, ReturnSQLForInjectedModelResponse, ReturnSQLForSeedsAndModelsRequest, ReturnSQLForSeedsAndModelsResponse, StringifyProjectFileRequest, StringifyProjectFileResponse, UpdateAssetDescriptionRequest, UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest, UpdateModelOrSourceColumnDescriptionResponse } from "./wasm_rust_rpc_calls_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -333,6 +333,18 @@ export const RustWithDatabaseService = {
       name: "ReturnExplainModelPrompt",
       I: ReturnExplainModelPromptRequest,
       O: ReturnExplainModelPromptResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * ReturnGenerateModelPromptToSearchForModels returns the prompt to send to AI to search for models that may be relevant
+     * to the prompt. It should be called if the user is asking to generate a model and no models have been specified.
+     *
+     * @generated from rpc quary.service.v1.RustWithDatabaseService.ReturnGenerateModelPromptToSearchForModels
+     */
+    returnGenerateModelPromptToSearchForModels: {
+      name: "ReturnGenerateModelPromptToSearchForModels",
+      I: ReturnGenerateModelPromptToSearchForModelsRequest,
+      O: ReturnGenerateModelPromptToSearchForModelsResponse,
       kind: MethodKind.Unary,
     },
     /**
