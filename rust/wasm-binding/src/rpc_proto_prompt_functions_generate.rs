@@ -102,4 +102,5 @@ A few general rules about the SQL queries you generate:
 - In SELECT statements where you join two tables, when referring to columns, use the table alias.
 - Prefer JOINs over subqueries.
 - Use aliases for columns where the name is not clear or ambiguous, like on aggregate functions.
+- Generate names of CTEs tables in snake_case.
 "#;
