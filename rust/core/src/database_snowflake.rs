@@ -134,7 +134,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorSnowflake {
     }
 
     fn get_dialect(&self) -> Parser {
-        Parser::new(&self.config, None)
+        Parser::new(&self.config)
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {
