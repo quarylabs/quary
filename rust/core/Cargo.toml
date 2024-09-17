@@ -19,7 +19,6 @@ rust-embed = "8"
 csv = "1"
 petgraph = { version = "0.6", default-features = false }
 regex = { version = "1", default-features = false, features = ["unicode-perl"] }
-once_cell = "1"
 async-trait = "0.1.80"
 chrono = "0.4.38"
 serde_yaml = "0.9.33"
