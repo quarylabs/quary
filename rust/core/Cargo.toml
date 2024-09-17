@@ -10,11 +10,12 @@ rust-version.workspace = true
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-prost = { default-features = false, version = "0.13" }
 quary_proto = { path = "../../proto/gen/rust" }
-sqlinference = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-sqlinference" }
-sqruff = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-lib" }
+sqlinference.workspace = true
+sqruff-lib-core.workspace = true
+sqruff-lib-dialects.workspace = true
 
+prost = { default-features = false, version = "0.13" }
 rust-embed = "8"
 csv = "1"
 petgraph = { version = "0.6", default-features = false }

@@ -4,33 +4,18 @@ use crate::databases::{
 };
 use pbjson_types::Struct;
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
-use sqruff::core::{
-    config::{FluffConfig, Value},
-    parser::parser::Parser,
-};
+use sqruff_lib_core::dialects::base::Dialect;
+use sqruff_lib_dialects::snowflake;
 
 #[derive(Debug, Clone)]
 pub struct DatabaseQueryGeneratorSnowflake {
     database: String,
     schema: String,
-    config: FluffConfig,
 }
 
 impl DatabaseQueryGeneratorSnowflake {
     pub fn new(database: String, schema: String) -> DatabaseQueryGeneratorSnowflake {
-        DatabaseQueryGeneratorSnowflake {
-            database,
-            schema,
-            config: FluffConfig::new(
-                [(
-                    "core".into(),
-                    Value::Map([("dialect".into(), Value::String("snowflake".into()))].into()),
-                )]
-                .into(),
-                None,
-                None,
-            ),
-        }
+        DatabaseQueryGeneratorSnowflake { database, schema }
     }
 }
 
@@ -133,8 +118,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorSnowflake {
         )]
     }
 
-    fn get_dialect(&self) -> Parser {
-        Parser::new(&self.config)
+    fn get_dialect(&self) -> Dialect {
+        snowflake::dialect()
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

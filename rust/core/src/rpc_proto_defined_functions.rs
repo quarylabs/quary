@@ -10,7 +10,6 @@ use quary_proto::{ColumnTest, Edge, File, Project, Test};
 
 use sqlinference::infer_tests::{infer_tests, InferenceReason};
 use sqlinference::inference::{figure_out_skippable_tests, TestRunnerAction};
-use sqruff::core::parser::parser::Parser;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::PathBuf;
 
@@ -159,6 +158,7 @@ pub async fn infer_skippable_tests_internal(
 
 use crate::project_to_sql::{project_and_fs_to_query_sql, project_and_fs_to_sql_for_views};
 use futures::future::try_join_all;
+use sqruff_lib_core::parser::parser::Parser;
 
 pub async fn name_to_raw_model_map_internal(
     project: &Project,

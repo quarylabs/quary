@@ -15,6 +15,9 @@ default = ["console_error_panic_hook"]
 [dependencies]
 wasm-bindgen = { version = "0.2.91", default-features = false }
 send_wrapper = "0.6"
+sqlinference.workspace = true
+sqruff-lib-core.workspace = true
+sqruff-lib-dialects.workspace = true
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
@@ -25,8 +28,6 @@ console_error_panic_hook = { version = "0.1", optional = true }
 prost = { default-features = false, version = "0.13" }
 js-sys = "0.3"
 quary_proto = { path = "../../proto/gen/rust" }
-sqlinference = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-sqlinference" }
-sqruff = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-lib" }
 async-trait = "0.1"
 wasm-bindgen-futures = "0.4"
 futures = { version = "0.3", features = ["async-await"], default-features = false }

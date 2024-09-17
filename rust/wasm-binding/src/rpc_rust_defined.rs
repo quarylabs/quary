@@ -9,6 +9,7 @@ use quary_core::test_runner::{
     run_model_tests_internal, run_tests_internal, RunReturnResult, RunStatementFunc, RunTestError,
 };
 use quary_proto::TestRunner;
+use sqruff_lib_core::parser::parser::Parser;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
@@ -91,12 +92,14 @@ pub async fn run_tests(
 
     let function = Rc::new(run_statement);
     let func = create_run_statement_func(function);
+    let dialect = database.get_dialect();
+    let parser = Parser::new(&dialect, Default::default());
 
     let test_results = run_tests_internal(
         &database,
         &file_system,
         &project,
-        &database.get_dialect(),
+        &parser,
         test_runner,
         func,
         false,

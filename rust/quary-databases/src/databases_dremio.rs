@@ -269,7 +269,7 @@ mod test {
 
         assert!(exec.is_ok(), "Failed to execute query {:?}", exec);
 
-        let exec = dremio
+        dremio
             .exec(r#"CREATE OR REPLACE VIEW test.test.test_view AS SELECT * FROM Samples."samples.dremio.com"."NYC-taxi-trips.csv""#)
             .await
             .unwrap();

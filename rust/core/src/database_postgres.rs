@@ -6,8 +6,8 @@ use js_sys::Date;
 use pbjson_types::value::Kind;
 use pbjson_types::{Struct, Value};
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
-use sqruff::core::config::FluffConfig;
-use sqruff::core::parser::parser::Parser;
+use sqruff_lib_core::dialects::base::Dialect;
+use sqruff_lib_dialects::postgres;
 
 use crate::databases::{
     base_for_seeds_create_table_specifying_text_type, CacheStatus, DatabaseQueryGenerator,
@@ -21,25 +21,13 @@ pub struct DatabaseQueryGeneratorPostgres {
     /// override_now is used to override the current timestamp in the generated SQL. It is primarily
     /// used for testing purposes.
     override_now: Option<SystemTime>,
-    config: FluffConfig,
 }
 
 impl DatabaseQueryGeneratorPostgres {
     pub fn new(schema: String, override_now: Option<SystemTime>) -> DatabaseQueryGeneratorPostgres {
-        use sqruff::core::config::Value;
-
         DatabaseQueryGeneratorPostgres {
             schema,
             override_now,
-            config: FluffConfig::new(
-                [(
-                    "core".into(),
-                    Value::Map([("dialect".into(), Value::String("postgres".into()))].into()),
-                )]
-                .into(),
-                None,
-                None,
-            ),
         }
     }
 }
@@ -214,8 +202,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
         )]
     }
 
-    fn get_dialect(&self) -> Parser {
-        Parser::new(&self.config)
+    fn get_dialect(&self) -> Dialect {
+        postgres::dialect()
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

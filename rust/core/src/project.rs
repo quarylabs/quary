@@ -28,7 +28,7 @@ use quary_proto::{
     TestUnique,
 };
 use sqlinference::infer_tests::{get_column_with_source, ExtractedSelect};
-use sqruff::core::parser::parser::Parser;
+use sqruff_lib_core::parser::parser::Parser;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 

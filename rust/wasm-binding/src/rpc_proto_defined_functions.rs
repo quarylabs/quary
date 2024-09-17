@@ -1,6 +1,7 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::PathBuf;
 
+use crate::rpc_proto_scaffolding::{JsFileSystem, Writer};
 use quary_core::automatic_branching::{
     cache_view_name_to_table_name_and_hash,
     given_map_and_hash_map_return_sub_graph_all_cached_for_a_particular_model, is_cache_full_path,
@@ -60,8 +61,7 @@ use quary_proto::{
 };
 use sqlinference::columns::get_columns_internal;
 use sqlinference::infer_tests::infer_tests;
-
-use crate::rpc_proto_scaffolding::{JsFileSystem, Writer};
+use sqruff_lib_core::parser::parser::Parser;
 
 pub(crate) async fn is_path_empty(
     _: Writer,
@@ -1023,17 +1023,16 @@ pub(crate) async fn get_model_table_internal(
     let project_root = request.project_root;
 
     let project = quary_core::project::parse_project(file_system, database, &project_root).await?;
-    let dialect = database.get_dialect();
 
     let model_map = name_to_raw_model_map_internal(&project, file_system).await?;
     let model_statement = model_map
         .get(&request.model_name)
         .ok_or(format!("Model {} not found", request.model_name))?;
-    let (columns, _) = get_columns_internal(&database.get_dialect(), model_statement)
-        .ok()
-        .unzip();
+    let dialect = database.get_dialect();
+    let parser = Parser::new(&dialect, Default::default());
+    let (columns, _) = get_columns_internal(&parser, model_statement).ok().unzip();
     let inferred_tests: Option<Vec<sqlinference::test::Test>> = infer_tests(
-        &database.get_dialect(),
+        &parser,
         format!("{}.{}", DEFAULT_SCHEMA_PREFIX, request.model_name).as_str(),
         model_statement,
         &project
@@ -1048,7 +1047,7 @@ pub(crate) async fn get_model_table_internal(
         &project,
         DEFAULT_SCHEMA_PREFIX,
         &request.model_name,
-        &dialect,
+        &parser,
         file_system,
     )
     .await
