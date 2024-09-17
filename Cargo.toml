@@ -16,4 +16,10 @@ license = "Apache-2.0"
 rust-version = "1.80.0"
 
 [workspace.dependencies]
+sqlinference = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-sqlinference" }
+sqruff-lib-core = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-lib-core" }
+sqruff-lib-dialects = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-lib-dialects" }
+
+[workspace.dev-dependencies]
 cargo-nextest = "0.9"
+

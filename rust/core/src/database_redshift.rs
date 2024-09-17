@@ -8,11 +8,9 @@ use chrono::{DateTime, Utc};
 use js_sys::Date;
 use pbjson_types::Struct;
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
-use sqruff::core::{
-    config::{FluffConfig, Value},
-    parser::parser::Parser,
-};
 
+use sqruff_lib_core::dialects::base::Dialect;
+use sqruff_lib_dialects::redshift;
 use std::time::SystemTime;
 
 #[derive(Debug, Clone)]
@@ -21,7 +19,6 @@ pub struct DatabaseQueryGeneratorRedshift {
     /// override_now is used to override the current timestamp in the generated SQL. It is primarily
     /// used for testing purposes.
     override_now: Option<SystemTime>,
-    config: FluffConfig,
 }
 
 impl DatabaseQueryGeneratorRedshift {
@@ -29,16 +26,6 @@ impl DatabaseQueryGeneratorRedshift {
         DatabaseQueryGeneratorRedshift {
             schema,
             override_now,
-            config: FluffConfig::new(
-                [(
-                    "core".into(),
-                    // FIXME: redshift -> ansi
-                    Value::Map([("dialect".into(), Value::String("ansi".into()))].into()),
-                )]
-                .into(),
-                None,
-                None,
-            ),
         }
     }
 }
@@ -166,8 +153,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorRedshift {
         )]
     }
 
-    fn get_dialect(&self) -> Parser {
-        Parser::new(&self.config)
+    fn get_dialect(&self) -> Dialect {
+        redshift::dialect()
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

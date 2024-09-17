@@ -1,7 +1,5 @@
-use sqruff::core::{
-    config::{FluffConfig, Value},
-    parser::parser::Parser,
-};
+use sqruff_lib_core::dialects::base::Dialect;
+use sqruff_lib_dialects::postgres;
 
 use crate::databases::{DatabaseQueryGenerator, SnapshotGenerator};
 
@@ -9,7 +7,6 @@ use crate::databases::{DatabaseQueryGenerator, SnapshotGenerator};
 pub struct DatabaseQueryGeneratorDremio {
     pub space: String,
     pub folder_path: String,
-    config: FluffConfig,
 }
 
 const SPACE_DEAFULT: &str = "@user";
@@ -20,15 +17,6 @@ impl DatabaseQueryGeneratorDremio {
         Self {
             space: space.unwrap_or_else(|| SPACE_DEAFULT.to_string()),
             folder_path: folder_path.unwrap_or_else(|| FOLDER_PATH_DEFAULT.to_string()),
-            config: FluffConfig::new(
-                [(
-                    "core".into(),
-                    Value::Map([("dialect".into(), Value::String("postgres".into()))].into()),
-                )]
-                .into(),
-                None,
-                None,
-            ),
         }
     }
 }
@@ -76,8 +64,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorDremio {
         vec![drop, create]
     }
 
-    fn get_dialect(&self) -> Parser {
-        Parser::new(&self.config)
+    fn get_dialect(&self) -> Dialect {
+        postgres::dialect()
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

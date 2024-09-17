@@ -427,11 +427,14 @@ mod tests {
             })
         });
 
+        let dialect = query_generator.get_dialect();
+        let parser = sqruff_lib_core::parser::parser::Parser::new(&dialect, Default::default());
+
         let results = run_tests_internal(
             &query_generator,
             &file_system,
             &project,
-            &query_generator.get_dialect(),
+            &parser,
             TestRunner::All,
             func,
             false,
@@ -509,12 +512,14 @@ mod tests {
                 }
             })
         });
+        let dialect = query_generator.get_dialect();
+        let parser = sqruff_lib_core::parser::parser::Parser::new(&dialect, Default::default());
 
         let results = run_tests_internal(
             &query_generator,
             &file_system,
             &project,
-            &query_generator.get_dialect(),
+            &parser,
             TestRunner::Skip,
             func,
             false,

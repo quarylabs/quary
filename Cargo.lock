@@ -124,9 +124,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.88"
+version = "1.0.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e1496f8fb1fbf272686b8d37f523dab3e4a7443300055e74cdaa449f3114356"
+checksum = "86fdf8605db99b54d3cd748a44c6d04df638eb5dafb219b135d0149bd0db01f6"
 
 [[package]]
 name = "arrayvec"
@@ -726,9 +726,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
-version = "1.7.1"
+version = "1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8318a53db07bb3f8dca91a600466bdb3f2eaadeedfdbcf02e1accbad9271ba50"
+checksum = "428d9aa8fbc0670b7b8d6030a7fadd0f86151cae55e4dbbece15f3780a3dfaf3"
 
 [[package]]
 name = "cast"
@@ -738,9 +738,9 @@ checksum = "37b2a672a2cb129a2e41c10b1224bb368f9f37a2b16b612598138befd7b37eb5"
 
 [[package]]
 name = "cc"
-version = "1.1.18"
+version = "1.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b62ac837cdb5cb22e10a256099b4fc502b1dfe560cb282963a974d7abd80e476"
+checksum = "07b1695e2c7e8fc85310cde85aeaab7e3097f593c91d209d3f9df76c928100f0"
 dependencies = [
  "jobserver",
  "libc",
@@ -2105,9 +2105,9 @@ dependencies = [
 
 [[package]]
 name = "iana-time-zone"
-version = "0.1.60"
+version = "0.1.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7ffbb5a1b541ea2561f8c41c087286cc091e21e556a4f09a8f6cbf17b69b141"
+checksum = "235e081f3925a06703c2d0117ea8b91f042756fd6e7a6e5d901e8ca1a996b220"
 dependencies = [
  "android_system_properties",
  "core-foundation-sys",
@@ -2468,19 +2468,18 @@ dependencies = [
 
 [[package]]
 name = "lz4"
-version = "1.26.0"
+version = "1.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "958b4caa893816eea05507c20cfe47574a43d9a697138a7872990bba8a0ece68"
+checksum = "a231296ca742e418c43660cb68e082486ff2538e8db432bc818580f3965025ed"
 dependencies = [
- "libc",
  "lz4-sys",
 ]
 
 [[package]]
 name = "lz4-sys"
-version = "1.10.0"
+version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "109de74d5d2353660401699a4174a4ff23fcc649caf553df71933c7fb45ad868"
+checksum = "fcb44a01837a858d47e5a630d2ccf304c8efcc4b83b8f9f75b7a9ee4fcc6e57d"
 dependencies = [
  "cc",
  "libc",
@@ -2532,9 +2531,9 @@ dependencies = [
 
 [[package]]
 name = "minijinja"
-version = "2.2.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d7d3e3a3eece1fa4618237ad41e1de855ced47eab705cec1c9a920e1d1c5aad"
+checksum = "1028b628753a7e1a88fc59c9ba4b02ecc3bc0bd3c7af23df667bc28df9b3310e"
 dependencies = [
  "serde",
 ]
@@ -3117,9 +3116,9 @@ dependencies = [
 
 [[package]]
 name = "pretty_assertions"
-version = "1.4.0"
+version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af7cee1a6c8a5b9208b3cb1061f10c0cb689087b3d8ce85fb9d2dd7a29b6ba66"
+checksum = "3ae130e2f271fbc2ac3a40fb1d07180839cdbbe443c7a27e1e3c13c5cac0116d"
 dependencies = [
  "diff",
  "yansi",
@@ -3301,6 +3300,9 @@ dependencies = [
  "quary_proto",
  "regex",
  "serde_yaml",
+ "sqruff-lib-core",
+ "sqruff-lib-dialects",
+ "sqruff-sqlinference",
  "tempfile",
  "testcontainers",
  "testcontainers-modules",
@@ -3326,7 +3328,8 @@ dependencies = [
  "rust-embed",
  "serde_yaml",
  "sha2",
- "sqruff-lib",
+ "sqruff-lib-core",
+ "sqruff-lib-dialects",
  "sqruff-sqlinference",
  "tokio",
 ]
@@ -3351,6 +3354,9 @@ dependencies = [
  "regex",
  "snowflake-api",
  "sqlx",
+ "sqruff-lib-core",
+ "sqruff-lib-dialects",
+ "sqruff-sqlinference",
  "tempfile",
  "testcontainers",
  "testcontainers-modules",
@@ -3375,7 +3381,8 @@ dependencies = [
  "send_wrapper",
  "serde",
  "serde_yaml",
- "sqruff-lib",
+ "sqruff-lib-core",
+ "sqruff-lib-dialects",
  "sqruff-sqlinference",
  "tokio",
  "wasm-bindgen",
@@ -4536,15 +4543,14 @@ dependencies = [
 
 [[package]]
 name = "sqruff-lib"
-version = "0.17.0"
-source = "git+https://github.com/quarylabs/sqruff.git#ae19d9a4e1785418fc5900e1bb6b2ffc3af3c23f"
+version = "0.18.0"
+source = "git+https://github.com/quarylabs/sqruff.git#a282063b8f91dd7190a8bd0294cfa3a9d7985d33"
 dependencies = [
  "ahash 0.8.11",
  "anstyle",
  "common-path",
  "configparser",
  "dyn-clone",
- "dyn_ord",
  "enum_dispatch",
  "fancy-regex",
  "getrandom",
@@ -4559,7 +4565,8 @@ dependencies = [
  "rustc-hash",
  "slyce",
  "smol_str",
- "sptr",
+ "sqruff-lib-core",
+ "sqruff-lib-dialects",
  "strum 0.26.3",
  "strum_macros 0.26.4",
  "tikv-jemallocator",
@@ -4569,11 +4576,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "sqruff-lib-core"
+version = "0.18.0"
+source = "git+https://github.com/quarylabs/sqruff.git#a282063b8f91dd7190a8bd0294cfa3a9d7985d33"
+dependencies = [
+ "ahash 0.8.11",
+ "dyn-clone",
+ "dyn_ord",
+ "fancy-regex",
+ "indexmap 2.5.0",
+ "itertools 0.13.0",
+ "nohash-hasher",
+ "pretty_assertions",
+ "rustc-hash",
+ "smol_str",
+ "sptr",
+ "strum 0.26.3",
+ "strum_macros 0.26.4",
+]
+
+[[package]]
+name = "sqruff-lib-dialects"
+version = "0.18.0"
+source = "git+https://github.com/quarylabs/sqruff.git#a282063b8f91dd7190a8bd0294cfa3a9d7985d33"
+dependencies = [
+ "ahash 0.8.11",
+ "dyn-clone",
+ "itertools 0.13.0",
+ "serde_yaml",
+ "sqruff-lib-core",
+ "strum 0.26.3",
+]
+
+[[package]]
 name = "sqruff-sqlinference"
-version = "0.17.0"
-source = "git+https://github.com/quarylabs/sqruff.git#ae19d9a4e1785418fc5900e1bb6b2ffc3af3c23f"
+version = "0.18.0"
+source = "git+https://github.com/quarylabs/sqruff.git#a282063b8f91dd7190a8bd0294cfa3a9d7985d33"
 dependencies = [
  "sqruff-lib",
+ "sqruff-lib-core",
 ]
 
 [[package]]
@@ -4982,9 +5023,9 @@ checksum = "0dd7358ecb8fc2f8d014bf86f6f638ce72ba252a2c3a2572f2a795f1d23efb41"
 
 [[package]]
 name = "toml_edit"
-version = "0.22.20"
+version = "0.22.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "583c44c02ad26b0c3f3066fe629275e50627026c51ac2e595cca4c230ce1ce1d"
+checksum = "3b072cee73c449a636ffd6f32bd8de3a9f7119139aff882f44943ce2986dc5cf"
 dependencies = [
  "indexmap 2.5.0",
  "toml_datetime",
@@ -5117,9 +5158,9 @@ checksum = "e91b56cd4cadaeb79bbf1a5645f6b4f8dc5bde8834ad5894a8db35fda9efa1fe"
 
 [[package]]
 name = "unicode-normalization"
-version = "0.1.23"
+version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a56d1686db2308d901306f92a263857ef59ea39678a5458e7cb17f01415101f5"
+checksum = "5033c97c4262335cded6d6fc3e5c18ab755e1a3dc96376350f3d8e9f009ad956"
 dependencies = [
  "tinyvec",
 ]
@@ -5654,9 +5695,9 @@ dependencies = [
 
 [[package]]
 name = "yansi"
-version = "0.5.1"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09041cd90cf85f7f8b2df60c646f853b7f535ce68f85244eb6731cf89fa498ec"
+checksum = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"
 
 [[package]]
 name = "yup-oauth2"

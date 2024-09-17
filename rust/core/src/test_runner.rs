@@ -8,7 +8,7 @@ use quary_proto::{
     failed, passed, FailedRunResults, InferredChain, InferredChainWithOperation, TestResult,
 };
 use quary_proto::{Project, TestResults, TestRunner};
-use sqruff::core::parser::parser::Parser;
+use sqruff_lib_core::parser::parser::Parser;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::future::Future;
 use std::pin::Pin;

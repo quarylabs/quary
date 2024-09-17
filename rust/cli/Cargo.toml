@@ -22,6 +22,9 @@ base64 = "0.22.1"
 dotenv = "0.15"
 serde_yaml = "0.9.33"
 duckdb = { version = "1.0.0", features = ["bundled"] }
+sqlinference.workspace = true
+sqruff-lib-core.workspace = true
+sqruff-lib-dialects.workspace = true
 
 [dev-dependencies]
 chrono = "0.4.38"

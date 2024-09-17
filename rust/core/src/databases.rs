@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use pbjson_types::Struct;
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use quary_proto::TableAddress;
-use sqruff::core::parser::parser::Parser;
+use sqruff_lib_core::dialects::base::Dialect;
 use std::fmt::Debug;
 
 /// CacheStatus defines whether the cache exists and matches the current model, if so it is possible
@@ -143,7 +143,7 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
     ) -> Vec<String>;
 
     /// get_dialect returns the dialect of the database.
-    fn get_dialect(&self) -> Parser;
+    fn get_dialect(&self) -> Dialect;
 
     /// database_name_wrapper returns a full path or name wrapped in quotes that work for the specific database
     fn database_name_wrapper(&self, name: &str) -> String;
@@ -155,12 +155,16 @@ pub trait DatabaseQueryGenerator: SnapshotGenerator + Debug + Sync {
 }
 
 impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
-    fn supported_materialization_types(&self) -> &'static [&'static str] {
-        self.as_ref().supported_materialization_types()
+    fn get_name(&self) -> &'static str {
+        self.as_ref().get_name()
     }
 
     fn default_materalization_type(&self) -> &'static str {
         self.as_ref().default_materalization_type()
+    }
+
+    fn supported_materialization_types(&self) -> &'static [&'static str] {
+        self.as_ref().supported_materialization_types()
     }
 
     fn models_drop_query(
@@ -229,7 +233,7 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
             .automatic_cache_sql_create_statement(model, model_cache_name)
     }
 
-    fn get_dialect(&self) -> Parser {
+    fn get_dialect(&self) -> Dialect {
         self.as_ref().get_dialect()
     }
 
@@ -239,10 +243,6 @@ impl DatabaseQueryGenerator for Box<dyn DatabaseQueryGenerator> {
 
     fn get_current_timestamp(&self) -> String {
         self.as_ref().get_current_timestamp()
-    }
-
-    fn get_name(&self) -> &'static str {
-        self.as_ref().get_name()
     }
 }
 

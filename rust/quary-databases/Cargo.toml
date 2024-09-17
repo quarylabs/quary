@@ -10,6 +10,9 @@ rust-version.workspace = true
 [dependencies]
 quary-core = { path = "../core" }
 quary_proto = { path = "../../proto/gen/rust" }
+sqlinference.workspace = true
+sqruff-lib-core.workspace = true
+sqruff-lib-dialects.workspace = true
 
 arrow-flight = { version = "52.2.0" , default-features = true, features = ["flight-sql-experimental"] }
 yup-oauth2 = { version = "9", default-features = false }

@@ -1,28 +1,13 @@
-use sqruff::core::{
-    config::{FluffConfig, Value},
-    parser::parser::Parser,
-};
-
 use crate::databases::{DatabaseQueryGenerator, SnapshotGenerator};
+use sqruff_lib_core::dialects::base::Dialect;
+use sqruff_lib_dialects::sqlite;
 
 #[derive(Debug)]
-pub struct DatabaseQueryGeneratorSqlite {
-    config: FluffConfig,
-}
+pub struct DatabaseQueryGeneratorSqlite;
 
 impl Default for DatabaseQueryGeneratorSqlite {
     fn default() -> Self {
-        Self {
-            config: FluffConfig::new(
-                [(
-                    "core".into(),
-                    Value::Map([("dialect".into(), Value::String("sqlite".into()))].into()),
-                )]
-                .into(),
-                None,
-                None,
-            ),
-        }
+        Self {}
     }
 }
 
@@ -65,8 +50,8 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorSqlite {
         vec![drop, create]
     }
 
-    fn get_dialect(&self) -> Parser {
-        Parser::new(&self.config)
+    fn get_dialect(&self) -> Dialect {
+        sqlite::dialect()
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {
