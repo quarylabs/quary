@@ -3,13 +3,13 @@ use crate::project_to_sql::replace_variable_templates_with_variable_defined_in_c
 use crate::sql::return_reference_search;
 use futures::AsyncRead;
 use futures::AsyncReadExt;
-use once_cell::sync::Lazy;
 use pbjson_types::Struct;
 use regex::Regex;
+use std::sync::LazyLock;
 
 #[allow(clippy::unwrap_used)]
-static VALIDATE_CONFIG_SCHEMA_NAME: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^[a-z][a-z0-9_]*$").unwrap());
+static VALIDATE_CONFIG_SCHEMA_NAME: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[a-z][a-z0-9_]*$").unwrap());
 
 // Function to validate the model name
 pub fn validate_model_name(name: &str) -> Result<(), String> {

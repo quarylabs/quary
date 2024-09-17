@@ -3318,7 +3318,6 @@ dependencies = [
  "futures",
  "js-sys",
  "mockall",
- "once_cell",
  "pbjson-types",
  "petgraph",
  "prost 0.13.2",
