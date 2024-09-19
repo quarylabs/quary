@@ -150,7 +150,7 @@ impl DatabaseConnection for Sqlite {
     }
 
     fn query_generator(&self) -> Box<dyn DatabaseQueryGenerator> {
-        Box::new(DatabaseQueryGeneratorSqlite::default())
+        Box::new(DatabaseQueryGeneratorSqlite)
     }
 
     async fn table_exists(&self, _path: &str) -> Result<Option<bool>, String> {
