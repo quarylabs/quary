@@ -269,11 +269,11 @@ pub fn database_query_generator_from_config(
     let config = config.config.ok_or("No config provided".to_string())?;
     match config {
         SqliteInMemory(_) => {
-            let database = DatabaseQueryGeneratorSqlite::default();
+            let database = DatabaseQueryGeneratorSqlite;
             Ok(Box::new(database))
         }
         Sqlite(_) => {
-            let database = DatabaseQueryGeneratorSqlite::default();
+            let database = DatabaseQueryGeneratorSqlite;
             Ok(Box::new(database))
         }
         BigQueryConfig(config) => {
