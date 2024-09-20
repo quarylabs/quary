@@ -42,6 +42,7 @@ export const Main: Story = {
           assetType: 3,
           filePath: '/path/to/shipping.sql',
           tags: [],
+          columns: [],
         },
         {
           name: 'order_enrichment',

@@ -16,6 +16,7 @@ export type DagNodeDataType = {
   backGroundLabel?: boolean
   type?: number
   filePath?: string
+  columns: string[]
 }
 
 interface Props {
@@ -123,6 +124,11 @@ const DagNodeTypeLabel = ({ type }: { type: number }) => {
     <div className={labelClasses}>
       <IconComponent className="text-vscode-button-foreground h-5 w-5" />
       {label}
+      <div>
+        {}
+
+
+      </div>
     </div>
   )
 }

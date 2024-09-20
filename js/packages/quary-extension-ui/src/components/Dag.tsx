@@ -186,6 +186,7 @@ export const applyLayout = (
           backGroundLabel,
           type,
           filePath,
+          columns: [],
         },
         position: {
           x: dagreGraph.node(id).x,
@@ -274,6 +275,7 @@ const mapDagTypeToDagModel = (dag: DagLocalType): DagModel => {
         backGroundLabel: presentCacheView!,
         type: modelOrSeedOrSource,
         filePath,
+        columns:
       }),
     ),
     edges: edges.map(({ from, to }) => ({ source: from, target: to })),
@@ -301,4 +303,5 @@ export interface DagNode {
   backGroundLabel: boolean
   type?: number
   filePath?: string
+  columns: string[]
 }
