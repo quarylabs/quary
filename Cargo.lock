@@ -2900,7 +2900,7 @@ checksum = "6eea3058763d6e656105d1403cb04e0a41b7bbac6362d413e7c33be0c32279c9"
 dependencies = [
  "heck 0.5.0",
  "itertools 0.13.0",
- "prost 0.13.2",
+ "prost 0.13.3",
  "prost-types 0.13.2",
 ]
 
@@ -2912,7 +2912,7 @@ dependencies = [
  "chrono",
  "pbjson",
  "pbjson-build",
- "prost 0.13.2",
+ "prost 0.13.3",
  "prost-build",
  "serde",
  "serde_json",
@@ -3187,12 +3187,12 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.13.2"
+version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b2ecbe40f08db5c006b5764a2645f7f3f141ce756412ac9e1dd6087e6d32995"
+checksum = "7b0487d90e047de87f984913713b85c601c05609aad5b0df4b4573fbf69aa13f"
 dependencies = [
  "bytes",
- "prost-derive 0.13.2",
+ "prost-derive 0.13.3",
 ]
 
 [[package]]
@@ -3209,7 +3209,7 @@ dependencies = [
  "once_cell",
  "petgraph",
  "prettyplease",
- "prost 0.13.2",
+ "prost 0.13.3",
  "prost-types 0.13.2",
  "regex",
  "syn 2.0.77",
@@ -3231,9 +3231,9 @@ dependencies = [
 
 [[package]]
 name = "prost-derive"
-version = "0.13.2"
+version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "acf0c195eebb4af52c752bec4f52f645da98b6e92077a04110c7f349477ae5ac"
+checksum = "e9552f850d5f0964a4e4d0bf306459ac29323ddfbae05e35a7c0d35cb0803cc5"
 dependencies = [
  "anyhow",
  "itertools 0.13.0",
@@ -3257,7 +3257,7 @@ version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60caa6738c7369b940c3d49246a8d1749323674c65cb13010134f5c9bad5b519"
 dependencies = [
- "prost 0.13.2",
+ "prost 0.13.3",
 ]
 
 [[package]]
@@ -3294,7 +3294,7 @@ dependencies = [
  "duckdb",
  "futures",
  "indicatif",
- "prost 0.13.2",
+ "prost 0.13.3",
  "quary-core",
  "quary-databases",
  "quary_proto",
@@ -3322,7 +3322,7 @@ dependencies = [
  "mockall",
  "pbjson-types",
  "petgraph",
- "prost 0.13.2",
+ "prost 0.13.3",
  "quary_proto",
  "regex",
  "rust-embed",
@@ -3375,7 +3375,7 @@ dependencies = [
  "futures",
  "js-sys",
  "minijinja",
- "prost 0.13.2",
+ "prost 0.13.3",
  "quary-core",
  "quary_proto",
  "send_wrapper",
@@ -3396,7 +3396,7 @@ version = "0.1.0"
 dependencies = [
  "pbjson",
  "pbjson-types",
- "prost 0.13.2",
+ "prost 0.13.3",
  "serde",
 ]
 
