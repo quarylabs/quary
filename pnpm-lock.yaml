@@ -235,8 +235,8 @@ importers:
         specifier: ^2.10.1
         version: 2.10.1
       '@finos/perspective-viewer':
-        specifier: ^2.10.1
-        version: 2.10.1
+        specifier: ^3.1.0
+        version: 3.1.0
       '@finos/perspective-viewer-d3fc':
         specifier: ^2.10.1
         version: 2.10.1(d3-brush@3.0.0)(d3-dispatch@3.0.1)(d3-fetch@3.0.1)(d3-path@3.1.0)(d3-random@3.0.1)(d3-scale-chromatic@3.1.0)(d3-scale@4.0.2)(d3-shape@3.2.0)(d3-time@3.1.0)(d3-zoom@3.0.0)
@@ -1455,9 +1455,15 @@ packages:
   '@finos/perspective-viewer@2.10.1':
     resolution: {integrity: sha512-G/P+EQXRTYurWpTjTU+VXKM3WHbbTjjpxEfLQLA9BS8gO0NwK1nXT7I5a9PEhVtRnVHEJrpNa2+VbIWTeG15dQ==}
 
+  '@finos/perspective-viewer@3.1.0':
+    resolution: {integrity: sha512-PBb+B160Oasjb6xTDFBdOiGvHbxtAfMQQdNGjiobtiQwLa0U7c7dsuDf0BAdIYVnofdkksP0HWPv3aa6nm+v6g==}
+
   '@finos/perspective@2.10.1':
     resolution: {integrity: sha512-2WfHOKH8XEtkQqgg8T9OxWsE44Kr5T7iX3zqwVRrnllKySBRav76Ah2v2cKyMbZCsuieqWAFliIzIoJpI8ZNiA==}
     engines: {node: '>=14'}
+
+  '@finos/perspective@3.1.0':
+    resolution: {integrity: sha512-nyO4NWU1+C4C0SOYDdHM7p01uPl9eeJUYMG+YNy+LNOg5xGSpNZ4CI4iT9+1N7mSKLl9mrly8OAoRQXEHoDKTA==}
 
   '@floating-ui/core@1.6.7':
     resolution: {integrity: sha512-yDzVT/Lm101nQ5TCVeK65LtdN7Tj4Qpr9RTXJ2vPFLqtLxwOrpoxAHAJI8J3yYWUc40J0BDBheaitK5SJmno2g==}
@@ -1616,6 +1622,7 @@ packages:
   '@koa/router@12.0.1':
     resolution: {integrity: sha512-ribfPYfHb+Uw3b27Eiw6NPqjhIhTpVFzEWLwyc/1Xp+DCdwRRyIlAUODX+9bPARF6aQtUu1+/PHzdNvRzcs/+Q==}
     engines: {node: '>= 12'}
+    deprecated: Use v12.0.2 or higher to fix the vulnerability issue
 
   '@lukeed/csprng@1.1.0':
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
@@ -8918,10 +8925,25 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
+  '@finos/perspective-viewer@3.1.0':
+    dependencies:
+      '@finos/perspective': 3.1.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@finos/perspective@2.10.1':
     dependencies:
       stoppable: 1.1.0
       ws: 6.2.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@finos/perspective@3.1.0':
+    dependencies:
+      stoppable: 1.1.0
+      ws: 8.18.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
