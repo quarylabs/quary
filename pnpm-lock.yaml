@@ -232,8 +232,8 @@ importers:
         specifier: ^1.1.4
         version: 1.1.4
       '@finos/perspective':
-        specifier: ^2.10.1
-        version: 2.10.1
+        specifier: ^3.1.1
+        version: 3.1.1
       '@finos/perspective-viewer':
         specifier: ^2.10.1
         version: 2.10.1
@@ -1459,6 +1459,9 @@ packages:
     resolution: {integrity: sha512-2WfHOKH8XEtkQqgg8T9OxWsE44Kr5T7iX3zqwVRrnllKySBRav76Ah2v2cKyMbZCsuieqWAFliIzIoJpI8ZNiA==}
     engines: {node: '>=14'}
 
+  '@finos/perspective@3.1.1':
+    resolution: {integrity: sha512-p/kZ3VMF0tpnyZBxjNivPWYsjvvPupajuQm/e2iHrZuvZ8+Uz9oISNqJPC8kCN4q7n6nkjzWtTs41Jgmt3v3TA==}
+
   '@floating-ui/core@1.6.7':
     resolution: {integrity: sha512-yDzVT/Lm101nQ5TCVeK65LtdN7Tj4Qpr9RTXJ2vPFLqtLxwOrpoxAHAJI8J3yYWUc40J0BDBheaitK5SJmno2g==}
 
@@ -1616,6 +1619,7 @@ packages:
   '@koa/router@12.0.1':
     resolution: {integrity: sha512-ribfPYfHb+Uw3b27Eiw6NPqjhIhTpVFzEWLwyc/1Xp+DCdwRRyIlAUODX+9bPARF6aQtUu1+/PHzdNvRzcs/+Q==}
     engines: {node: '>= 12'}
+    deprecated: Use v12.0.2 or higher to fix the vulnerability issue
 
   '@lukeed/csprng@1.1.0':
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
@@ -4395,6 +4399,7 @@ packages:
   eslint@8.57.0:
     resolution: {integrity: sha512-dZ6+mexnaTIbSBZWgou51U6OmzIhYM2VcNdtiTtI7qPNZm35Akpr0f6vtw3w1Kmn5PYo+tZVfh13WrhpS6oLqQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   espree@9.6.1:
@@ -8922,6 +8927,14 @@ snapshots:
     dependencies:
       stoppable: 1.1.0
       ws: 6.2.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@finos/perspective@3.1.1':
+    dependencies:
+      stoppable: 1.1.0
+      ws: 8.18.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
