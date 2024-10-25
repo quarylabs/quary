@@ -901,12 +901,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "common-path"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2382f75942f4b3be3690fe4f86365e9c853c1587d6ee58212cebf6e2a9ccd101"
-
-[[package]]
 name = "concurrent-queue"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -914,12 +908,6 @@ checksum = "4ca0197aee26d1ae37445ee532fefce43251d24cc7c166799f4d46817f1d3973"
 dependencies = [
  "crossbeam-utils",
 ]
-
-[[package]]
-name = "configparser"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e57e3272f0190c3f1584272d613719ba5fc7df7f4942fe542e63d949cf3a649b"
 
 [[package]]
 name = "console"
@@ -1290,12 +1278,6 @@ name = "dyn-clone"
 version = "1.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d6ef0072f8a535281e4876be788938b528e9a1d43900b82c2569af7da799125"
-
-[[package]]
-name = "dyn_ord"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d54c900bcd6e44485ab0d733a93ef8df8209d2c1306e3dcad8b5926aa743a2c"
 
 [[package]]
 name = "either"
@@ -2281,29 +2263,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lazy-regex"
-version = "3.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d8e41c97e6bc7ecb552016274b99fbb5d035e8de288c582d9b933af6677bfda"
-dependencies = [
- "lazy-regex-proc_macros",
- "once_cell",
- "regex",
-]
-
-[[package]]
-name = "lazy-regex-proc_macros"
-version = "3.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76e1d8b05d672c53cb9c7b920bbba8783845ae4f0b076e02a3db1d02c81b4163"
-dependencies = [
- "proc-macro2",
- "quote",
- "regex",
- "syn 2.0.77",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2959,7 +2918,6 @@ version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ade2d8b8f33c7333b51bcf0428d37e217e9f32192ae4772156f65063b8ce03dc"
 dependencies = [
- "phf_macros",
  "phf_shared",
 ]
 
@@ -2984,27 +2942,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "phf_macros"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3444646e286606587e49f3bcf1679b8cef1dc2c5ecc29ddacaffc305180d464b"
-dependencies = [
- "phf_generator",
- "phf_shared",
- "proc-macro2",
- "quote",
- "syn 2.0.77",
- "unicase",
-]
-
-[[package]]
 name = "phf_shared"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90fcb95eef784c2ac79119d1dd819e162b5da872ce6f3c3abe1e8ca1c082f72b"
 dependencies = [
  "siphasher",
- "unicase",
 ]
 
 [[package]]
@@ -3202,8 +3145,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8650aabb6c35b860610e9cff5dc1af886c9e25073b7b1712a68972af4281302"
 dependencies = [
  "bytes",
- "heck 0.5.0",
- "itertools 0.13.0",
+ "heck 0.4.1",
+ "itertools 0.12.1",
  "log",
  "multimap",
  "once_cell",
@@ -3236,7 +3179,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "acf0c195eebb4af52c752bec4f52f645da98b6e92077a04110c7f349477ae5ac"
 dependencies = [
  "anyhow",
- "itertools 0.13.0",
+ "itertools 0.12.1",
  "proc-macro2",
  "quote",
  "syn 2.0.77",
@@ -3373,6 +3316,7 @@ dependencies = [
  "chrono",
  "console_error_panic_hook",
  "futures",
+ "getrandom",
  "js-sys",
  "minijinja",
  "prost 0.13.2",
@@ -3507,26 +3451,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
-]
-
-[[package]]
-name = "rayon"
-version = "1.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b418a60154510ca1a002a752ca9714984e21e4241e804d32555251faf8b78ffa"
-dependencies = [
- "either",
- "rayon-core",
-]
-
-[[package]]
-name = "rayon-core"
-version = "1.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
-dependencies = [
- "crossbeam-deque",
- "crossbeam-utils",
 ]
 
 [[package]]
@@ -4542,53 +4466,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "sqruff-lib"
-version = "0.18.0"
-source = "git+https://github.com/quarylabs/sqruff.git#a282063b8f91dd7190a8bd0294cfa3a9d7985d33"
+name = "sqruff-lib-core"
+version = "0.19.1"
+source = "git+https://github.com/quarylabs/sqruff.git#ea066e78e2913eea11d16e5c910f8d0d5fa93d23"
 dependencies = [
  "ahash 0.8.11",
- "anstyle",
- "common-path",
- "configparser",
- "dyn-clone",
  "enum_dispatch",
  "fancy-regex",
- "getrandom",
  "indexmap 2.5.0",
  "itertools 0.13.0",
- "lazy-regex",
  "nohash-hasher",
- "phf",
  "pretty_assertions",
- "rayon",
- "regex",
  "rustc-hash",
  "slyce",
- "smol_str",
- "sqruff-lib-core",
- "sqruff-lib-dialects",
- "strum 0.26.3",
- "strum_macros 0.26.4",
- "tikv-jemallocator",
- "tracing",
- "unicase",
- "walkdir",
-]
-
-[[package]]
-name = "sqruff-lib-core"
-version = "0.18.0"
-source = "git+https://github.com/quarylabs/sqruff.git#a282063b8f91dd7190a8bd0294cfa3a9d7985d33"
-dependencies = [
- "ahash 0.8.11",
- "dyn-clone",
- "dyn_ord",
- "fancy-regex",
- "indexmap 2.5.0",
- "itertools 0.13.0",
- "nohash-hasher",
- "pretty_assertions",
- "rustc-hash",
  "smol_str",
  "sptr",
  "strum 0.26.3",
@@ -4597,11 +4487,10 @@ dependencies = [
 
 [[package]]
 name = "sqruff-lib-dialects"
-version = "0.18.0"
-source = "git+https://github.com/quarylabs/sqruff.git#a282063b8f91dd7190a8bd0294cfa3a9d7985d33"
+version = "0.19.1"
+source = "git+https://github.com/quarylabs/sqruff.git#ea066e78e2913eea11d16e5c910f8d0d5fa93d23"
 dependencies = [
  "ahash 0.8.11",
- "dyn-clone",
  "itertools 0.13.0",
  "serde_yaml",
  "sqruff-lib-core",
@@ -4610,11 +4499,11 @@ dependencies = [
 
 [[package]]
 name = "sqruff-sqlinference"
-version = "0.18.0"
-source = "git+https://github.com/quarylabs/sqruff.git#a282063b8f91dd7190a8bd0294cfa3a9d7985d33"
+version = "0.19.1"
+source = "git+https://github.com/quarylabs/sqruff.git#ea066e78e2913eea11d16e5c910f8d0d5fa93d23"
 dependencies = [
- "sqruff-lib",
  "sqruff-lib-core",
+ "sqruff-lib-dialects",
 ]
 
 [[package]]
@@ -4851,26 +4740,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.77",
-]
-
-[[package]]
-name = "tikv-jemalloc-sys"
-version = "0.6.0+5.3.0-1-ge13ca993e8ccb9ba9847cc330696e02839f328f7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd3c60906412afa9c2b5b5a48ca6a5abe5736aec9eb48ad05037a677e52e4e2d"
-dependencies = [
- "cc",
- "libc",
-]
-
-[[package]]
-name = "tikv-jemallocator"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cec5ff18518d81584f477e9bfdf957f5bb0979b0bac3af4ca30b5b3ae2d2865"
-dependencies = [
- "libc",
- "tikv-jemalloc-sys",
 ]
 
 [[package]]
@@ -5134,15 +5003,6 @@ name = "typenum"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
-
-[[package]]
-name = "unicase"
-version = "2.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7d2d4dafb69621809a81864c9c1b864479e1235c0dd4e199924b9742439ed89"
-dependencies = [
- "version_check",
-]
 
 [[package]]
 name = "unicode-bidi"
@@ -5458,7 +5318,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]

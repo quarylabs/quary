@@ -18,6 +18,7 @@ send_wrapper = "0.6"
 sqlinference.workspace = true
 sqruff-lib-core.workspace = true
 sqruff-lib-dialects.workspace = true
+getrandom = { version = "0.2", features = ["js"] }
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
