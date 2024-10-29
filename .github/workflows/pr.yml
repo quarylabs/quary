@@ -51,7 +51,7 @@ jobs:
           target: wasm32-unknown-unknown
           override: true
           profile: minimal
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@82a92a6e8fbeee089604da2575dc567ae9ddeaab # ratchet:Swatinem/rust-cache@v2
       - uses: taiki-e/cache-cargo-install-action@caa6f48d18d42462f9c30df89e2b4f71a42b7c2c # ratchet:taiki-e/cache-cargo-install-action@v1
         with:
           tool: wasm-bindgen-cli
@@ -87,7 +87,7 @@ jobs:
         with:
           toolchain: stable
           profile: minimal
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@82a92a6e8fbeee089604da2575dc567ae9ddeaab # ratchet:Swatinem/rust-cache@v2
       - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # ratchet:actions-rs/cargo@v1
         with:
           command: test
@@ -103,7 +103,7 @@ jobs:
           components: rustfmt, clippy
       - name: Install wasm target
         run: rustup target add wasm32-unknown-unknown
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@82a92a6e8fbeee089604da2575dc567ae9ddeaab # ratchet:Swatinem/rust-cache@v2
       - uses: taiki-e/cache-cargo-install-action@caa6f48d18d42462f9c30df89e2b4f71a42b7c2c # ratchet:taiki-e/cache-cargo-install-action@v1
         with:
           tool: wasm-bindgen-cli
@@ -118,7 +118,7 @@ jobs:
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # ratchet:Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@82a92a6e8fbeee089604da2575dc567ae9ddeaab # ratchet:Swatinem/rust-cache@v2
       - name: Check CI scripts
         run: cargo build
   sqruff-template:
