@@ -24,7 +24,7 @@ jobs:
   commitlint-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # ratchet:actions/checkout@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v3
         with:
           fetch-depth: '0'
       - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # ratchet:actions/setup-node@v3
@@ -42,7 +42,7 @@ jobs:
   node-check:
     runs-on: ubicloud-standard-16
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # ratchet:actions/checkout@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v3
         with:
           submodules: 'true'
       - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
@@ -72,7 +72,7 @@ jobs:
     env:
       PLAYWRIGHT_SKIP_DOWNLOAD_BROWSER: true
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # ratchet:actions/checkout@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v3
         # Comes from https://github.com/ludeeus/action-shellcheck/blob/master/action.yaml
       - name: Download shellcheck
         run: sudo apt-get install -y shellcheck
@@ -133,7 +133,7 @@ jobs:
     name: Check versions match
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # ratchet:actions/checkout@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v3
       - name: Install jq
         run: sudo apt-get install jq
       - run: make check_versions_match
