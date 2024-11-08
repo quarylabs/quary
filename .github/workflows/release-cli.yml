@@ -10,7 +10,7 @@ jobs:
     name: Check versions match
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # ratchet:actions/checkout@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v3
       - name: Install jq
         run: sudo apt-get install jq
       - name: Check release version matches code
@@ -36,7 +36,7 @@ jobs:
     needs:
       - check-versions-match
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # ratchet:actions/checkout@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v3
       - uses: Swatinem/rust-cache@82a92a6e8fbeee089604da2575dc567ae9ddeaab # ratchet:Swatinem/rust-cache@v2
       - name: Set up Rust
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
@@ -79,7 +79,7 @@ jobs:
     needs:
       - check-versions-match
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # ratchet:actions/checkout@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v3
       - uses: Swatinem/rust-cache@82a92a6e8fbeee089604da2575dc567ae9ddeaab # ratchet:Swatinem/rust-cache@v2
       - name: Set up Rust
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
@@ -125,7 +125,7 @@ jobs:
     needs:
       - check-versions-match
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # ratchet:actions/checkout@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v3
       - uses: Swatinem/rust-cache@82a92a6e8fbeee089604da2575dc567ae9ddeaab # ratchet:Swatinem/rust-cache@v2
       - name: Set up Rust
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
