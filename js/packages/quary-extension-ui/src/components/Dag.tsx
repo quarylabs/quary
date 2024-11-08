@@ -275,7 +275,6 @@ const mapDagTypeToDagModel = (dag: DagLocalType): DagModel => {
         backGroundLabel: presentCacheView!,
         type: modelOrSeedOrSource,
         filePath,
-        columns:
       }),
     ),
     edges: edges.map(({ from, to }) => ({ source: from, target: to })),
