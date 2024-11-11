@@ -17,7 +17,7 @@ tokio = { version = "1", features = ["full"] }
 async-trait = "0.1.80"
 indicatif = "0.17"
 prost = "0.13.2"
-futures = "0.3.30"
+futures = "0.3.31"
 base64 = "0.22.1"
 dotenv = "0.15"
 serde_yaml = "0.9.33"
