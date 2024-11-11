@@ -1,7 +1,5 @@
 /* eslint-disable no-console */
 import * as vscode from 'vscode'
-import * as Sentry from '@sentry/browser'
-import { Analytics } from '@june-so/analytics-node'
 import { returnCommandsWithLogs } from './commands'
 import { VSCodeInstanceContext } from './servicesContext'
 import {
@@ -14,7 +12,6 @@ import { AuthenticationProviderSnowflake } from './authenticationProviderSnowfla
 import {
   ServicesLogger,
   servicesLoggerExceptionThrower,
-  servicesLoggerSentry,
 } from './servicesLogger'
 import { ChartEditorProvider } from './chartCustomEditor'
 import { getPreInitServices } from './services'
@@ -25,21 +22,14 @@ export const commandName = (s: string): string => 'quary.' + s
 
 async function activateCommands(
   context: vscode.ExtensionContext,
-  isProduction: boolean,
   logger: ServicesLogger,
-  analytics: Analytics,
 ) {
-  returnCommandsWithLogs(context, isProduction, logger, analytics).forEach(
-    ([name, func]) =>
-      context.subscriptions.push(
-        vscode.commands.registerCommand(commandName(name), func),
-      ),
+  returnCommandsWithLogs(context, logger).forEach(([name, func]) =>
+    context.subscriptions.push(
+      vscode.commands.registerCommand(commandName(name), func),
+    ),
   )
 }
-
-const SENTRY_DSN =
-  'https://360983d50cb2c46d0d39778ce2a3443e@o4506173297524736.ingest.sentry.io/4506175684673536'
-const JUNE_ANALYTICS = '9PbCtSiPLLggvaE5'
 
 export async function activate(context: vscode.ExtensionContext) {
   const hostDetails = await VSCodeInstanceContext.getHostDetails()
@@ -47,23 +37,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
   console.info(`starting extension activation with details: ${hostDetails}`)
 
-  const logger = isProduction
-    ? servicesLoggerSentry(SENTRY_DSN, hostDetails.version)
-    : servicesLoggerExceptionThrower()
-
-  Sentry.setTags(hostDetails)
-
-  const analytics = new Analytics(JUNE_ANALYTICS)
+  const logger = servicesLoggerExceptionThrower()
 
   // Register auth providers
-  context.subscriptions.push(
-    new AuthenticationProviderQuary(context, logger, analytics),
-  )
+  context.subscriptions.push(new AuthenticationProviderQuary(context, logger))
   context.subscriptions.push(new AuthenticationProviderBigQuery(context))
   context.subscriptions.push(new AuthenticationProviderSnowflake(context))
 
   // register: Quary Commands
-  await activateCommands(context, isProduction, logger, analytics)
+  await activateCommands(context, logger)
 
   // show walkthrough if the user has recently installed the extension & has not signed in
   if (hostDetails.isNewAppInstall) {

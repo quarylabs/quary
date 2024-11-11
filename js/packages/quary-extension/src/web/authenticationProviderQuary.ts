@@ -13,7 +13,6 @@ import {
   UriHandler,
   window,
 } from 'vscode'
-import type { Analytics } from '@june-so/analytics-node'
 import { Err, isErr, Ok, ResultE } from '@shared/result'
 import { ServicesLogger } from './servicesLogger'
 
@@ -63,7 +62,6 @@ export class AuthenticationProviderQuary
   implements AuthenticationProvider, Disposable
 {
   private readonly logger: ServicesLogger
-  private readonly analytics: Analytics
   private _sessionChangeEmitter =
     new EventEmitter<AuthenticationProviderAuthenticationSessionsChangeEvent>()
   private _disposable: Disposable
@@ -72,7 +70,6 @@ export class AuthenticationProviderQuary
   constructor(
     private readonly context: ExtensionContext,
     logger: ServicesLogger,
-    analytics: Analytics,
   ) {
     this._disposable = Disposable.from(
       authentication.registerAuthenticationProvider(
@@ -84,7 +81,6 @@ export class AuthenticationProviderQuary
       window.registerUriHandler(this._uriHandler),
     )
     this.logger = logger
-    this.analytics = analytics
   }
 
   get onDidChangeSessions() {
@@ -269,22 +265,6 @@ export class AuthenticationProviderQuary
         id: userInfo.sub,
         email: userInfo.email || '',
       })
-      this.analytics.identify({
-        userId: userInfo.sub,
-        traits: {
-          email: userInfo.email,
-          name: userInfo.name,
-          avatar: userInfo.picture,
-        },
-      })
-      this.analytics.track({
-        userId: userInfo.sub,
-        event: 'Signed In',
-        properties: {
-          environment: env.appHost,
-        },
-      })
-
       return Ok(session)
     } catch (error) {
       const errorMessage =

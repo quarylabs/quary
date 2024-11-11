@@ -10,7 +10,6 @@ import {
   Ok,
   Result,
 } from '@shared/result'
-import type { Analytics } from '@june-so/analytics-node'
 import {
   ListAssetsRequest_AssetsToSkip,
   ListAssetsResponse_Asset_AssetType,
@@ -562,9 +561,7 @@ export const returnFullCommandName = <
  */
 export const returnCommandsWithLogs = (
   context: ExtensionContext,
-  isProduction: boolean,
   logger: ServicesLogger,
-  analytics: Analytics,
 ): Array<[string, () => Promise<void>]> => {
   const commands = returnCommands(() => getServices(context), context)
   return Object.entries(commands).map(([name, command]) => [
@@ -573,15 +570,6 @@ export const returnCommandsWithLogs = (
       try {
         // eslint-disable-next-line no-console
         console.info(`starting command: ${name}`)
-        if (isProduction) {
-          analytics.track({
-            anonymousId: vscode.env.machineId,
-            event: `Execute Command: ${name}`,
-            properties: {
-              environment: vscode.env.appHost,
-            },
-          })
-        }
         const result = await command()
         if (isErr(result)) {
           logger.captureException(result.error)
