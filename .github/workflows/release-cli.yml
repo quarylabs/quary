@@ -229,7 +229,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
       - name: Fetch Release Assets
         id: fetch-assets
-        uses: actions/github-script@211cb3fefb35a799baa5156f9321bb774fe56294 # ratchet:actions/github-script@v5
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # ratchet:actions/github-script@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -261,7 +261,7 @@ jobs:
             echo "$name | $hash" >> SHA256SUMS.txt
           done
       - name: Update Release Description with SHA-256 Hashes
-        uses: actions/github-script@211cb3fefb35a799baa5156f9321bb774fe56294 # ratchet:actions/github-script@v5
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # ratchet:actions/github-script@v5
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
