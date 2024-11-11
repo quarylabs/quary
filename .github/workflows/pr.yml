@@ -40,7 +40,7 @@ jobs:
       - name: Validate all commits from PR
         run: pnpx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
   node-check:
-    runs-on: ubicloud-standard-16
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v3
         with:
