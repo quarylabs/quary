@@ -4476,8 +4476,8 @@ dependencies = [
 
 [[package]]
 name = "sqruff-lib-core"
-version = "0.20.2"
-source = "git+https://github.com/quarylabs/sqruff.git#c75ca49ce8b8e76d46c000805113c957e7d136cc"
+version = "0.21.5"
+source = "git+https://github.com/quarylabs/sqruff.git#8e357a30d65003bf5ba12bd1605f8ceedeef6e56"
 dependencies = [
  "ahash 0.8.11",
  "enum_dispatch",
@@ -4496,8 +4496,8 @@ dependencies = [
 
 [[package]]
 name = "sqruff-lib-dialects"
-version = "0.20.2"
-source = "git+https://github.com/quarylabs/sqruff.git#c75ca49ce8b8e76d46c000805113c957e7d136cc"
+version = "0.21.5"
+source = "git+https://github.com/quarylabs/sqruff.git#8e357a30d65003bf5ba12bd1605f8ceedeef6e56"
 dependencies = [
  "ahash 0.8.11",
  "itertools 0.13.0",
@@ -4508,11 +4508,10 @@ dependencies = [
 
 [[package]]
 name = "sqruff-sqlinference"
-version = "0.20.2"
-source = "git+https://github.com/quarylabs/sqruff.git#c75ca49ce8b8e76d46c000805113c957e7d136cc"
+version = "0.21.5"
+source = "git+https://github.com/quarylabs/sqruff.git#8e357a30d65003bf5ba12bd1605f8ceedeef6e56"
 dependencies = [
  "sqruff-lib-core",
- "sqruff-lib-dialects",
 ]
 
 [[package]]
