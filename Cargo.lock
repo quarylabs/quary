@@ -2859,8 +2859,8 @@ checksum = "6eea3058763d6e656105d1403cb04e0a41b7bbac6362d413e7c33be0c32279c9"
 dependencies = [
  "heck 0.5.0",
  "itertools 0.13.0",
- "prost 0.13.2",
- "prost-types 0.13.2",
+ "prost 0.13.4",
+ "prost-types 0.13.4",
 ]
 
 [[package]]
@@ -2871,7 +2871,7 @@ dependencies = [
  "chrono",
  "pbjson",
  "pbjson-build",
- "prost 0.13.2",
+ "prost 0.13.4",
  "prost-build",
  "serde",
  "serde_json",
@@ -3130,21 +3130,20 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.13.2"
+version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b2ecbe40f08db5c006b5764a2645f7f3f141ce756412ac9e1dd6087e6d32995"
+checksum = "2c0fef6c4230e4ccf618a35c59d7ede15dea37de8427500f50aff708806e42ec"
 dependencies = [
  "bytes",
- "prost-derive 0.13.2",
+ "prost-derive 0.13.4",
 ]
 
 [[package]]
 name = "prost-build"
-version = "0.13.2"
+version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8650aabb6c35b860610e9cff5dc1af886c9e25073b7b1712a68972af4281302"
+checksum = "d0f3e5beed80eb580c68e2c600937ac2c4eedabdfd5ef1e5b7ea4f3fba84497b"
 dependencies = [
- "bytes",
  "heck 0.5.0",
  "itertools 0.13.0",
  "log",
@@ -3152,8 +3151,8 @@ dependencies = [
  "once_cell",
  "petgraph",
  "prettyplease",
- "prost 0.13.2",
- "prost-types 0.13.2",
+ "prost 0.13.4",
+ "prost-types 0.13.4",
  "regex",
  "syn 2.0.77",
  "tempfile",
@@ -3174,9 +3173,9 @@ dependencies = [
 
 [[package]]
 name = "prost-derive"
-version = "0.13.2"
+version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "acf0c195eebb4af52c752bec4f52f645da98b6e92077a04110c7f349477ae5ac"
+checksum = "157c5a9d7ea5c2ed2d9fb8f495b64759f7816c7eaea54ba3978f0d63000162e3"
 dependencies = [
  "anyhow",
  "itertools 0.13.0",
@@ -3196,11 +3195,11 @@ dependencies = [
 
 [[package]]
 name = "prost-types"
-version = "0.13.2"
+version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60caa6738c7369b940c3d49246a8d1749323674c65cb13010134f5c9bad5b519"
+checksum = "cc2f1e56baa61e93533aebc21af4d2134b70f66275e0fcdf3cbe43d77ff7e8fc"
 dependencies = [
- "prost 0.13.2",
+ "prost 0.13.4",
 ]
 
 [[package]]
@@ -3237,7 +3236,7 @@ dependencies = [
  "duckdb",
  "futures",
  "indicatif",
- "prost 0.13.2",
+ "prost 0.13.4",
  "quary-core",
  "quary-databases",
  "quary_proto",
@@ -3265,7 +3264,7 @@ dependencies = [
  "mockall",
  "pbjson-types",
  "petgraph",
- "prost 0.13.2",
+ "prost 0.13.4",
  "quary_proto",
  "regex",
  "rust-embed",
@@ -3319,7 +3318,7 @@ dependencies = [
  "getrandom",
  "js-sys",
  "minijinja",
- "prost 0.13.2",
+ "prost 0.13.4",
  "quary-core",
  "quary_proto",
  "send_wrapper",
@@ -3340,7 +3339,7 @@ version = "0.1.0"
 dependencies = [
  "pbjson",
  "pbjson-types",
- "prost 0.13.2",
+ "prost 0.13.4",
  "serde",
 ]
 
