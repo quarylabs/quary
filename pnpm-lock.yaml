@@ -235,8 +235,8 @@ importers:
         specifier: ^2.10.1
         version: 2.10.1(d3-brush@3.0.0)(d3-dispatch@3.0.1)(d3-fetch@3.0.1)(d3-path@3.1.0)(d3-random@3.0.1)(d3-scale-chromatic@3.1.0)(d3-scale@4.0.2)(d3-shape@3.2.0)(d3-time@3.1.0)(d3-zoom@3.0.0)
       '@finos/perspective-viewer-datagrid':
-        specifier: ^2.10.1
-        version: 2.10.1
+        specifier: ^3.3.0
+        version: 3.3.0
       '@githubocto/tailwind-vscode':
         specifier: ^1.0.5
         version: 1.0.5(tailwindcss@3.4.10)
@@ -1443,15 +1443,21 @@ packages:
   '@finos/perspective-viewer-d3fc@2.10.1':
     resolution: {integrity: sha512-penH8+6S/tOzwGAywVL1pAPAYTDRr50CL7t5tYUUpc1+w5LgVyW/J55xHCz86WkrOH8qLy62OEGqDegP5uxF8A==}
 
-  '@finos/perspective-viewer-datagrid@2.10.1':
-    resolution: {integrity: sha512-+KLpVS8UqRE7cJrcrenGiYt/faFhePX/54ZDmFfCWH+VywvqlSbwZVv2Q0kt4uGhN/Bn8OcHgvVOFKPTlpxfFQ==}
+  '@finos/perspective-viewer-datagrid@3.3.0':
+    resolution: {integrity: sha512-EgdEbg9kYeOsSGCBCh+M56euX0FVPgp7wNyTjo85KDH6t0QxXIl1hZS31mcYbrdAN8aR3HrtvB2ixMeH8dkoFw==}
 
   '@finos/perspective-viewer@2.10.1':
     resolution: {integrity: sha512-G/P+EQXRTYurWpTjTU+VXKM3WHbbTjjpxEfLQLA9BS8gO0NwK1nXT7I5a9PEhVtRnVHEJrpNa2+VbIWTeG15dQ==}
 
+  '@finos/perspective-viewer@3.3.0':
+    resolution: {integrity: sha512-+jPrCRW+czza+SlbmkuGTOXldPkG+cCGYpsLBguu/IwF0Na4g7QubpjLF5Mecy3GP0URI6UhnO4Op50RkWZB5w==}
+
   '@finos/perspective@2.10.1':
     resolution: {integrity: sha512-2WfHOKH8XEtkQqgg8T9OxWsE44Kr5T7iX3zqwVRrnllKySBRav76Ah2v2cKyMbZCsuieqWAFliIzIoJpI8ZNiA==}
     engines: {node: '>=14'}
+
+  '@finos/perspective@3.3.0':
+    resolution: {integrity: sha512-GYzXPqHnhrWQz930f9OejVvsBs5I6jjJLvbK/xfUK2AUijMhzAUsPI70uEKUFwsy5VMA6sxWPl/UQB9W9IBGDw==}
 
   '@floating-ui/core@1.6.7':
     resolution: {integrity: sha512-yDzVT/Lm101nQ5TCVeK65LtdN7Tj4Qpr9RTXJ2vPFLqtLxwOrpoxAHAJI8J3yYWUc40J0BDBheaitK5SJmno2g==}
@@ -2956,6 +2962,7 @@ packages:
 
   '@vscode/webview-ui-toolkit@1.4.0':
     resolution: {integrity: sha512-modXVHQkZLsxgmd5yoP3ptRC/G8NBDD+ob+ngPiWNQdlrH6H1xR/qgOBD85bfU3BhOB5sZzFWBwwhp9/SfoHww==}
+    deprecated: This package has been deprecated, https://github.com/microsoft/vscode-webview-ui-toolkit/issues/561
     peerDependencies:
       react: '>=16.9.0'
 
@@ -8821,10 +8828,10 @@ snapshots:
       - d3-zoom
       - utf-8-validate
 
-  '@finos/perspective-viewer-datagrid@2.10.1':
+  '@finos/perspective-viewer-datagrid@3.3.0':
     dependencies:
-      '@finos/perspective': 2.10.1
-      '@finos/perspective-viewer': 2.10.1
+      '@finos/perspective': 3.3.0
+      '@finos/perspective-viewer': 3.3.0
       chroma-js: 1.4.1
       regular-table: 0.6.4
     transitivePeerDependencies:
@@ -8838,10 +8845,25 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
+  '@finos/perspective-viewer@3.3.0':
+    dependencies:
+      '@finos/perspective': 3.3.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@finos/perspective@2.10.1':
     dependencies:
       stoppable: 1.1.0
       ws: 6.2.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@finos/perspective@3.3.0':
+    dependencies:
+      stoppable: 1.1.0
+      ws: 8.18.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
