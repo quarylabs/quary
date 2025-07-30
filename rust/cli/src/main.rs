@@ -345,7 +345,7 @@ async fn main_wrapped() -> Result<(), String> {
             // TODO Need to reintroduce the progressbar
             println!("running tests {}", tests.len());
             let dialect = query_generator.get_dialect();
-            let parser = sqruff_lib_core::parser::parser::Parser::new(&dialect, Default::default());
+            let parser = sqruff_lib_core::parser::Parser::new(&dialect, Default::default());
             return match run_tests_internal(
                 &query_generator,
                 &file_system,

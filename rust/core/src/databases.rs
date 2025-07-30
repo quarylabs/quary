@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use pbjson_types::Struct;
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
 use quary_proto::TableAddress;
-use sqruff_lib_core::dialects::base::Dialect;
+use sqruff_lib_core::dialects::Dialect;
 use std::fmt::Debug;
 
 /// CacheStatus defines whether the cache exists and matches the current model, if so it is possible

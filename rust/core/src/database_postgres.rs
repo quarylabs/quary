@@ -6,7 +6,7 @@ use js_sys::Date;
 use pbjson_types::value::Kind;
 use pbjson_types::{Struct, Value};
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
-use sqruff_lib_core::dialects::base::Dialect;
+use sqruff_lib_core::dialects::Dialect;
 use sqruff_lib_dialects::postgres;
 
 use crate::databases::{

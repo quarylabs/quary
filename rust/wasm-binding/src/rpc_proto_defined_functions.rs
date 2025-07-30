@@ -61,7 +61,7 @@ use quary_proto::{
 };
 use sqlinference::columns::get_columns_internal;
 use sqlinference::infer_tests::infer_tests;
-use sqruff_lib_core::parser::parser::Parser;
+use sqruff_lib_core::parser::Parser;
 
 pub(crate) async fn is_path_empty(
     _: Writer,

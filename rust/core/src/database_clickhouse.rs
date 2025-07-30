@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 #[cfg(target_arch = "wasm32")]
 use js_sys::Date;
 use pbjson_types::Struct;
-use sqruff_lib_core::dialects::base::Dialect;
+use sqruff_lib_core::dialects::Dialect;
 use sqruff_lib_dialects::clickhouse;
 
 use crate::databases::{
