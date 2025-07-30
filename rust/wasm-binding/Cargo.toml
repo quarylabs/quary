@@ -13,7 +13,7 @@ crate-type = ["cdylib", "rlib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
-wasm-bindgen = { version = "0.2.91", default-features = false }
+wasm-bindgen = { version = "0.2.100", default-features = false }
 send_wrapper = "0.6"
 sqlinference.workspace = true
 sqruff-lib-core.workspace = true

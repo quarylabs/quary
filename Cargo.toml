@@ -13,7 +13,7 @@ resolver = "2"
 version = "0.7.0"
 edition = "2021"
 license = "Apache-2.0"
-rust-version = "1.80.0"
+rust-version = "1.86.0"
 
 [workspace.dependencies]
 sqlinference = { git = "https://github.com/quarylabs/sqruff.git", package = "sqruff-sqlinference" }

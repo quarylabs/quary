@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 
 use async_trait::async_trait;
-use clickhouse_rs::types::SqlType;
-use clickhouse_rs::Pool;
+use clickhouse::types::SqlType;
+use clickhouse::Pool;
 use futures_util::StreamExt;
 
 use quary_core::database_clickhouse::DatabaseQueryGeneratorClickhouse;

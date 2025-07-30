@@ -1,6 +1,4 @@
 use crate::databases_bigquery::BigQuery;
-use crate::databases_clickhouse::Clickhouse;
-use crate::databases_dremio::DremioAuth;
 use crate::databases_postgres::Postgres;
 use crate::databases_redshift::Redshift;
 use crate::databases_snowflake;
@@ -157,22 +155,23 @@ pub async fn database_from_config(
             Ok(Box::new(database))
         }
         ClickhouseConfig(config) => {
-            let host = env::var("CLICKHOUSE_HOST")
-                .map_err(|_| "CLICKHOUSE_HOST must be set to connect to Clickhouse".to_string())?;
-            let port = env::var("CLICKHOUSE_PORT").ok();
-            let user = env::var("CLICKHOUSE_USER").ok();
-            let password = env::var("CLICKHOUSE_PASSWORD").ok();
-
-            let database = Clickhouse::new(
-                &host,
-                port.as_deref(),
-                user.as_deref(),
-                password.as_deref(),
-                Some(&config.database),
-            )
-            .await
-            .map_err(|e| e.to_string())?;
-            Ok(Box::new(database))
+            //             let host = env::var("CLICKHOUSE_HOST")
+            //                 .map_err(|_| "CLICKHOUSE_HOST must be set to connect to Clickhouse".to_string())?;
+            //             let port = env::var("CLICKHOUSE_PORT").ok();
+            //             let user = env::var("CLICKHOUSE_USER").ok();
+            //             let password = env::var("CLICKHOUSE_PASSWORD").ok();
+            //
+            //             let database = Clickhouse::new(
+            //                 &host,
+            //                 port.as_deref(),
+            //                 user.as_deref(),
+            //                 password.as_deref(),
+            //                 Some(&config.database),
+            //             )
+            //             .await
+            //             .map_err(|e| e.to_string())?;
+            //             Ok(Box::new(database))
+            unimplemented!()
         }
         RedshiftConfig(config) => {
             let host = env::var("RSHOST")
@@ -233,32 +232,33 @@ pub async fn database_from_config(
             Ok(Box::new(database))
         }
         DremioConfig(config) => {
-            let host = env::var("DREMIO_HOST")
-                .map_err(|_| "DREMIO_HOST must be set to connect to Dremio".to_string())?;
-            let port = env::var("DREMIO_PORT")
-                .map_err(|_| "DREMIO_PORT must be set to connect to Dremio".to_string())?;
-            let use_ssl = env::var("DREMIO_USE_SSL")
-                .map_err(|_| "DREMIO_USE_SSL must be set to connect to Dremio".to_string())?;
-            let username = env::var("DREMIO_USER")
-                .map_err(|_| "DREMIO_USER must be set to connect to Dremio".to_string())?;
-            let password = env::var("DREMIO_PASSWORD")
-                .map_err(|_| "DREMIO_PASSWORD must be set to connect to Dremio".to_string())?;
-
-            let auth = if let Ok(personal_access_token) = env::var("DREMIO_PERSONAL_ACCESS_TOKEN") {
-                DremioAuth::UsernamePersonalAccessToken(username, personal_access_token)
-            } else {
-                DremioAuth::UsernamePassword(username, password)
-            };
-
-            let database = crate::databases_dremio::Dremio::new(
-                config,
-                auth,
-                use_ssl.parse().unwrap(),
-                host,
-                port,
-            )
-            .await?;
-            Ok(Box::new(database))
+            //             let host = env::var("DREMIO_HOST")
+            //                 .map_err(|_| "DREMIO_HOST must be set to connect to Dremio".to_string())?;
+            //             let port = env::var("DREMIO_PORT")
+            //                 .map_err(|_| "DREMIO_PORT must be set to connect to Dremio".to_string())?;
+            //             let use_ssl = env::var("DREMIO_USE_SSL")
+            //                 .map_err(|_| "DREMIO_USE_SSL must be set to connect to Dremio".to_string())?;
+            //             let username = env::var("DREMIO_USER")
+            //                 .map_err(|_| "DREMIO_USER must be set to connect to Dremio".to_string())?;
+            //             let password = env::var("DREMIO_PASSWORD")
+            //                 .map_err(|_| "DREMIO_PASSWORD must be set to connect to Dremio".to_string())?;
+            //
+            //             let auth = if let Ok(personal_access_token) = env::var("DREMIO_PERSONAL_ACCESS_TOKEN") {
+            //                 DremioAuth::UsernamePersonalAccessToken(username, personal_access_token)
+            //             } else {
+            //                 DremioAuth::UsernamePassword(username, password)
+            //             };
+            //
+            //             let database = crate::databases_dremio::Dremio::new(
+            //                 config,
+            //                 auth,
+            //                 use_ssl.parse().unwrap(),
+            //                 host,
+            //                 port,
+            //             )
+            //             .await?;
+            //             Ok(Box::new(database))
+            unimplemented!()
         }
     }
 }

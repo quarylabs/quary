@@ -51,6 +51,9 @@ importers:
 
   js/packages/proto:
     dependencies:
+      '@bufbuild/protobuf':
+        specifier: 2.6.2
+        version: 2.6.2
       '@types/node':
         specifier: ^20.16.3
         version: 20.16.3
@@ -64,6 +67,9 @@ importers:
 
   js/packages/quary-extension:
     dependencies:
+      '@bufbuild/protobuf':
+        specifier: 2.6.2
+        version: 2.6.2
       '@duckdb/duckdb-wasm':
         specifier: 1.28.0
         version: 1.28.0
@@ -1087,6 +1093,9 @@ packages:
 
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
+
+  '@bufbuild/protobuf@2.6.2':
+    resolution: {integrity: sha512-vLu7SRY84CV/Dd+NUdgtidn2hS5hSMUC1vDBY0VcviTdgRYkU43vIz3vIFbmx14cX1r+mM7WjzE5Fl1fGEM0RQ==}
 
   '@commitlint/cli@19.4.1':
     resolution: {integrity: sha512-EerFVII3ZcnhXsDT9VePyIdCJoh3jEzygN1L37MjQXgPfGS6fJTWL/KHClVMod1d8w94lFC3l4Vh/y5ysVAz2A==}
@@ -2956,6 +2965,7 @@ packages:
 
   '@vscode/webview-ui-toolkit@1.4.0':
     resolution: {integrity: sha512-modXVHQkZLsxgmd5yoP3ptRC/G8NBDD+ob+ngPiWNQdlrH6H1xR/qgOBD85bfU3BhOB5sZzFWBwwhp9/SfoHww==}
+    deprecated: This package has been deprecated, https://github.com/microsoft/vscode-webview-ui-toolkit/issues/561
     peerDependencies:
       react: '>=16.9.0'
 
@@ -8449,6 +8459,8 @@ snapshots:
   '@base2/pretty-print-object@1.0.1': {}
 
   '@bcoe/v8-coverage@0.2.3': {}
+
+  '@bufbuild/protobuf@2.6.2': {}
 
   '@commitlint/cli@19.4.1(@types/node@22.5.2)(typescript@5.5.4)':
     dependencies:
