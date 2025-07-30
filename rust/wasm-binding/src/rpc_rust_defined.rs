@@ -9,7 +9,7 @@ use quary_core::test_runner::{
     run_model_tests_internal, run_tests_internal, RunReturnResult, RunStatementFunc, RunTestError,
 };
 use quary_proto::TestRunner;
-use sqruff_lib_core::parser::parser::Parser;
+use sqruff_lib_core::parser::Parser;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;

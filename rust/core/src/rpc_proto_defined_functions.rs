@@ -158,7 +158,7 @@ pub async fn infer_skippable_tests_internal(
 
 use crate::project_to_sql::{project_and_fs_to_query_sql, project_and_fs_to_sql_for_views};
 use futures::future::try_join_all;
-use sqruff_lib_core::parser::parser::Parser;
+use sqruff_lib_core::parser::Parser;
 
 pub async fn name_to_raw_model_map_internal(
     project: &Project,

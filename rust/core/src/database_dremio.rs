@@ -1,4 +1,4 @@
-use sqruff_lib_core::dialects::base::Dialect;
+use sqruff_lib_core::dialects::Dialect;
 use sqruff_lib_dialects::postgres;
 
 use crate::databases::{DatabaseQueryGenerator, SnapshotGenerator};

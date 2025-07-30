@@ -1,7 +1,7 @@
 use crate::databases::{
     base_for_seeds_create_table_specifying_text_type, DatabaseQueryGenerator, SnapshotGenerator,
 };
-use sqruff_lib_core::dialects::base::Dialect;
+use sqruff_lib_core::dialects::Dialect;
 use sqruff_lib_dialects::bigquery;
 
 #[derive(Debug, Clone)]

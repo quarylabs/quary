@@ -4,7 +4,7 @@ use crate::databases::{
 };
 use pbjson_types::Struct;
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
-use sqruff_lib_core::dialects::base::Dialect;
+use sqruff_lib_core::dialects::Dialect;
 use sqruff_lib_dialects::snowflake;
 
 #[derive(Debug, Clone)]

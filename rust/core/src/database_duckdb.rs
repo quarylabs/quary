@@ -7,7 +7,7 @@ use chrono::{DateTime, Utc};
 use js_sys::Date;
 use quary_proto::snapshot::snapshot_strategy::StrategyType;
 
-use sqruff_lib_core::dialects::base::Dialect;
+use sqruff_lib_core::dialects::Dialect;
 use sqruff_lib_dialects::duckdb;
 use std::time::SystemTime;
 
