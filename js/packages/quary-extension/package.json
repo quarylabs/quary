@@ -245,6 +245,7 @@
     "stream-browserify": "^3.0.0",
     "url-loader": "^4.1.1",
     "vm-browserify": "^1.1.2",
+    "@bufbuild/protobuf": "2.6.2",
     "zod": "^3.23.8"
   }
 }

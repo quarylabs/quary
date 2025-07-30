@@ -53,7 +53,7 @@ rust_lint: ## Lints the rust code
 
 .PHONY: rust_test
 rust_test: ## Runs the rust tests
-	cargo nextest run
+	cargo test
 
 .PHONY: rust_ci
 rust_ci: rust_test rust_fmt rust_lint rust_build check_versions_match ## Runs the rust ci commands
