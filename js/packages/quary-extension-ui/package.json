@@ -39,7 +39,7 @@
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "cmdk": "^0.2.1",
+    "cmdk": "^1.1.1",
     "fuse.js": "^7.0.0",
     "postcss": "^8.4.42",
     "react": "^18.3.1",
