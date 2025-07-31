@@ -37,7 +37,7 @@ jobs:
           tool: wasm-bindgen-cli
       - name: Build rust wasm
         run: make rust_build_wasm
-      - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # ratchet:actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
       - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # ratchet:pnpm/action-setup@v2
