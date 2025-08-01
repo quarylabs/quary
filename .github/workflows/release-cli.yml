@@ -46,6 +46,8 @@ jobs:
         if: ${{ !matrix.platform.cross }}
       - name: Install cross
         run: cargo install cross
+      - run: rustup target add aarch64-unknown-linux-gnu
+        shell: bash
       - name: Build binary (*nix)
         shell: bash
         run: |
