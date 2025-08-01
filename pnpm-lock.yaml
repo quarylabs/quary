@@ -232,8 +232,8 @@ importers:
         specifier: ^1.1.4
         version: 1.1.4
       '@finos/perspective':
-        specifier: ^2.10.1
-        version: 2.10.1
+        specifier: ^3.3.4
+        version: 3.3.4
       '@finos/perspective-viewer':
         specifier: ^2.10.1
         version: 2.10.1
@@ -1461,6 +1461,9 @@ packages:
   '@finos/perspective@2.10.1':
     resolution: {integrity: sha512-2WfHOKH8XEtkQqgg8T9OxWsE44Kr5T7iX3zqwVRrnllKySBRav76Ah2v2cKyMbZCsuieqWAFliIzIoJpI8ZNiA==}
     engines: {node: '>=14'}
+
+  '@finos/perspective@3.3.4':
+    resolution: {integrity: sha512-0LjOyxg+noE+q/Omj4uZ+PPnQzjYdZex4Sr0vxs1A6Rr369ynlryEHyrys04PCVTHceA3YVV6XML2UOCdYPTaQ==}
 
   '@floating-ui/core@1.6.7':
     resolution: {integrity: sha512-yDzVT/Lm101nQ5TCVeK65LtdN7Tj4Qpr9RTXJ2vPFLqtLxwOrpoxAHAJI8J3yYWUc40J0BDBheaitK5SJmno2g==}
@@ -8988,6 +8991,14 @@ snapshots:
     dependencies:
       stoppable: 1.1.0
       ws: 6.2.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@finos/perspective@3.3.4':
+    dependencies:
+      stoppable: 1.1.0
+      ws: 8.18.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
