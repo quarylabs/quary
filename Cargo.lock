@@ -3298,7 +3298,7 @@ dependencies = [
  "sqruff-lib-dialects",
  "sqruff-sqlinference",
  "tempfile",
- "testcontainers 0.22.0",
+ "testcontainers 0.23.1",
  "testcontainers-modules 0.10.0",
  "tokio",
 ]
