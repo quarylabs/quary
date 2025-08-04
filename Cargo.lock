@@ -2965,7 +2965,7 @@ dependencies = [
  "chrono",
  "pbjson",
  "pbjson-build",
- "prost 0.13.5",
+ "prost 0.14.1",
  "prost-build",
  "serde",
  "serde_json",
@@ -3197,7 +3197,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be769465445e8c1474e9c5dac2018218498557af32d9ed057325ec9a41ae81bf"
 dependencies = [
  "heck",
- "itertools 0.14.0",
+ "itertools 0.12.1",
  "log",
  "multimap",
  "once_cell",
@@ -3217,7 +3217,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools 0.14.0",
+ "itertools 0.12.1",
  "proc-macro2",
  "quote",
  "syn 2.0.104",
@@ -3230,7 +3230,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9120690fafc389a67ba3803df527d0ec9cbbc9cc45e4cc20b332996dfb672425"
 dependencies = [
  "anyhow",
- "itertools 0.14.0",
+ "itertools 0.12.1",
  "proc-macro2",
  "quote",
  "syn 2.0.104",
@@ -3288,7 +3288,7 @@ dependencies = [
  "duckdb",
  "futures",
  "indicatif",
- "prost 0.13.5",
+ "prost 0.14.1",
  "quary-core",
  "quary-databases",
  "quary_proto",
@@ -3316,7 +3316,7 @@ dependencies = [
  "mockall",
  "pbjson-types",
  "petgraph 0.6.5",
- "prost 0.13.5",
+ "prost 0.14.1",
  "quary_proto",
  "regex",
  "rust-embed",
@@ -3370,7 +3370,7 @@ dependencies = [
  "getrandom 0.3.3",
  "js-sys",
  "minijinja",
- "prost 0.13.5",
+ "prost 0.14.1",
  "quary-core",
  "quary_proto",
  "send_wrapper",
@@ -3391,7 +3391,7 @@ version = "0.1.0"
 dependencies = [
  "pbjson",
  "pbjson-types",
- "prost 0.13.5",
+ "prost 0.14.1",
  "serde",
 ]
 
