@@ -26,7 +26,7 @@ getrandom = { version = "0.3", features = ["wasm_js"] }
 # code size when deploying.
 quary-core = { path = "../core" }
 console_error_panic_hook = { version = "0.1", optional = true }
-prost = { default-features = false, version = "0.13" }
+prost = { default-features = false, version = "0.14" }
 js-sys = "0.3"
 quary_proto = { path = "../../proto/gen/rust" }
 async-trait = "0.1"
