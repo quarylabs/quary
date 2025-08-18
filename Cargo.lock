@@ -3299,7 +3299,7 @@ dependencies = [
  "sqruff-sqlinference",
  "tempfile",
  "testcontainers 0.22.0",
- "testcontainers-modules 0.10.0",
+ "testcontainers-modules",
  "tokio",
 ]
 
@@ -3353,7 +3353,7 @@ dependencies = [
  "sqruff-sqlinference",
  "tempfile",
  "testcontainers 0.23.1",
- "testcontainers-modules 0.11.6",
+ "testcontainers-modules",
  "tokio",
  "tonic 0.14.0",
  "yup-oauth2",
@@ -4822,7 +4822,6 @@ dependencies = [
  "memchr",
  "parse-display",
  "pin-project-lite",
- "reqwest",
  "serde",
  "serde_json",
  "serde_with",
@@ -4861,15 +4860,6 @@ dependencies = [
  "tokio-tar",
  "tokio-util",
  "url",
-]
-
-[[package]]
-name = "testcontainers-modules"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "359d9a225791e1b9f60aab01f9ae9471898b9b9904b5db192104a71e96785079"
-dependencies = [
- "testcontainers 0.22.0",
 ]
 
 [[package]]
