@@ -28,7 +28,8 @@ export const Perspective: React.FC<Props> = ({
 
   useEffect(() => {
     const loadPerspective = async () => {
-      const table = await perspective.worker().table(
+      const worker = await perspective.worker()
+      const table = await worker.table(
         results.columns.reduce(
           (acc, row) => {
             acc[row.name] = row.values
@@ -61,8 +62,6 @@ export const Perspective: React.FC<Props> = ({
       if (el && updateConfigListener) {
         el.addEventListener('perspective-config-update', async () => {
           const config = await el.save('json')
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error
           const betterConfig = dropNullValuesInJSONLike(config)
           updateConfigListener(betterConfig)
         })
