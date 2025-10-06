@@ -64,7 +64,7 @@ jobs:
           zip -j ${{ matrix.platform.name }} ${{ matrix.platform.bin }}
           mv ${{ matrix.platform.name }} ../../../
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # ratchet:softprops/action-gh-release@v2.3.2
+        uses: softprops/action-gh-release@62c96d0c4e8a889135c1f3a25910db8dbe0e85f7 # ratchet:softprops/action-gh-release@v2.3.4
         with:
           files: 'quary-*'
   upload_cli_release_linux_aarch:
@@ -107,7 +107,7 @@ jobs:
           zip -j ${{ matrix.platform.name }} ${{ matrix.platform.bin }}
           mv ${{ matrix.platform.name }} ../../../
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # ratchet:softprops/action-gh-release@v2.3.2
+        uses: softprops/action-gh-release@62c96d0c4e8a889135c1f3a25910db8dbe0e85f7 # ratchet:softprops/action-gh-release@v2.3.4
         with:
           files: 'quary-*'
   upload_cli_release_mac:
@@ -191,7 +191,7 @@ jobs:
           # echo "Attach staple"
           # xcrun stapler staple -v notarization.zip
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # ratchet:softprops/action-gh-release@v2.3.2
+        uses: softprops/action-gh-release@62c96d0c4e8a889135c1f3a25910db8dbe0e85f7 # ratchet:softprops/action-gh-release@v2.3.4
         with:
           files: 'quary-*'
   upload_cli_release_windows:
@@ -216,7 +216,7 @@ jobs:
           Compress-Archive -Path quary.exe -DestinationPath "quary-windows-x86_64-gnu.zip"
           Move-Item -Path "quary-windows-x86_64-gnu.zip" -Destination "../../"
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # ratchet:softprops/action-gh-release@v2.3.2
+        uses: softprops/action-gh-release@62c96d0c4e8a889135c1f3a25910db8dbe0e85f7 # ratchet:softprops/action-gh-release@v2.3.4
         with:
           files: 'quary-*'
   calculate-hash:
