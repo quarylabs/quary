@@ -39,9 +39,7 @@ import { ChartDocument } from './chartCustomEditorChartDocument'
  * 3. The state of the loaded data
  * 4. The state of the assets that have been loaded
  */
-export class ChartEditorProvider
-  implements vscode.CustomEditorProvider<ChartDocument>
-{
+export class ChartEditorProvider implements vscode.CustomEditorProvider<ChartDocument> {
   private static newChartFileId = 1
 
   public static register(
