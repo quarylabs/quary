@@ -30,7 +30,7 @@ sqruff-lib-dialects.workspace = true
 chrono = "0.4.38"
 assert_cmd = "2"
 tempfile = "3"
-testcontainers = "0.23"
+testcontainers = "0.24"
 testcontainers-modules = { version= "0.11", features = ["postgres", "clickhouse"]}
 
 [build-dependencies]
