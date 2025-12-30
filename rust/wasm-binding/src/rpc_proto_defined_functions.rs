@@ -2323,7 +2323,7 @@ models:
     async fn test_return_full_sql_for_asset_internal_chart_raw_sql() {
         let database = DatabaseQueryGeneratorDuckDB::new(None, None);
         let filesystem = DuckDBAsset {};
-        let mut filesystem = OverrideFileSystem::new(Box::new(&filesystem));
+        let mut filesystem = OverrideFileSystem::new(&filesystem);
         let chart_file = ChartFile {
             description: Some("This is the description".to_string()),
             tags: vec![],

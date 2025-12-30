@@ -34,7 +34,7 @@ pub async fn project_and_fs_to_query_sql_for_model_sql(
         .to_str()
         .ok_or("failed to convert random model location to string")?;
 
-    let mut file_system = OverrideFileSystem::new(Box::new(file_system));
+    let mut file_system = OverrideFileSystem::new(file_system);
     file_system.add_override(random_model_location, model_sql);
 
     let project = parse_project(&file_system, database, project_root).await?;

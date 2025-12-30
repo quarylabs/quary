@@ -20,7 +20,7 @@ pub fn chart_file_to_yaml(chart_file: &ChartFile) -> Result<String, String> {
 fn parse_chart_file_to_chart(path: &str, file: ChartFile) -> Result<(String, Chart), String> {
     let name: &str = path
         .split('/')
-        .last()
+        .next_back()
         .ok_or("Invalid path to determined name")?
         .split('.')
         .next()

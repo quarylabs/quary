@@ -1,5 +1,5 @@
 use crate::Timestamp;
-use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
+use chrono::{DateTime, Utc};
 use serde::de::Visitor;
 use serde::Serialize;
 
@@ -8,14 +8,13 @@ impl TryFrom<Timestamp> for DateTime<Utc> {
     fn try_from(value: Timestamp) -> Result<Self, Self::Error> {
         let Timestamp { seconds, nanos } = value;
 
-        let dt = NaiveDateTime::from_timestamp_opt(
+        Self::from_timestamp(
             seconds,
             nanos
                 .try_into()
                 .map_err(|_| "out of range integral type conversion attempted")?,
         )
-        .ok_or("invalid or out-of-range datetime")?;
-        Ok(Utc.from_utc_datetime(&dt))
+        .ok_or("invalid or out-of-range datetime")
     }
 }
 
@@ -33,7 +32,7 @@ impl Serialize for Timestamp {
     where
         S: serde::Serializer,
     {
-        let t: DateTime<Utc> = self.clone().try_into().map_err(serde::ser::Error::custom)?;
+        let t: DateTime<Utc> = (*self).try_into().map_err(serde::ser::Error::custom)?;
         serializer.serialize_str(t.to_rfc3339().as_str())
     }
 }

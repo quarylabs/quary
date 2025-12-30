@@ -7,12 +7,12 @@ use std::io;
 /// Adds overrides to a file system. If a file is requested that has an override, the override is
 /// returned instead of the actual file.
 pub struct OverrideFileSystem<'a> {
-    fs: Box<&'a dyn FileSystem>,
+    fs: &'a dyn FileSystem,
     overrides: HashMap<String, String>,
 }
 
 impl<'a> OverrideFileSystem<'a> {
-    pub fn new(fs: Box<&'a dyn FileSystem>) -> Self {
+    pub fn new(fs: &'a dyn FileSystem) -> Self {
         Self {
             fs,
             overrides: HashMap::new(),
@@ -44,7 +44,7 @@ impl FileSystem for OverrideFileSystem<'_> {
             .collect::<BTreeSet<String>>();
         let files = self.fs.list_all_files_recursively(path).await?;
         // make sure unique
-        overrides.extend(files.into_iter());
+        overrides.extend(files);
         Ok(overrides.into_iter().collect())
     }
 }
@@ -83,7 +83,7 @@ mod tests {
             .with(eq("dir1"))
             .returning(|_| Ok(vec![]));
 
-        let mut ofs = OverrideFileSystem::new(Box::new(&fs));
+        let mut ofs = OverrideFileSystem::new(&fs);
         ofs.add_override("file1", "override1");
         ofs.add_override("dir1/file3", "override2");
 
