@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 prost = { version = "0.14", default-features = false }
-pbjson = "0.8"
+pbjson = "0.9"
 serde = { version = "1.0", default-features = false }
 pbjson-types = { version = "0.7", path = "../../../rust/pbjson-types" }
 
