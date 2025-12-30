@@ -37,7 +37,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorDremio {
         if full_path.starts_with(format!("{}.{}", self.space, self.folder_path).as_str()) {
             Ok(full_path
                 .split('.')
-                .last()
+                .next_back()
                 .ok_or("table name does not contain a dot, which is not allowed in SQLite")?)
         } else {
             Err(format!(
@@ -69,7 +69,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorDremio {
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {
-        format!("{}", name)
+        name.to_string()
     }
 }
 

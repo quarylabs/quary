@@ -2,14 +2,8 @@ use crate::databases::{DatabaseQueryGenerator, SnapshotGenerator};
 use sqruff_lib_core::dialects::Dialect;
 use sqruff_lib_dialects::sqlite;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct DatabaseQueryGeneratorSqlite;
-
-impl Default for DatabaseQueryGeneratorSqlite {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 impl DatabaseQueryGenerator for DatabaseQueryGeneratorSqlite {
     fn get_name(&self) -> &'static str {

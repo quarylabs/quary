@@ -40,7 +40,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 ///
 /// The name of the upstream view is qqq_<model_name>_<hash _of_upstream_views> where the hash
 /// is the first 7 digits of the sha256 hash of the upstream views.
-
+///
 /// derive_model_hash returns a hash of itself with everything up to that model such that if the
 /// hashes of the model are identical, then you can now that it is the same model.
 pub fn derive_model_hash(
