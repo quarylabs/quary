@@ -13,8 +13,8 @@
     "audit": "pnpm audit --recursive --all"
   },
   "engines": {
-    "node": ">=20.0.0 <21.0.0",
-    "pnpm": ">=8.0.0"
+    "node": ">=22.0.0 <23.0.0",
+    "pnpm": ">=10.0.0"
   },
   "dependencies": {
     "@commitlint/cli": "^19.4.1",
