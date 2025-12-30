@@ -13,13 +13,13 @@ exclude = ["protos/*"]
 [dependencies] # In alphabetical order
 bytes = "1"
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
-pbjson = { version = "0.7" }
-prost = "0.13"
+pbjson = { version = "0.8" }
+prost = "0.14"
 serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]
 serde_json = "1"
 
 [build-dependencies] # In alphabetical order
-prost-build = "0.13"
+prost-build = "0.14"
 pbjson-build = { version = "0.8.0" }
