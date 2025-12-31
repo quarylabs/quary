@@ -2,6 +2,7 @@ import {
   authentication,
   AuthenticationProvider,
   AuthenticationProviderAuthenticationSessionsChangeEvent,
+  AuthenticationProviderSessionOptions,
   AuthenticationSession,
   Disposable,
   EventEmitter,
@@ -128,7 +129,7 @@ export class AuthenticationProviderBigQuery
   private async storeSession(
     session: BigQueryAuthenticationSession,
   ): Promise<void> {
-    const allSessions = await this.getSessions()
+    const allSessions = await this.getSessions(undefined, {})
     const updatedSessions = allSessions.filter((s) => s.id !== session.id)
     updatedSessions.push(session)
     await this.context.secrets.store(
@@ -144,7 +145,7 @@ export class AuthenticationProviderBigQuery
   }
 
   public async removeSession(sessionId: string): Promise<void> {
-    const currentSession = await this.getSessions()
+    const currentSession = await this.getSessions(undefined, {})
     if (currentSession.length === 0 || currentSession[0].id !== sessionId) {
       throw new Error('No matching session found to remove.')
     }
@@ -161,7 +162,10 @@ export class AuthenticationProviderBigQuery
     })
   }
 
-  public async getSessions(): Promise<BigQueryAuthenticationSession[]> {
+  public async getSessions(
+    _scopes?: readonly string[],
+    _options?: AuthenticationProviderSessionOptions,
+  ): Promise<BigQueryAuthenticationSession[]> {
     const allSessions = await this.context.secrets.get(
       SESSIONS_SECRET_STORE_KEY,
     )
@@ -209,7 +213,9 @@ export class AuthenticationProviderBigQuery
     }
 
     const buffer = Buffer.from(serializedTokens, 'base64')
-    const { accessToken, expiryTime } = BigQueryOauthTokenRefresh.decode(buffer)
+    const { accessToken, expiryTime } = BigQueryOauthTokenRefresh.decode(
+      new Uint8Array(buffer),
+    )
 
     const refreshedSession = {
       ...session,
@@ -251,7 +257,7 @@ export class AuthenticationProviderBigQuery
   ): Promise<Result<BigQueryOauthToken>> {
     const buffer = Buffer.from(serializedOauthToken, 'base64')
 
-    const deserializedTokens = BigQueryOauthToken.decode(buffer)
+    const deserializedTokens = BigQueryOauthToken.decode(new Uint8Array(buffer))
 
     return Ok(deserializedTokens)
   }

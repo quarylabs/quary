@@ -21,7 +21,7 @@ export const CLIDatabaseService = (terminalExecutor: TerminalExecutor) => {
       switch (code) {
         case 0: {
           const decodedResponse = Buffer.from(stdout, 'base64')
-          return decodedResponse
+          return new Uint8Array(decodedResponse)
         }
         case 127: {
           throw new Error(

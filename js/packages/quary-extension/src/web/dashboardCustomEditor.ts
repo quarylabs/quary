@@ -15,9 +15,7 @@ import { DashboardDocument } from './dashboardCustomEditorDashboardDocument'
 /**
  * Provider for dashboard editors
  */
-export class DashboardEditorProvider
-  implements vscode.CustomEditorProvider<DashboardDocument>
-{
+export class DashboardEditorProvider implements vscode.CustomEditorProvider<DashboardDocument> {
   private static newDocumentField = 1
 
   public static register(

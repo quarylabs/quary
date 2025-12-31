@@ -216,7 +216,7 @@ export class PathBasedSqlite extends Sqlite implements ServicesDatabase {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       buffer = Buffer.from('')
-      await writer(fullPath, buffer)
+      await writer(fullPath, new Uint8Array(buffer))
     }
     const db = new initializer.Database(buffer)
     return new PathBasedSqlite(db, relativePath, fullPath, writer)

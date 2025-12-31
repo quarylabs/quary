@@ -2,6 +2,7 @@ import {
   authentication,
   AuthenticationProvider,
   AuthenticationProviderAuthenticationSessionsChangeEvent,
+  AuthenticationProviderSessionOptions,
   AuthenticationSession,
   Disposable,
   EventEmitter,
@@ -161,7 +162,7 @@ export class AuthenticationProviderSnowflake
   private async storeSession(
     session: SnowflakeAuthenticationSession,
   ): Promise<void> {
-    const allSessions = await this.getSessions()
+    const allSessions = await this.getSessions(undefined, {})
     const updatedSessions = allSessions.filter((s) => s.id !== session.id)
     updatedSessions.push(session)
     await this.context.secrets.store(
@@ -177,7 +178,7 @@ export class AuthenticationProviderSnowflake
   }
 
   public async removeSession(sessionId: string): Promise<void> {
-    const currentSession = await this.getSessions()
+    const currentSession = await this.getSessions(undefined, {})
     if (currentSession.length === 0 || currentSession[0].id !== sessionId) {
       throw new Error('No matching session found to remove.')
     }
@@ -194,7 +195,10 @@ export class AuthenticationProviderSnowflake
     })
   }
 
-  public async getSessions(): Promise<SnowflakeAuthenticationSession[]> {
+  public async getSessions(
+    _scopes?: readonly string[],
+    _options?: AuthenticationProviderSessionOptions,
+  ): Promise<SnowflakeAuthenticationSession[]> {
     const allSessions = await this.context.secrets.get(
       SESSIONS_SECRET_STORE_KEY,
     )
@@ -247,8 +251,9 @@ export class AuthenticationProviderSnowflake
     }
 
     const buffer = Buffer.from(serializedTokens, 'base64')
-    const { accessToken, expiryTime } =
-      SnowflakeOauthRefreshToken.decode(buffer)
+    const { accessToken, expiryTime } = SnowflakeOauthRefreshToken.decode(
+      new Uint8Array(buffer),
+    )
 
     const refreshedSession = {
       ...session,
@@ -301,7 +306,9 @@ export class AuthenticationProviderSnowflake
   ): Promise<Result<SnowflakeOauthToken>> {
     const buffer = Buffer.from(serializedOauthToken, 'base64')
 
-    const deserializedTokens = SnowflakeOauthToken.decode(buffer)
+    const deserializedTokens = SnowflakeOauthToken.decode(
+      new Uint8Array(buffer),
+    )
 
     return Ok(deserializedTokens)
   }

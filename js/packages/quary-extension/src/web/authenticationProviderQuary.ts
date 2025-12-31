@@ -2,6 +2,7 @@ import {
   authentication,
   AuthenticationProvider,
   AuthenticationProviderAuthenticationSessionsChangeEvent,
+  AuthenticationProviderSessionOptions,
   AuthenticationSession,
   Disposable,
   env,
@@ -87,7 +88,10 @@ export class AuthenticationProviderQuary
     return this._sessionChangeEmitter.event
   }
 
-  public async getSessions(): Promise<readonly AuthenticationSession[]> {
+  public async getSessions(
+    _scopes?: readonly string[],
+    _options?: AuthenticationProviderSessionOptions,
+  ): Promise<AuthenticationSession[]> {
     const allSessions = await this.context.secrets.get(
       SESSIONS_SECRET_STORE_KEY,
     )
