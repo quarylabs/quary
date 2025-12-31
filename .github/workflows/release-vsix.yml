@@ -40,7 +40,7 @@ jobs:
           node-version-file: '.nvmrc'
       - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # ratchet:pnpm/action-setup@v2
         with:
-          version: 9
+          version: 10
       - name: Install dependencies
         run: pnpm install -r --frozen-lockfile
       - name: Build extension
