@@ -33,4 +33,4 @@ js-sys = "0.3.69"
 
 [dev-dependencies]
 tokio = { version = "1.47.1", features = ["rt", "macros"], default-features = false }
-mockall = "0.13.1"
+mockall = "0.14.0"
