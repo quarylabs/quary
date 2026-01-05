@@ -18,7 +18,7 @@ rust-version = "1.86.0"
 [workspace.dependencies]
 sqlinference = { package = "sqruff-sqlinference", version = "0.30" }
 sqruff-lib-core = { package = "sqruff-lib-core", version = "0.30" }
-sqruff-lib-dialects = { package = "sqruff-lib-dialects", version = "0.30" }
+sqruff-lib-dialects = { package = "sqruff-lib-dialects", version = "0.32" }
 
 [workspace.dev-dependencies]
 cargo-nextest = "0.9"
