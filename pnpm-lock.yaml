@@ -52,8 +52,8 @@ importers:
   js/packages/proto:
     dependencies:
       '@bufbuild/protobuf':
-        specifier: 2.6.2
-        version: 2.6.2
+        specifier: 2.10.2
+        version: 2.10.2
       '@types/node':
         specifier: ^20.19.27
         version: 20.19.27
@@ -68,8 +68,8 @@ importers:
   js/packages/quary-extension:
     dependencies:
       '@bufbuild/protobuf':
-        specifier: 2.6.2
-        version: 2.6.2
+        specifier: 2.10.2
+        version: 2.10.2
       '@duckdb/duckdb-wasm':
         specifier: 1.28.0
         version: 1.28.0
@@ -633,8 +633,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@bufbuild/protobuf@2.6.2':
-    resolution: {integrity: sha512-vLu7SRY84CV/Dd+NUdgtidn2hS5hSMUC1vDBY0VcviTdgRYkU43vIz3vIFbmx14cX1r+mM7WjzE5Fl1fGEM0RQ==}
+  '@bufbuild/protobuf@2.10.2':
+    resolution: {integrity: sha512-uFsRXwIGyu+r6AMdz+XijIIZJYpoWeYzILt5yZ2d3mCjQrWUTVpVD9WL/jZAbvp+Ed04rOhrsk7FiTcEDseB5A==}
 
   '@commitlint/cli@19.8.1':
     resolution: {integrity: sha512-LXUdNIkspyxrlV6VDHWBmCZRtkEVRpBKxi2Gtw3J54cGWhLCTouVD/Q6ZSaSvd2YaDObWK8mDjrz3TIKtaQMAA==}
@@ -6155,6 +6155,7 @@ packages:
 
   react-resizable@3.1.1:
     resolution: {integrity: sha512-lYxM0Av7XtFXXvvRuyup5RHHTjfb7070+NZQ1Peg1iDsel5F2ULukj1/eMKfysgwE9HbR165/ga1xl6/AhLEKQ==}
+    deprecated: This build contains an SSR bug. If you use SSR, upgrade to >=3.1.2.
     peerDependencies:
       react: '>= 16.3'
       react-dom: '>= 16.3'
@@ -7675,7 +7676,7 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@bufbuild/protobuf@2.6.2': {}
+  '@bufbuild/protobuf@2.10.2': {}
 
   '@commitlint/cli@19.8.1(@types/node@25.0.3)(typescript@5.9.3)':
     dependencies:

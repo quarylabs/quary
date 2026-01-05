@@ -233,7 +233,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "2.6.2",
+    "@bufbuild/protobuf": "2.10.2",
     "@duckdb/duckdb-wasm": "1.28.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
