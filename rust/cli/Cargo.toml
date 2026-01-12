@@ -15,7 +15,7 @@ dbt-converter = { path = "../dbt-converter" }
 quary_proto = { path = "../../proto/gen/rust" }
 tokio = { version = "1", features = ["full"] }
 async-trait = "0.1.80"
-indicatif = "0.17"
+indicatif = "0.18"
 prost = "0.14"
 futures = "0.3.31"
 base64 = "0.22.1"
