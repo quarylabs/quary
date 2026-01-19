@@ -1373,6 +1373,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "fancy-regex"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72cf461f865c862bb7dc573f643dd6a2b6842f7c30b07882b56bd148cc2761b8"
+dependencies = [
+ "bit-set",
+ "regex-automata",
+ "regex-syntax",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3267,7 +3278,7 @@ dependencies = [
  "quary_proto",
  "regex",
  "serde_yaml",
- "sqruff-lib-core",
+ "sqruff-lib-core 0.34.0",
  "sqruff-lib-dialects",
  "sqruff-sqlinference",
  "tempfile",
@@ -3295,7 +3306,7 @@ dependencies = [
  "rust-embed",
  "serde_yaml",
  "sha2",
- "sqruff-lib-core",
+ "sqruff-lib-core 0.34.0",
  "sqruff-lib-dialects",
  "sqruff-sqlinference",
  "tokio",
@@ -3321,7 +3332,7 @@ dependencies = [
  "regex",
  "snowflake-api",
  "sqlx",
- "sqruff-lib-core",
+ "sqruff-lib-core 0.34.0",
  "sqruff-lib-dialects",
  "sqruff-sqlinference",
  "tempfile",
@@ -3349,7 +3360,7 @@ dependencies = [
  "send_wrapper",
  "serde",
  "serde_yaml",
- "sqruff-lib-core",
+ "sqruff-lib-core 0.34.0",
  "sqruff-lib-dialects",
  "sqruff-sqlinference",
  "tokio",
@@ -4586,7 +4597,29 @@ checksum = "059d9e0092cbaf22ae341a9584ba1fe930cab09a132e423a20fc977faebb6480"
 dependencies = [
  "ahash 0.8.12",
  "enum_dispatch",
- "fancy-regex",
+ "fancy-regex 0.16.2",
+ "indexmap 2.12.1",
+ "itertools 0.14.0",
+ "log",
+ "nohash-hasher",
+ "pretty_assertions",
+ "regex-automata",
+ "rustc-hash",
+ "smol_str",
+ "strum 0.27.2",
+ "strum_macros 0.27.2",
+ "thiserror 2.0.17",
+]
+
+[[package]]
+name = "sqruff-lib-core"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af0eb963dbb455c3355ffc475ecf69e3a2ed4134057b73e1acb332dd06a00f9f"
+dependencies = [
+ "ahash 0.8.12",
+ "enum_dispatch",
+ "fancy-regex 0.17.0",
  "indexmap 2.12.1",
  "itertools 0.14.0",
  "log",
@@ -4609,7 +4642,7 @@ dependencies = [
  "ahash 0.8.12",
  "itertools 0.14.0",
  "serde_yaml",
- "sqruff-lib-core",
+ "sqruff-lib-core 0.30.1",
  "strum 0.27.2",
 ]
 
@@ -4619,7 +4652,7 @@ version = "0.30.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60dab8a4f51ded7114fb4e1db8d6c3f5ac071514d9135b043b3cc2525ef2ac7e"
 dependencies = [
- "sqruff-lib-core",
+ "sqruff-lib-core 0.30.1",
 ]
 
 [[package]]
