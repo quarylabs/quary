@@ -39,7 +39,7 @@ serde = { version = "1.0.209", features = ["derive"] }
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
 tokio = { version = "1.47.1", features = ["rt", "macros"], default-features = false }
-chrono = "0.4.38"
+chrono = "0.4.43"
 
 
 [profile.release]

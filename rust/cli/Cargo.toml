@@ -27,7 +27,7 @@ sqruff-lib-core.workspace = true
 sqruff-lib-dialects.workspace = true
 
 [dev-dependencies]
-chrono = "0.4.38"
+chrono = "0.4.43"
 assert_cmd = "2"
 tempfile = "3"
 testcontainers = "0.24"
