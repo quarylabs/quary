@@ -32,5 +32,5 @@ pbjson-types = { version = "0.7.0", path = "../pbjson-types" }
 js-sys = "0.3.69"
 
 [dev-dependencies]
-tokio = { version = "1.47.1", features = ["rt", "macros"], default-features = false }
+tokio = { version = "1.49.0", features = ["rt", "macros"], default-features = false }
 mockall = "0.14.0"
