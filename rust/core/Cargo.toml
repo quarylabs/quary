@@ -18,7 +18,7 @@ sqruff-lib-dialects.workspace = true
 prost = { default-features = false, version = "0.14" }
 rust-embed = "8"
 csv = "1"
-petgraph = { version = "0.6", default-features = false }
+petgraph = { version = "0.8", default-features = false }
 regex = { version = "1", default-features = false, features = ["unicode-perl"] }
 async-trait = "0.1.80"
 chrono = "0.4.38"
