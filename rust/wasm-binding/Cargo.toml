@@ -32,7 +32,7 @@ quary_proto = { path = "../../proto/gen/rust" }
 async-trait = "0.1"
 wasm-bindgen-futures = "0.4"
 futures = { version = "0.3", features = ["async-await"], default-features = false }
-minijinja = "2.2.0"
+minijinja = "2.15.1"
 serde_yaml = "0.9.34+deprecated"
 serde = { version = "1.0.209", features = ["derive"] }
 
