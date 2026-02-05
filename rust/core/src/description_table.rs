@@ -4,7 +4,7 @@ use quary_proto::row_description::{Description, PresentWithInference};
 use quary_proto::table::present_in_schema::{present_row, PresentRow};
 use quary_proto::table::{PresentInSchema, TableType};
 use quary_proto::{row_test, Row, RowDescription, RowTest, RowTestDetails, Table};
-use sqlinference::test::Test;
+use crate::sqlinference::test::Test;
 use std::collections::{HashMap, HashSet};
 
 pub fn map_to_description_table(
@@ -314,7 +314,7 @@ mod tests {
     use quary_proto::{
         ColumnTest, TestGreaterThan, TestLessThan, TestNotNull, TestRelationship, TestUnique,
     };
-    use sqlinference::test::{ComparisonTest, RelationshipTest, StandardTest};
+    use crate::sqlinference::test::{ComparisonTest, RelationshipTest, StandardTest};
 
     #[test]
     fn make_column_vector_inferred_and_definitions() {

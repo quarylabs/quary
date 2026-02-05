@@ -3267,7 +3267,6 @@ dependencies = [
  "serde_yaml",
  "sqruff-lib-core",
  "sqruff-lib-dialects",
- "sqruff-sqlinference",
  "tempfile",
  "testcontainers",
  "testcontainers-modules",
@@ -3295,7 +3294,6 @@ dependencies = [
  "sha2",
  "sqruff-lib-core",
  "sqruff-lib-dialects",
- "sqruff-sqlinference",
  "tokio",
 ]
 
@@ -3321,7 +3319,6 @@ dependencies = [
  "sqlx",
  "sqruff-lib-core",
  "sqruff-lib-dialects",
- "sqruff-sqlinference",
  "tempfile",
  "testcontainers",
  "testcontainers-modules",
@@ -3349,7 +3346,6 @@ dependencies = [
  "serde_yaml",
  "sqruff-lib-core",
  "sqruff-lib-dialects",
- "sqruff-sqlinference",
  "tokio",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -4609,15 +4605,6 @@ dependencies = [
  "serde_yaml",
  "sqruff-lib-core",
  "strum 0.27.2",
-]
-
-[[package]]
-name = "sqruff-sqlinference"
-version = "0.34.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68840ae13a8d527ff5130d5115046a373da18172d119850a315ae7987a6764ea"
-dependencies = [
- "sqruff-lib-core",
 ]
 
 [[package]]
