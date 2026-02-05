@@ -6,7 +6,7 @@ use crate::project_file::{
 };
 use quary_proto::test::TestType;
 use quary_proto::ColumnTest;
-use sqlinference::test::{
+use crate::sqlinference::test::{
     AcceptedValuesTest, ComparisonTest, RelationshipTest, StandardTest, Test,
 };
 use std::collections::HashMap;
@@ -22,7 +22,7 @@ use std::collections::HashMap;
 ///  })),
 /// };
 ///
-/// let want = Some(sqlinference::test::Test::NotNull(sqlinference::test::StandardTest {
+/// let want = Some(quary_core::sqlinference::test::Test::NotNull(quary_core::sqlinference::test::StandardTest {
 ///   column: "column".to_string(),
 ///   path: "schema_name_chosen.model".to_string(),
 /// }));

@@ -8,8 +8,8 @@ use futures::AsyncReadExt;
 use prost::bytes::Bytes;
 use quary_proto::{ColumnTest, Edge, File, Project, Test};
 
-use sqlinference::infer_tests::{infer_tests, InferenceReason};
-use sqlinference::inference::{figure_out_skippable_tests, TestRunnerAction};
+use crate::sqlinference::infer_tests::{infer_tests, InferenceReason};
+use crate::sqlinference::inference::{figure_out_skippable_tests, TestRunnerAction};
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::PathBuf;
 
