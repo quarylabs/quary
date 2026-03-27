@@ -27,7 +27,7 @@ use quary_proto::{
     TestLessThanOrEqual, TestMultiColumnUnique, TestNotNull, TestRelationship, TestSqlFile,
     TestUnique,
 };
-use sqlinference::infer_tests::{get_column_with_source, ExtractedSelect};
+use crate::sqlinference::infer_tests::{get_column_with_source, ExtractedSelect};
 use sqruff_lib_core::parser::Parser;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};

@@ -59,8 +59,8 @@ use quary_proto::{
     UpdateAssetDescriptionResponse, UpdateModelOrSourceColumnDescriptionRequest,
     UpdateModelOrSourceColumnDescriptionResponse,
 };
-use sqlinference::columns::get_columns_internal;
-use sqlinference::infer_tests::infer_tests;
+use quary_core::sqlinference::columns::get_columns_internal;
+use quary_core::sqlinference::infer_tests::infer_tests;
 use sqruff_lib_core::parser::Parser;
 
 pub(crate) async fn is_path_empty(
@@ -1031,7 +1031,7 @@ pub(crate) async fn get_model_table_internal(
     let dialect = database.get_dialect();
     let parser = Parser::new(&dialect, Default::default());
     let (columns, _) = get_columns_internal(&parser, model_statement).ok().unzip();
-    let inferred_tests: Option<Vec<sqlinference::test::Test>> = infer_tests(
+    let inferred_tests: Option<Vec<quary_core::sqlinference::test::Test>> = infer_tests(
         &parser,
         format!("{}.{}", DEFAULT_SCHEMA_PREFIX, request.model_name).as_str(),
         model_statement,

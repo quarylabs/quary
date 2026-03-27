@@ -42,6 +42,7 @@ pub mod sources;
 mod sql;
 pub mod sql_inference_translator;
 pub mod sql_model_finder;
+pub mod sqlinference;
 mod test_helpers;
 pub mod test_runner;
 pub mod tests;
