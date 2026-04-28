@@ -9,7 +9,7 @@
   "dependencies": {
     "@bufbuild/protobuf": "2.10.2",
     "@types/node": "^20.19.27",
-    "protobufjs": "^7.5.4"
+    "protobufjs": "^7.5.5"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
