@@ -1,0 +1,24 @@
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+package(default_visibility = ["//visibility:public"])
+
+npm_link_all_packages()
+
+filegroup(
+    name = "ci_sources",
+    srcs = glob(
+        ["**", ".*", ".*/**"],
+        exclude = [
+            ".git/**",
+            "bazel-*/**",
+            "node_modules/**",
+            "target/**",
+            "tools/ci/**",
+        ],
+    ),
+)
+
+test_suite(
+    name = "ci",
+    tests = ["//tools/ci:ci"],
+)

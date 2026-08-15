@@ -11,6 +11,39 @@ env:
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: true
   CARGO_INCREMENTAL: 0
 jobs:
+  bazel-ci:
+    name: Bazel CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v4
+        with:
+          fetch-depth: '0'
+          submodules: 'true'
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # ratchet:actions/setup-go@v4
+        with:
+          go-version: stable
+      - name: Install Bazel and CI tools
+        run: |
+          go install github.com/bazelbuild/bazelisk@v1.29.0
+          go install github.com/bufbuild/buf/cmd/buf@v1.72.0
+          go install github.com/sethvargo/ratchet@latest
+          sudo apt-get update
+          sudo apt-get install -y jq
+      - name: Set up Rust
+        run: |
+          rustup toolchain install 1.92 --profile minimal --component clippy,rustfmt
+          rustup default 1.92
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # ratchet:actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # ratchet:pnpm/action-setup@v2
+        with:
+          version: 10
+          run_install: false
+      - uses: quarylabs/install-sqruff-cli-action@7805329baf7cf340e849e254cddc782f08f2d36c # ratchet:quarylabs/install-sqruff-cli-action@main
+      - name: Run all Bazel CI targets
+        run: make ci
   github-actions-ratchet-check:
     runs-on: ubuntu-latest
     steps:

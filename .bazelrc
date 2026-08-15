@@ -1,0 +1,8 @@
+# Preserve the developer tool environment for repository-wide Bazel checks. Each
+# check still operates on a private runfiles copy rather than the source checkout.
+run --action_env=PATH
+run --action_env=HOME
+run --action_env=GITHUB_RELEASE_VERSION
+test --test_env=PATH
+test --test_env=HOME
+test --test_env=GITHUB_RELEASE_VERSION

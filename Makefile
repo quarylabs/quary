@@ -67,9 +67,8 @@ markdown_lint_fix: ## Fixes markdown lint errors
 	docker run -v $(shell pwd):/workdir ghcr.io/igorshubovych/markdownlint-cli:latest "docs/**/*.md" --fix
 
 .PHONY: ci
-ci: ratchet_check proto rust_ci proto_breaking sql_lint_template ## Runs everything
-	pnpm install
-	pnpm run ci
+ci: ## Runs everything inside Bazel
+	bazelisk test //:ci
 
 .PHONY: act
 act: ## Runs act which runs the ci locally

@@ -1,0 +1,125 @@
+load(":ci_test.bzl", "check", "js_check")
+
+package(default_visibility = ["//visibility:public"])
+
+check(
+    name = "ratchet_check",
+    command = "ratchet check .github/workflows/*",
+)
+
+check(
+    name = "proto_format",
+    command = "buf format --diff --exit-code",
+)
+
+check(
+    name = "proto_lint",
+    command = "buf lint && buf build --exclude-source-info >/dev/null",
+)
+
+check(
+    name = "proto_generate",
+    command = "buf generate",
+)
+
+check(
+    name = "proto_breaking",
+    command = "buf breaking --against 'https://github.com/quarylabs/quary.git#branch=main'",
+    tags = ["requires-network"],
+)
+
+check(
+    name = "rust_test",
+    command = "cargo test --locked",
+    size = "enormous",
+)
+
+check(
+    name = "rust_format",
+    command = "cargo fmt --all -- --check",
+)
+
+check(
+    name = "rust_clippy",
+    command = "cargo clippy --locked",
+    size = "enormous",
+)
+
+check(
+    name = "rust_build",
+    command = "cargo build --locked",
+    size = "enormous",
+)
+
+check(
+    name = "versions_match",
+    command = "./.hacking/scripts/check_versions_match.sh \"${GITHUB_RELEASE_VERSION:-}\"",
+)
+
+check(
+    name = "sql_lint_postgres_template",
+    command = "cd rust/core/src/init && sqruff lint .",
+)
+
+check(
+    name = "sql_lint_duckdb_template",
+    command = "cd rust/core/src/init_duckdb && sqruff lint .",
+)
+
+js_check(
+    name = "js_format",
+    command = "pnpm prettier --check .",
+)
+
+js_check(
+    name = "js_lint",
+    command = "pnpm -r run lint",
+)
+
+js_check(
+    name = "js_build",
+    command = "pnpm -r run build",
+    size = "enormous",
+)
+
+js_check(
+    name = "js_test",
+    command = "CI=true pnpm -r run test",
+    size = "enormous",
+)
+
+js_check(
+    name = "js_storybook",
+    command = "pnpm -r run build-storybook",
+    size = "enormous",
+)
+
+js_check(
+    name = "js_extension_package",
+    command = "pnpm -r run vscode:package",
+    size = "enormous",
+)
+
+test_suite(
+    name = "ci",
+    tests = [
+        ":ratchet_check",
+        ":proto_format",
+        ":proto_lint",
+        ":proto_generate",
+        ":proto_breaking",
+        ":rust_test",
+        ":rust_format",
+        ":rust_clippy",
+        ":rust_build",
+        ":versions_match",
+        ":sql_lint_postgres_template",
+        ":sql_lint_duckdb_template",
+        ":js_format",
+        ":js_lint",
+        ":js_build",
+        ":js_test",
+        ":js_storybook",
+        ":js_extension_package",
+    ],
+)

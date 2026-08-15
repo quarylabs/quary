@@ -1,2 +1,10 @@
 packages:
   - 'js/packages/*'
+
+# Bazel's lockfile translator requires lifecycle scripts to be explicitly
+# allowlisted. This workspace currently has none.
+allowBuilds: {}
+
+# Bazel materializes node_modules from pnpm-lock.yaml; pnpm must not replace
+# that tree before package scripts run.
+verifyDepsBeforeRun: false
