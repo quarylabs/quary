@@ -1,0 +1,36 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rust//cargo:defs.bzl", "cargo_build_script")
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+
+exports_files(["Cargo.toml"])
+
+cargo_build_script(
+    name = "build-script",
+    srcs = ["build.rs"],
+    data = ["Cargo.toml"],
+    deps = all_crate_deps(build = True),
+    rustc_env = {"CARGO_PKG_VERSION": "0.10.1"},
+    version = "0.10.1",
+)
+
+rust_binary(
+    name = "quary",
+    aliases = aliases(),
+    srcs = glob(["src/**/*.rs"]),
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+    visibility = ["//visibility:public"],
+    version = "0.10.1",
+    deps = all_crate_deps(normal = True) + [
+        ":build-script",
+        "//proto/gen/rust:quary-proto",
+        "//rust/core:quary-core",
+        "//rust/dbt-converter:dbt-converter",
+        "//rust/quary-databases:quary-databases",
+    ],
+)
+
+filegroup(
+    name = "test_fixtures",
+    srcs = glob(["tests/**"]),
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,75 @@
+"""Bazel module definition for Quary."""
+
+module(
+    name = "quary",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
+bazel_dep(name = "aspect_rules_js", version = "3.2.2")
+bazel_dep(name = "rules_nodejs", version = "6.7.3")
+bazel_dep(name = "rules_rust", version = "0.68.1")
+bazel_dep(name = "rules_rust_wasm_bindgen", version = "0.68.1")
+bazel_dep(name = "rules_shell", version = "0.6.1")
+bazel_dep(name = "rules_shellcheck", version = "0.4.0")
+
+# Platform-aware tool downloads.
+tools = use_extension("//:tools.bzl", "tools")
+use_repo(tools, "ratchet")
+
+# Hermetic Node.js and pnpm toolchains.
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+node.toolchain(node_version = "22.22.0")
+
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+npm.npm_translate_lock(
+    name = "npm",
+    data = [
+        "//:package.json",
+        "//:pnpm-workspace.yaml",
+        "//js/packages/eslint-config-shared:package.json",
+        "//js/packages/proto:package.json",
+        "//js/packages/quary-extension:package.json",
+        "//js/packages/quary-extension-bus:package.json",
+        "//js/packages/quary-extension-ui:package.json",
+    ],
+    pnpm_lock = "//:pnpm-lock.yaml",
+)
+use_repo(npm, "npm")
+
+pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm")
+pnpm.pnpm(
+    name = "pnpm",
+    pnpm_version = "10.0.0",
+)
+use_repo(pnpm, "pnpm")
+
+# Hermetic Rust toolchain, including the target used by the VS Code extension.
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = "2021",
+    extra_target_triples = ["wasm32-unknown-unknown"],
+    versions = ["1.92.0"],
+)
+use_repo(rust, "rust_toolchains")
+
+register_toolchains("@rust_toolchains//:all")
+register_toolchains("@rules_rust//rust/private/dummy_cc_toolchain:dummy_cc_wasm32_toolchain")
+
+# Resolve third-party crates from the checked-in Cargo manifests and lockfile.
+crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+crate.from_cargo(
+    name = "crates",
+    cargo_lockfile = "//:Cargo.lock",
+    manifests = [
+        "//:Cargo.toml",
+        "//proto/gen/rust:Cargo.toml",
+        "//rust/cli:Cargo.toml",
+        "//rust/core:Cargo.toml",
+        "//rust/dbt-converter:Cargo.toml",
+        "//rust/pbjson-types:Cargo.toml",
+        "//rust/quary-databases:Cargo.toml",
+        "//rust/wasm-binding:Cargo.toml",
+    ],
+)
+use_repo(crate, "crates")

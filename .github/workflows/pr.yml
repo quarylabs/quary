@@ -148,3 +148,38 @@ jobs:
           run_install: false
       - run: pnpm install --filter "@quary/root" --frozen-lockfile
       - run: make prettier_lint
+  bazel:
+    name: Bazel Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v4
+      - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # ratchet:bazel-contrib/setup-bazel@0.19.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+      - name: Install native build dependencies
+        run: sudo apt-get update --yes && sudo apt-get install --yes jq libkrb5-dev libssl-dev lld pkg-config
+      - name: Build all targets
+        run: bazelisk build --config=ci //...
+      - name: Run all tests
+        run: bazelisk test --config=ci //...
+  bazel-lockfile:
+    name: Bazel Lockfile Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v4
+      - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # ratchet:bazel-contrib/setup-bazel@0.19.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+      - name: Update lockfile
+        run: bazelisk mod deps --lockfile_mode=update
+      - name: Check lockfile is up to date
+        run: |
+          if ! git diff --quiet MODULE.bazel.lock; then
+            echo "::error::MODULE.bazel.lock is out of date. Run 'make bazel_lock' and commit the changes."
+            git diff MODULE.bazel.lock
+            exit 1
+          fi

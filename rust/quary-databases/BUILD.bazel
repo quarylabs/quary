@@ -1,0 +1,17 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+exports_files(["Cargo.toml"])
+
+rust_library(
+    name = "quary-databases",
+    aliases = aliases(),
+    srcs = glob(["src/**/*.rs"]),
+    crate_name = "quary_databases",
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+    visibility = ["//visibility:public"],
+    deps = all_crate_deps(normal = True) + [
+        "//proto/gen/rust:quary-proto",
+        "//rust/core:quary-core",
+    ],
+)

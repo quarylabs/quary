@@ -1,0 +1,5 @@
+# Directories Bazel should ignore.
+node_modules
+target
+dist
+.git

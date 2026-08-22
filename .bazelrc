@@ -1,0 +1,22 @@
+# Build with optimizations, matching sqruff's default Bazel profile.
+build --compilation_mode=opt
+
+# Keep interactive output useful without overwhelming terminals.
+build --show_progress_rate_limit=0.5
+build --curses=yes
+
+# Match the existing `cargo clippy` policy: report warnings without denying them.
+build --@rules_rust//rust/settings:clippy_flag=--warn=warnings
+
+# Only print failing test output.
+test --test_output=errors
+
+# CI-specific output settings.
+build:ci --color=yes
+build:ci --curses=no
+build:ci --show_timestamps
+build:ci --verbose_failures
+test:ci --test_output=errors
+test:ci --test_summary=detailed
+test:ci --verbose_failures
+test:ci --nokeep_going

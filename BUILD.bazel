@@ -1,0 +1,121 @@
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@npm//:prettier/package_json.bzl", prettier_bin = "bin")
+load("@rules_rust//rust:defs.bzl", "rust_clippy", "rustfmt_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("@rules_shellcheck//:def.bzl", "shellcheck_test")
+
+npm_link_all_packages(name = "node_modules")
+
+exports_files([
+    "Cargo.toml",
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "prettier.config.mjs",
+])
+
+filegroup(
+    name = "prettier_srcs",
+    srcs = glob([
+        ".github/**/*.yaml",
+        ".github/**/*.yml",
+        "*.js",
+        "*.json",
+        "*.md",
+        "*.mjs",
+        "*.yaml",
+        "*.yml",
+        "proto/**/*.json",
+        "proto/**/*.yaml",
+        "proto/**/*.yml",
+    ], allow_empty = True) + [
+        ".prettierignore",
+        "//js/packages/eslint-config-shared:prettier_srcs",
+        "//js/packages/proto:prettier_srcs",
+        "//js/packages/quary-extension:prettier_srcs",
+        "//js/packages/quary-extension-bus:prettier_srcs",
+        "//js/packages/quary-extension-ui:prettier_srcs",
+    ],
+)
+
+prettier_bin.prettier_test(
+    name = "prettier_check",
+    size = "small",
+    args = [
+        "--check",
+        "--config",
+        "prettier.config.mjs",
+        ".",
+    ],
+    chdir = package_name(),
+    data = [
+        ":node_modules/prettier",
+        ":node_modules/prettier-plugin-tailwindcss",
+        ":prettier_srcs",
+        ".prettierignore",
+        "prettier.config.mjs",
+    ],
+)
+
+prettier_bin.prettier_binary(
+    name = "prettier_fix",
+    args = [
+        "--write",
+        "--config",
+        "prettier.config.mjs",
+        ".",
+    ],
+    chdir = package_name(),
+    data = [
+        ":node_modules/prettier",
+        ":node_modules/prettier-plugin-tailwindcss",
+        ":prettier_srcs",
+        ".prettierignore",
+        "prettier.config.mjs",
+    ],
+    env = {"JS_BINARY__CHDIR": "$$BUILD_WORKSPACE_DIRECTORY"},
+)
+
+shellcheck_test(
+    name = "shellcheck",
+    size = "small",
+    data = glob([".hacking/scripts/*.sh"]),
+    severity = "warning",
+)
+
+sh_test(
+    name = "ratchet_check",
+    size = "small",
+    srcs = [".hacking/scripts/ratchet_check.sh"],
+    data = ["@ratchet//:ratchet"] + glob([".github/workflows/*.yml"]),
+)
+
+sh_test(
+    name = "check_versions_match",
+    size = "small",
+    srcs = [".hacking/scripts/check_versions_match.sh"],
+    data = [
+        "Cargo.toml",
+        "//js/packages/quary-extension:package.json",
+    ],
+)
+
+RUST_TARGETS = [
+    "//proto/gen/rust:quary-proto",
+    "//rust/cli:quary",
+    "//rust/core:quary-core",
+    "//rust/dbt-converter:dbt-converter",
+    "//rust/pbjson-types:pbjson-types",
+    "//rust/quary-databases:quary-databases",
+    "//rust/wasm-binding:quary-wasm-bindgen",
+]
+
+rustfmt_test(
+    name = "rustfmt_check",
+    targets = RUST_TARGETS,
+)
+
+rust_clippy(
+    name = "clippy_check",
+    deps = RUST_TARGETS,
+)

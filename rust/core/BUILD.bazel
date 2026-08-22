@@ -1,0 +1,35 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+
+exports_files(["Cargo.toml"])
+
+rust_library(
+    name = "quary-core",
+    aliases = aliases(),
+    srcs = glob(["src/**/*.rs"]),
+    compile_data = glob([
+        "src/init/**",
+        "src/init_duckdb/**",
+        "src/template_files/**",
+    ]),
+    crate_name = "quary_core",
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+    visibility = ["//visibility:public"],
+    deps = all_crate_deps(normal = True) + [
+        "//proto/gen/rust:quary-proto",
+        "//rust/pbjson-types:pbjson-types",
+    ],
+)
+
+rust_test(
+    name = "quary-core-test",
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate = ":quary-core",
+    proc_macro_deps = all_crate_deps(proc_macro_dev = True),
+    deps = all_crate_deps(normal_dev = True),
+)

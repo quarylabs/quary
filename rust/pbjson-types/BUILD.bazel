@@ -1,0 +1,37 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rust//cargo:defs.bzl", "cargo_build_script")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+
+exports_files(["Cargo.toml"])
+
+cargo_build_script(
+    name = "build-script",
+    srcs = ["build.rs"],
+    data = ["descriptors.bin"],
+    deps = all_crate_deps(build = True),
+)
+
+rust_library(
+    name = "pbjson-types",
+    aliases = aliases(),
+    srcs = glob(["src/**/*.rs"]),
+    crate_name = "pbjson_types",
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+    visibility = ["//visibility:public"],
+    deps = all_crate_deps(normal = True) + [
+        ":build-script",
+    ],
+)
+
+rust_test(
+    name = "pbjson-types-test",
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate = ":pbjson-types",
+    proc_macro_deps = all_crate_deps(proc_macro_dev = True),
+    deps = all_crate_deps(normal_dev = True),
+)

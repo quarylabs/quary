@@ -1,0 +1,51 @@
+load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+exports_files(["Cargo.toml"])
+
+copy_to_directory(
+    name = "test_fixtures",
+    srcs = glob([
+        "src/input/**",
+        "src/output/**",
+    ]),
+    out = "test_fixtures",
+    root_paths = ["rust/dbt-converter"],
+)
+
+rust_library(
+    name = "dbt-converter",
+    aliases = aliases(),
+    srcs = glob(["src/**/*.rs"]),
+    crate_name = "dbt_converter",
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+    visibility = ["//visibility:public"],
+    deps = all_crate_deps(normal = True) + [
+        "//proto/gen/rust:quary-proto",
+    ],
+)
+
+rust_test(
+    name = "dbt-converter-test-bin",
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate = ":dbt-converter",
+    data = [":test_fixtures"],
+    proc_macro_deps = all_crate_deps(proc_macro_dev = True),
+    rustc_env = {"CARGO_MANIFEST_DIR": "rust/dbt-converter/test_fixtures"},
+    tags = ["manual"],
+    deps = all_crate_deps(normal_dev = True),
+)
+
+sh_test(
+    name = "dbt-converter-test",
+    srcs = ["run_test.sh"],
+    data = [":dbt-converter-test-bin"],
+    env = {"RUST_TEST": "$(rlocationpath :dbt-converter-test-bin)"},
+)
