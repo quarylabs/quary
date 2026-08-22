@@ -31,11 +31,11 @@ jobs:
           target: wasm32-unknown-unknown
           override: true
           profile: minimal
-      - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # ratchet:Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # ratchet:Swatinem/rust-cache@v2
       - run: cargo install wasm-bindgen-cli
       - name: Build rust wasm
         run: make rust_build_wasm
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # ratchet:actions/setup-node@v4
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # ratchet:actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # ratchet:pnpm/action-setup@v2
@@ -46,7 +46,7 @@ jobs:
       - name: Build extension
         run: pnpm run build_extension
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # ratchet:softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # ratchet:softprops/action-gh-release@v3.0.0
         with:
           files: ./js/packages/quary-extension/quary-*.vsix
       - run: pnpx vsce publish --packagePath $(find ./js/packages/quary-extension/quary-*.vsix)
