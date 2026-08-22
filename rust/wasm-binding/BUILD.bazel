@@ -1,0 +1,40 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library")
+load("@rules_rust_wasm_bindgen//:defs.bzl", "rust_wasm_bindgen")
+
+exports_files(["Cargo.toml"])
+
+rust_library(
+    name = "quary-wasm-bindgen",
+    aliases = aliases(),
+    srcs = glob(["src/**/*.rs"]),
+    crate_name = "quary_wasm_bindgen",
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+    visibility = ["//visibility:public"],
+    deps = all_crate_deps(normal = True) + [
+        "//proto/gen/rust:quary-proto",
+        "//rust/core:quary-core",
+    ],
+)
+
+rust_shared_library(
+    name = "quary-wasm-cdylib",
+    aliases = aliases(),
+    srcs = glob(["src/**/*.rs"]),
+    crate_name = "quary_wasm_bindgen",
+    platform = "@rules_rust//rust/platform:wasm",
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+    visibility = ["//visibility:public"],
+    deps = all_crate_deps(normal = True) + [
+        "//proto/gen/rust:quary-proto",
+        "//rust/core:quary-core",
+    ],
+)
+
+rust_wasm_bindgen(
+    name = "wasm",
+    out_name = "quary_wasm_bindgen",
+    target = "web",
+    visibility = ["//visibility:public"],
+    wasm_file = ":quary-wasm-cdylib",
+)

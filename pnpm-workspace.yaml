@@ -1,2 +1,7 @@
 packages:
   - 'js/packages/*'
+
+# Keep native package lifecycle scripts explicit for rules_js and pnpm 10.
+onlyBuiltDependencies:
+  - '@swc/core'
+  - esbuild

@@ -106,3 +106,15 @@ prettier_lint: ## Lints all the yaml files
 .PHONY: help
 help: ## Display this help screen
 	@grep -E '^[a-z.A-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+.PHONY: bazel_build
+bazel_build: ## Builds all Bazel targets
+	bazelisk build //...
+
+.PHONY: bazel_test
+bazel_test: ## Runs all Bazel tests
+	bazelisk test //...
+
+.PHONY: bazel_lock
+bazel_lock: ## Updates the Bazel module lockfile
+	bazelisk mod deps --lockfile_mode=update

@@ -107,3 +107,8 @@ fabric.properties
 
 machine_learning/wikisql
 .vercel
+
+# Bazel
+bazel-*
+.bazelisk/
+user.bazelrc
