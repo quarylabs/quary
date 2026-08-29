@@ -16,7 +16,6 @@ license = "Apache-2.0"
 rust-version = "1.86.0"
 
 [workspace.dependencies]
-sqlinference = { package = "sqruff-sqlinference", version = "0.34.1" }
 sqruff-lib-core = { package = "sqruff-lib-core", version = "0.34.1" }
 sqruff-lib-dialects = { package = "sqruff-lib-dialects", version = "0.34.1" }
 

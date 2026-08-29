@@ -3,7 +3,7 @@ use quary_proto::{
     Project, Test, TestAcceptedValues, TestGreaterThan, TestGreaterThanOrEqual, TestLessThan,
     TestLessThanOrEqual, TestMultiColumnUnique, TestNotNull, TestRelationship, TestUnique,
 };
-use sqlinference::test::Test as SqlInferenceTest;
+use crate::sqlinference::test::Test as SqlInferenceTest;
 use std::path::PathBuf;
 
 pub fn test_to_name(test: &Test) -> Result<String, String> {
@@ -232,23 +232,23 @@ impl ShortTestString for SqlInferenceTest {
     // TODO Need to add tests for this
     fn short_test_string(&self) -> Result<String, String> {
         Ok(match self {
-            sqlinference::test::Test::Unique(_) => "unique".to_string(),
-            sqlinference::test::Test::NotNull(_) => "not null".to_string(),
-            sqlinference::test::Test::Relationship(test) => format!(
+            crate::sqlinference::test::Test::Unique(_) => "unique".to_string(),
+            crate::sqlinference::test::Test::NotNull(_) => "not null".to_string(),
+            crate::sqlinference::test::Test::Relationship(test) => format!(
                 "relationship ({}, {})",
                 test.target_reference, test.target_column
             ),
-            sqlinference::test::Test::AcceptedValues(test) => {
+            crate::sqlinference::test::Test::AcceptedValues(test) => {
                 format!("one of ({})", test.values.join("; ")).to_string()
             }
-            sqlinference::test::Test::GreaterThanOrEqual(test) => {
+            crate::sqlinference::test::Test::GreaterThanOrEqual(test) => {
                 format!("≥ {}", test.value).to_string()
             }
-            sqlinference::test::Test::LessThanOrEqual(test) => {
+            crate::sqlinference::test::Test::LessThanOrEqual(test) => {
                 format!("≤ {}", test.value).to_string()
             }
-            sqlinference::test::Test::GreaterThan(test) => format!("> {}", test.value).to_string(),
-            sqlinference::test::Test::LessThan(test) => format!("< {}", test.value).to_string(),
+            crate::sqlinference::test::Test::GreaterThan(test) => format!("> {}", test.value).to_string(),
+            crate::sqlinference::test::Test::LessThan(test) => format!("< {}", test.value).to_string(),
         })
     }
 }
