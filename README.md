@@ -9,7 +9,6 @@
 <div class="title-block" style="text-align: center;" align="center">
 
 [![Made by Quary](https://img.shields.io/badge/MADE%20BY%20Quary-000000.svg?style=for-the-badge&logo=Quary&labelColor=000)](https://www.quary.dev/)
-[![Slack Community](https://img.shields.io/badge/slack-@quarycommunity-000000.svg?style=for-the-badge&logo=slack&labelColor=000)](https://join.slack.com/t/quarylabs/shared_invite/zt-2dlbfnztw-dMLXJVL38NcbhqRuM5gUcw)
 [![YC](https://img.shields.io/badge/Y%20Combinator-W24-orange?style=for-the-badge&logo=Quary&labelColor=000)](https://www.ycombinator.com/companies/quary)
 [![GitHub Repo stars](https://img.shields.io/github/stars/quarylabs/quary?style=for-the-badge&logo=Quary&labelColor=000)](https://github.com/quarylabs/quary)
 
@@ -91,10 +90,6 @@ quary compile # validate the project structure and model references without data
 quary build   # build and execute the model views/seeds against target database
 quary test -s   # run defined tests against target database
 ```
-
-<h2>🅀 Community</h2>
-
-[Join our Slack channel](https://join.slack.com/t/quarylabs/shared_invite/zt-2dlbfnztw-dMLXJVL38NcbhqRuM5gUcw), for help, ideas, and discussions.
 
 ## Support
 
