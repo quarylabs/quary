@@ -46,7 +46,7 @@ jobs:
       - name: Build extension
         run: pnpm run build_extension
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # ratchet:softprops/action-gh-release@v3.0.0
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # ratchet:softprops/action-gh-release@v3.0.3
         with:
           files: ./js/packages/quary-extension/quary-*.vsix
       - run: pnpx vsce publish --packagePath $(find ./js/packages/quary-extension/quary-*.vsix)
