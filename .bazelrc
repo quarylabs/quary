@@ -1,6 +1,12 @@
 # Build with optimizations, matching sqruff's default Bazel profile.
 build --compilation_mode=opt
 
+# Rust's Mach-O stripping can produce compiler plugins that macOS cannot load.
+# https://github.com/rust-lang/rust/issues/157750
+common --enable_platform_specific_config
+build:macos --@rules_rust//rust/settings:extra_rustc_flags=-Cstrip=none
+build:macos --@rules_rust//rust/settings:extra_exec_rustc_flags=-Cstrip=none
+
 # Keep interactive output useful without overwhelming terminals.
 build --show_progress_rate_limit=0.5
 build --curses=yes

@@ -572,7 +572,7 @@ async fn generate_sources(
     let views = database.list_views().await?;
 
     let mut tables_with_columns = vec![];
-    for table in tables.into_iter().chain(views.into_iter()) {
+    for table in tables.into_iter().chain(views) {
         let columns = database.list_columns(&table.full_path).await?;
         tables_with_columns.push(AddressWithColumns { table, columns });
     }
