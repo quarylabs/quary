@@ -49,7 +49,7 @@ rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(
     edition = "2021",
     extra_target_triples = ["wasm32-unknown-unknown"],
-    versions = ["1.92.0"],
+    versions = ["1.95.0"],
 )
 use_repo(rust, "rust_toolchains")
 
