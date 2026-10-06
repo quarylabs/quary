@@ -82,7 +82,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorDuckDB {
     }
 
     fn get_dialect(&self) -> Dialect {
-        duckdb::dialect()
+        duckdb::dialect(None)
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

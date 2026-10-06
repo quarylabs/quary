@@ -140,7 +140,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorClickhouse {
     }
 
     fn get_dialect(&self) -> Dialect {
-        clickhouse::dialect()
+        clickhouse::dialect(None)
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

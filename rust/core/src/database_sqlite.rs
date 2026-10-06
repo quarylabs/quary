@@ -45,7 +45,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorSqlite {
     }
 
     fn get_dialect(&self) -> Dialect {
-        sqlite::dialect()
+        sqlite::dialect(None)
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

@@ -10,7 +10,7 @@ use quary_proto::{ColumnTest, Edge, File, Project, Test};
 
 use sqlinference::infer_tests::{infer_tests, InferenceReason};
 use sqlinference::inference::{figure_out_skippable_tests, TestRunnerAction};
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap};
 use std::path::PathBuf;
 
 /// infer_tests_internal returns a pointer of column to tests to put in a project file
@@ -32,7 +32,7 @@ pub fn infer_tests_internal(
                 .map(|mapped_test| (mapped_test, name.clone()))
         })
         .collect::<HashMap<_, _>>();
-    let tests = test_map.keys().cloned().collect::<HashSet<_>>();
+    let tests = test_map.keys().cloned().collect();
 
     let model_path = format!("{}.{}", modelling_prefix, model_of_interest);
     let tests = infer_tests(dialect, model_path.as_str(), model.as_str(), &tests)?;
@@ -71,11 +71,11 @@ pub async fn infer_skippable_tests_internal(
 
     let inferred_tests = figure_out_skippable_tests(
         dialect,
-        &test_map.values().cloned().collect::<HashSet<_>>(),
+        &test_map.values().cloned().collect(),
         &model_map
             .iter()
             .map(|(k, v)| (format!("{}.{}", DEFAULT_SCHEMA_PREFIX, k), v.clone()))
-            .collect::<HashMap<_, _>>(),
+            .collect(),
     );
 
     let out_tests = project
