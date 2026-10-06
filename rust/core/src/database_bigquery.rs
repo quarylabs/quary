@@ -66,7 +66,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorBigQuery {
     }
 
     fn get_dialect(&self) -> Dialect {
-        bigquery::dialect()
+        bigquery::dialect(None)
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

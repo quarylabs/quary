@@ -119,7 +119,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorSnowflake {
     }
 
     fn get_dialect(&self) -> Dialect {
-        snowflake::dialect()
+        snowflake::dialect(None)
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

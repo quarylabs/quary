@@ -203,7 +203,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorPostgres {
     }
 
     fn get_dialect(&self) -> Dialect {
-        postgres::dialect()
+        postgres::dialect(None)
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {

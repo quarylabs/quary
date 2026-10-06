@@ -154,7 +154,7 @@ impl DatabaseQueryGenerator for DatabaseQueryGeneratorRedshift {
     }
 
     fn get_dialect(&self) -> Dialect {
-        redshift::dialect()
+        redshift::dialect(None)
     }
 
     fn database_name_wrapper(&self, name: &str) -> String {
