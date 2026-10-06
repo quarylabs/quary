@@ -269,10 +269,7 @@ pub async fn project_and_fs_to_sql_for_views(
                 .clone(),
         )
         .await?;
-        seeds_out = pre_scripts
-            .into_iter()
-            .chain(seeds_out.into_iter())
-            .collect();
+        seeds_out = pre_scripts.into_iter().chain(seeds_out).collect();
     }
 
     Ok(seeds_out)
