@@ -18,7 +18,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # ratchet:actions/setup-go@v4
       - name: Install ratchet
-        run: go install github.com/sethvargo/ratchet@latest
+        run: go install github.com/sethvargo/ratchet@v0.11.4
       - name: Ratchet Check
         run: make ratchet_check
   commitlint-check:
@@ -52,7 +52,7 @@ jobs:
           override: true
           profile: minimal
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # ratchet:Swatinem/rust-cache@v2
-      - run: cargo install wasm-bindgen-cli
+      - run: cargo install wasm-bindgen-cli --version 0.2.105 --locked
       - name: Build rust wasm
         run: make rust_build_wasm
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # ratchet:actions/setup-node@v4
@@ -102,7 +102,7 @@ jobs:
       - name: Install wasm target
         run: rustup target add wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # ratchet:Swatinem/rust-cache@v2
-      - run: cargo install wasm-bindgen-cli
+      - run: cargo install wasm-bindgen-cli --version 0.2.105 --locked
       - name: Check CI scripts
         run: make rust_build
   rust-build-windows:
