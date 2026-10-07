@@ -13,7 +13,7 @@
     "audit": "pnpm audit --recursive --all"
   },
   "engines": {
-    "node": ">=22.0.0 <23.0.0",
+    "node": ">=24.0.0 <25.0.0",
     "pnpm": ">=10.0.0"
   },
   "dependencies": {
