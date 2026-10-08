@@ -2,8 +2,6 @@ name: pr-checks
 on:
   merge_group:
   pull_request:
-    branches:
-      - main
 concurrency:
   group: ${{ github.head_ref }}
   cancel-in-progress: true
@@ -47,7 +45,7 @@ jobs:
           submodules: 'true'
       - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: '1.98.1'
           target: wasm32-unknown-unknown
           override: true
           profile: minimal
@@ -83,7 +81,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7.0.1
       - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: '1.98.1'
           profile: minimal
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # ratchet:Swatinem/rust-cache@v2
       - uses: actions-rs/cargo@844f36862e911db73fe0815f00a4a2602c279505 # ratchet:actions-rs/cargo@v1
@@ -94,10 +92,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7.0.1
-      - name: Install stable toolchain
+      - name: Install Rust toolchain
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: '1.98.1'
           components: rustfmt, clippy
       - name: Install wasm target
         run: rustup target add wasm32-unknown-unknown
@@ -110,10 +108,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7.0.1
-      - name: Install stable toolchain
+      - name: Install Rust toolchain
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # ratchet:actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: '1.98.1'
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # ratchet:Swatinem/rust-cache@v2
       - name: Check CI scripts
         run: cargo build
