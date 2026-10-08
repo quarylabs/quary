@@ -7,6 +7,7 @@ module(
 
 bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
 bazel_dep(name = "aspect_rules_js", version = "3.2.2")
+bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "rules_nodejs", version = "6.7.3")
 bazel_dep(name = "rules_rust", version = "0.68.1")
 bazel_dep(name = "rules_rust_wasm_bindgen", version = "0.68.1")
@@ -100,6 +101,24 @@ use_repo(rust, "rust_toolchains")
 
 register_toolchains("@rust_toolchains//:all")
 register_toolchains("@rules_rust//rust/private/dummy_cc_toolchain:dummy_cc_wasm32_toolchain")
+
+# Keep the binding generator's schema aligned with the wasm-bindgen Cargo crate.
+wasm_bindgen_tools = use_extension("//:wasm_bindgen_tools.bzl", "wasm_bindgen_tools")
+use_repo(
+    wasm_bindgen_tools,
+    "wasm_bindgen_cli_darwin_amd64",
+    "wasm_bindgen_cli_darwin_arm64",
+    "wasm_bindgen_cli_linux_amd64",
+    "wasm_bindgen_cli_linux_arm64",
+    "wasm_bindgen_cli_windows_amd64",
+)
+register_toolchains(
+    "@wasm_bindgen_cli_darwin_amd64//:toolchain",
+    "@wasm_bindgen_cli_darwin_arm64//:toolchain",
+    "@wasm_bindgen_cli_linux_amd64//:toolchain",
+    "@wasm_bindgen_cli_linux_arm64//:toolchain",
+    "@wasm_bindgen_cli_windows_amd64//:toolchain",
+)
 
 # Resolve third-party crates from the checked-in Cargo manifests and lockfile.
 crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
