@@ -31,7 +31,7 @@ const init = () => {
   const wasmString1 = wasm.slice('data:application/wasm;base64,'.length)
   const wasmArray = Uint8Array.from(atob(wasmString1), (c) => c.charCodeAt(0))
 
-  initSync(wasmArray)
+  initSync({ module: wasmArray })
 }
 
 export const rustWithDatabaseWasmServices = (

@@ -13,7 +13,7 @@ crate-type = ["cdylib", "rlib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
-wasm-bindgen = { version = "=0.2.105", default-features = false }
+wasm-bindgen = { version = "=0.2.114", default-features = false }
 send_wrapper = "0.6"
 sqlinference.workspace = true
 sqruff-lib-core.workspace = true
@@ -37,7 +37,7 @@ serde_yaml = "0.9.34+deprecated"
 serde = { version = "1.0.209", features = ["derive"] }
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3"
+wasm-bindgen-test = "0.3.64"
 tokio = { version = "1.47.1", features = ["rt", "macros"], default-features = false }
 chrono = "0.4.44"
 
