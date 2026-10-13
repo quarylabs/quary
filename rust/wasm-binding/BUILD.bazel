@@ -1,5 +1,5 @@
 load("@crates//:defs.bzl", "aliases", "all_crate_deps")
-load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library", "rust_test")
 load("@rules_rust_wasm_bindgen//:defs.bzl", "rust_wasm_bindgen")
 
 exports_files(["Cargo.toml"])
@@ -15,6 +15,19 @@ rust_library(
         "//proto/gen/rust:quary-proto",
         "//rust/core:quary-core",
     ],
+)
+
+rust_test(
+    name = "quary-wasm-bindgen-test",
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate = ":quary-wasm-bindgen",
+    proc_macro_deps = all_crate_deps(proc_macro_dev = True),
+    deps = all_crate_deps(normal_dev = True),
 )
 
 rust_shared_library(
