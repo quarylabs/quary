@@ -148,7 +148,7 @@ export class AuthenticationProviderSnowflake
           clientSecret,
           account: {
             id: user,
-            label: `${user} | ${retrievedRole}` || 'Snowflake User',
+            label: `${user} | ${retrievedRole}`,
           },
           scopes,
         }

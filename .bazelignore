@@ -1,5 +1,10 @@
 # Directories Bazel should ignore.
 node_modules
+js/packages/eslint-config-shared/node_modules
+js/packages/proto/node_modules
+js/packages/quary-extension/node_modules
+js/packages/quary-extension-bus/node_modules
+js/packages/quary-extension-ui/node_modules
 target
 dist
 .git
