@@ -1,4 +1,13 @@
-module.exports = {
+const { fixupConfigRules } = require('@eslint/compat')
+const { FlatCompat } = require('@eslint/eslintrc')
+const js = require('@eslint/js')
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+  recommendedConfig: js.configs.recommended,
+})
+
+const shared = {
   plugins: ['@typescript-eslint', 'import', 'react'],
   extends: [
     'eslint:recommended',
@@ -85,3 +94,6 @@ module.exports = {
     ],
   },
 }
+
+// Keep legacy shareable configs and Storybook's pre-v9 rule APIs working.
+module.exports = fixupConfigRules(compat.config(shared))
