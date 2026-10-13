@@ -1,5 +1,5 @@
 use crate::rpc_proto_scaffolding::{JsFileSystem, Writer};
-use minijinja::Environment;
+use minijinja::{value::Serde, Environment};
 use quary_core::databases::DatabaseQueryGenerator;
 use quary_core::file_system::FileSystem;
 use quary_proto::{
@@ -47,7 +47,7 @@ async fn return_generate_model_prompt_to_search_for_models_internal(
         .get_template("1")
         .map_err(|e| format!("Error getting template: {}", e))?;
     let prompt = template
-        .render(prompt)
+        .render(Serde(prompt))
         .map_err(|e| format!("Error rendering template: {}", e))?;
 
     Ok(ReturnGenerateModelPromptToSearchForModelsResponse {
