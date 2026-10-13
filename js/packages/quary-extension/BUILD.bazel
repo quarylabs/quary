@@ -1,9 +1,22 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@npm//js/packages/quary-extension:eslint/package_json.bzl", eslint_bin = "bin")
 
 exports_files(["package.json"])
 
 npm_link_all_packages(name = "node_modules")
+
+eslint_bin.eslint_test(
+    name = "eslint_check",
+    size = "small",
+    args = ["src"],
+    chdir = package_name(),
+    data = [
+        ":node_modules",
+        ":prettier_srcs",
+        "//js/packages/eslint-config-shared:node_modules",
+    ],
+)
 
 alias(
     name = "pkg",
