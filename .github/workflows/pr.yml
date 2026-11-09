@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # ratchet:actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # ratchet:pnpm/action-setup@v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # ratchet:pnpm/action-setup@v6.1.1
         id: pnpm-install
         with:
           version: 10
@@ -56,7 +56,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # ratchet:actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # ratchet:pnpm/action-setup@v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # ratchet:pnpm/action-setup@v6.1.1
         with:
           version: 10
       - name: Install dependencies
@@ -139,7 +139,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # ratchet:actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # ratchet:pnpm/action-setup@v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # ratchet:pnpm/action-setup@v6.1.1
         name: Install pnpm
         with:
           version: 10
